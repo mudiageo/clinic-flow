@@ -9,9 +9,29 @@
   import { Select as SelectPrimitive } from 'bits-ui';
   import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select';
   import { toast } from 'svelte-sonner';
+  import * as Dialog from '$lib/components/ui/dialog';
+  import QRCode from 'qrcode';
 
   let showScanner = $state(false);
   let searchQuery = $state('');
+
+  // QR Display
+  let showQrDialog = $state(false);
+  let registeredPatientInfo = $state<{name: string, clinicId: string} | null>(null);
+  let qrCanvas = $state<HTMLCanvasElement | null>(null);
+
+  $effect(() => {
+    if (showQrDialog && registeredPatientInfo && qrCanvas) {
+      QRCode.toCanvas(qrCanvas, registeredPatientInfo.clinicId, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#ffffff'
+        }
+      });
+    }
+  });
 
   // Form Fields
   let fullName = $state('');
@@ -83,6 +103,9 @@
 
       toast.success(`Patient ${fullName} registered and queued successfully!`);
       
+      registeredPatientInfo = { name: fullName, clinicId };
+      showQrDialog = true;
+
       // Clear form
       fullName = '';
       phone = '';
@@ -218,3 +241,32 @@
     </div>
   </div>
 </div>
+
+<!-- QR Print Dialog -->
+<Dialog.Root bind:open={showQrDialog}>
+  <Dialog.Content class="sm:max-w-md bg-slate-950 border-slate-800">
+    <Dialog.Header>
+      <Dialog.Title class="text-white">Patient Registered</Dialog.Title>
+      <Dialog.Description class="text-slate-400">
+        Scan this QR code to quickly pull up the patient profile during triage and encounters.
+      </Dialog.Description>
+    </Dialog.Header>
+    <div class="flex flex-col items-center justify-center py-6 space-y-4">
+      <div class="bg-white p-4 rounded-xl shadow-inner">
+        <canvas bind:this={qrCanvas}></canvas>
+      </div>
+      <div class="text-center">
+        <p class="text-white font-bold text-lg">{registeredPatientInfo?.name}</p>
+        <p class="text-teal-400 font-mono mt-1">{registeredPatientInfo?.clinicId}</p>
+      </div>
+    </div>
+    <Dialog.Footer class="sm:justify-between">
+      <Button variant="outline" class="border-slate-800 text-slate-300" onclick={() => showQrDialog = false}>
+        Close
+      </Button>
+      <Button class="bg-teal-600 hover:bg-teal-500 text-white" onclick={() => window.print()}>
+        🖨️ Print ID Card
+      </Button>
+    </Dialog.Footer>
+  </Dialog.Content>
+</Dialog.Root>

@@ -22,4 +22,16 @@ export const variables = defineEnvVars({
 		description: 'Optional GitHub OAuth Application Client Secret credentials',
 		schema: v.optional(v.string())
 	},
+	GEMINI_API_KEY: {
+		description: 'Google Gemini API Key for AI Voice Intake',
+		schema: v.optional(v.string())
+	},
+	TERMII_API_KEY: {
+		description: 'Optional Termii API Key for SMS reminders',
+		schema: v.optional(v.string())
+	},
+	TERMII_SENDER_ID: {
+		description: 'Optional Termii Sender ID for SMS reminders',
+		schema: v.optional(v.string())
+	},
 });

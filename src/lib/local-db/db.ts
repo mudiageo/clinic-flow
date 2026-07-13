@@ -84,6 +84,36 @@ export interface LocalReminder {
   updatedAt: number;
 }
 
+export interface LocalTriageRule {
+  id: string;
+  phcId: string;
+  field: string;
+  operator: string;
+  threshold: number;
+  resultingLevel: 'green' | 'amber' | 'red';
+  reasonTemplate: string;
+  requiresPregnant: boolean;
+  active: boolean;
+  version: number;
+  syncStatus: 'synced' | 'pending' | 'conflict';
+  updatedAt: number;
+}
+
+export interface LocalPrescription {
+  id: string;
+  patientId: string;
+  encounterId: string;
+  phcId: string;
+  inventoryId: string;
+  medicationName: string;
+  quantity: number;
+  dosage: string;
+  status: 'pending' | 'dispensed';
+  createdAt: number;
+  syncStatus: 'synced' | 'pending' | 'conflict';
+  updatedAt: number;
+}
+
 export interface SyncLogEntry {
   localId?: number;       // auto-increment
   entityType: string;
@@ -100,6 +130,8 @@ class ClinicFlowDB extends Dexie {
   vitalsRecords!: Table<LocalVitalsRecord, string>;
   pharmacyInventory!: Table<LocalPharmacyInventory, string>;
   reminders!: Table<LocalReminder, string>;
+  triageRules!: Table<LocalTriageRule, string>;
+  prescriptions!: Table<LocalPrescription, string>;
   syncLog!: Table<SyncLogEntry, number>;
 
   constructor() {
@@ -110,7 +142,11 @@ class ClinicFlowDB extends Dexie {
       vitalsRecords: 'id, patientId, recordedAt, syncStatus',
       pharmacyInventory: 'id, itemName, currentStock, syncStatus',
       reminders: 'id, patientId, dueDate, status, syncStatus',
+      triageRules: 'id, field, active, syncStatus',
       syncLog: '++localId, entityType, entityId, operation, timestamp, synced',
+    });
+    this.version(2).stores({
+      prescriptions: 'id, patientId, status, syncStatus',
     });
   }
 }

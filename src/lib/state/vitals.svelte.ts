@@ -1,4 +1,4 @@
-import { db, type LocalVitalsRecord } from '$lib/local-db/db';
+import { db, type LocalVitalsRecord, type LocalTriageRule } from '$lib/local-db/db';
 import { LocalCollection } from './local-collection.svelte';
 
 export interface VitalsInput {
@@ -8,17 +8,6 @@ export interface VitalsInput {
   pulseBpm?: number;
   weightKg?: number;
   spo2Percent?: number;
-}
-
-export interface LocalTriageRule {
-  id: string;
-  field: string;
-  operator: string;
-  threshold: number;
-  resultingLevel: 'green' | 'amber' | 'red';
-  reasonTemplate: string;
-  requiresPregnant: boolean;
-  active: boolean;
 }
 
 class VitalsStore extends LocalCollection<LocalVitalsRecord> {

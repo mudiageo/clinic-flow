@@ -28,16 +28,16 @@
 
 ## Phase 3 — Frictionless Access Integrations (Days 6–8)
 
-- [ ] QR generation on registration (client-side canvas render + print stylesheet, `qrcode` package)
-- [ ] Webcam QR scanning (`qr-scanner` lib) → instant profile load via `patientStore.findByClinicId()`
-- [ ] Vitals entry modal with real-time triage rules engine evaluation (client-side, reading `triageRules` synced locally, writing via `vitalsStore` and `queueStore.applyTriageFlag()`)
-- [ ] Triage rule config admin screen (Head of PHC can edit thresholds)
-- [ ] AI Voice Intake: Hold-to-Speak recording, server-side remote `command` wrapping the Gemini structured-extraction call (never call Gemini from the client — Agent Build Brief §5.3), review-before-save UI
-- [ ] Vitals trend charts (sparkline component, reads from `vitalsStore.items`, not Dexie directly)
-- [ ] Web Speech API queue announcements, language-selectable, chime + repeat
-- [ ] Pharmacy dispense queue + dispense-and-deplete flow (delta-based decrement via `pharmacyStore`, works offline, delta reconciled server-side in Phase 4)
-- [ ] Low-stock dashboard panel + restock request action
-- [ ] SMS reminder scheduling UI (encounter form "next dose" field) + reminders admin list, backed by `reminderStore`
+- [x] QR generation on registration (client-side canvas render + print stylesheet, `qrcode` package)
+- [x] Webcam QR scanning (`qr-scanner` lib) → instant profile load via `patientStore.findByClinicId()`
+- [x] Vitals entry modal with real-time triage rules engine evaluation (client-side, reading `triageRules` synced locally, writing via `vitalsStore` and `queueStore.applyTriageFlag()`)
+- [x] Triage rule config admin screen (Head of PHC can edit thresholds)
+- [x] AI Voice Intake: Hold-to-Speak recording, server-side remote `command` wrapping the Gemini structured-extraction call (never call Gemini from the client — Agent Build Brief §5.3), review-before-save UI
+- [x] Vitals trend charts (sparkline component, reads from `vitalsStore.items`, not Dexie directly)
+- [x] Web Speech API queue announcements, language-selectable, chime + repeat
+- [x] Pharmacy dispense queue + dispense-and-deplete flow (delta-based decrement via `pharmacyStore`, works offline, delta reconciled server-side in Phase 4)
+- [x] Low-stock dashboard panel + restock request action
+- [x] SMS reminder scheduling UI (encounter form "next dose" field) + reminders admin list, backed by `reminderStore`
 
 ## Phase 4 — Sync Engine & Kiosk Deployment (Days 9–11)
 
