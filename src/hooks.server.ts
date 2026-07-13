@@ -4,6 +4,11 @@ import { building } from '$app/env';
 import { auth } from '$lib/server/auth';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { db } from '$lib/server/db';
+import { startSmsWorker } from '$lib/server/sms/worker';
+
+if (!building) {
+	startSmsWorker();
+}
 
 export const handle: Handle = async ({ event, resolve }) => {
 	if (building) return resolve(event);
