@@ -6,13 +6,14 @@
 
 ## 0. Read This First — Critical Architectural Constraint
 
-**Tauri's SvelteKit integration requires `@sveltejs/adapter-static`, which produces a fully static SPA build with no server runtime.** This means sveltekit remote functions, `+server.ts` API routes (sync push/pull, SMS dispatch worker) **cannot run inside the Tauri-packaged app itself.**
+**Tauri's SvelteKit integration requires `@sveltejs/adapter-static`, which produces a fully static SPA build with no server runtime.** This means `+server.ts` API routes *and* SvelteKit **remote functions** (`query`, `command`, `query.live`, `form` — see `02-Architecture.md` §0 and §2) **cannot run inside the Tauri-packaged app itself.** Remote functions are still server code under the hood; adapter-static cannot execute them any more than it can execute a `+server.ts` route.
 
 Resolve this as follows:
-- The **SvelteKit server routes** (sync API, SMS worker, auth, remote functions ) run as a **separate deployed SvelteKit server** ( adapter-auto, set eng var Tauri to true if we want to use adapter static to build), either cloud-hosted or on a LAN-visible machine at the clinic (e.g. the reception PC running `node build`).
-- The **Tauri kiosk app** is the static-adapter frontend build, configured to call that server's URL for all `/api/*` requests — exactly like a normal client-server web app. Offline behavior is unaffected because IndexedDB/Dexie writes never depend on this server being reachable (see `02-Architecture.md` §1).
-- Do not attempt to bundle SvelteKit server routes inside the Tauri binary. This is the single most common mistake when combining Tauri + SvelteKit + a real backend — flag it in code review if it comes up.
-- so we have the dame foundation. the only difference is the logic you'll add to choose the adapter in svelte config
+- **All remote functions** (`src/routes/sync/sync.remote.ts` and any others touching the database, Gemini, or SMS providers) run as part of a **separate deployed SvelteKit server** (Node adapter), either cloud-hosted or on a LAN-visible machine at the clinic (e.g. the reception PC running `node build`).
+- The **Tauri kiosk app** is the static-adapter frontend build. Its imports of `*.remote.ts` functions compile to fetch wrappers that call that separately-deployed server's generated endpoints automatically — no manual `fetch()` plumbing needed on the client — but the *server half* of those same files must be running somewhere reachable from the kiosk.
+- Offline behavior is unaffected because IndexedDB/Dexie writes (via the class stores in `02-Architecture.md` §3) never depend on this server being reachable.
+- Do not attempt to bundle remote functions or server routes inside the Tauri binary. This is the single most common mistake when combining Tauri + SvelteKit + a real backend — flag it in code review if it comes up.
+- Remote functions are **experimental** as of this writing and require explicit opt-in (`compilerOptions.experimental.async` and `kit.experimental.remoteFunctions` in `svelte.config.js` — see `02-Architecture.md` §0). This is not one of the official `sv add` add-ons; enable it by hand.
 
 ---
 
@@ -65,15 +66,14 @@ pnpm dlx shadcn-svelte@latest init
 ```
 Prompts:
 - Base color: pick one aligned to the PRD's triage color semantics — **Slate** or **Neutral** work well as a neutral base, since RED/AMBER/GREEN triage colors will be layered on top as custom semantic tokens (see §3 below), not the base palette itself.
-- Global CSS file: `src/app.css` (or `src/routes/layout.css` if prompted, per your SvelteKit version — confirm against what `sv create` scaffolded)
-- Import aliases: accept defaults (`$lib`, `$lib/components`, `$lib/components/ui`, `$lib/utils`, `$lib/hooks`)
+
 
 > Reference: https://www.shadcn-svelte.com/docs/installation/sveltekit · https://www.shadcn-svelte.com/docs/cli
 
 ### 2.3 Add required shadcn-svelte components
 Add incrementally as modules are built, but the core set needed across nearly every screen:
 ```bash
-pnpm dlx shadcn-svelte@latest add button card dialog badge input label \
+vpx shadcn-svelte@latest add button card dialog badge input label \
   select tabs table data-table toast sonner separator avatar \
   dropdown-menu form skeleton progress alert
 ```
@@ -139,11 +139,11 @@ pnpm drizzle-kit migrate
 
 > Reference: https://orm.drizzle.team/docs/get-started-postgresql · https://svelte.dev/docs/cli/drizzle
 
-### 4.2 Local (Dexie) schema
+### 4.2 Local (Dexie) schema — sealed behind class stores
 ```bash
 pnpm add dexie
 ```
-Implement exactly as specified in `02-Architecture.md` §1.2 (`src/lib/local-db/db.ts`). Dexie has no official Svelte integration — the `liveQuery()` → Svelte 5 rune bridge pattern in `02-Architecture.md` §3.2 is the correct approach; implement it as written.
+Implement `src/lib/local-db/db.ts` exactly as specified in `02-Architecture.md` §1.2. **This file, and Dexie's `liveQuery()`, must never be imported outside `src/lib/state/*.svelte.ts`.** All userland code (components, routes) interacts only with the class store singletons (`patientStore`, `queueStore`, etc.) documented in `02-Architecture.md` §3 — build the `LocalCollection` base class first (§3.2), then extend it per entity. If a component ever imports `$lib/local-db/db` directly, that's a signal the store layer is being bypassed and should be fixed before merging.
 
 > Reference: https://dexie.org/docs/Tutorial/Getting-started · https://dexie.org/docs/liveQuery()
 
@@ -216,7 +216,7 @@ const res = await fetch('https://api.ng.termii.com/api/sms/send', {
 > Reference: https://developers.termii.com/messaging-api · https://developers.africastalking.com/docs/sms/overview
 
 ### 5.6 Sync Engine
-Implement exactly per `02-Architecture.md` §2 — push/pull endpoints, delta-based stock updates, LWW + urgency-override conflict resolution. This is the highest-risk, highest-payoff module; do not shortcut it, and test the "cut Wi-Fi mid-session" scenario continuously during Phase 2–4, not just at the end.
+Implement exactly per `02-Architecture.md` §2 — `sync.remote.ts` with `pushOperations` (command), `pullChanges` (query), and `getQueueUpdates` (query.live) replacing hand-rolled REST endpoints; delta-based stock updates; LWW + urgency-override conflict resolution; the `SyncStore` class driving push/pull on a timer and connectivity events. This is the highest-risk, highest-payoff module; do not shortcut it, and test the "cut Wi-Fi mid-session" scenario continuously during Phase 2–4, not just at the end. Remember `query.live` cannot run on a prerendered/static page — it needs the separately-deployed server runtime described in §0.
 
 ### 5.7 Tauri Kiosk Packaging
 ```bash
@@ -224,12 +224,21 @@ pnpm add -D @sveltejs/adapter-static
 pnpm add -D @tauri-apps/cli
 pnpm tauri init
 ```
-- add logo to choose between `adapter-auto` and  `adapter-static` in `svelte.config.js`:
-  ```js
-  
-  export default {
-    kit: { adapter: adapter({ fallback: 'index.html' }) },
-  };
+
+- Add logic to configure svelte.config.js to conditionally choose between adapter-auto and adapter-static based on an environment variable, rather than hardcoding a strict static adaptation.  
+MD
+
+```javaScript
+import adapterAuto from '@sveltejs/adapter-auto';
+import adapterStatic from '@sveltejs/adapter-static';
+
+const isTauri = process.env.TAURI === 'true';
+
+export default {
+  kit: { 
+    adapter: isTauri ? adapterStatic({ fallback: 'index.html' }) : adapterAuto() 
+  },
+};
   ```
 - Add `src/routes/+layout.ts` with `export const ssr = false;` to permit `window`-dependent Tauri APIs.
 - Set `frontendDist: "../build"` in `src-tauri/tauri.conf.json`.
@@ -286,14 +295,16 @@ Before marking any module in `04-Timeline.md` complete, the agent should verify 
 | Africa's Talking SMS | https://developers.africastalking.com/docs/sms/overview |
 | Tauri v2 + SvelteKit | https://v2.tauri.app/start/frontend/sveltekit/ |
 | Tailwind CSS v4 | https://tailwindcss.com/docs |
+| SvelteKit remote functions (`query`, `command`, `query.live`, `form`) | https://svelte.dev/docs/kit/remote-functions |
 
 ---
 
 ## 9. Explicit Guardrails for the Agent
 
 - **Never hardcode triage thresholds in component logic** — always read from the `triageRules` table.
-- **Never call Gemini or Termii/Africa's Talking directly from client code** — server routes only primarily with remote functions query, command, form, query.live, query.batch, keys never shipped to the browser bundle.
-- **Never let a write path assume connectivity** — every mutation goes to Dexie first, full stop, per `02-Architecture.md` §1.3.
-- **Never overwrite `pharmacy_inventory.current_stock` via naive last-write-wins** — delta-based only, per `02-Architecture.md` §2.5.
+- **Never call Gemini or Termii/Africa's Talking directly from client code** — server-side remote functions (`command`/`query`) only, keys never shipped to the browser bundle.
+- **Never let a write path assume connectivity** — every mutation goes through a class store's `create`/`update` method, which writes to Dexie first, full stop, per `02-Architecture.md` §1.3 and §3.2.
+- **Never import `$lib/local-db/db` or call Dexie's `liveQuery()` from a component or route** — only the class store files in `$lib/state/*.svelte.ts` may do so, per `02-Architecture.md` §0 and §3.1.
+- **Never overwrite `pharmacy_inventory.current_stock` via naive last-write-wins** — delta-based only, via the `pushOperations` command's `delta` operation type, per `02-Architecture.md` §2.4.
 - **Never hand-edit generated shadcn-svelte component files** in `$lib/components/ui/` for one-off sizing — override via className at the call site so `shadcn-svelte update` stays safe.
-- **Never assume the Tauri build has a working server** — all `/api/*` calls target `PUBLIC_SYNC_SERVER_URL`, which is a separately-deployed Node-adapter SvelteKit instance, not the static Tauri bundle itself.
+- **Never assume the Tauri build has a working server** — remote function calls (`sync.remote.ts` and friends) resolve to fetch wrappers targeting a separately-deployed Node-adapter SvelteKit instance, not the static Tauri bundle itself.
