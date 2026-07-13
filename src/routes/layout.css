@@ -40,6 +40,13 @@
 	--sidebar-accent-foreground: oklch(0.205 0 0);
 	--sidebar-border: oklch(0.922 0 0);
 	--sidebar-ring: oklch(0.708 0 0);
+
+	--triage-red: oklch(0.58 0.22 27);
+	--triage-red-foreground: oklch(0.98 0.01 27);
+	--triage-amber: oklch(0.77 0.16 70);
+	--triage-amber-foreground: oklch(0.28 0.07 70);
+	--triage-green: oklch(0.64 0.15 145);
+	--triage-green-foreground: oklch(0.98 0.02 145);
 }
 
 .dark {
@@ -74,6 +81,13 @@
 	--sidebar-accent-foreground: oklch(0.985 0 0);
 	--sidebar-border: oklch(1 0 0 / 10%);
 	--sidebar-ring: oklch(0.556 0 0);
+
+	--triage-red: oklch(0.5 0.2 27);
+	--triage-red-foreground: oklch(0.98 0.01 27);
+	--triage-amber: oklch(0.6 0.15 70);
+	--triage-amber-foreground: oklch(0.99 0.02 70);
+	--triage-green: oklch(0.5 0.13 145);
+	--triage-green-foreground: oklch(0.98 0.02 145);
 }
 
 @theme inline {
@@ -116,6 +130,13 @@
 	--radius-2xl: calc(var(--radius) * 1.8);
 	--radius-3xl: calc(var(--radius) * 2.2);
 	--radius-4xl: calc(var(--radius) * 2.6);
+
+	--color-triage-red: var(--triage-red);
+	--color-triage-red-foreground: var(--triage-red-foreground);
+	--color-triage-amber: var(--triage-amber);
+	--color-triage-amber-foreground: var(--triage-amber-foreground);
+	--color-triage-green: var(--triage-green);
+	--color-triage-green-foreground: var(--triage-green-foreground);
 }
 
 @layer base {
