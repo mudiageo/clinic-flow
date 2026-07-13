@@ -1,17 +1,25 @@
 import { defineEnvVars } from '@sveltejs/kit/hooks';
+import * as v from 'valibot';
 
 export const variables = defineEnvVars({
-	DATABASE_URL: { description: 'The database connection string.' },
-	ORIGIN: {
-		description: 'The app origin (base URL), e.g. `http://localhost:5173`.'
+	DATABASE_URL: {
+		description: 'Postgres database connection URL string',
+		schema: v.pipe(v.string(), v.nonEmpty('DATABASE_URL must be a non-empty string'))
 	},
 	BETTER_AUTH_SECRET: {
-		description: 'Secret used to sign tokens. For production use 32 characters generated with high entropy. See [Better Auth installation](https://www.better-auth.com/docs/installation).'
+		description: 'Better Auth secret key used to sign and encrypt session cookies',
+		schema: v.pipe(v.string(), v.nonEmpty('BETTER_AUTH_SECRET must be a non-empty string'))
+	},
+	ORIGIN: {
+		description: 'The base public deployment origin URL for the application (e.g. http://localhost:5173)',
+		schema: v.pipe(v.string(), v.nonEmpty('ORIGIN must be a non-empty string'))
 	},
 	GITHUB_CLIENT_ID: {
-		description: 'GitHub OAuth client ID. See [Better Auth GitHub provider](https://www.better-auth.com/docs/authentication/github).'
+		description: 'Optional GitHub OAuth Application Client ID credentials',
+		schema: v.optional(v.string())
 	},
 	GITHUB_CLIENT_SECRET: {
-		description: 'GitHub OAuth client secret. See [Better Auth GitHub provider](https://www.better-auth.com/docs/authentication/github).'
-	}
+		description: 'Optional GitHub OAuth Application Client Secret credentials',
+		schema: v.optional(v.string())
+	},
 });

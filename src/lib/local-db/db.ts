@@ -3,12 +3,18 @@ import Dexie, { type Table } from 'dexie';
 export interface LocalPatient {
   id: string;            // UUID, generated client-side at creation time
   clinicId: string;
+  phcId: string;
   familyId: string | null;
   guardianId: string | null;
   name: string;
   phone: string | null;
   dob: string | null;
   sex: 'male' | 'female' | 'other';
+  address: string | null;
+  community: string | null;
+  nextOfKinName: string | null;
+  nextOfKinPhone: string | null;
+  isPregnant: boolean;
   syncStatus: 'synced' | 'pending' | 'conflict';
   updatedAt: number;      // epoch ms, used for LWW + sync cursors
   serverUpdatedAt: number | null;
@@ -18,10 +24,14 @@ export interface LocalPatient {
 export interface LocalQueueTicket {
   id: string;
   patientId: string;
+  phcId: string;
+  encounterId: string | null;
   ticketNumber: number;
   status: 'waiting' | 'called' | 'in_progress' | 'done';
   triageLevel: 'green' | 'amber' | 'red';
   triageReason: string | null;
+  calledAt?: number | null;
+  completedAt?: number | null;
   createdAt: number;
   syncStatus: 'synced' | 'pending' | 'conflict';
   updatedAt: number;

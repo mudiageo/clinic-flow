@@ -18,8 +18,8 @@ export const auth = betterAuth({
 	emailAndPassword: { enabled: true },
 	socialProviders: {
 		github: {
-			clientId: GITHUB_CLIENT_ID,
-			clientSecret: GITHUB_CLIENT_SECRET
+			clientId: GITHUB_CLIENT_ID ?? '',
+			clientSecret: GITHUB_CLIENT_SECRET ?? ''
 		}
 	},
 	session: {
