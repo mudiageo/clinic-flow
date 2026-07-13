@@ -207,13 +207,13 @@
           {#if searchResults.length > 0}
             <div class="space-y-2 mt-4 max-h-60 overflow-y-auto pr-1 no-scrollbar animate-stagger">
               {#each searchResults as patient}
-                <div class="p-3 bg-muted/40 border border-border rounded-xl transition-all hover:bg-muted/80">
+                <a href="/patients/{patient.clinicId}" class="block p-3 bg-muted/40 border border-border rounded-xl transition-all hover:bg-muted/80">
                   <div class="font-medium text-foreground text-sm">{patient.name}</div>
                   <div class="text-xs text-muted-foreground mt-1 flex items-center justify-between">
                     <span class="font-mono">{patient.clinicId}</span>
                     <span>{patient.phone ?? 'No Phone'}</span>
                   </div>
-                </div>
+                </a>
               {/each}
             </div>
           {:else if searchQuery}
