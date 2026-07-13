@@ -3,9 +3,11 @@
   import { queueStore } from '$lib/state/queue.svelte';
   import { pharmacyStore } from '$lib/state/pharmacy.svelte';
   import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '$lib/components/ui/card';
-  import { Progress } from '$lib/components/ui/progress';
   import { Badge } from '$lib/components/ui/badge';
   import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '$lib/components/ui/table';
+  import { SpotlightCard } from '$lib/components/ui/spotlight-card';
+  import { NumberTicker } from '$lib/components/ui/number-ticker';
+  import { Users, ClipboardList, AlertTriangle, Activity, ShieldAlert } from '@lucide/svelte';
 
   const totalPatients = $derived(patientStore.items.length);
   const queueItems = $derived(queueStore.items);
@@ -26,115 +28,165 @@
   <title>Admin Operations — ClinicFlow</title>
 </svelte:head>
 
-<div class="space-y-8">
-  <div>
-    <h1 class="text-3xl font-extrabold text-white tracking-tight">Operations Dashboard</h1>
-    <p class="text-slate-400 mt-1">Primary Health Centre metrics and alerts</p>
+<div class="space-y-8 animate-fade-in">
+  <!-- Page Header -->
+  <div class="flex items-start gap-3">
+    <div class="p-2.5 rounded-xl bg-primary/10 text-primary">
+      <Activity class="size-6" />
+    </div>
+    <div>
+      <h1 class="text-2xl font-bold text-foreground tracking-tight">Operations Dashboard</h1>
+      <p class="text-muted-foreground text-sm mt-0.5">Primary Health Centre metrics and alerts</p>
+    </div>
   </div>
 
   <!-- Key Metrics row -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <Card class="bg-slate-900/40 border-slate-900 backdrop-blur">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-5 animate-stagger">
+    <SpotlightCard class="card-hover cursor-default">
       <CardContent class="p-6 flex items-center justify-between">
         <div>
-          <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Total Patients</p>
-          <p class="text-3xl font-bold text-white mt-1">{totalPatients}</p>
+          <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Patients</p>
+          <p class="text-3xl font-bold text-foreground mt-1">
+            <NumberTicker value={totalPatients} />
+          </p>
         </div>
-        <div class="w-12 h-12 rounded-xl bg-teal-500/10 flex items-center justify-center text-teal-400">
-          👤
+        <div class="size-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary ring-1 ring-primary/20">
+          <Users class="size-5" />
         </div>
       </CardContent>
-    </Card>
+    </SpotlightCard>
 
-    <Card class="bg-slate-900/40 border-slate-900 backdrop-blur">
+    <SpotlightCard class="card-hover cursor-default">
       <CardContent class="p-6 flex items-center justify-between">
         <div>
-          <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Queue Today</p>
-          <p class="text-3xl font-bold text-white mt-1">{queueItems.length}</p>
+          <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Queue Today</p>
+          <p class="text-3xl font-bold text-foreground mt-1">
+            <NumberTicker value={queueItems.length} />
+          </p>
         </div>
-        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
-          📋
+        <div class="size-12 rounded-xl bg-accent/20 flex items-center justify-center text-accent-foreground ring-1 ring-accent/30">
+          <ClipboardList class="size-5" />
         </div>
       </CardContent>
-    </Card>
+    </SpotlightCard>
 
-    <Card class="bg-slate-900/40 border-slate-900 backdrop-blur">
+    <SpotlightCard class="card-hover cursor-default" color="oklch(from var(--destructive) l c h / 8%)">
       <CardContent class="p-6 flex items-center justify-between">
         <div>
-          <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Stock Alerts</p>
-          <p class="text-3xl font-bold text-rose-400 mt-1">{lowStockItems.length}</p>
+          <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Stock Alerts</p>
+          <p class="text-3xl font-bold text-destructive mt-1">
+            <NumberTicker value={lowStockItems.length} />
+          </p>
         </div>
-        <div class="w-12 h-12 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-400">
-          ⚠️
+        <div class="size-12 rounded-xl bg-destructive/10 flex items-center justify-center text-destructive ring-1 ring-destructive/20">
+          <AlertTriangle class="size-5" />
         </div>
       </CardContent>
-    </Card>
+    </SpotlightCard>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- Queue Triage Distribution -->
-    <Card class="bg-slate-900/40 border-slate-900 backdrop-blur">
-      <CardHeader>
-        <CardTitle class="text-white text-lg">Triage Distribution</CardTitle>
-        <CardDescription class="text-slate-400">Percentage breakdown of patients in waiting queue</CardDescription>
+    <Card class="card-hover">
+      <CardHeader class="pb-3">
+        <div class="flex items-center gap-2">
+          <ShieldAlert class="size-4 text-muted-foreground" />
+          <CardTitle class="text-base font-semibold">Triage Distribution</CardTitle>
+        </div>
+        <CardDescription>Percentage breakdown of patients in waiting queue</CardDescription>
       </CardHeader>
-      <CardContent class="space-y-6">
+      <CardContent class="space-y-5">
+        <!-- RED -->
         <div class="space-y-2">
           <div class="flex items-center justify-between text-sm">
-            <span class="text-triage-red font-semibold">🔴 RED - Immediate Priority</span>
-            <span class="text-white font-bold">{triageStats.red} ({redPercent.toFixed(0)}%)</span>
+            <div class="flex items-center gap-2">
+              <span class="size-2.5 rounded-full bg-triage-red inline-block"></span>
+              <span class="text-triage-red font-semibold">RED — Immediate Priority</span>
+            </div>
+            <span class="text-foreground font-bold tabular-nums">{triageStats.red} ({redPercent.toFixed(0)}%)</span>
           </div>
-          <Progress value={redPercent} class="bg-slate-950 h-2.5 rounded-full [&>div]:bg-triage-red" />
+          <div class="relative h-2.5 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              class="h-full rounded-full bg-triage-red transition-all duration-700 ease-out"
+              style="width: {redPercent}%"
+            ></div>
+          </div>
         </div>
 
+        <!-- AMBER -->
         <div class="space-y-2">
           <div class="flex items-center justify-between text-sm">
-            <span class="text-triage-amber font-semibold">🟡 AMBER - Warning Priority</span>
-            <span class="text-white font-bold">{triageStats.amber} ({amberPercent.toFixed(0)}%)</span>
+            <div class="flex items-center gap-2">
+              <span class="size-2.5 rounded-full bg-triage-amber inline-block"></span>
+              <span class="text-triage-amber font-semibold">AMBER — Warning Priority</span>
+            </div>
+            <span class="text-foreground font-bold tabular-nums">{triageStats.amber} ({amberPercent.toFixed(0)}%)</span>
           </div>
-          <Progress value={amberPercent} class="bg-slate-950 h-2.5 rounded-full [&>div]:bg-triage-amber" />
+          <div class="relative h-2.5 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              class="h-full rounded-full bg-triage-amber transition-all duration-700 ease-out"
+              style="width: {amberPercent}%"
+            ></div>
+          </div>
         </div>
 
+        <!-- GREEN -->
         <div class="space-y-2">
           <div class="flex items-center justify-between text-sm">
-            <span class="text-triage-green font-semibold">🟢 GREEN - Stable Priority</span>
-            <span class="text-white font-bold">{triageStats.green} ({greenPercent.toFixed(0)}%)</span>
+            <div class="flex items-center gap-2">
+              <span class="size-2.5 rounded-full bg-triage-green inline-block"></span>
+              <span class="text-triage-green font-semibold">GREEN — Stable Priority</span>
+            </div>
+            <span class="text-foreground font-bold tabular-nums">{triageStats.green} ({greenPercent.toFixed(0)}%)</span>
           </div>
-          <Progress value={greenPercent} class="bg-slate-950 h-2.5 rounded-full [&>div]:bg-triage-green" />
+          <div class="relative h-2.5 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              class="h-full rounded-full bg-triage-green transition-all duration-700 ease-out"
+              style="width: {greenPercent}%"
+            ></div>
+          </div>
         </div>
       </CardContent>
     </Card>
 
     <!-- Low Stock Inventory Alerts -->
-    <Card class="bg-slate-900/40 border-slate-900 backdrop-blur">
-      <CardHeader>
-        <CardTitle class="text-white text-lg">Low Stock Pharmacy Alerts</CardTitle>
-        <CardDescription class="text-slate-400">Items below recommended safety thresholds</CardDescription>
+    <Card class="card-hover">
+      <CardHeader class="pb-3">
+        <div class="flex items-center gap-2">
+          <AlertTriangle class="size-4 text-muted-foreground" />
+          <CardTitle class="text-base font-semibold">Low Stock Pharmacy Alerts</CardTitle>
+        </div>
+        <CardDescription>Items below recommended safety thresholds</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent class="p-0">
         {#if lowStockItems.length === 0}
-          <p class="text-slate-500 text-center py-12 text-sm">All inventory stocks are healthy.</p>
+          <div class="flex flex-col items-center justify-center py-12 text-center px-6">
+            <div class="size-10 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+              <Activity class="size-5 text-primary" />
+            </div>
+            <p class="text-sm text-muted-foreground font-medium">All inventory stocks are healthy</p>
+          </div>
         {:else}
           <Table>
-            <TableHeader class="bg-slate-950/40">
-              <TableRow>
-                <TableHead class="text-slate-400 font-semibold px-4 py-2">Item Name</TableHead>
-                <TableHead class="text-slate-400 font-semibold px-4 py-2">Stock</TableHead>
-                <TableHead class="text-slate-400 font-semibold px-4 py-2">Threshold</TableHead>
-                <TableHead class="text-slate-400 font-semibold px-4 py-2">Type</TableHead>
+            <TableHeader>
+              <TableRow class="border-border hover:bg-transparent">
+                <TableHead class="text-muted-foreground font-semibold px-5 py-3 text-xs uppercase tracking-wider">Item Name</TableHead>
+                <TableHead class="text-muted-foreground font-semibold px-5 py-3 text-xs uppercase tracking-wider">Stock</TableHead>
+                <TableHead class="text-muted-foreground font-semibold px-5 py-3 text-xs uppercase tracking-wider">Threshold</TableHead>
+                <TableHead class="text-muted-foreground font-semibold px-5 py-3 text-xs uppercase tracking-wider">Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {#each lowStockItems as item}
-                <TableRow class="border-b border-slate-900/60">
-                  <TableCell class="text-white font-medium px-4 py-2">{item.itemName}</TableCell>
-                  <TableCell class="text-rose-400 font-bold px-4 py-2">{item.currentStock}</TableCell>
-                  <TableCell class="text-slate-400 px-4 py-2">{item.lowStockThreshold}</TableCell>
-                  <TableCell class="px-4 py-2">
+                <TableRow class="border-border hover:bg-muted/40 transition-colors">
+                  <TableCell class="text-foreground font-medium px-5 py-3">{item.itemName}</TableCell>
+                  <TableCell class="text-destructive font-bold px-5 py-3 tabular-nums">{item.currentStock}</TableCell>
+                  <TableCell class="text-muted-foreground px-5 py-3 tabular-nums">{item.lowStockThreshold}</TableCell>
+                  <TableCell class="px-5 py-3">
                     {#if item.isCritical}
-                      <Badge class="bg-rose-500/10 text-rose-400 border border-rose-500/20">Critical</Badge>
+                      <Badge variant="destructive" class="text-xs">Critical</Badge>
                     {:else}
-                      <Badge variant="outline" class="text-slate-400 border-slate-800">Standard</Badge>
+                      <Badge variant="secondary" class="text-xs">Low</Badge>
                     {/if}
                   </TableCell>
                 </TableRow>
