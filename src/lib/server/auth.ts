@@ -22,6 +22,34 @@ export const auth = betterAuth({
 			clientSecret: GITHUB_CLIENT_SECRET
 		}
 	},
+	session: {
+		additionalFields: {
+			role: {
+				type: 'string',
+				required: false
+			}
+		}
+	},
+	databaseHooks: {
+		session: {
+			create: {
+				before: async (session) => {
+					const staffMember = await db.query.staff.findFirst({
+						where: (s, { eq }) => eq(s.authUserId, session.userId)
+					});
+					if (staffMember) {
+						return {
+							data: {
+								...session,
+								role: staffMember.role
+							}
+						};
+					}
+					return { data: session };
+				}
+			}
+		}
+	},
 	plugins: [
 		sveltekitCookies(getRequestEvent) // make sure this is the last plugin in the array
 	]
