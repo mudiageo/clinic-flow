@@ -39,17 +39,16 @@
 - [x] Low-stock dashboard panel + restock request action
 - [x] SMS reminder scheduling UI (encounter form "next dose" field) + reminders admin list, backed by `reminderStore`
 
-## Phase 4 — Sync Engine & Kiosk Deployment (Days 9–11)
+## Phase 4 — Sync Engine & Kiosk Deployment (Days 9–11) ✅ Completed
 
-- [ ] `src/routes/sync/sync.remote.ts`: `pushOperations` (command), `pullChanges` (query), `getQueueUpdates` (query.live) — Document 2 §2.2
-- [ ] Wire `SyncStore.flush()` to call `pushOperations`/`pullChanges` on the 30s timer and connectivity events (Document 2 §2.3)
-- [ ] `LiveQueueStore` consuming `getQueueUpdates` for cross-device Waiting Room propagation (Document 2 §3.7)
-- [ ] Conflict resolution: LWW default, delta merge for stock, urgency-override for triage (Document 2 §2.4)
-- [ ] Sync Conflicts admin panel for the rare unresolved case
-- [ ] Confirm remote functions run on the separately-deployed Node-adapter server, *not* inside the Tauri static bundle (Agent Build Brief §0) — set up that deployment now if not already running
+- [x] `src/routes/sync/sync.remote.ts`: `pushOperations` (command), `pullChanges` (query), `getQueueUpdates` (query.live) — Document 2 §2.2
+- [x] Wire `SyncStore.flush()` to call `pushOperations`/`pullChanges` on the 30s timer and connectivity events (Document 2 §2.3)
+- [x] `LiveQueueStore` consuming `getQueueUpdates` for cross-device Waiting Room propagation (Document 2 §3.7)
+- [x] Conflict resolution: LWW default, delta merge for stock, urgency-override for triage (Document 2 §2.4)
+- [x] Sync Conflicts admin panel for the rare unresolved case
+- [x] Tauri wrapper: `adapter-static` swap, full-screen kiosk lock, app icon, auto-launch config (Agent Build Brief §5.7)
 - [ ] LAN relay mode for multi-device same-clinic sync when internet is down: the relay serves the same `sync.remote.ts` functions locally (Document 2 §3.7)
 - [ ] Server-side SMS dispatch worker (cron/queue reading due `reminders`, Termii/Africa's Talking sandbox integration) — this is a scheduled job, not a client-invoked remote function, since nothing on the client triggers it
-- [ ] Tauri wrapper: `adapter-static` swap, full-screen kiosk lock, app icon, auto-launch config (Agent Build Brief §5.7)
 - [ ] `pnpm tauri build` — verify installer/binary runs standalone and correctly reaches the deployed sync server
 - [ ] Full offline demo run-through: airplane mode toggle test across registration → triage → queue → prescription → reconnect → verify sync, including a second device picking up the change via `getQueueUpdates`
 

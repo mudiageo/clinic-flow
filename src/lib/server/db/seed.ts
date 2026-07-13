@@ -22,7 +22,7 @@ const auth = betterAuth({
 });
 
 async function seed() {
-  console.log('🌱 Seeding database with comprehensive Benin City context...');
+  console.log('🌱 Seeding database for ClinicFlow...');
 
   // 1. Create a PHC in Benin City
   console.log('-> Creating PHC: Oredo Primary Health Centre');
@@ -73,7 +73,7 @@ async function seed() {
         phcId: oredoPhc.id,
         active: true,
       }).onConflictDoNothing().returning();
-      
+
       // If it already existed, fetch it
       if (!staff) {
         const existingStaff = await db.query.staff.findFirst({ where: (st, { eq }) => eq(st.authUserId, user.id) });
