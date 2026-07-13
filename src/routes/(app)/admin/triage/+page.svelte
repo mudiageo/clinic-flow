@@ -96,6 +96,7 @@
               </TableCell>
               <TableCell class="px-4 py-2 text-right">
                 <button 
+                  aria-label="Toggle rule active status"
                   class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 focus:ring-offset-slate-950 {rule.active ? 'bg-teal-500' : 'bg-slate-700'}"
                   onclick={() => toggleRule(rule.id, rule.active)}
                 >

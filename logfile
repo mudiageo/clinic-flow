@@ -1,3 +1,13 @@
 2026-07-13 13:22:43.875 WAT [31496] LOG:  starting PostgreSQL 18.3 on x86_64-windows, compiled by msvc-19.44.35225, 64-bit
 2026-07-13 13:22:43.882 WAT [31496] LOG:  listening on IPv6 address "::1", port 5432
 2026-07-13 13:22:43.882 WAT [31496] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2026-07-13 13:22:44.392 WAT [28880] LOG:  database system was interrupted; last known up at 2026-06-23 14:42:31 WAT
+2026-07-13 13:22:50.691 WAT [28880] LOG:  database system was not properly shut down; automatic recovery in progress
+2026-07-13 13:22:50.708 WAT [28880] LOG:  redo starts at 0/2615AA8
+2026-07-13 13:22:50.709 WAT [28880] LOG:  invalid record length at 0/2615BB0: expected at least 24, got 0
+2026-07-13 13:22:50.709 WAT [28880] LOG:  redo done at 0/2615B78 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+2026-07-13 13:22:50.751 WAT [36144] LOG:  checkpoint starting: end-of-recovery immediate wait
+2026-07-13 13:22:50.883 WAT [36144] LOG:  checkpoint complete: wrote 0 buffers (0.0%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.004 s, sync=0.026 s, total=0.159 s; sync files=2, longest=0.018 s, average=0.013 s; distance=0 kB, estimate=0 kB; lsn=0/2615BB0, redo lsn=0/2615BB0
+2026-07-13 13:22:50.913 WAT [31496] LOG:  database system is ready to accept connections
+2026-07-13 13:32:50.886 WAT [36144] LOG:  checkpoint starting: time
+2026-07-13 13:34:33.689 WAT [36144] LOG:  checkpoint complete: wrote 997 buffers (6.1%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=100.078 s, sync=2.630 s, total=102.804 s; sync files=305, longest=0.092 s, average=0.009 s; distance=4674 kB, estimate=4674 kB; lsn=0/2AA6498, redo lsn=0/2AA6408

@@ -57,7 +57,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 			if (pathname.startsWith('/pharmacy') && role !== 'pharmacy') {
 				redirect(302, '/login');
 			}
-			if (pathname.startsWith('/admin') {
+			if (pathname.startsWith('/admin')) {
 				redirect(302, '/login');
 			}
 		}
