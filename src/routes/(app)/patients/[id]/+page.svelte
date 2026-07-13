@@ -4,7 +4,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
-	import { ArrowLeft, Users, Calendar, Phone, MapPin } from '@lucide/svelte';
+	import { ArrowLeft, Users, Calendar, Phone, MapPin } from '@lucide/svelte'; //@TODO
 
 	let clinicId = $derived($page.params.id);
 	let patient = $derived(clinicId ? patientStore.findByClinicId(clinicId) : null);

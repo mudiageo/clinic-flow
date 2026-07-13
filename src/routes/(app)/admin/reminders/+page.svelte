@@ -2,11 +2,13 @@
   import { reminderStore } from '$lib/state/reminders.svelte';
   import { patientStore } from '$lib/state/patients.svelte';
   import { dispatchReminders } from '../../../sms/sms.remote';
-  import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
+  import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '$lib/components/ui/card';
   import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '$lib/components/ui/table';
   import { Badge } from '$lib/components/ui/badge';
   import { Button } from '$lib/components/ui/button';
+  import { ScrollArea } from '$lib/components/ui/scroll-area';
   import { toast } from 'svelte-sonner';
+  import { Bell, Send, Calendar, User, Check, Clock, Loader2 } from '@lucide/svelte';
 
   const reminders = $derived(reminderStore.sortedItems);
   let isDispatching = $state(false);
@@ -59,65 +61,81 @@
   <title>SMS Reminders — ClinicFlow</title>
 </svelte:head>
 
-<div class="space-y-8">
-  <div class="flex items-center justify-between">
-    <div>
-      <h1 class="text-3xl font-extrabold text-white tracking-tight">SMS Reminders</h1>
-      <p class="text-slate-400 mt-1">Manage automated SMS notifications to patients</p>
+<div class="space-y-8 animate-fade-in">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex items-start gap-3">
+      <div class="p-2.5 rounded-xl bg-primary/10 text-primary">
+        <Bell class="size-6" />
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold text-foreground tracking-tight">SMS Reminders</h1>
+        <p class="text-muted-foreground text-sm mt-0.5 font-medium">Manage automated SMS notifications to patients</p>
+      </div>
     </div>
     <Button 
       onclick={handleDispatchPending} 
       disabled={isDispatching}
-      class="bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+      class="bg-primary text-primary-foreground hover:bg-primary/95 shadow-md shadow-primary/10 h-10 px-5 btn-press font-semibold"
     >
       {#if isDispatching}
-        <span class="animate-spin mr-2">⏳</span> Sending...
+        <Loader2 class="size-4 animate-spin mr-2" />
+        Sending...
       {:else}
-        📡 Dispatch Pending SMS Now
+        <Send class="size-4 mr-2" />
+        Dispatch Pending SMS Now
       {/if}
     </Button>
   </div>
 
-  <Card class="bg-slate-900/40 border-slate-900 backdrop-blur">
-    <CardHeader>
-      <CardTitle class="text-white text-lg">Reminder Log</CardTitle>
+  <Card class="overflow-hidden card-hover bg-card/60">
+    <CardHeader class="border-b border-border/60 bg-muted/20 px-6 py-4">
+      <CardTitle class="text-base font-semibold">Reminder Log</CardTitle>
+      <CardDescription>Scheduled, pending, and sent patient messages</CardDescription>
     </CardHeader>
-    <CardContent>
+    <ScrollArea class="h-[500px] w-full">
       <Table>
-        <TableHeader class="bg-slate-950/40">
-          <TableRow>
-            <TableHead class="text-slate-400 font-semibold px-4 py-2">Patient</TableHead>
-            <TableHead class="text-slate-400 font-semibold px-4 py-2">Type</TableHead>
-            <TableHead class="text-slate-400 font-semibold px-4 py-2">Message</TableHead>
-            <TableHead class="text-slate-400 font-semibold px-4 py-2">Due Date</TableHead>
-            <TableHead class="text-slate-400 font-semibold px-4 py-2">Status</TableHead>
+        <TableHeader class="bg-muted/40 sticky top-0 z-10">
+          <TableRow class="hover:bg-transparent">
+            <TableHead class="font-semibold text-muted-foreground px-6 py-3.5 text-xs uppercase tracking-wider">Patient</TableHead>
+            <TableHead class="font-semibold text-muted-foreground px-6 py-3.5 text-xs uppercase tracking-wider">Type</TableHead>
+            <TableHead class="font-semibold text-muted-foreground px-6 py-3.5 text-xs uppercase tracking-wider">Message</TableHead>
+            <TableHead class="font-semibold text-muted-foreground px-6 py-3.5 text-xs uppercase tracking-wider">Due Date</TableHead>
+            <TableHead class="font-semibold text-muted-foreground px-6 py-3.5 text-xs uppercase tracking-wider">Status</TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <TableBody class="animate-stagger">
           {#if reminders.length === 0}
             <TableRow>
-              <TableCell colspan={5} class="text-center text-slate-500 py-8">No reminders scheduled.</TableCell>
+              <TableCell colspan={5} class="text-center text-muted-foreground py-16">
+                <div class="flex flex-col items-center justify-center">
+                  <Clock class="size-8 text-muted-foreground/60 mb-2" />
+                  <span class="text-sm font-medium">No reminders scheduled</span>
+                </div>
+              </TableCell>
             </TableRow>
           {:else}
             {#each reminders as r}
               {@const p = patientStore.get(r.patientId)}
-              <TableRow class="border-b border-slate-900/60">
-                <TableCell class="px-4 py-2">
-                  <div class="text-white font-medium">{p?.name || 'Unknown'}</div>
-                  <div class="text-slate-500 text-xs font-mono mt-0.5">{r.recipientPhone}</div>
+              <TableRow class="border-border hover:bg-muted/40 transition-colors">
+                <TableCell class="px-6 py-4">
+                  <div class="flex items-center gap-2">
+                    <User class="size-3.5 text-primary" />
+                    <span class="font-semibold text-foreground text-sm">{p?.name || 'Unknown'}</span>
+                  </div>
+                  <div class="text-muted-foreground text-xs font-mono mt-1">{r.recipientPhone}</div>
                 </TableCell>
-                <TableCell class="px-4 py-2">
-                  <Badge variant="outline" class="border-slate-700 text-slate-300 capitalize">{r.type.replace('_', ' ')}</Badge>
+                <TableCell class="px-6 py-4">
+                  <Badge variant="outline" class="border-border text-muted-foreground capitalize text-[10px] tracking-wide font-bold">{r.type.replace('_', ' ')}</Badge>
                 </TableCell>
-                <TableCell class="text-slate-300 px-4 py-2">{r.label}</TableCell>
-                <TableCell class="text-slate-300 px-4 py-2 whitespace-nowrap">{formatDate(r.dueDate)}</TableCell>
-                <TableCell class="px-4 py-2">
+                <TableCell class="text-foreground px-6 py-4 text-sm font-medium">{r.label}</TableCell>
+                <TableCell class="text-muted-foreground px-6 py-4 text-sm font-mono whitespace-nowrap">{formatDate(r.dueDate)}</TableCell>
+                <TableCell class="px-6 py-4">
                   {#if r.status === 'scheduled'}
-                    <Badge class="bg-amber-500/10 text-amber-400 border border-amber-500/20">Pending</Badge>
+                    <Badge class="bg-triage-amber/15 text-triage-amber border-triage-amber/25 hover:bg-triage-amber/15 font-semibold text-[10px] tracking-wider uppercase">Pending</Badge>
                   {:else if r.status === 'sent'}
-                    <Badge class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Sent</Badge>
+                    <Badge class="bg-triage-green/15 text-triage-green border-triage-green/25 hover:bg-triage-green/15 font-semibold text-[10px] tracking-wider uppercase">Sent</Badge>
                   {:else}
-                    <Badge class="bg-slate-500/10 text-slate-400 border border-slate-500/20 capitalize">{r.status}</Badge>
+                    <Badge variant="secondary" class="font-semibold text-[10px] tracking-wider uppercase">{r.status}</Badge>
                   {/if}
                 </TableCell>
               </TableRow>
@@ -125,6 +143,6 @@
           {/if}
         </TableBody>
       </Table>
-    </CardContent>
+    </ScrollArea>
   </Card>
 </div>

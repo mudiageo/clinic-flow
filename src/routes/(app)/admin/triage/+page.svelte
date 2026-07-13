@@ -5,7 +5,9 @@
   import { Badge } from '$lib/components/ui/badge';
   import { Input } from '$lib/components/ui/input';
   import { Button } from '$lib/components/ui/button';
+  import { ScrollArea } from '$lib/components/ui/scroll-area';
   import { toast } from 'svelte-sonner';
+  import { Settings, Edit2, Check, X, ShieldAlert, AlertTriangle } from '@lucide/svelte';
 
   const rules = $derived(triageRuleStore.items);
 
@@ -41,72 +43,88 @@
   <title>Triage Rules Config — ClinicFlow</title>
 </svelte:head>
 
-<div class="space-y-8">
-  <div>
-    <h1 class="text-3xl font-extrabold text-white tracking-tight">Triage Rules Engine Config</h1>
-    <p class="text-slate-400 mt-1">Configure clinical thresholds for automatic triage flagging</p>
+<div class="space-y-8 animate-fade-in">
+  <div class="flex items-start gap-3">
+    <div class="p-2.5 rounded-xl bg-primary/10 text-primary">
+      <Settings class="size-6" />
+    </div>
+    <div>
+      <h1 class="text-2xl font-bold text-foreground tracking-tight">Triage Rules Config</h1>
+      <p class="text-muted-foreground text-sm mt-0.5 font-medium">Configure clinical thresholds for automatic triage flagging</p>
+    </div>
   </div>
 
-  <Card class="bg-slate-900/40 border-slate-900 backdrop-blur">
-    <CardHeader>
-      <CardTitle class="text-white text-lg">Active Thresholds</CardTitle>
-      <CardDescription class="text-slate-400">Rules are evaluated from top to bottom on every vitals entry.</CardDescription>
+  <Card class="overflow-hidden card-hover bg-card/60">
+    <CardHeader class="border-b border-border/60 bg-muted/20 px-6 py-4">
+      <CardTitle class="text-base font-semibold">Active Thresholds</CardTitle>
+      <CardDescription>Rules are evaluated sequentially on every vitals record entry.</CardDescription>
     </CardHeader>
-    <CardContent>
+    <ScrollArea class="h-[500px] w-full">
       <Table>
-        <TableHeader class="bg-slate-950/40">
-          <TableRow>
-            <TableHead class="text-slate-400 font-semibold px-4 py-2">Rule Field</TableHead>
-            <TableHead class="text-slate-400 font-semibold px-4 py-2">Condition</TableHead>
-            <TableHead class="text-slate-400 font-semibold px-4 py-2">Threshold</TableHead>
-            <TableHead class="text-slate-400 font-semibold px-4 py-2">Urgency</TableHead>
-            <TableHead class="text-slate-400 font-semibold px-4 py-2 text-right">Status</TableHead>
+        <TableHeader class="bg-muted/40 sticky top-0 z-10">
+          <TableRow class="hover:bg-transparent">
+            <TableHead class="font-semibold text-muted-foreground px-6 py-3.5 text-xs uppercase tracking-wider">Rule Field</TableHead>
+            <TableHead class="font-semibold text-muted-foreground px-6 py-3.5 text-xs uppercase tracking-wider">Condition</TableHead>
+            <TableHead class="font-semibold text-muted-foreground px-6 py-3.5 text-xs uppercase tracking-wider">Threshold</TableHead>
+            <TableHead class="font-semibold text-muted-foreground px-6 py-3.5 text-xs uppercase tracking-wider">Urgency</TableHead>
+            <TableHead class="font-semibold text-muted-foreground px-6 py-3.5 text-right w-32 text-xs uppercase tracking-wider">Status</TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <TableBody class="animate-stagger">
           {#each rules as rule}
-            <TableRow class="border-b border-slate-900/60">
-              <TableCell class="text-white font-medium px-4 py-2">
-                {rule.field}
+            <TableRow class="border-border hover:bg-muted/40 transition-colors">
+              <TableCell class="font-semibold text-foreground px-6 py-4 text-sm">
+                <span class="capitalize">{rule.field.replace('Celsius', ' (°C)').replace('Bp', ' BP').replace('Percent', ' (%)').replace('Bpm', ' (BPM)').replace('Kg', ' (kg)')}</span>
                 {#if rule.requiresPregnant}
-                  <Badge variant="outline" class="ml-2 text-xs border-amber-500/30 text-amber-400">Pregnant Only</Badge>
+                  <Badge variant="outline" class="ml-2 border-triage-amber/35 text-triage-amber bg-triage-amber/5 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0">Pregnant Only</Badge>
                 {/if}
               </TableCell>
-              <TableCell class="text-slate-300 px-4 py-2 uppercase font-mono text-sm">{rule.operator}</TableCell>
-              <TableCell class="px-4 py-2">
+              <TableCell class="text-muted-foreground px-6 py-4 font-mono text-xs uppercase font-bold">{rule.operator}</TableCell>
+              <TableCell class="px-6 py-4">
                 {#if editingId === rule.id}
-                  <div class="flex items-center gap-2">
-                    <Input type="number" bind:value={editThreshold} class="w-20 h-8 bg-slate-950 border-slate-700 text-white" />
-                    <Button size="sm" class="h-8 bg-teal-600 hover:bg-teal-500 text-white" onclick={() => saveEdit(rule.id)}>Save</Button>
-                    <Button size="sm" variant="ghost" class="h-8 text-slate-400 hover:text-white" onclick={() => editingId = null}>Cancel</Button>
+                  <div class="flex items-center gap-2 animate-fade-in">
+                    <Input type="number" bind:value={editThreshold} class="w-20 h-8 bg-background border-border text-foreground text-xs" />
+                    <Button size="icon" class="h-8 w-8 bg-primary text-primary-foreground hover:bg-primary/95 btn-press" onclick={() => saveEdit(rule.id)}>
+                      <Check class="size-3.5" />
+                    </Button>
+                    <Button size="icon" variant="ghost" class="h-8 w-8 text-muted-foreground hover:text-foreground btn-press" onclick={() => editingId = null}>
+                      <X class="size-3.5" />
+                    </Button>
                   </div>
                 {:else}
-                  <span class="text-white font-bold">{rule.threshold}</span>
-                  <button class="ml-3 text-slate-500 hover:text-white text-xs underline" onclick={() => startEdit(rule)}>Edit</button>
+                  <div class="flex items-center gap-3">
+                    <span class="text-foreground font-bold text-sm tabular-nums">{rule.threshold}</span>
+                    <Button variant="ghost" size="icon" class="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted btn-press" onclick={() => startEdit(rule)}>
+                      <Edit2 class="size-3" />
+                    </Button>
+                  </div>
                 {/if}
               </TableCell>
-              <TableCell class="px-4 py-2">
+              <TableCell class="px-6 py-4">
                 {#if rule.resultingLevel === 'red'}
-                  <Badge class="bg-rose-500/10 text-rose-400 border border-rose-500/20">RED</Badge>
+                  <Badge class="bg-triage-red/15 text-triage-red border-triage-red/25 hover:bg-triage-red/15 font-semibold text-[10px] tracking-wider uppercase">RED</Badge>
                 {:else if rule.resultingLevel === 'amber'}
-                  <Badge class="bg-amber-500/10 text-amber-400 border border-amber-500/20">AMBER</Badge>
+                  <Badge class="bg-triage-amber/15 text-triage-amber border-triage-amber/25 hover:bg-triage-amber/15 font-semibold text-[10px] tracking-wider uppercase">AMBER</Badge>
                 {:else}
-                  <Badge class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">GREEN</Badge>
+                  <Badge class="bg-triage-green/15 text-triage-green border-triage-green/25 hover:bg-triage-green/15 font-semibold text-[10px] tracking-wider uppercase">GREEN</Badge>
                 {/if}
               </TableCell>
-              <TableCell class="px-4 py-2 text-right">
+              <TableCell class="px-6 py-4 text-right">
                 <button 
                   aria-label="Toggle rule active status"
-                  class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 focus:ring-offset-slate-950 {rule.active ? 'bg-teal-500' : 'bg-slate-700'}"
+                  class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-primary/20
+                    {rule.active ? 'bg-primary' : 'bg-muted border border-border'}"
                   onclick={() => toggleRule(rule.id, rule.active)}
                 >
-                  <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {rule.active ? 'translate-x-6' : 'translate-x-1'}"></span>
+                  <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform duration-200 
+                    {rule.active ? 'translate-x-4.5' : 'translate-x-0.5'}"
+                  ></span>
                 </button>
               </TableCell>
             </TableRow>
           {/each}
         </TableBody>
       </Table>
-    </CardContent>
+    </ScrollArea>
   </Card>
 </div>
