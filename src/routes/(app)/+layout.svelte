@@ -22,7 +22,7 @@
     SidebarSeparator,
     SidebarTrigger,
   } from '$lib/components/ui/sidebar';
-  import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
+  import * as Tooltip from '$lib/components/ui/tooltip';
   import {
     ClipboardList,
     UserPlus,
@@ -101,37 +101,34 @@
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton href="/nurse" isActive={isActive('/nurse')} class="transition-all duration-150 hover:bg-sidebar-accent active:scale-95">
+                    <SidebarMenuButton isActive={isActive('/nurse')} tooltipContent="Queue Board">
+                      {#snippet child({ props })}
+                        <a href="/nurse" {...props} class="transition-all duration-150 active:scale-95">
                           <ClipboardList class="size-4" />
                           <span>Queue Board</span>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      <TooltipContent side="right">Queue Board</TooltipContent>
-                    </Tooltip>
+                        </a>
+                      {/snippet}
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton href="/nurse/register" isActive={isActive('/nurse/register')} class="transition-all duration-150 hover:bg-sidebar-accent active:scale-95">
+                    <SidebarMenuButton isActive={isActive('/nurse/register')} tooltipContent="Register Patient">
+                      {#snippet child({ props })}
+                        <a href="/nurse/register" {...props} class="transition-all duration-150 active:scale-95">
                           <UserPlus class="size-4" />
                           <span>Register Patient</span>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      <TooltipContent side="right">Register Patient</TooltipContent>
-                    </Tooltip>
+                        </a>
+                      {/snippet}
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton href="/nurse/vitals" isActive={isActive('/nurse/vitals')} class="transition-all duration-150 hover:bg-sidebar-accent active:scale-95">
+                    <SidebarMenuButton isActive={isActive('/nurse/vitals')} tooltipContent="Vitals &amp; Triage">
+                      {#snippet child({ props })}
+                        <a href="/nurse/vitals" {...props} class="transition-all duration-150 active:scale-95">
                           <Thermometer class="size-4" />
                           <span>Vitals &amp; Triage</span>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      <TooltipContent side="right">Vitals &amp; Triage</TooltipContent>
-                    </Tooltip>
+                        </a>
+                      {/snippet}
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
@@ -145,15 +142,14 @@
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton href="/doctor" isActive={isActive('/doctor')} class="transition-all duration-150 hover:bg-sidebar-accent active:scale-95">
+                    <SidebarMenuButton isActive={isActive('/doctor')} tooltipContent="Consultation Queue">
+                      {#snippet child({ props })}
+                        <a href="/doctor" {...props} class="transition-all duration-150 active:scale-95">
                           <Stethoscope class="size-4" />
                           <span>Consultation Queue</span>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      <TooltipContent side="right">Consultation Queue</TooltipContent>
-                    </Tooltip>
+                        </a>
+                      {/snippet}
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
@@ -167,26 +163,24 @@
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton href="/admin" isActive={isActive('/admin')} class="transition-all duration-150 hover:bg-sidebar-accent active:scale-95">
+                    <SidebarMenuButton isActive={isActive('/admin')} tooltipContent="Operations Stats">
+                      {#snippet child({ props })}
+                        <a href="/admin" {...props} class="transition-all duration-150 active:scale-95">
                           <BarChart3 class="size-4" />
                           <span>Operations Stats</span>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      <TooltipContent side="right">Operations Stats</TooltipContent>
-                    </Tooltip>
+                        </a>
+                      {/snippet}
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton href="/admin/patients" isActive={isActive('/admin/patients')} class="transition-all duration-150 hover:bg-sidebar-accent active:scale-95">
+                    <SidebarMenuButton isActive={isActive('/admin/patients')} tooltipContent="Patients Registry">
+                      {#snippet child({ props })}
+                        <a href="/admin/patients" {...props} class="transition-all duration-150 active:scale-95">
                           <FolderOpen class="size-4" />
                           <span>Patients Registry</span>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      <TooltipContent side="right">Patients Registry</TooltipContent>
-                    </Tooltip>
+                        </a>
+                      {/snippet}
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
@@ -224,9 +218,13 @@
             <!-- Logout -->
             <SidebarMenuItem>
               <form {...signOutAction}>
-                <SidebarMenuButton type="submit" class="w-full text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors duration-150 active:scale-95">
-                  <LogOut class="size-4" />
-                  <span>Log Out</span>
+                <SidebarMenuButton class="w-full text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors duration-150 active:scale-95">
+                  {#snippet child({ props })}
+                    <button type="submit" {...props}>
+                      <LogOut class="size-4" />
+                      <span>Log Out</span>
+                    </button>
+                  {/snippet}
                 </SidebarMenuButton>
               </form>
             </SidebarMenuItem>
@@ -254,26 +252,28 @@
             </div>
 
             <!-- Theme toggle -->
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  class="h-8 w-8 text-muted-foreground hover:text-foreground transition-all duration-200 hover:rotate-12"
-                  onclick={toggleMode}
-                  aria-label="Toggle theme"
-                >
-                  {#if $mode === 'dark'}
-                    <Sun class="size-4" />
-                  {:else if $mode === 'light'}
-                    <Moon class="size-4" />
-                  {:else}
-                    <Monitor class="size-4" />
-                  {/if}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Toggle theme</TooltipContent>
-            </Tooltip>
+            <Tooltip.Provider>
+              <Tooltip.Root>
+                <Tooltip.Trigger>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    class="h-8 w-8 text-muted-foreground hover:text-foreground transition-all duration-200 hover:rotate-12"
+                    onclick={toggleMode}
+                    aria-label="Toggle theme"
+                  >
+                    {#if mode.current === 'dark'}
+                      <Sun class="size-4" />
+                    {:else if mode.current === 'light'}
+                      <Moon class="size-4" />
+                    {:else}
+                      <Monitor class="size-4" />
+                    {/if}
+                  </Button>
+                </Tooltip.Trigger>
+                <Tooltip.Content>Toggle theme</Tooltip.Content>
+              </Tooltip.Root>
+            </Tooltip.Provider>
           </div>
         </header>
 

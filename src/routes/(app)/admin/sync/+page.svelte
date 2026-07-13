@@ -4,7 +4,7 @@
   import { Button } from '$lib/components/ui/button';
   import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '$lib/components/ui/card';
   import { onMount } from 'svelte';
-  import { AlertTriangle, CheckCircle, RefreshCcw, Wifi, WifiOff } from 'lucide-svelte';
+  import { AlertTriangle, CheckCircle, RefreshCcw, Wifi, WifiOff } from '@lucide/svelte';
   
   let conflicts = $state<{ table: string, id: string, record: any }[]>([]);
   let refreshing = $state(false);
