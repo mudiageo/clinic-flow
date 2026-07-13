@@ -43,7 +43,7 @@
   let finalTranscript = $state('');
 
   onMount(() => {
-    const SpeechRec = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRec) {
       recognition = new SpeechRec();
       recognition.continuous = true;
@@ -203,10 +203,8 @@
           status: 'scheduled',
           sentAt: null,
           provider: null,
-          providerMessageId: null,
-          deleted: false,
-          serverUpdatedAt: null,
-        });
+          providerMessageId: null
+        } as any);
       }
 
       // 4. Save prescriptions
