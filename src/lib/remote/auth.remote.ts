@@ -1,7 +1,7 @@
 import { form, query } from '$app/server';
 import { getRequestEvent } from '$app/server';
 import { auth } from '$lib/server/auth';
-import { redirect } from '@sveltejs/kit';
+import { redirect, isRedirect } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { db } from '$lib/server/db';
 
@@ -30,14 +30,14 @@ export const signInAction = form(
 					where: (s, { eq }) => eq(s.authUserId, userRecord.id)
 				});
 				const role = staffMember?.role ?? 'nurse';
-				if (role === 'admin') throw redirect(302, '/admin');
-				if (role === 'doctor') throw redirect(302, '/doctor');
-				if (role === 'pharmacy') throw redirect(302, '/pharmacy');
-				throw redirect(302, '/nurse');
+				if (role === 'admin') redirect(302, '/admin');
+				if (role === 'doctor') redirect(302, '/doctor');
+				if (role === 'pharmacy') redirect(302, '/pharmacy');
+				redirect(302, '/nurse');
 			}
-			throw redirect(302, '/login');
+			redirect(302, '/login');
 		} catch (error: any) {
-			if (error.status === 302 || error.status === 303) {
+			if (isRedirect(error)) {
 				throw error; // Pass redirects through to SvelteKit
 			}
 			throw new Error(error.message || 'Invalid email or password');
@@ -60,5 +60,5 @@ export const signOutAction = form(v.object({}), async () => {
 	await auth.api.signOut({
 		headers: event.request.headers
 	});
-	throw redirect(302, '/login');
+	redirect(302, '/login');
 });

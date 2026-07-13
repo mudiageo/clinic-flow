@@ -8,7 +8,7 @@ import { eq, desc } from 'drizzle-orm';
 
 function requireSession() {
 	const event = getRequestEvent();
-	if (!event.locals.session || !event.locals.user) throw redirect(302, '/login');
+	if (!event.locals.session || !event.locals.user) redirect(302, '/login');
 	return { session: event.locals.session, user: event.locals.user, phcId: event.locals.phcId };
 }
 
