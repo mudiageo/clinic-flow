@@ -11,3 +11,9 @@
 2026-07-13 13:22:50.913 WAT [31496] LOG:  database system is ready to accept connections
 2026-07-13 13:32:50.886 WAT [36144] LOG:  checkpoint starting: time
 2026-07-13 13:34:33.689 WAT [36144] LOG:  checkpoint complete: wrote 997 buffers (6.1%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=100.078 s, sync=2.630 s, total=102.804 s; sync files=305, longest=0.092 s, average=0.009 s; distance=4674 kB, estimate=4674 kB; lsn=0/2AA6498, redo lsn=0/2AA6408
+2026-07-13 13:50:00.835 WAT [9692] ERROR:  relation "user" does not exist at character 90
+2026-07-13 13:50:00.835 WAT [9692] STATEMENT:  select "id", "name", "email", "email_verified", "image", "created_at", "updated_at" from "user" where "user"."email" = $1
+2026-07-13 13:51:05.589 WAT [36548] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-07-13 13:51:59.350 WAT [36812] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	

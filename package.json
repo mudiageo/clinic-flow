@@ -15,6 +15,7 @@
     "test:unit": "vitest",
     "test": "npm run test:unit -- --run",
     "db:push": "drizzle-kit push",
+    "db:seed": "pnpm dlx tsx --env-file=.env src/lib/server/db/seed.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
