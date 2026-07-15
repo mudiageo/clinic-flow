@@ -23,9 +23,14 @@
   </div>
 
   <div class="bg-card border border-border shadow-sm rounded-2xl p-6 md:p-10">
-    <!-- Action forms return their results as props on the action. But wait, sveltekit forms give us form prop? -->
-    <!-- The remote function form binds via use action or similar, let's just use the form component pattern or native remote form. -->
-    <form {...registerAction} class="space-y-8" onsubmit={() => isSubmitting = true}>
+    <form {...registerAction.enhance(async (form) => {
+      isSubmitting = true;
+      try {
+        await form.submit();
+      } finally {
+        isSubmitting = false;
+      }
+    })} class="space-y-8">
       
       <!-- Clinic Details -->
       <div class="space-y-4">
@@ -35,8 +40,11 @@
           <Label for="phcName">Primary Healthcare Center Name</Label>
           <div class="relative">
             <Building class="absolute left-3 top-3 size-4 text-muted-foreground" />
-            <Input id="phcName" name="phcName" placeholder="e.g. Oredo PHC" required class="pl-10" />
+            <Input {...registerAction.fields.phcName.as('text')} id="phcName" placeholder="e.g. Oredo PHC" class="pl-10" />
           </div>
+          {#each registerAction.fields.phcName.issues() ?? [] as issue}
+            <p class="text-sm text-destructive mt-1">{issue.message}</p>
+          {/each}
         </div>
 
         <div class="grid grid-cols-2 gap-4">
@@ -44,12 +52,18 @@
             <Label for="state">State</Label>
             <div class="relative">
               <MapPin class="absolute left-3 top-3 size-4 text-muted-foreground" />
-              <Input id="state" name="state" placeholder="e.g. Edo State" required class="pl-10" />
+              <Input {...registerAction.fields.state.as('text')} id="state" placeholder="e.g. Edo State" class="pl-10" />
             </div>
+            {#each registerAction.fields.state.issues() ?? [] as issue}
+              <p class="text-sm text-destructive mt-1">{issue.message}</p>
+            {/each}
           </div>
           <div class="space-y-2">
             <Label for="lga">LGA</Label>
-            <Input id="lga" name="lga" placeholder="e.g. Oredo" required />
+            <Input {...registerAction.fields.lga.as('text')} id="lga" placeholder="e.g. Oredo" />
+            {#each registerAction.fields.lga.issues() ?? [] as issue}
+              <p class="text-sm text-destructive mt-1">{issue.message}</p>
+            {/each}
           </div>
         </div>
       </div>
@@ -62,24 +76,33 @@
           <Label for="adminName">Admin Full Name</Label>
           <div class="relative">
             <User class="absolute left-3 top-3 size-4 text-muted-foreground" />
-            <Input id="adminName" name="adminName" placeholder="e.g. John Doe" required class="pl-10" />
+            <Input {...registerAction.fields.adminName.as('text')} id="adminName" placeholder="e.g. John Doe" class="pl-10" />
           </div>
+          {#each registerAction.fields.adminName.issues() ?? [] as issue}
+            <p class="text-sm text-destructive mt-1">{issue.message}</p>
+          {/each}
         </div>
 
         <div class="space-y-2">
           <Label for="email">Admin Email</Label>
           <div class="relative">
             <Mail class="absolute left-3 top-3 size-4 text-muted-foreground" />
-            <Input id="email" name="email" type="email" placeholder="admin@phc.gov.ng" required class="pl-10" />
+            <Input {...registerAction.fields.email.as('email')} id="email" placeholder="admin@phc.gov.ng" class="pl-10" />
           </div>
+          {#each registerAction.fields.email.issues() ?? [] as issue}
+            <p class="text-sm text-destructive mt-1">{issue.message}</p>
+          {/each}
         </div>
 
         <div class="space-y-2">
           <Label for="password">Password</Label>
           <div class="relative">
             <Lock class="absolute left-3 top-3 size-4 text-muted-foreground" />
-            <Input id="password" name="password" type="password" required minlength={8} class="pl-10" />
+            <Input {...registerAction.fields.password.as('password')} id="password" class="pl-10" />
           </div>
+          {#each registerAction.fields.password.issues() ?? [] as issue}
+            <p class="text-sm text-destructive mt-1">{issue.message}</p>
+          {/each}
         </div>
       </div>
 
