@@ -15,3 +15,21 @@ export function formatDistanceToNow(timestamp: number): string {
 
 	return rtf.format(seconds, 'second');
 }
+
+export function formatDate(timestamp: number | string | Date, options?: Intl.DateTimeFormatOptions): string {
+	const date = new Date(timestamp);
+	return new Intl.DateTimeFormat('en-US', {
+		year: 'numeric',
+		month: 'short',
+		day: 'numeric',
+		...options
+	}).format(date);
+}
+
+export function formatDateTime(timestamp: number | string | Date): string {
+	return formatDate(timestamp, {
+		hour: 'numeric',
+		minute: 'numeric',
+		hour12: true
+	});
+}

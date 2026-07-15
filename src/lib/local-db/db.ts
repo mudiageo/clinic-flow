@@ -67,6 +67,61 @@ export interface LocalPharmacyInventory {
 	updatedAt: number;
 }
 
+export interface LocalSyncOperation {
+	id: string;
+	phcId: string;
+	entityName:
+		| 'patients'
+		| 'queueTickets'
+		| 'vitalsRecords'
+		| 'encounters'
+		| 'pharmacyInventory'
+		| 'prescriptions'
+		| 'restockRequests'
+		| 'reminders'
+		| 'labRequests';
+	entityId: string;
+	operation: 'INSERT' | 'UPDATE' | 'DELETE';
+	payload: any;
+	status: 'pending' | 'processing' | 'failed' | 'completed';
+	createdAt: number;
+	retryCount: number;
+	errorMessage: string | null;
+}
+
+export interface LocalLabRequest {
+	id: string;
+	encounterId: string;
+	patientId: string;
+	phcId: string;
+	requestedByStaffId: string;
+	testType: string;
+	urgency: 'routine' | 'urgent' | 'stat';
+	notes: string | null;
+	status: 'pending' | 'processing' | 'completed';
+	result: string | null;
+	resultEnteredByStaffId: string | null;
+	resultEnteredAt: number | null;
+	createdAt: number;
+	updatedAt: number;
+	syncStatus: 'synced' | 'pending' | 'conflict';
+}
+
+export interface LocalEncounter {
+	id: string;
+	patientId: string;
+	phcId: string;
+	recordedByStaffId: string | null;
+	visitDate: number;
+	chiefComplaint: string | null;
+	chiefComplaintRaw: string | null;
+	chiefComplaintLanguage: string | null;
+	doctorNotes: string | null;
+	createdAt: number;
+	updatedAt: number;
+	syncStatus: 'synced' | 'pending' | 'conflict';
+}
+
 export interface LocalReminder {
 	id: string;
 	patientId: string;
@@ -129,7 +184,10 @@ class ClinicFlowDB extends Dexie {
 	queueTickets!: Table<LocalQueueTicket, string>;
 	vitalsRecords!: Table<LocalVitalsRecord, string>;
 	pharmacyInventory!: Table<LocalPharmacyInventory, string>;
+	syncOperations!: Table<LocalSyncOperation, string>;
+	labRequests!: Table<LocalLabRequest, string>;
 	reminders!: Table<LocalReminder, string>;
+	encounters!: Table<LocalEncounter, string>;
 	triageRules!: Table<LocalTriageRule, string>;
 	prescriptions!: Table<LocalPrescription, string>;
 	syncLog!: Table<SyncLogEntry, number>;
@@ -141,12 +199,14 @@ class ClinicFlowDB extends Dexie {
 			queueTickets: 'id, patientId, status, triageLevel, createdAt, syncStatus',
 			vitalsRecords: 'id, patientId, recordedAt, syncStatus',
 			pharmacyInventory: 'id, itemName, currentStock, syncStatus',
-			reminders: 'id, patientId, dueDate, status, syncStatus',
+			reminders: 'id, patientId, phcId, status, dueDate, syncStatus',
+			labRequests: 'id, patientId, encounterId, phcId, status, urgency, syncStatus',
 			triageRules: 'id, field, active, syncStatus',
 			syncLog: '++localId, entityType, entityId, operation, timestamp, synced'
 		});
 		this.version(2).stores({
-			prescriptions: 'id, patientId, status, syncStatus'
+			prescriptions: 'id, patientId, status, syncStatus',
+			encounters: 'id, patientId, visitDate, syncStatus'
 		});
 	}
 }

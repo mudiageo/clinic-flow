@@ -50,6 +50,8 @@ export const reminderStatusEnum = pgEnum('reminder_status', [
 	'failed',
 	'cancelled'
 ]);
+export const labUrgencyEnum = pgEnum('lab_urgency', ['routine', 'urgent', 'stat']);
+export const labStatusEnum = pgEnum('lab_status', ['pending', 'processing', 'completed']);
 
 // ─────────────────────────────────────────────────────────────
 // USERS & AUTH (Better Auth compatible core fields kept minimal here;
@@ -229,6 +231,35 @@ export const triageRules = pgTable('triage_rules', {
 	active: boolean('active').notNull().default(true),
 	version: integer('version').notNull().default(1)
 });
+
+// ─────────────────────────────────────────────────────────────
+// LAB REQUESTS
+// ─────────────────────────────────────────────────────────────
+
+export const labRequests = pgTable(
+	'lab_requests',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		encounterId: uuid('encounter_id').notNull().references(() => encounters.id),
+		patientId: uuid('patient_id').notNull().references(() => patients.id),
+		phcId: uuid('phc_id').notNull().references(() => phcs.id),
+		requestedByStaffId: uuid('requested_by_staff_id').notNull().references(() => staff.id),
+		testType: varchar('test_type', { length: 100 }).notNull(), // e.g., 'Malaria RDT'
+		urgency: labUrgencyEnum('urgency').notNull().default('routine'),
+		notes: text('notes'),
+		status: labStatusEnum('status').notNull().default('pending'),
+		result: text('result'),
+		resultEnteredByStaffId: uuid('result_entered_by_staff_id').references(() => staff.id),
+		resultEnteredAt: timestamp('result_entered_at', { withTimezone: true }),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(table) => ({
+		patientIdx: index('lab_requests_patient_idx').on(table.patientId),
+		encounterIdx: index('lab_requests_encounter_idx').on(table.encounterId),
+		statusIdx: index('lab_requests_status_idx').on(table.status)
+	})
+);
 
 // ─────────────────────────────────────────────────────────────
 // QUEUE

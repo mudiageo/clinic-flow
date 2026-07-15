@@ -9,8 +9,9 @@
 
 	type Props = {
 		ticket: LocalQueueTicket;
+		role?: 'nurse' | 'doctor';
 	};
-	let { ticket }: Props = $props();
+	let { ticket, role = 'nurse' }: Props = $props();
 
 	let isCalling = $state(false);
 
@@ -77,50 +78,59 @@
 		</div>
 	</div>
 
-	<!-- Actions -->
 	<div class="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-		{#if ticket.status === 'waiting'}
+		{#if role === 'doctor'}
 			<Button
 				variant="default"
-				onclick={async () => {
-					isCalling = true;
-					await queueStore.update(ticket.id, { status: 'called', calledAt: Date.now() });
-					isCalling = false;
-				}}
-				disabled={isCalling}
-				class="w-full sm:w-auto shadow-sm"
+				href={`/doctor/consult/${ticket.id}`}
+				class="w-full sm:w-auto shadow-sm bg-primary text-primary-foreground hover:bg-primary/90"
 			>
-				Call Next
+				Start Consultation
 			</Button>
-		{:else if ticket.status === 'called' || ticket.status === 'in_progress'}
-			<Button
-				variant="outline"
-				class="w-full sm:w-auto border-emerald-500/30 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
-				onclick={() => queueStore.markDone(ticket.id)}
-			>
-				<Check class="size-4 mr-2" />
-				Done
-			</Button>
+		{:else}
+			{#if ticket.status === 'waiting'}
+				<Button
+					variant="default"
+					onclick={async () => {
+						isCalling = true;
+						await queueStore.update(ticket.id, { status: 'called', calledAt: Date.now() });
+						isCalling = false;
+					}}
+					disabled={isCalling}
+					class="w-full sm:w-auto shadow-sm"
+				>
+					Call Next
+				</Button>
+			{:else if ticket.status === 'called' || ticket.status === 'in_progress'}
+				<Button
+					variant="outline"
+					class="w-full sm:w-auto border-emerald-500/30 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
+					onclick={() => queueStore.markDone(ticket.id)}
+				>
+					<Check class="size-4 mr-2" />
+					Done
+				</Button>
 
-			<DropdownMenu.Root>
-				<DropdownMenu.Trigger>
-					{#snippet child({ props })}
-						<Button variant="ghost" size="icon" {...props} class="text-muted-foreground">
-							<span class="sr-only">More options</span>
-							<Clock class="size-4" />
-						</Button>
-					{/snippet}
-				</DropdownMenu.Trigger>
-				<DropdownMenu.Content align="end">
-					<DropdownMenu.Item
-						class="text-destructive focus:bg-destructive/10 focus:text-destructive"
-						onclick={() => queueStore.markNoShow(ticket.id)}
-					>
-						<UserX class="size-4 mr-2" />
-						Mark No-Show
-					</DropdownMenu.Item>
-				</DropdownMenu.Content>
-			</DropdownMenu.Root>
+				<DropdownMenu.Root>
+					<DropdownMenu.Trigger>
+						{#snippet child({ props })}
+							<Button variant="ghost" size="icon" {...props} class="text-muted-foreground">
+								<span class="sr-only">More options</span>
+								<Clock class="size-4" />
+							</Button>
+						{/snippet}
+					</DropdownMenu.Trigger>
+					<DropdownMenu.Content align="end">
+						<DropdownMenu.Item
+							class="text-destructive focus:bg-destructive/10 focus:text-destructive"
+							onclick={() => queueStore.markNoShow(ticket.id)}
+						>
+							<UserX class="size-4 mr-2" />
+							Mark No-Show
+						</DropdownMenu.Item>
+					</DropdownMenu.Content>
+				</DropdownMenu.Root>
+			{/if}
 		{/if}
 	</div>
 </div>

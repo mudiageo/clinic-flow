@@ -27,7 +27,9 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 		pharmacyInventory: schema.pharmacyInventory,
 		reminders: schema.reminders,
 		triageRules: schema.triageRules,
-		prescriptions: schema.prescriptions
+		prescriptions: schema.prescriptions,
+		encounters: schema.encounters,
+		labRequests: schema.labRequests
 	};
 
 	for (const op of operations) {
