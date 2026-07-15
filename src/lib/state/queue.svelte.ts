@@ -1,5 +1,6 @@
 import { db, type LocalQueueTicket } from '$lib/local-db/db';
 import { LocalCollection } from './local-collection.svelte';
+import { syncStore } from './sync.svelte';
 
 class QueueStore extends LocalCollection<LocalQueueTicket> {
 	constructor() {
@@ -27,6 +28,7 @@ class QueueStore extends LocalCollection<LocalQueueTicket> {
 			status: 'called',
 			calledAt: Date.now()
 		} as Partial<LocalQueueTicket>);
+		syncStore.requestSyncAcrossTabs();
 	}
 
 	async applyTriageFlag(
@@ -41,6 +43,23 @@ class QueueStore extends LocalCollection<LocalQueueTicket> {
 			triageLevel: level,
 			triageReason: reason
 		} as Partial<LocalQueueTicket>);
+		syncStore.requestSyncAcrossTabs();
+	}
+
+	async markDone(ticketId: string): Promise<void> {
+		await this.update(ticketId, {
+			status: 'done',
+			completedAt: Date.now()
+		} as Partial<LocalQueueTicket>);
+		syncStore.requestSyncAcrossTabs();
+	}
+
+	async markNoShow(ticketId: string): Promise<void> {
+		await this.update(ticketId, {
+			status: 'no_show',
+			completedAt: Date.now()
+		} as Partial<LocalQueueTicket>);
+		syncStore.requestSyncAcrossTabs();
 	}
 }
 

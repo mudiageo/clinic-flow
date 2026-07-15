@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import type { Component } from 'svelte';
-	
+
 	export type NavItem = {
 		href: string;
 		label: string;

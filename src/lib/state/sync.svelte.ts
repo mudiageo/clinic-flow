@@ -21,6 +21,7 @@ class SyncStore {
 	private cursor = 0;
 	private intervalHandle: ReturnType<typeof setInterval> | null = null;
 	private deviceId = getDeviceId();
+	private bc: BroadcastChannel | null = null;
 
 	constructor() {
 		if (typeof window !== 'undefined') {
@@ -39,6 +40,14 @@ class SyncStore {
 
 			// Auto flush every 30s
 			this.intervalHandle = setInterval(() => this.flush(), 30_000);
+
+			// Setup BroadcastChannel for cross-tab sync triggers
+			this.bc = new BroadcastChannel('clinicflow_sync_channel');
+			this.bc.onmessage = (event) => {
+				if (event.data === 'sync_requested') {
+					this.flush();
+				}
+			};
 		}
 	}
 
@@ -151,6 +160,13 @@ class SyncStore {
 			this.lastSyncedAt = Date.now();
 		} catch (e) {
 			console.error('Pull changes failed:', e);
+		}
+	}
+
+	requestSyncAcrossTabs() {
+		this.flush();
+		if (this.bc) {
+			this.bc.postMessage('sync_requested');
 		}
 	}
 }

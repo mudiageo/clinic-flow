@@ -10,14 +10,7 @@
 		CardTitle,
 		CardDescription
 	} from '$lib/components/ui/card';
-	import {
-		Table,
-		TableBody,
-		TableCell,
-		TableHead,
-		TableHeader,
-		TableRow
-	} from '$lib/components/ui/table';
+	import QueueTicketCard from '$lib/components/queue-ticket-card.svelte';
 	import { ScrollArea } from '$lib/components/ui/scroll-area';
 	import { ShinyButton } from '$lib/components/ui/shiny-button';
 	import {
@@ -149,136 +142,26 @@
 		</Card>
 	</div>
 
-	<!-- Queue Table -->
-	<Card class="overflow-hidden card-hover">
-		<CardHeader class="border-b border-border bg-muted/30 px-6 py-4">
-			<CardTitle class="text-base font-semibold">Active Queue</CardTitle>
+	<!-- Queue List -->
+	<Card class="overflow-hidden card-hover border-0 shadow-none bg-transparent">
+		<CardHeader class="px-0 pt-0 pb-4">
+			<CardTitle class="text-base font-semibold text-foreground">Active Queue</CardTitle>
 			<CardDescription>Real-time patient flow and triaging</CardDescription>
 		</CardHeader>
-		<ScrollArea class="h-[450px] w-full">
-			<Table>
-				<TableHeader class="bg-muted/40 sticky top-0 z-10">
-					<TableRow class="hover:bg-transparent">
-						<TableHead
-							class="font-semibold text-muted-foreground px-6 py-3.5 w-20 text-xs uppercase tracking-wider"
-							>#</TableHead
-						>
-						<TableHead
-							class="font-semibold text-muted-foreground px-6 py-3.5 text-xs uppercase tracking-wider"
-							>Patient Name</TableHead
-						>
-						<TableHead
-							class="font-semibold text-muted-foreground px-6 py-3.5 text-xs uppercase tracking-wider"
-							>Triage Priority</TableHead
-						>
-						<TableHead
-							class="font-semibold text-muted-foreground px-6 py-3.5 text-xs uppercase tracking-wider"
-							>Reason</TableHead
-						>
-						<TableHead
-							class="font-semibold text-muted-foreground px-6 py-3.5 text-xs uppercase tracking-wider"
-							>Status</TableHead
-						>
-						<TableHead
-							class="font-semibold text-muted-foreground px-6 py-3.5 text-right w-44 text-xs uppercase tracking-wider"
-							>Actions</TableHead
-						>
-					</TableRow>
-				</TableHeader>
-				<TableBody class="animate-stagger">
-					{#if sortedQueue.length === 0}
-						<TableRow>
-							<TableCell colspan={6} class="text-center py-16 text-muted-foreground">
-								<div class="flex flex-col items-center justify-center">
-									<UserCheck class="size-8 text-muted-foreground/60 mb-2" />
-									<span class="text-sm font-medium">No patients in the queue</span>
-								</div>
-							</TableCell>
-						</TableRow>
-					{:else}
-						{#each sortedQueue as ticket (ticket.id)}
-							{@const patient = patientStore.get(ticket.patientId)}
-							<TableRow class="hover:bg-muted/40 border-b border-border transition-colors group">
-								<TableCell class="font-semibold text-foreground px-6 py-4 tabular-nums"
-									>{ticket.ticketNumber}</TableCell
-								>
-								<TableCell class="px-6 py-4">
-									{#if patient}
-										<div class="font-medium text-foreground">{patient.name}</div>
-										<div class="text-xs text-muted-foreground mt-0.5 font-mono">
-											{patient.clinicId}
-										</div>
-									{:else}
-										<span class="text-muted-foreground italic">Unknown Patient</span>
-									{/if}
-								</TableCell>
-								<TableCell class="px-6 py-4">
-									{#if ticket.triageLevel === 'red'}
-										<Badge
-											class="bg-triage-red text-triage-red-foreground font-semibold px-2 py-0.5 hover:bg-triage-red animate-pulse glow-triage-red"
-											>RED</Badge
-										>
-									{:else if ticket.triageLevel === 'amber'}
-										<Badge
-											class="bg-triage-amber text-triage-amber-foreground font-semibold px-2 py-0.5 hover:bg-triage-amber"
-											>AMBER</Badge
-										>
-									{:else}
-										<Badge
-											class="bg-triage-green text-triage-green-foreground font-semibold px-2 py-0.5 hover:bg-triage-green"
-											>GREEN</Badge
-										>
-									{/if}
-								</TableCell>
-								<TableCell class="text-muted-foreground px-6 py-4 max-w-[200px] truncate"
-									>{ticket.triageReason ?? 'Normal triage'}</TableCell
-								>
-								<TableCell class="px-6 py-4">
-									{#if ticket.status === 'called'}
-										<Badge
-											variant="secondary"
-											class="bg-primary/10 text-primary font-semibold border-primary/20 animate-pulse text-xs"
-											>Called</Badge
-										>
-									{:else}
-										<Badge
-											variant="outline"
-											class="text-muted-foreground font-semibold text-xs capitalize"
-											>{ticket.status}</Badge
-										>
-									{/if}
-								</TableCell>
-								<TableCell class="px-6 py-4 text-right">
-									<div
-										class="flex items-center justify-end gap-2 opacity-90 group-hover:opacity-100 transition-opacity"
-									>
-										{#if ticket.status !== 'called'}
-											<Button
-												variant="outline"
-												size="sm"
-												class="border-border text-muted-foreground hover:text-foreground hover:bg-muted btn-press h-8 px-3"
-												onclick={() => handleMarkCalled(ticket.id)}
-											>
-												<Megaphone class="size-3.5 mr-1" />
-												Call
-											</Button>
-										{/if}
-										<Button
-											variant="ghost"
-											size="sm"
-											class="text-destructive hover:text-destructive hover:bg-destructive/10 btn-press h-8 px-3"
-											onclick={() => handleComplete(ticket.id)}
-										>
-											<Check class="size-3.5 mr-1" />
-											Done
-										</Button>
-									</div>
-								</TableCell>
-							</TableRow>
-						{/each}
-					{/if}
-				</TableBody>
-			</Table>
-		</ScrollArea>
+		<div class="space-y-4 animate-stagger">
+			{#if sortedQueue.length === 0}
+				<div
+					class="flex flex-col items-center justify-center py-16 text-muted-foreground border rounded-xl bg-card border-dashed"
+				>
+					<UserCheck class="size-10 text-muted-foreground/40 mb-3" />
+					<span class="text-lg font-medium text-foreground">No patients in the queue</span>
+					<p class="text-sm">Enjoy the calm!</p>
+				</div>
+			{:else}
+				{#each sortedQueue as ticket (ticket.id)}
+					<QueueTicketCard {ticket} />
+				{/each}
+			{/if}
+		</div>
 	</Card>
 </div>
