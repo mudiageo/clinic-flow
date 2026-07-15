@@ -35,3 +35,7 @@ You must generously use `shadcn-svelte` and `more-shadcn-svelte` components.
 - Standard shadcn components can be added via `pnpx shadcn-svelte@latest add [component]`
 - `more-shadcn-svelte` components MUST be added via the remote JSON registry: `pnpx shadcn-svelte@latest add https://more-shadcn.noair.fun/r/[component].json`
   Do not build custom UI components (like tables, docks, or inputs) if a shadcn or more-shadcn component already exists for it!
+
+### 3. Icons Import Rule
+
+We use `@lucide/svelte` exclusively. Do not import from `lucide-svelte`.
