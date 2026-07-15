@@ -35,6 +35,7 @@
     Sun,
     Moon,
     Monitor,
+    Shield
   } from '@lucide/svelte';
   import { ModeWatcher, toggleMode, mode } from 'mode-watcher';
 
@@ -178,6 +179,16 @@
                         <a href="/admin/patients" {...props} class="transition-all duration-150 active:scale-95">
                           <FolderOpen class="size-4" />
                           <span>Patients Registry</span>
+                        </a>
+                      {/snippet}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={isActive('/superadmin')} tooltipContent="Makers Dashboard">
+                      {#snippet child({ props })}
+                        <a href="/superadmin" {...props} class="transition-all duration-150 active:scale-95">
+                          <Shield class="size-4" />
+                          <span>Makers Dashboard</span>
                         </a>
                       {/snippet}
                     </SidebarMenuButton>
