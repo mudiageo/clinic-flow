@@ -28,7 +28,7 @@ export interface LocalQueueTicket {
 	encounterId: string | null;
 	ticketNumber: number;
 	status: 'waiting' | 'called' | 'in_progress' | 'done' | 'no_show';
-	triageLevel: 'green' | 'amber' | 'red';
+	triageLevel: 'unassigned' | 'green' | 'amber' | 'red';
 	triageReason: string | null;
 	calledAt?: number | null;
 	completedAt?: number | null;
@@ -47,7 +47,7 @@ export interface LocalVitalsRecord {
 	pulseBpm: number | null;
 	weightKg: number | null;
 	spo2Percent: number | null;
-	triageLevel: 'green' | 'amber' | 'red';
+	triageLevel: 'unassigned' | 'green' | 'amber' | 'red';
 	triageReason: string | null;
 	recordedAt: number;
 	syncStatus: 'synced' | 'pending' | 'conflict';

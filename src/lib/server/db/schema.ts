@@ -27,7 +27,7 @@ export const relationshipEnum = pgEnum('relationship_type', [
 	'sibling',
 	'guardian'
 ]);
-export const triageLevelEnum = pgEnum('triage_level', ['green', 'amber', 'red']);
+export const triageLevelEnum = pgEnum('triage_level', ['unassigned', 'green', 'amber', 'red']);
 export const ticketStatusEnum = pgEnum('ticket_status', [
 	'waiting',
 	'called',

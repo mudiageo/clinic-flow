@@ -47,7 +47,7 @@ export const issueTicket = command(
 		patientId: v.pipe(v.string(), v.nonEmpty()),
 		phcId: v.pipe(v.string(), v.nonEmpty()),
 		encounterId: v.optional(v.string()),
-		triageLevel: v.picklist(['green', 'amber', 'red']),
+		triageLevel: v.picklist(['unassigned', 'green', 'amber', 'red']),
 		triageReason: v.optional(v.string())
 	}),
 	async (data) => {

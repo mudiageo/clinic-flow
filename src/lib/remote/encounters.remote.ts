@@ -92,7 +92,7 @@ export const saveVitals = command(
 		pulseBpm: v.optional(v.number()),
 		weightKg: v.optional(v.number()),
 		spo2Percent: v.optional(v.number()),
-		triageLevel: v.picklist(['green', 'amber', 'red']),
+		triageLevel: v.picklist(['unassigned', 'green', 'amber', 'red']),
 		triageReason: v.optional(v.string())
 	}),
 	async (data) => {

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { patientStore } from '$lib/state/patients.svelte';
 	import { queueStore } from '$lib/state/queue.svelte';
-	import { Autocomplete, AutocompleteHighlight } from '$lib/components/ui/autocomplete';
+	import { Autocomplete, AutocompleteHighlight } from '$lib/components/ui/autocomplete/index.js';
 	import { Button } from '$lib/components/ui/button';
 	import {
 		Card,
@@ -27,9 +27,7 @@
 	let isAddingToQueue = $state(false);
 
 	// Reactive search powered by Dexie via patientStore
-	const searchResults = $derived(
-		searchQuery.length >= 2 ? patientStore.search(searchQuery) : []
-	);
+	const searchResults = $derived(searchQuery.length >= 2 ? patientStore.search(searchQuery) : []);
 
 	function handleSelect(patient: any) {
 		selectedPatient = patient;
@@ -46,7 +44,9 @@
 			);
 
 			if (activeTickets.length > 0) {
-				toast.info(`${selectedPatient.name} is already waiting in the queue (Ticket #${activeTickets[0].ticketNumber}).`);
+				toast.info(
+					`${selectedPatient.name} is already waiting in the queue (Ticket #${activeTickets[0].ticketNumber}).`
+				);
 				isAddingToQueue = false;
 				return;
 			}
@@ -108,7 +108,7 @@
 							class="h-12 text-base"
 							onSelect={handleSelect}
 						>
-							{#snippet itemSnippet(patient, isActive)}
+							{#snippet itemSnippet(patient: any, isActive: boolean)}
 								<div class="flex flex-col w-full py-1">
 									<div class="font-medium text-foreground text-base">
 										<AutocompleteHighlight text={patient.name} query={searchQuery} />
@@ -118,12 +118,14 @@
 									</div>
 								</div>
 							{/snippet}
-							
+
 							{#snippet emptySnippet()}
 								<div class="py-4 text-muted-foreground flex flex-col items-center">
 									<User class="size-8 opacity-20 mb-2" />
 									<p>No patients found matching "{searchQuery}"</p>
-									<Button variant="link" href="/nurse/register" class="mt-2 h-auto p-0">Register new patient</Button>
+									<Button variant="link" href="/nurse/register" class="mt-2 h-auto p-0"
+										>Register new patient</Button
+									>
 								</div>
 							{/snippet}
 						</Autocomplete>
@@ -143,7 +145,9 @@
 				<Card class="bg-card shadow-sm border animate-in slide-in-from-right-4 duration-300">
 					<CardHeader class="pb-0">
 						<div class="flex items-center gap-4">
-							<div class="size-16 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xl uppercase">
+							<div
+								class="size-16 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xl uppercase"
+							>
 								{selectedPatient.name.charAt(0)}
 							</div>
 							<div>
@@ -154,7 +158,7 @@
 							</div>
 						</div>
 					</CardHeader>
-					
+
 					<CardContent class="pt-6 space-y-6">
 						<div class="grid grid-cols-2 gap-4 text-sm">
 							<div class="space-y-1">
@@ -164,7 +168,7 @@
 								</div>
 								<div class="font-medium capitalize">{selectedPatient.sex}</div>
 							</div>
-							
+
 							<div class="space-y-1">
 								<div class="text-muted-foreground flex items-center gap-1.5">
 									<Calendar class="size-3.5" />
@@ -180,7 +184,7 @@
 								</div>
 								<div class="font-medium">{selectedPatient.phone || '—'}</div>
 							</div>
-							
+
 							<div class="space-y-1">
 								<div class="text-muted-foreground flex items-center gap-1.5">
 									<MapPin class="size-3.5" />
@@ -191,18 +195,16 @@
 						</div>
 
 						{#if selectedPatient.isPregnant}
-							<div class="bg-triage-red/10 border border-triage-red/20 text-triage-red p-3 rounded-lg text-sm font-medium flex items-center gap-2">
+							<div
+								class="bg-triage-red/10 border border-triage-red/20 text-triage-red p-3 rounded-lg text-sm font-medium flex items-center gap-2"
+							>
 								<Activity class="size-4" />
 								Patient is currently pregnant
 							</div>
 						{/if}
 
 						<div class="pt-6 border-t border-border flex flex-col gap-3">
-							<Button 
-								class="w-full h-11 btn-press" 
-								onclick={addToQueue} 
-								disabled={isAddingToQueue}
-							>
+							<Button class="w-full h-11 btn-press" onclick={addToQueue} disabled={isAddingToQueue}>
 								{#if isAddingToQueue}
 									Queueing...
 								{:else}
@@ -210,10 +212,10 @@
 									Add to Waiting Queue
 								{/if}
 							</Button>
-							
-							<Button 
-								variant="outline" 
-								class="w-full h-11 btn-press border-border" 
+
+							<Button
+								variant="outline"
+								class="w-full h-11 btn-press border-border"
 								href="/nurse/vitals"
 							>
 								Take Vitals Instead
@@ -223,10 +225,14 @@
 					</CardContent>
 				</Card>
 			{:else}
-				<div class="h-full min-h-[300px] flex flex-col items-center justify-center text-center p-8 border border-dashed rounded-xl bg-muted/20 text-muted-foreground">
+				<div
+					class="h-full min-h-[300px] flex flex-col items-center justify-center text-center p-8 border border-dashed rounded-xl bg-muted/20 text-muted-foreground"
+				>
 					<User class="size-12 mb-4 opacity-20" />
 					<h3 class="font-medium text-foreground mb-1">No Patient Selected</h3>
-					<p class="text-sm">Search and select a patient to view their profile and manage their visit.</p>
+					<p class="text-sm">
+						Search and select a patient to view their profile and manage their visit.
+					</p>
 				</div>
 			{/if}
 		</div>
