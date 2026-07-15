@@ -11,7 +11,7 @@ class QueueStore extends LocalCollection<LocalQueueTicket> {
 
 	sortedQueue = $derived(
 		[...this.items].sort((a, b) => {
-			const priority = { red: 0, amber: 1, green: 2 };
+			const priority = { red: 0, amber: 1, green: 2, unassigned: 3 };
 			if (priority[a.triageLevel] !== priority[b.triageLevel]) {
 				return priority[a.triageLevel] - priority[b.triageLevel];
 			}
