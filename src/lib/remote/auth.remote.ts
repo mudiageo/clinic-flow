@@ -10,7 +10,7 @@ import { APIError } from 'better-auth/api';
 export const signInAction = form(
 	v.object({
 		email: v.pipe(v.string(), v.nonEmpty('Email is required')),
-		password: v.pipe(v.string(), v.nonEmpty('Password is required')),
+		password: v.pipe(v.string(), v.nonEmpty('Password is required'))
 	}),
 	async (data, issue) => {
 		const event = getRequestEvent();
@@ -18,7 +18,7 @@ export const signInAction = form(
 			await auth.api.signInEmail({
 				body: {
 					email: data.email,
-					password: data.password,
+					password: data.password
 				}
 			});
 
@@ -42,13 +42,11 @@ export const signInAction = form(
 			if (isRedirect(err)) {
 				throw err; // Pass redirects through to SvelteKit
 			}
-			console.log(err)
+			console.log(err);
 			if (err instanceof APIError) {
-				invalid(
-					issue.qty(err.message)
-				);
+				invalid(issue(err.message));
 			}
-	  }
+		}
 	}
 );
 
@@ -58,7 +56,7 @@ export const getCurrentSession = query(async () => {
 		user: event.locals.user ?? null,
 		session: event.locals.session ?? null,
 		phcId: event.locals.phcId ?? null,
-		role: event.locals.role ?? null,
+		role: event.locals.role ?? null
 	};
 });
 
@@ -77,16 +75,19 @@ export const registerAction = form(
 		lga: v.pipe(v.string(), v.nonEmpty('LGA is required')),
 		adminName: v.pipe(v.string(), v.nonEmpty('Admin Name is required')),
 		email: v.pipe(v.string(), v.email('Invalid email')),
-		password: v.pipe(v.string(), v.minLength(8, 'Password must be at least 8 characters')),
+		password: v.pipe(v.string(), v.minLength(8, 'Password must be at least 8 characters'))
 	}),
 	async (data) => {
 		try {
 			// 1. Create PHC
-			const [newPhc] = await db.insert(phcs).values({
-				name: data.phcName,
-				state: data.state,
-				lga: data.lga
-			}).returning();
+			const [newPhc] = await db
+				.insert(phcs)
+				.values({
+					name: data.phcName,
+					state: data.state,
+					lga: data.lga
+				})
+				.returning();
 
 			// 2. Register User via Better Auth
 			const res = await auth.api.signUpEmail({

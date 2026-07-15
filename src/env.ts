@@ -11,7 +11,8 @@ export const variables = defineEnvVars({
 		schema: v.pipe(v.string(), v.nonEmpty('BETTER_AUTH_SECRET must be a non-empty string'))
 	},
 	ORIGIN: {
-		description: 'The base public deployment origin URL for the application (e.g. http://localhost:5173)',
+		description:
+			'The base public deployment origin URL for the application (e.g. http://localhost:5173)',
 		schema: v.pipe(v.string(), v.nonEmpty('ORIGIN must be a non-empty string'))
 	},
 	GITHUB_CLIENT_ID: {
@@ -33,5 +34,5 @@ export const variables = defineEnvVars({
 	TERMII_SENDER_ID: {
 		description: 'Optional Termii Sender ID for SMS reminders',
 		schema: v.optional(v.string())
-	},
+	}
 });

@@ -15,6 +15,20 @@
       "when": 1783923825061,
       "tag": "0001_slow_bromley",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784122931866,
+      "tag": "0002_slimy_microchip",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1784123335735,
+      "tag": "0003_flashy_carnage",
+      "breakpoints": true
     }
   ]
 }

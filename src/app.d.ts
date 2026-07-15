@@ -6,6 +6,7 @@ declare global {
 			user?: User;
 			session?: Session;
 			phcId?: string | null;
+			staffId?: string | null;
 			role?: 'receptionist' | 'nurse' | 'doctor' | 'pharmacy' | 'admin' | null;
 		}
 	}

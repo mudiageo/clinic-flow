@@ -25,8 +25,7 @@ async function processReminders() {
 		const now = new Date();
 		// Fetch scheduled reminders where the due date is in the past or now
 		const pendingReminders = await db.query.reminders.findMany({
-			where: (r, { eq, lte, and }) =>
-				and(eq(r.status, 'scheduled'), lte(r.dueDate, now))
+			where: (r, { eq, lte, and }) => and(eq(r.status, 'scheduled'), lte(r.dueDate, now))
 		});
 
 		if (pendingReminders.length === 0) {
@@ -77,7 +76,7 @@ async function processReminders() {
 				}
 			} else if (provider === 'africas_talking') {
 				// Stub for Africa's Talking fallback
-				console.warn('[SMS Worker] Africa\'s Talking provider stubbed. Mocking SMS dispatch.');
+				console.warn("[SMS Worker] Africa's Talking provider stubbed. Mocking SMS dispatch.");
 				success = true;
 				providerMessageId = `mock-at-${Date.now()}`;
 			}

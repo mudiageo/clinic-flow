@@ -16,11 +16,7 @@ function requireSession() {
 
 export const getReminders = query(v.string(), async (phcId) => {
 	requireSession();
-	return db
-		.select()
-		.from(reminders)
-		.where(eq(reminders.phcId, phcId))
-		.orderBy(reminders.dueDate);
+	return db.select().from(reminders).where(eq(reminders.phcId, phcId)).orderBy(reminders.dueDate);
 });
 
 // ── Commands ─────────────────────────────────────────────────
@@ -32,7 +28,7 @@ export const createReminder = command(
 		type: v.picklist(['immunization', 'antenatal', 'follow_up']),
 		label: v.pipe(v.string(), v.nonEmpty()),
 		dueDate: v.pipe(v.string(), v.nonEmpty()),
-		recipientPhone: v.pipe(v.string(), v.nonEmpty()),
+		recipientPhone: v.pipe(v.string(), v.nonEmpty())
 	}),
 	async (data) => {
 		requireSession();
@@ -45,7 +41,7 @@ export const createReminder = command(
 				label: data.label,
 				dueDate: new Date(data.dueDate),
 				recipientPhone: data.recipientPhone,
-				status: 'scheduled',
+				status: 'scheduled'
 			})
 			.returning();
 		return reminder;

@@ -31,15 +31,15 @@ export const dispenseMedication = command(
 		encounterId: v.pipe(v.string(), v.nonEmpty()),
 		patientId: v.pipe(v.string(), v.nonEmpty()),
 		quantity: v.pipe(v.number(), v.integer()),
-		dosageInstructions: v.optional(v.string()),
+		dosageInstructions: v.optional(v.string())
 	}),
 	async (data) => {
 		const { user } = requireSession();
-		
+
 		const { staff } = await import('$lib/server/db/schema');
 		const { eq: eqFn } = await import('drizzle-orm');
 		const staffRecord = await db.query.staff.findFirst({
-			where: eqFn(staff.authUserId, user.id),
+			where: eqFn(staff.authUserId, user.id)
 		});
 
 		// 1. Insert prescription record
@@ -53,7 +53,7 @@ export const dispenseMedication = command(
 				dosageInstructions: data.dosageInstructions ?? null,
 				dispensed: true,
 				dispensedAt: new Date(),
-				dispensedByStaffId: staffRecord?.id ?? null,
+				dispensedByStaffId: staffRecord?.id ?? null
 			})
 			.returning();
 
@@ -62,7 +62,7 @@ export const dispenseMedication = command(
 			.update(pharmacyInventory)
 			.set({
 				currentStock: sql`${pharmacyInventory.currentStock} - ${data.quantity}`,
-				updatedAt: new Date(),
+				updatedAt: new Date()
 			})
 			.where(eq(pharmacyInventory.id, data.inventoryItemId));
 
@@ -74,15 +74,15 @@ export const requestRestock = command(
 	v.object({
 		inventoryItemId: v.pipe(v.string(), v.nonEmpty()),
 		phcId: v.pipe(v.string(), v.nonEmpty()),
-		quantityRequested: v.pipe(v.number(), v.integer()),
+		quantityRequested: v.pipe(v.number(), v.integer())
 	}),
 	async (data) => {
 		const { user } = requireSession();
-		
+
 		const { staff } = await import('$lib/server/db/schema');
 		const { eq: eqFn } = await import('drizzle-orm');
 		const staffRecord = await db.query.staff.findFirst({
-			where: eqFn(staff.authUserId, user.id),
+			where: eqFn(staff.authUserId, user.id)
 		});
 
 		const [request] = await db
@@ -92,7 +92,7 @@ export const requestRestock = command(
 				phcId: data.phcId,
 				requestedByStaffId: staffRecord?.id ?? null,
 				quantityRequested: data.quantityRequested,
-				status: 'pending',
+				status: 'pending'
 			})
 			.returning();
 

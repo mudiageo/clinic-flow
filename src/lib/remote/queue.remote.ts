@@ -19,7 +19,7 @@ export const getQueue = query(v.string(), async (phcId) => {
 	return db
 		.select({
 			ticket: queueTickets,
-			patient: patients,
+			patient: patients
 		})
 		.from(queueTickets)
 		.leftJoin(patients, eq(queueTickets.patientId, patients.id))
@@ -36,12 +36,7 @@ export const getTodayQueue = query(v.string(), async (phcId) => {
 		.select({ ticket: queueTickets, patient: patients })
 		.from(queueTickets)
 		.leftJoin(patients, eq(queueTickets.patientId, patients.id))
-		.where(
-			and(
-				eq(queueTickets.phcId, phcId),
-				sql`${queueTickets.createdAt} >= ${todayStart}`
-			)
-		)
+		.where(and(eq(queueTickets.phcId, phcId), sql`${queueTickets.createdAt} >= ${todayStart}`))
 		.orderBy(asc(queueTickets.ticketNumber));
 });
 
@@ -53,7 +48,7 @@ export const issueTicket = command(
 		phcId: v.pipe(v.string(), v.nonEmpty()),
 		encounterId: v.optional(v.string()),
 		triageLevel: v.picklist(['green', 'amber', 'red']),
-		triageReason: v.optional(v.string()),
+		triageReason: v.optional(v.string())
 	}),
 	async (data) => {
 		requireSession();
@@ -64,10 +59,7 @@ export const issueTicket = command(
 			.select()
 			.from(queueTickets)
 			.where(
-				and(
-					eq(queueTickets.phcId, data.phcId),
-					sql`${queueTickets.createdAt} >= ${todayStart}`
-				)
+				and(eq(queueTickets.phcId, data.phcId), sql`${queueTickets.createdAt} >= ${todayStart}`)
 			);
 		const ticketNumber = existing.length + 1;
 
@@ -80,7 +72,7 @@ export const issueTicket = command(
 				ticketNumber,
 				triageLevel: data.triageLevel,
 				triageReason: data.triageReason ?? null,
-				status: 'waiting',
+				status: 'waiting'
 			})
 			.returning();
 		return ticket;

@@ -16,9 +16,9 @@
 
 ## Phase 2 — Offline Client UI & Local Storage (Days 3–5)
 
-- [x] Dexie schema (Document 2 §1.2) — this file is imported *only* by the state layer, never by components (Document 2 §0, rule 1)
+- [x] Dexie schema (Document 2 §1.2) — this file is imported _only_ by the state layer, never by components (Document 2 §0, rule 1)
 - [x] `LocalCollection<T>` base class (Document 2 §3.2) — build this once, before any domain store, since every subsequent store extends it
-- [x] Domain class stores extending `LocalCollection`: `patientStore`, `queueStore`, `vitalsStore`, `pharmacyStore`, `reminderStore` (Document 2 §3.3–3.4) — each is the *only* way userland reads/writes that entity
+- [x] Domain class stores extending `LocalCollection`: `patientStore`, `queueStore`, `vitalsStore`, `pharmacyStore`, `reminderStore` (Document 2 §3.3–3.4) — each is the _only_ way userland reads/writes that entity
 - [ ] `SyncStore` class scaffold (Document 2 §2.3) — state fields (`online`, `pendingCount`) wired up now; the actual push/pull calls come in Phase 4 once `sync.remote.ts` exists, but the class and its reactive fields should exist early so the sync status indicator can be built and tested
 - [ ] Registration flow UI (POS-style, large touch targets) — offline-functional end to end, built entirely against `patientStore` methods, zero direct Dexie access in components
 - [ ] Family grouping UI: link patients, family panel view (via `patientStore.familyMembers()`)

@@ -71,7 +71,7 @@ const createPatientSchema = v.object({
 	community: v.optional(v.string()),
 	nextOfKinName: v.optional(v.string()),
 	nextOfKinPhone: v.optional(v.string()),
-	isPregnant: v.optional(v.boolean()),
+	isPregnant: v.optional(v.boolean())
 });
 
 export const createPatient = command(createPatientSchema, async (data) => {
@@ -93,7 +93,7 @@ export const createPatient = command(createPatientSchema, async (data) => {
 			nextOfKinName: data.nextOfKinName ?? null,
 			nextOfKinPhone: data.nextOfKinPhone ?? null,
 			isPregnant: data.isPregnant ?? false,
-			updatedAt: new Date(),
+			updatedAt: new Date()
 		})
 		.returning();
 	return patient;

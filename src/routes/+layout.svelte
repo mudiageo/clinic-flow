@@ -9,12 +9,14 @@
 		// Admin escape shortcut: Ctrl + Alt + Escape
 		if (event.ctrlKey && event.altKey && event.key === 'Escape') {
 			if (typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__) {
-				import('@tauri-apps/api/window').then(({ getCurrentWindow }) => {
-					const appWindow = getCurrentWindow();
-					appWindow.setFullscreen(false);
-					appWindow.setAlwaysOnTop(false);
-					appWindow.setResizable(true);
-				}).catch(err => console.error(err));
+				import('@tauri-apps/api/window')
+					.then(({ getCurrentWindow }) => {
+						const appWindow = getCurrentWindow();
+						appWindow.setFullscreen(false);
+						appWindow.setAlwaysOnTop(false);
+						appWindow.setResizable(true);
+					})
+					.catch((err) => console.error(err));
 			}
 		}
 	}

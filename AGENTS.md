@@ -21,3 +21,17 @@ You MUST use this tool whenever writing Svelte code before sending it to the use
 
 Generates a Svelte Playground link with the provided code.
 After completing the code, ask the user if they want a playground link. Only call this tool after user confirmation and NEVER if code was written to files in their project.
+
+## Project Specific Rules:
+
+### 1. Component Naming
+
+ALL Svelte components you create MUST use kebab-case file names (e.g. `permission-editor.svelte`, `bottom-nav.svelte`, `app-sidebar.svelte`).
+
+### 2. Using UI Components
+
+You must generously use `shadcn-svelte` and `more-shadcn-svelte` components.
+
+- Standard shadcn components can be added via `pnpx shadcn-svelte@latest add [component]`
+- `more-shadcn-svelte` components MUST be added via the remote JSON registry: `pnpx shadcn-svelte@latest add https://more-shadcn.noair.fun/r/[component].json`
+  Do not build custom UI components (like tables, docks, or inputs) if a shadcn or more-shadcn component already exists for it!

@@ -41,7 +41,7 @@ export const createEncounter = command(
 		phcId: v.pipe(v.string(), v.nonEmpty()),
 		chiefComplaint: v.optional(v.string()),
 		chiefComplaintRaw: v.optional(v.string()),
-		chiefComplaintLanguage: v.optional(v.string()),
+		chiefComplaintLanguage: v.optional(v.string())
 	}),
 	async (data) => {
 		const { user } = requireSession();
@@ -49,7 +49,7 @@ export const createEncounter = command(
 		const { staff } = await import('$lib/server/db/schema');
 		const { eq: eqFn } = await import('drizzle-orm');
 		const staffRecord = await db.query.staff.findFirst({
-			where: eqFn(staff.authUserId, user.id),
+			where: eqFn(staff.authUserId, user.id)
 		});
 		const [encounter] = await db
 			.insert(encounters)
@@ -59,7 +59,7 @@ export const createEncounter = command(
 				recordedByStaffId: staffRecord?.id ?? null,
 				chiefComplaint: data.chiefComplaint ?? null,
 				chiefComplaintRaw: data.chiefComplaintRaw ?? null,
-				chiefComplaintLanguage: data.chiefComplaintLanguage ?? null,
+				chiefComplaintLanguage: data.chiefComplaintLanguage ?? null
 			})
 			.returning();
 		return encounter;
@@ -69,7 +69,7 @@ export const createEncounter = command(
 export const updateEncounterNotes = command(
 	v.object({
 		encounterId: v.pipe(v.string(), v.nonEmpty()),
-		doctorNotes: v.string(),
+		doctorNotes: v.string()
 	}),
 	async (data) => {
 		requireSession();
@@ -93,7 +93,7 @@ export const saveVitals = command(
 		weightKg: v.optional(v.number()),
 		spo2Percent: v.optional(v.number()),
 		triageLevel: v.picklist(['green', 'amber', 'red']),
-		triageReason: v.optional(v.string()),
+		triageReason: v.optional(v.string())
 	}),
 	async (data) => {
 		requireSession();
@@ -109,7 +109,7 @@ export const saveVitals = command(
 				weightKg: data.weightKg ?? null,
 				spo2Percent: data.spo2Percent ?? null,
 				triageLevel: data.triageLevel,
-				triageReason: data.triageReason ?? null,
+				triageReason: data.triageReason ?? null
 			})
 			.returning();
 		return vitals;

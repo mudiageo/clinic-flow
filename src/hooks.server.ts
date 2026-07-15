@@ -29,7 +29,11 @@ export const handle: Handle = async ({ event, resolve }) => {
 			where: (s, { eq }) => eq(s.authUserId, session.user.id)
 		});
 		event.locals.phcId = staffRecord?.phcId ?? null;
-		event.locals.role = (staffRecord?.role as 'receptionist' | 'nurse' | 'doctor' | 'pharmacy' | 'admin') ?? ((session.session as any).role) ?? null;
+		event.locals.staffId = staffRecord?.id ?? null;
+		event.locals.role =
+			(staffRecord?.role as 'receptionist' | 'nurse' | 'doctor' | 'pharmacy' | 'admin') ??
+			(session.session as any).role ??
+			null;
 	}
 
 	const pathname = event.url.pathname;
