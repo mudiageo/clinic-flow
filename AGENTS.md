@@ -39,3 +39,7 @@ You must generously use `shadcn-svelte` and `more-shadcn-svelte` components.
 ### 3. Icons Import Rule
 
 We use `@lucide/svelte` exclusively. Do not import from `lucide-svelte`.
+
+### 4. Database Access
+
+Never use Dexie directly in components. Always use the stores defined in `$lib/state/` (e.g., `patientStore`, `queueStore`, `vitalsStore`) for reactive data binding.
