@@ -1,4 +1,5 @@
 <script lang="ts">
+	// @ts-ignore
 	import { usePhonePicker } from '@kevwpl/svelte-o-phone';
 	import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
@@ -44,7 +45,7 @@
 		autoDetectCountry,
 		detectInitialCountry,
 		detectionPriority,
-		onchange: (data) => {
+		onchange: (data: any) => {
 			value = data.value;
 			country = data.country;
 			if (onchange) onchange(data);

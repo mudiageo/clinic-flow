@@ -27,7 +27,7 @@ export interface LocalQueueTicket {
 	phcId: string;
 	encounterId: string | null;
 	ticketNumber: number;
-	status: 'waiting' | 'called' | 'in_progress' | 'done';
+	status: 'waiting' | 'called' | 'in_progress' | 'done' | 'no_show';
 	triageLevel: 'green' | 'amber' | 'red';
 	triageReason: string | null;
 	calledAt?: number | null;

@@ -3,7 +3,7 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
 	import { queueStore } from '$lib/state/queue.svelte';
-	import { formatDistanceToNow } from 'date-fns';
+	import { formatDistanceToNow } from '$lib/utils/date';
 	import { Clock, CheckCircle2, UserX, AlertTriangle, Activity, Check } from '@lucide/svelte';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 
@@ -28,8 +28,8 @@
 		unassigned: Clock
 	};
 
-	const TriageIcon = triageIcons[ticket.triageLevel];
-	const waitTime = formatDistanceToNow(ticket.createdAt, { addSuffix: true });
+	const TriageIcon = $derived(triageIcons[ticket.triageLevel]);
+	const waitTime = $derived(formatDistanceToNow(ticket.createdAt));
 
 	// We don't have patient name directly in ticket (unless denormalized),
 	// for now we'll just display patientId. We can join it in the UI if needed.
@@ -85,7 +85,6 @@
 				onclick={async () => {
 					isCalling = true;
 					await queueStore.update(ticket.id, { status: 'called', calledAt: Date.now() });
-					queueStore.requestSyncAcrossTabs();
 					isCalling = false;
 				}}
 				disabled={isCalling}

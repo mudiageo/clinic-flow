@@ -14,23 +14,23 @@
 	} from '$lib/components/ui/card';
 	import { Select as SelectPrimitive } from 'bits-ui';
 	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select';
+	import { PhoneInput } from '$lib/components/ui/phone-input';
+	import * as Stepper from '$lib/components/ui/stepper';
+	import { ShinyButton } from '$lib/components/ui/shiny-button';
 	import { toast } from 'svelte-sonner';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import QRCode from 'qrcode';
 	import {
 		Search,
-		Camera,
 		Printer,
-		ChevronRight,
-		ChevronLeft,
 		FolderOpen,
 		User,
-		Phone,
-		Calendar,
-		MapPin,
-		Check,
 		Scan,
-		Sparkles
+		Sparkles,
+		UserPlus,
+		ArrowRight,
+		Check,
+		QrCode
 	} from '@lucide/svelte';
 	import { fade } from 'svelte/transition';
 
@@ -58,14 +58,22 @@
 	// Stepper State
 	let currentStep = $state(1);
 
-	// Form Fields
-	let fullName = $state('');
-	let phone = $state('');
-	let dob = $state('');
-	let sex = $state<'male' | 'female' | 'other'>('male');
-	let isPregnant = $state(false);
-	let community = $state('');
-	let address = $state('');
+	// Form State
+	let form = $state({
+		name: '',
+		phone: '',
+		dob: '',
+		sex: 'female' as 'female' | 'male' | 'other',
+		isPregnant: false,
+		address: '',
+		community: '',
+		nextOfKinName: '',
+		nextOfKinPhone: ''
+	});
+
+	let isSubmitting = $state(false);
+	let generatedId = $state<string | null>(null);
+	let generatedClinicId = $state<string | null>(null);
 
 	const searchResults = $derived(searchQuery ? patientStore.search(searchQuery) : []);
 
@@ -80,15 +88,17 @@
 		}
 	}
 
-	async function handleRegister() {
-		if (!fullName) {
+	async function handleSubmit() {
+		if (!form.name) {
 			toast.error('Full name is required');
 			return;
 		}
 
+		isSubmitting = true;
+
 		try {
 			// Auto-generate Clinic ID format OR-XXXX-01
-			const initialParts = fullName.toUpperCase().split(' ');
+			const initialParts = form.name.toUpperCase().split(' ');
 			const prefix = initialParts
 				.map((p) => p[0] || '')
 				.join('')
@@ -96,28 +106,27 @@
 			const rand = Math.floor(10 + Math.random() * 90);
 			const clinicId = `OR-${prefix}-${rand}`;
 
-			// Write patient record to local store (IndexedDB)
-			const patientId = await patientStore.create({
+			const id = await patientStore.create({
 				clinicId,
 				phcId: crypto.randomUUID(), // Stub or current PHC
 				familyId: null,
 				guardianId: null,
-				name: fullName,
-				phone: phone || null,
-				dob: dob || null,
-				sex,
-				isPregnant,
-				address: address || null,
-				community: community || null,
-				nextOfKinName: null,
-				nextOfKinPhone: null,
-				deleted: false,
-				serverUpdatedAt: null
+				name: form.name,
+				phone: form.phone || null,
+				dob: form.dob || null,
+				sex: form.sex,
+				address: form.address || null,
+				community: form.community || null,
+				nextOfKinName: form.nextOfKinName || null,
+				nextOfKinPhone: form.nextOfKinPhone || null,
+				isPregnant: form.isPregnant,
+				serverUpdatedAt: null,
+				deleted: false
 			});
 
 			// Auto-issue a waiting ticket in the queue
 			await queueStore.create({
-				patientId,
+				patientId: id,
 				phcId: crypto.randomUUID(),
 				encounterId: null,
 				ticketNumber: 0, // Auto-computed sequentially in state
@@ -129,38 +138,15 @@
 				createdAt: Date.now()
 			});
 
-			toast.success(`Patient ${fullName} registered and queued successfully!`);
-
-			registeredPatientInfo = { name: fullName, clinicId };
+			generatedId = id;
+			generatedClinicId = clinicId;
+			registeredPatientInfo = { name: form.name, clinicId };
+			isSubmitting = false;
+			currentStep = 4; // Move to Success state
 			showQrDialog = true;
-
-			// Clear form & reset stepper
-			fullName = '';
-			phone = '';
-			dob = '';
-			sex = 'male';
-			isPregnant = false;
-			community = '';
-			address = '';
-			currentStep = 1;
 		} catch (e: any) {
 			toast.error(`Failed to register: ${e.message}`);
-		}
-	}
-
-	function nextStep() {
-		if (currentStep === 1 && !fullName) {
-			toast.error("Please enter the patient's full name");
-			return;
-		}
-		if (currentStep < 3) {
-			currentStep += 1;
-		}
-	}
-
-	function prevStep() {
-		if (currentStep > 1) {
-			currentStep -= 1;
+			isSubmitting = false;
 		}
 	}
 </script>
@@ -169,8 +155,9 @@
 	<title>Register Patient — ClinicFlow</title>
 </svelte:head>
 
-<div class="max-w-5xl mx-auto space-y-8 animate-fade-in">
-	<div class="flex items-start gap-3">
+<div class="max-w-5xl mx-auto space-y-8 animate-fade-in mt-6">
+	<!-- Header -->
+	<div class="flex items-start gap-3 border-b border-border pb-6">
 		<div class="p-2.5 rounded-xl bg-primary/10 text-primary">
 			<FolderOpen class="size-6" />
 		</div>
@@ -245,174 +232,248 @@
 			</Card>
 		</div>
 
-		<!-- Right Column: Multi-Step Registration Form -->
+		<!-- Right Column: Registration -->
 		<div class="lg:col-span-2">
-			<Card class="bg-card/60 card-hover overflow-hidden">
-				<CardHeader class="pb-4 border-b border-border/60 bg-muted/20">
-					<!-- Custom Stepper Progress Header -->
-					<div class="flex items-center justify-between mb-4">
-						<div class="flex items-center gap-2">
-							<Sparkles class="size-4 text-primary" />
-							<CardTitle class="text-base font-semibold">New Patient Registration</CardTitle>
-						</div>
-						<span class="text-xs font-semibold text-muted-foreground">Step {currentStep} of 3</span>
+			{#if currentStep < 4}
+				<div class="bg-card border rounded-xl p-6 shadow-sm flex flex-col h-full relative">
+					<!-- Stepper -->
+					<div class="mb-8">
+						<Stepper.Root bind:value={currentStep} class="w-full">
+							<Stepper.Item step={1}>
+								<Stepper.Trigger step={1}>
+									<Stepper.Indicator step={1}>1</Stepper.Indicator>
+									<div class="flex flex-col items-start">
+										<Stepper.Title>Identity</Stepper.Title>
+										<Stepper.Description>Basic details</Stepper.Description>
+									</div>
+								</Stepper.Trigger>
+								<Stepper.Separator />
+							</Stepper.Item>
+
+							<Stepper.Item step={2}>
+								<Stepper.Trigger step={2}>
+									<Stepper.Indicator step={2}>2</Stepper.Indicator>
+									<div class="flex flex-col items-start">
+										<Stepper.Title>Contact</Stepper.Title>
+										<Stepper.Description>Address & Next of Kin</Stepper.Description>
+									</div>
+								</Stepper.Trigger>
+								<Stepper.Separator />
+							</Stepper.Item>
+
+							<Stepper.Item step={3}>
+								<Stepper.Trigger step={3}>
+									<Stepper.Indicator step={3}>3</Stepper.Indicator>
+									<div class="flex flex-col items-start">
+										<Stepper.Title>Review</Stepper.Title>
+										<Stepper.Description>Confirm & submit</Stepper.Description>
+									</div>
+								</Stepper.Trigger>
+							</Stepper.Item>
+						</Stepper.Root>
 					</div>
 
-					<div class="flex items-center gap-2 w-full">
-						<div class="h-1.5 rounded-full flex-1 transition-all duration-350 bg-primary"></div>
-						<div
-							class="h-1.5 rounded-full flex-1 transition-all duration-350 {currentStep >= 2
-								? 'bg-primary'
-								: 'bg-muted'}"
-						></div>
-						<div
-							class="h-1.5 rounded-full flex-1 transition-all duration-350 {currentStep >= 3
-								? 'bg-primary'
-								: 'bg-muted'}"
-						></div>
-					</div>
-				</CardHeader>
-
-				<CardContent class="p-6 min-h-[300px] flex flex-col justify-between">
-					{#if currentStep === 1}
-						<div in:fade={{ duration: 150 }} class="space-y-5">
-							<h3 class="text-sm font-semibold text-foreground uppercase tracking-wider mb-2">
-								Step 1: Patient Identity
-							</h3>
-							<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<div class="space-y-2">
-									<Label for="name" class="text-foreground">Full Name</Label>
-									<div class="relative">
-										<User class="absolute left-3 top-3.5 size-4 text-muted-foreground" />
+					<!-- Forms -->
+					<div class="flex-1">
+						{#if currentStep === 1}
+							<div in:fade={{ duration: 150 }} class="space-y-6">
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+									<div class="space-y-2">
+										<Label for="name">Full Name <span class="text-destructive">*</span></Label>
 										<Input
 											id="name"
-											bind:value={fullName}
-											placeholder="e.g. Osagie Ighodaro"
-											class="pl-9 h-11 bg-background/50 border-border text-foreground"
+											bind:value={form.name}
+											placeholder="e.g. Jane Doe"
+											class="h-11"
 										/>
 									</div>
-								</div>
-
-								<div class="space-y-2">
-									<Label for="phone" class="text-foreground">Phone Number</Label>
-									<div class="relative">
-										<Phone class="absolute left-3 top-3.5 size-4 text-muted-foreground" />
-										<Input
-											id="phone"
-											bind:value={phone}
-											placeholder="e.g. 2348012345678"
-											class="pl-9 h-11 bg-background/50 border-border text-foreground"
-										/>
+									<div class="space-y-2">
+										<Label for="dob">Date of Birth</Label>
+										<Input id="dob" type="date" bind:value={form.dob} class="h-11" />
 									</div>
+									<div class="space-y-2">
+										<Label for="sex">Biological Sex <span class="text-destructive">*</span></Label>
+										<Select
+											type="single"
+											value={form.sex}
+											onValueChange={(v) => (form.sex = v as any)}
+										>
+											<SelectTrigger class="h-11 w-full capitalize">{form.sex}</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="female">Female</SelectItem>
+												<SelectItem value="male">Male</SelectItem>
+												<SelectItem value="other">Other</SelectItem>
+											</SelectContent>
+										</Select>
+									</div>
+									{#if form.sex === 'female'}
+										<div class="space-y-2">
+											<Label class="block mb-2">Pregnancy Status</Label>
+											<label
+												class="flex items-center gap-2 text-sm border p-3 h-11 rounded-md cursor-pointer hover:bg-muted/50 transition-colors"
+											>
+												<input
+													type="checkbox"
+													bind:checked={form.isPregnant}
+													class="accent-primary size-4"
+												/>
+												Patient is currently pregnant
+											</label>
+										</div>
+									{/if}
 								</div>
 							</div>
-						</div>
-					{:else if currentStep === 2}
-						<div in:fade={{ duration: 150 }} class="space-y-5">
-							<h3 class="text-sm font-semibold text-foreground uppercase tracking-wider mb-2">
-								Step 2: Demographics
-							</h3>
-							<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<div class="space-y-2">
-									<Label for="dob" class="text-foreground">Date of Birth</Label>
-									<div class="relative">
-										<Calendar class="absolute left-3 top-3.5 size-4 text-muted-foreground" />
+						{:else if currentStep === 2}
+							<div in:fade={{ duration: 150 }} class="space-y-6">
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+									<div class="space-y-2">
+										<Label>Phone Number</Label>
+										<PhoneInput bind:value={form.phone} />
+									</div>
+									<div class="space-y-2">
+										<Label for="address">Residential Address</Label>
 										<Input
-											id="dob"
-											type="date"
-											bind:value={dob}
-											class="pl-9 h-11 bg-background/50 border-border text-foreground"
+											id="address"
+											bind:value={form.address}
+											placeholder="Street, landmark, etc."
+											class="h-11"
 										/>
 									</div>
-								</div>
-
-								<div class="space-y-2">
-									<Label for="sex" class="text-foreground">Sex</Label>
-									<Select type="single" bind:value={sex}>
-										<SelectTrigger class="h-11 bg-background/50 border-border text-foreground">
-											<SelectPrimitive.Value placeholder="Select Sex" />
-										</SelectTrigger>
-										<SelectContent class="bg-card border-border">
-											<SelectItem value="male" class="hover:bg-muted">Male</SelectItem>
-											<SelectItem value="female" class="hover:bg-muted">Female</SelectItem>
-											<SelectItem value="other" class="hover:bg-muted">Other</SelectItem>
-										</SelectContent>
-									</Select>
-								</div>
-							</div>
-						</div>
-					{:else if currentStep === 3}
-						<div in:fade={{ duration: 150 }} class="space-y-5">
-							<h3 class="text-sm font-semibold text-foreground uppercase tracking-wider mb-2">
-								Step 3: Location & Health Status
-							</h3>
-							<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<div class="space-y-2">
-									<Label for="community" class="text-foreground">Community / Area</Label>
-									<div class="relative">
-										<MapPin class="absolute left-3 top-3.5 size-4 text-muted-foreground" />
+									<div class="space-y-2">
+										<Label for="community">Community / Ward</Label>
 										<Input
 											id="community"
-											bind:value={community}
-											placeholder="e.g. GRA, Ikpoba Hill"
-											class="pl-9 h-11 bg-background/50 border-border text-foreground"
+											bind:value={form.community}
+											placeholder="Community name"
+											class="h-11"
 										/>
 									</div>
 								</div>
 
-								<div class="space-y-2 flex items-center pt-8">
-									<label class="flex items-center gap-3 cursor-pointer select-none">
-										<input
-											type="checkbox"
-											bind:checked={isPregnant}
-											class="w-5 h-5 rounded border-border bg-background text-primary focus:ring-primary/20 accent-primary"
-										/>
-										<span class="text-sm font-medium text-foreground">Is Patient Pregnant?</span>
-									</label>
-								</div>
-
-								<div class="md:col-span-2 space-y-2">
-									<Label for="address" class="text-foreground">Residential Address</Label>
-									<Input
-										id="address"
-										bind:value={address}
-										placeholder="Full street address..."
-										class="h-11 bg-background/50 border-border text-foreground"
-									/>
+								<div class="pt-4 border-t mt-6">
+									<h3 class="font-medium mb-4">Next of Kin Details</h3>
+									<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+										<div class="space-y-2">
+											<Label for="nokName">Full Name</Label>
+											<Input
+												id="nokName"
+												bind:value={form.nextOfKinName}
+												placeholder="Emergency contact name"
+												class="h-11"
+											/>
+										</div>
+										<div class="space-y-2">
+											<Label>Phone Number</Label>
+											<PhoneInput bind:value={form.nextOfKinPhone} />
+										</div>
+									</div>
 								</div>
 							</div>
-						</div>
-					{/if}
+						{:else if currentStep === 3}
+							<div in:fade={{ duration: 150 }} class="space-y-6">
+								<div class="bg-muted/30 border rounded-lg p-6">
+									<h3 class="font-semibold text-lg mb-4">Review Patient Details</h3>
 
-					<!-- Form Navigation Controls -->
-					<div class="mt-8 pt-4 border-t border-border/60 flex justify-between gap-3">
-						<Button
-							variant="ghost"
-							class="h-11 px-5 text-muted-foreground btn-press"
-							onclick={prevStep}
-							disabled={currentStep === 1}
-						>
-							<ChevronLeft class="size-4 mr-1.5" />
+									<div class="grid grid-cols-2 gap-y-4 gap-x-8 text-sm">
+										<div>
+											<p class="text-muted-foreground">Full Name</p>
+											<p class="font-medium text-foreground text-base">{form.name || '—'}</p>
+										</div>
+										<div>
+											<p class="text-muted-foreground">Biological Sex</p>
+											<p class="font-medium text-foreground capitalize text-base">{form.sex}</p>
+											{#if form.sex === 'female'}
+												<p class="text-xs text-primary font-medium">
+													{form.isPregnant ? 'Pregnant' : 'Not Pregnant'}
+												</p>
+											{/if}
+										</div>
+										<div>
+											<p class="text-muted-foreground">Phone</p>
+											<p class="font-medium text-foreground">{form.phone || '—'}</p>
+										</div>
+										<div>
+											<p class="text-muted-foreground">Date of Birth</p>
+											<p class="font-medium text-foreground">{form.dob || '—'}</p>
+										</div>
+										<div>
+											<p class="text-muted-foreground">Address</p>
+											<p class="font-medium text-foreground">{form.address || '—'}</p>
+										</div>
+										<div>
+											<p class="text-muted-foreground">Next of Kin</p>
+											<p class="font-medium text-foreground">
+												{form.nextOfKinName || '—'}
+												{form.nextOfKinPhone ? `(${form.nextOfKinPhone})` : ''}
+											</p>
+										</div>
+									</div>
+								</div>
+							</div>
+						{/if}
+					</div>
+
+					<!-- Navigation -->
+					<div class="flex justify-between mt-8 pt-6 border-t border-border mt-auto">
+						<Button variant="outline" disabled={currentStep === 1} onclick={() => currentStep--}>
 							Back
 						</Button>
 
 						{#if currentStep < 3}
-							<Button class="h-11 px-6 btn-press" onclick={nextStep}>
-								Continue
-								<ChevronRight class="size-4 ml-1.5" />
+							<Button onclick={() => currentStep++} disabled={!form.name}>
+								Next Step <ArrowRight class="size-4 ml-2" />
 							</Button>
 						{:else}
-							<Button
-								onclick={handleRegister}
-								class="h-11 px-6 bg-primary text-primary-foreground hover:bg-primary/95 shadow-md shadow-primary/10 btn-press"
+							<ShinyButton
+								class="bg-primary text-primary-foreground font-semibold px-6"
+								onclick={handleSubmit}
+								disabled={isSubmitting}
 							>
-								Create &amp; Queue Patient
-								<Check class="size-4 ml-1.5" />
-							</Button>
+								{#if isSubmitting}
+									Saving...
+								{:else}
+									Complete Registration <Check class="size-4 ml-2" />
+								{/if}
+							</ShinyButton>
 						{/if}
 					</div>
-				</CardContent>
-			</Card>
+				</div>
+			{:else}
+				<!-- Success State -->
+				<div
+					class="bg-card border-2 border-emerald-500/20 rounded-2xl p-8 text-center animate-fade-in shadow-lg shadow-emerald-500/5 max-w-xl mx-auto mt-12"
+				>
+					<div
+						class="size-20 bg-emerald-500/10 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6"
+					>
+						<Check class="size-10" />
+					</div>
+					<h2 class="text-2xl font-bold mb-2">Registration Complete!</h2>
+					<p class="text-muted-foreground mb-8">
+						{form.name} has been successfully registered into the system.
+					</p>
+
+					<div class="flex gap-4 justify-center">
+						<Button variant="outline" href="/nurse">Back to Dashboard</Button>
+						<Button
+							onclick={() => {
+								currentStep = 1;
+								form = {
+									name: '',
+									phone: '',
+									dob: '',
+									sex: 'female',
+									isPregnant: false,
+									address: '',
+									community: '',
+									nextOfKinName: '',
+									nextOfKinPhone: ''
+								};
+							}}>Register Another Patient</Button
+						>
+					</div>
+				</div>
+			{/if}
 		</div>
 	</div>
 </div>

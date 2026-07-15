@@ -1,40 +1,97 @@
 <script lang="ts">
 	import QrScanner from 'qr-scanner';
 	import { onMount, onDestroy } from 'svelte';
-	import { Button } from '$lib/components/ui/button';
 
 	let { onResult }: { onResult: (text: string) => void } = $props();
 	let videoEl = $state<HTMLVideoElement | null>(null);
-	let scanner = $state<QrScanner | null>(null);
-	let hasCamera = $state(false);
+	let stream = $state<MediaStream | null>(null);
+	let isScanning = $state(false);
+	let hasCamera = $state(true);
+	let qrScannerFallback = $state<QrScanner | null>(null);
 
-	onMount(async () => {
-		hasCamera = await QrScanner.hasCamera();
-		if (hasCamera && videoEl) {
-			scanner = new QrScanner(
-				videoEl,
-				(result) => {
-					if (result.data) {
-						onResult(result.data);
-						scanner?.stop();
-					}
-				},
-				{
-					highlightScanRegion: true,
-					highlightCodeOutline: true
-				}
-			);
-			try {
-				await scanner.start();
-			} catch (err) {
-				console.error('Failed to start scanner:', err);
+	async function startScanner() {
+		try {
+			const hasWebCam = await QrScanner.hasCamera();
+			if (!hasWebCam) {
+				hasCamera = false;
+				return;
 			}
+
+			// Try BarcodeDetector first
+			if (typeof window !== 'undefined' && 'BarcodeDetector' in window) {
+				stream = await navigator.mediaDevices.getUserMedia({
+					video: { facingMode: 'environment' }
+				});
+				if (videoEl) {
+					videoEl.srcObject = stream;
+					await videoEl.play();
+					isScanning = true;
+					scanLoopNative();
+				}
+			} else {
+				// Fallback to qr-scanner library
+				if (videoEl) {
+					qrScannerFallback = new QrScanner(
+						videoEl,
+						(result) => {
+							if (result.data) {
+								onResult(result.data);
+								stopScanner();
+							}
+						},
+						{
+							highlightScanRegion: true,
+							highlightCodeOutline: true
+						}
+					);
+					await qrScannerFallback.start();
+				}
+			}
+		} catch (err) {
+			console.error('Camera error:', err);
+			hasCamera = false;
 		}
+	}
+
+	async function scanLoopNative() {
+		if (!isScanning || !videoEl) return;
+
+		try {
+			// @ts-ignore - BarcodeDetector is a modern web API
+			const barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
+			const barcodes = await barcodeDetector.detect(videoEl);
+			if (barcodes.length > 0) {
+				onResult(barcodes[0].rawValue);
+				stopScanner();
+				return;
+			}
+		} catch (err) {
+			// Ignore detection errors during active scan
+		}
+
+		if (isScanning) {
+			requestAnimationFrame(scanLoopNative);
+		}
+	}
+
+	function stopScanner() {
+		isScanning = false;
+		if (stream) {
+			stream.getTracks().forEach((track) => track.stop());
+			stream = null;
+		}
+		if (qrScannerFallback) {
+			qrScannerFallback.destroy();
+			qrScannerFallback = null;
+		}
+	}
+
+	onMount(() => {
+		startScanner();
 	});
 
 	onDestroy(() => {
-		scanner?.destroy();
-		scanner = null;
+		stopScanner();
 	});
 </script>
 
@@ -43,7 +100,8 @@
 		<div
 			class="relative aspect-video w-full max-w-md rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 shadow-2xl"
 		>
-			<video bind:this={videoEl} class="w-full h-full object-cover"></video>
+			<!-- svelte-ignore a11y_media_has_caption -->
+			<video bind:this={videoEl} class="w-full h-full object-cover" playsinline></video>
 			<div
 				class="absolute inset-0 border-2 border-dashed border-teal-500/50 pointer-events-none rounded-2xl margin-4"
 			></div>

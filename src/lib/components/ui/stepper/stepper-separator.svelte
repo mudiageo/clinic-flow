@@ -24,5 +24,5 @@
 			!isVertical && 'h-full w-full scale-x-0 group-data-[state=completed]:scale-x-100 origin-left',
 			isVertical && 'w-full h-full scale-y-0 group-data-[state=completed]:scale-y-100 origin-top'
 		)}
-	/>
+	></div>
 </div>
