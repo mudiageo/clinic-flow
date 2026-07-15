@@ -452,7 +452,7 @@
                     <SelectPrimitive.Value placeholder="Select Medication" />
                   </SelectTrigger>
                   <SelectContent class="bg-card border-border max-h-60 overflow-y-auto">
-                    {#each pharmacyStore.items as med}
+                    {#each pharmacyStore.items || [] as med}
                       <SelectItem value={med.id} class="hover:bg-muted">{med.itemName} ({med.currentStock} in stock)</SelectItem>
                     {/each}
                   </SelectContent>

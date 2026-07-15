@@ -4,6 +4,4 @@ allowBuilds:
   better-sqlite3: true
   esbuild: true
   protobufjs: true
-onlyBuiltDependencies:
-  - '@tailwindcss/oxide'
-  - esbuild
+  '@tailwindcss/oxide': true

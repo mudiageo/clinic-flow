@@ -1,6 +1,6 @@
 import { db } from '$lib/server/db';
 import { reminders } from '$lib/server/db/schema';
-import { env } from '$env/dynamic/private';
+import { TERMII_API_KEY, TERMII_SENDER_ID } from '$app/env/private';
 import { eq, lte, and } from 'drizzle-orm';
 
 let isRunning = false;
@@ -42,8 +42,8 @@ async function processReminders() {
 			const provider = reminder.provider || 'termii';
 
 			if (provider === 'termii') {
-				const termiiApiKey = env.TERMII_API_KEY || process.env.TERMII_API_KEY;
-				const termiiSenderId = env.TERMII_SENDER_ID || process.env.TERMII_SENDER_ID || 'ClinicFlow';
+				const termiiApiKey = TERMII_API_KEY || process.env.TERMII_API_KEY;
+				const termiiSenderId = TERMII_SENDER_ID || process.env.TERMII_SENDER_ID || 'ClinicFlow';
 
 				if (!termiiApiKey) {
 					console.warn('[SMS Worker] TERMII_API_KEY not configured. Mocking SMS dispatch.');

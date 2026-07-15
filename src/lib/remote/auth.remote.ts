@@ -1,17 +1,18 @@
 import { form, query } from '$app/server';
 import { getRequestEvent } from '$app/server';
 import { auth } from '$lib/server/auth';
-import { redirect, isRedirect } from '@sveltejs/kit';
+import { invalid, redirect, isRedirect } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { db } from '$lib/server/db';
 import { phcs, staff } from '$lib/server/db/schema';
+import { APIError } from 'better-auth/api';
 
 export const signInAction = form(
 	v.object({
 		email: v.pipe(v.string(), v.nonEmpty('Email is required')),
 		password: v.pipe(v.string(), v.nonEmpty('Password is required')),
 	}),
-	async (data) => {
+	async (data, issue) => {
 		const event = getRequestEvent();
 		try {
 			await auth.api.signInEmail({
@@ -37,12 +38,17 @@ export const signInAction = form(
 				redirect(302, '/nurse');
 			}
 			redirect(302, '/login');
-		} catch (error: any) {
-			if (isRedirect(error)) {
-				throw error; // Pass redirects through to SvelteKit
+		} catch (err: any) {
+			if (isRedirect(err)) {
+				throw err; // Pass redirects through to SvelteKit
 			}
-			throw new Error(error.message || 'Invalid email or password');
-		}
+			console.log(err)
+			if (err instanceof APIError) {
+				invalid(
+					issue.qty(err.message)
+				);
+			}
+	  }
 	}
 );
 

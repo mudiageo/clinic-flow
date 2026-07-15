@@ -3,7 +3,7 @@ import { LocalCollection } from './local-collection.svelte';
 
 class PatientStore extends LocalCollection<LocalPatient> {
   constructor() {
-    super(db.patients, 'patients', () => db.patients.where('deleted').equals(0).toArray());
+    super(db.patients, 'patients', () => db.patients.filter(patient => patient.deleted === false).toArray());
   }
 
   search(term: string): LocalPatient[] {
