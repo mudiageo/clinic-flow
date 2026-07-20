@@ -8,6 +8,10 @@ class PatientStore extends LocalCollection<LocalPatient> {
 		);
 	}
 
+	get sortedItems(): LocalPatient[] {
+		return [...this.items].sort((a, b) => a.name.localeCompare(b.name));
+	}
+
 	search(term: string): LocalPatient[] {
 		const t = term.trim().toLowerCase();
 		if (!t) return [];

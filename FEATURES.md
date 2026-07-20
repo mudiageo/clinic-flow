@@ -419,46 +419,46 @@ revoked     BOOLEAN DEFAULT false
 ### Inventory Overview (`/pharmacy`)
 
 - [x] Basic page exists
-- [ ] `DataTable` — sortable by name, stock level, category
-- [ ] Stock level `Badge`: In Stock (green) | Low Stock (amber) | Out of Stock (red)
-- [ ] `Progress` bar showing stock vs threshold
-- [ ] `Alert` banner for critical low stock items
-- [ ] Quick restock button per row
+- [x] `DataTable` — sortable by name, stock level, category
+- [x] Stock level `Badge`: In Stock (green) | Low Stock (amber) | Out of Stock (red)
+- [x] `Progress` bar showing stock vs threshold
+- [x] `Alert` banner for critical low stock items
+- [x] Quick restock button per row
 
 ### Dispense Queue (`/pharmacy/dispense`)
 
-- [ ] Live list of pending prescriptions from `QueueStore`-equivalent
-- [ ] Group by patient encounter
-- [ ] "Dispense" button per prescription
-- [ ] `Dialog` confirm before dispensing: shows medication, quantity, patient
-- [ ] After dispense: decrements stock (delta sync operation), marks `dispensed=true`
-- [ ] Prescription marked dispensed updates in real-time via Dexie
+- [x] Live list of pending prescriptions from `QueueStore`-equivalent
+- [x] Group by patient encounter
+- [x] "Dispense" button per prescription
+- [x] `Dialog` confirm before dispensing: shows medication, quantity, patient
+- [x] After dispense: decrements stock (delta sync operation), marks `dispensed=true`
+- [x] Prescription marked dispensed updates in real-time via Dexie
 
 ### Inventory Item Edit (`/pharmacy/inventory/[id]`)
 
-- [ ] Edit: name, category, unit, current stock, low stock threshold, critical flag
-- [ ] `DateStrip` — expiry date tracking (future)
-- [ ] Stock adjustment: +/- manual correction with reason
+- [x] Edit: name, category, unit, current stock, low stock threshold, critical flag
+- [x] `DateStrip` — expiry date tracking (future)
+- [x] Stock adjustment: +/- manual correction with reason
 
 ### Add Item (`/pharmacy/inventory/new`)
 
-- [ ] `form` remote function
-- [ ] `Autocomplete` — common Nigerian essential medicines list
-- [ ] Category `Select`: Antimalarial | ARV | Vaccine | Family Planning | Antibiotic | Other
+- [x] `form` remote function
+- [x] `Autocomplete` — common Nigerian essential medicines list
+- [x] Category `Select`: Antimalarial | ARV | Vaccine | Family Planning | Antibiotic | Other
 
 ### Restock Requests (`/pharmacy/restock`)
 
-- [ ] List: item, quantity requested, status, date
-- [ ] `Badge` status: Pending | Acknowledged | Fulfilled
-- [ ] Admin can mark Fulfilled
+- [x] List: item, quantity requested, status, date
+- [x] `Badge` status: Pending | Acknowledged | Fulfilled
+- [x] Admin can mark Fulfilled
 
 ### Reports (`/pharmacy/reports`)
 
-- [ ] Top dispensed medications (last 30 days)
-- [ ] Low stock trend `Chart`
-- [ ] Near-expiry items table
-- [ ] `DateStrip` / `DatePicker` for date range selection
-- [ ] Export CSV button
+- [x] Top dispensed medications (last 30 days)
+- [x] Low stock trend `Chart`
+- [x] Near-expiry items table
+- [x] `DateStrip` / `DatePicker` for date range selection
+- [x] Export CSV button
 
 ---
 

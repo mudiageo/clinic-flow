@@ -24,12 +24,14 @@ This document serves as context for any future development sessions or agent han
 ## 2. Work Completed in Recent Sessions
 
 ### Phase 3: Nurse Dashboard & Triage
+
 - Built the **Live Queue Board** (`/nurse`) with sorting by triage urgency (`unassigned`, `green`, `amber`, `red`).
 - Implemented **Patient Registration** and **Vitals Entry** with automated algorithmic triage.
 - Added **SMS Reminders** scheduling (`/nurse/reminders`).
 - Set up **Granular Permissions** and a Superadmin audit dashboard.
 
 ### Phase 4: Doctor Dashboard & Lab
+
 - **Doctor Consultation Queue (`/doctor`):** Custom queue list allowing doctors to start consultations.
 - **Split-Panel Workspace (`/doctor/consult/[id]`):** A comprehensive consultation interface utilizing `shadcn`'s `Resizable` panes.
   - **Left Pane:** Patient demographics, sparkline vitals trends, and past encounter timelines.
@@ -38,6 +40,7 @@ This document serves as context for any future development sessions or agent han
 - **Patient Directory (`/doctor/patients`):** Searchable directory leading to comprehensive patient clinical profiles (`/doctor/patients/[id]`).
 
 ### Core Infrastructure Additions
+
 - Added `LocalEncounter` and `LocalLabRequest` to the Dexie schema and sync engine.
 - Generated and applied Drizzle migrations for `lab_requests` and `encounters`.
 
@@ -46,6 +49,7 @@ This document serves as context for any future development sessions or agent han
 ## 3. Mandatory Guidelines (`AGENTS.md` Summary)
 
 When continuing work, **you must abide by the rules in `AGENTS.md`**:
+
 1. **Svelte MCP Server:** Use `list-sections` and `get-documentation` to fetch Svelte 5 documentation, and run `svelte-autofixer` on all components.
 2. **Component Naming:** Always use `kebab-case` for component files.
 3. **UI Components:** Always use `shadcn-svelte` or `more-shadcn-svelte`. Do not build custom UI if a component exists.
@@ -58,11 +62,13 @@ When continuing work, **you must abide by the rules in `AGENTS.md`**:
 ## 4. Next Steps (Phase 5: Pharmacy & Inventory)
 
 The immediate next phase involves building out the **Pharmacy & Inventory Module**:
+
 1. **Prescription Dispensing (`/pharmacy`):** A queue/list of pending prescriptions created by doctors that need to be dispensed by the pharmacist.
 2. **Inventory Management (`/pharmacy/inventory`):** Interface to view current stock levels, update stock, and track expirations.
 3. **Restock Requests:** Flow to request new stock when items fall below a certain threshold.
 
 **To resume work:**
+
 - Refer to `FEATURES.md` for the overarching project roadmap.
 - Run `pnpm dev` to start the local development server.
 - Review `AGENTS.md` before writing code.

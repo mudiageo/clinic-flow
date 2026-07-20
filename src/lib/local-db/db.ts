@@ -169,6 +169,18 @@ export interface LocalPrescription {
 	updatedAt: number;
 }
 
+export interface LocalRestockRequest {
+	id: string;
+	inventoryItemId: string;
+	phcId: string;
+	requestedByStaffId: string | null;
+	quantityRequested: number;
+	status: 'pending' | 'acknowledged' | 'fulfilled';
+	createdAt: number;
+	syncStatus: 'synced' | 'pending' | 'conflict';
+	updatedAt: number;
+}
+
 export interface SyncLogEntry {
 	localId?: number; // auto-increment
 	entityType: string;
@@ -190,6 +202,7 @@ class ClinicFlowDB extends Dexie {
 	encounters!: Table<LocalEncounter, string>;
 	triageRules!: Table<LocalTriageRule, string>;
 	prescriptions!: Table<LocalPrescription, string>;
+	restockRequests!: Table<LocalRestockRequest, string>;
 	syncLog!: Table<SyncLogEntry, number>;
 
 	constructor() {
@@ -207,6 +220,9 @@ class ClinicFlowDB extends Dexie {
 		this.version(2).stores({
 			prescriptions: 'id, patientId, status, syncStatus',
 			encounters: 'id, patientId, visitDate, syncStatus'
+		});
+		this.version(3).stores({
+			restockRequests: 'id, inventoryItemId, status, syncStatus'
 		});
 	}
 }

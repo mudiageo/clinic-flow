@@ -15,33 +15,59 @@
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '$lib/components/ui/card';
+	import {
+		Card,
+		CardContent,
+		CardHeader,
+		CardTitle,
+		CardDescription
+	} from '$lib/components/ui/card';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
 	import { Select as SelectPrimitive } from 'bits-ui';
 	import * as Resizable from '$lib/components/ui/resizable';
 	import { AudioWave } from '$lib/components/ui/audio-wave';
 	import Sparkline from '$lib/components/Sparkline.svelte';
-	
+
 	import { toast } from 'svelte-sonner';
 	import { aiService } from '$lib/services/ai/ai.service';
 	import {
-		Stethoscope, Mic, MicOff, Loader2, Pill, Bell, Clipboard, Activity,
-		FileSpreadsheet, User, Trash2, Plus, CheckCircle2, ChevronLeft, FlaskConical, Link
+		Stethoscope,
+		Mic,
+		MicOff,
+		Loader2,
+		Pill,
+		Bell,
+		Clipboard,
+		Activity,
+		FileSpreadsheet,
+		User,
+		Trash2,
+		Plus,
+		CheckCircle2,
+		ChevronLeft,
+		FlaskConical,
+		Link
 	} from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 
-	const ticketId = page.params.id;
+	const ticketId = page.params.id as string;
 	const ticket = $derived(queueStore.get(ticketId));
 	const patient = $derived(ticket ? patientStore.get(ticket.patientId) : null);
 	const vitalsHistory = $derived(patient ? vitalsStore.forPatient(patient.id) : []);
 	const vitals = $derived(vitalsHistory.length > 0 ? vitalsHistory[0] : null);
 
 	const chronoVitals = $derived([...vitalsHistory].reverse());
-	const tempTrend = $derived(chronoVitals.map((v) => v.temperatureCelsius).filter((v) => v !== null) as number[]);
-	const bpSysTrend = $derived(chronoVitals.map((v) => v.systolicBp).filter((v) => v !== null) as number[]);
-	const pulseTrend = $derived(chronoVitals.map((v) => v.pulseBpm).filter((v) => v !== null) as number[]);
+	const tempTrend = $derived(
+		chronoVitals.map((v) => v.temperatureCelsius).filter((v) => v !== null) as number[]
+	);
+	const bpSysTrend = $derived(
+		chronoVitals.map((v) => v.systolicBp).filter((v) => v !== null) as number[]
+	);
+	const pulseTrend = $derived(
+		chronoVitals.map((v) => v.pulseBpm).filter((v) => v !== null) as number[]
+	);
 
 	// Form state
 	let chiefComplaint = $state('');
@@ -51,7 +77,9 @@
 	let selectedMedId = $state('');
 	let quantity = $state<number>(1);
 	let dosage = $state('');
-	let prescriptions = $state<Array<{ id: string; name: string; quantity: number; dosage: string }>>([]);
+	let prescriptions = $state<Array<{ id: string; name: string; quantity: number; dosage: string }>>(
+		[]
+	);
 
 	// Lab request state
 	let testType = $state('');
@@ -133,12 +161,14 @@
 		const med = pharmacyStore.get(selectedMedId);
 		if (!med) return;
 		prescriptions = [...prescriptions, { id: selectedMedId, name: med.itemName, quantity, dosage }];
-		selectedMedId = ''; quantity = 1; dosage = '';
+		selectedMedId = '';
+		quantity = 1;
+		dosage = '';
 	}
 
 	async function handleCompleteEncounter() {
 		if (!ticket || !patient) return;
-		
+
 		try {
 			// 1. Create Encounter if it doesn't exist, or we just create a new one for this consultation
 			let encounterId = ticket.encounterId;
@@ -150,7 +180,7 @@
 					doctorNotes,
 					visitDate: Date.now()
 				} as any);
-				encounterId = enc.id;
+				encounterId = enc;
 			}
 
 			// 2. Add lab request if filled out
@@ -187,7 +217,7 @@
 
 			// 4. Mark ticket as done
 			await queueStore.update(ticket.id, { status: 'done', completedAt: Date.now() });
-			
+
 			toast.success('Consultation completed successfully!');
 			goto('/doctor');
 		} catch (e: any) {
@@ -215,7 +245,9 @@
 				<div>
 					<div class="flex items-center gap-3">
 						<h1 class="text-xl font-bold text-foreground">{patient.name}</h1>
-						<Badge variant="outline" class="uppercase font-mono text-[10px]">{patient.clinicId}</Badge>
+						<Badge variant="outline" class="uppercase font-mono text-[10px]"
+							>{patient.clinicId}</Badge
+						>
 						{#if ticket.triageLevel === 'red'}
 							<Badge class="bg-triage-red hover:bg-triage-red">RED</Badge>
 						{:else if ticket.triageLevel === 'amber'}
@@ -225,7 +257,9 @@
 						{/if}
 					</div>
 					<p class="text-xs text-muted-foreground font-medium mt-0.5">
-						Age: {patient.dob ? new Date().getFullYear() - new Date(patient.dob).getFullYear() : 'Unknown'} • Sex: <span class="capitalize">{patient.sex}</span>
+						Age: {patient.dob
+							? new Date().getFullYear() - new Date(patient.dob).getFullYear()
+							: 'Unknown'} • Sex: <span class="capitalize">{patient.sex}</span>
 					</p>
 				</div>
 			</div>
@@ -235,20 +269,24 @@
 		</div>
 
 		<!-- Main Workspace (Resizable Split Pane) -->
-		<Resizable.PaneGroup direction="horizontal" class="rounded-xl border bg-card flex-1 hidden md:flex">
-			
+		<Resizable.PaneGroup
+			direction="horizontal"
+			class="rounded-xl border bg-card flex-1 hidden md:flex"
+		>
 			<!-- Left Pane: Summary -->
 			<Resizable.Pane defaultSize={30} minSize={20} class="p-4 bg-muted/10 overflow-y-auto">
 				<div class="space-y-6">
 					<h3 class="text-sm font-semibold flex items-center gap-2 text-foreground">
 						<User class="size-4 text-primary" /> Patient Summary
 					</h3>
-					
+
 					<!-- Vitals Snap -->
 					{#if vitals}
 						<Card class="border-border/50 shadow-sm">
 							<CardHeader class="p-3 pb-2 border-b bg-muted/20">
-								<CardTitle class="text-xs flex justify-between items-center text-muted-foreground font-semibold">
+								<CardTitle
+									class="text-xs flex justify-between items-center text-muted-foreground font-semibold"
+								>
 									<span>Today's Vitals</span>
 									<Activity class="size-3" />
 								</CardTitle>
@@ -256,25 +294,37 @@
 							<CardContent class="p-3 grid grid-cols-2 gap-3">
 								<div>
 									<div class="text-[10px] text-muted-foreground font-semibold uppercase">Temp</div>
-									<div class="text-sm font-bold text-foreground">{vitals.temperatureCelsius ?? '—'}°C</div>
-									{#if tempTrend.length} <Sparkline data={tempTrend} width={80} height={12} color="var(--primary)" /> {/if}
+									<div class="text-sm font-bold text-foreground">
+										{vitals.temperatureCelsius ?? '—'}°C
+									</div>
+									{#if tempTrend.length}
+										<Sparkline data={tempTrend} width={80} height={12} color="var(--primary)" />
+									{/if}
 								</div>
 								<div>
 									<div class="text-[10px] text-muted-foreground font-semibold uppercase">BP</div>
-									<div class="text-sm font-bold text-foreground">{vitals.systolicBp ?? '—'}/{vitals.diastolicBp ?? '—'}</div>
-									{#if bpSysTrend.length} <Sparkline data={bpSysTrend} width={80} height={12} color="var(--accent)" /> {/if}
+									<div class="text-sm font-bold text-foreground">
+										{vitals.systolicBp ?? '—'}/{vitals.diastolicBp ?? '—'}
+									</div>
+									{#if bpSysTrend.length}
+										<Sparkline data={bpSysTrend} width={80} height={12} color="var(--accent)" />
+									{/if}
 								</div>
 							</CardContent>
 						</Card>
 					{:else}
-						<div class="text-xs text-muted-foreground italic p-3 border rounded-lg bg-card text-center">
+						<div
+							class="text-xs text-muted-foreground italic p-3 border rounded-lg bg-card text-center"
+						>
 							No vitals recorded for this visit.
 						</div>
 					{/if}
 
 					<!-- Recent Encounters -->
 					<div>
-						<h4 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">History (Demo)</h4>
+						<h4 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+							History (Demo)
+						</h4>
 						<div class="space-y-2">
 							<div class="p-3 border rounded-lg bg-card text-sm space-y-1">
 								<div class="font-medium text-foreground">Malaria Follow-up</div>
@@ -289,16 +339,32 @@
 				</div>
 			</Resizable.Pane>
 			<Resizable.Handle withHandle />
-			
+
 			<!-- Right Pane: Tabs -->
 			<Resizable.Pane defaultSize={70} class="bg-card">
 				<Tabs value="notes" class="h-full flex flex-col">
 					<div class="px-4 pt-3 border-b border-border/50 bg-muted/20">
 						<TabsList class="bg-transparent h-auto p-0 gap-6">
-							<TabsTrigger value="notes" class="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-2">Clinical Notes</TabsTrigger>
-							<TabsTrigger value="rx" class="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-2">Prescriptions</TabsTrigger>
-							<TabsTrigger value="lab" class="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-2">Lab Request</TabsTrigger>
-							<TabsTrigger value="referral" class="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-2">Referral</TabsTrigger>
+							<TabsTrigger
+								value="notes"
+								class="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-2"
+								>Clinical Notes</TabsTrigger
+							>
+							<TabsTrigger
+								value="rx"
+								class="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-2"
+								>Prescriptions</TabsTrigger
+							>
+							<TabsTrigger
+								value="lab"
+								class="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-2"
+								>Lab Request</TabsTrigger
+							>
+							<TabsTrigger
+								value="referral"
+								class="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-2"
+								>Referral</TabsTrigger
+							>
 						</TabsList>
 					</div>
 
@@ -306,19 +372,42 @@
 						<TabsContent value="notes" class="m-0 space-y-6 animate-in fade-in-50 zoom-in-95">
 							<div class="space-y-2">
 								<div class="flex items-center justify-between">
-									<Label class="font-semibold flex items-center gap-1.5"><Clipboard class="size-4" /> Chief Complaint</Label>
-									<Button variant={isRecording ? 'destructive' : 'outline'} size="sm" class="h-7 text-xs"
-										onmousedown={startRecording} onmouseup={stopRecording} onmouseleave={stopRecording} disabled={aiProcessing}>
-										{#if aiProcessing} <Loader2 class="size-3 animate-spin mr-1" /> Processing...
-										{:else if isRecording} <MicOff class="size-3 mr-1 animate-pulse" /> Recording...
-										{:else} <Mic class="size-3 mr-1" /> Hold to Dictate {/if}
+									<Label class="font-semibold flex items-center gap-1.5"
+										><Clipboard class="size-4" /> Chief Complaint</Label
+									>
+									<Button
+										variant={isRecording ? 'destructive' : 'outline'}
+										size="sm"
+										class="h-7 text-xs"
+										onmousedown={startRecording}
+										onmouseup={stopRecording}
+										onmouseleave={stopRecording}
+										disabled={aiProcessing}
+									>
+										{#if aiProcessing}
+											<Loader2 class="size-3 animate-spin mr-1" /> Processing...
+										{:else if isRecording}
+											<MicOff class="size-3 mr-1 animate-pulse" /> Recording...
+										{:else}
+											<Mic class="size-3 mr-1" /> Hold to Dictate
+										{/if}
 									</Button>
 								</div>
-								<Textarea bind:value={chiefComplaint} class="min-h-[80px]" placeholder="Patient presents with..." />
+								<Textarea
+									bind:value={chiefComplaint}
+									class="min-h-[80px]"
+									placeholder="Patient presents with..."
+								/>
 							</div>
 							<div class="space-y-2">
-								<Label class="font-semibold flex items-center gap-1.5"><FileSpreadsheet class="size-4" /> Doctor Notes</Label>
-								<Textarea bind:value={doctorNotes} class="min-h-[200px]" placeholder="Diagnosis and treatment plan..." />
+								<Label class="font-semibold flex items-center gap-1.5"
+									><FileSpreadsheet class="size-4" /> Doctor Notes</Label
+								>
+								<Textarea
+									bind:value={doctorNotes}
+									class="min-h-[200px]"
+									placeholder="Diagnosis and treatment plan..."
+								/>
 							</div>
 						</TabsContent>
 
@@ -332,10 +421,14 @@
 										<div class="md:col-span-2 space-y-2">
 											<Label>Item</Label>
 											<Select type="single" bind:value={selectedMedId}>
-												<SelectTrigger class="h-9"><SelectPrimitive.Value placeholder="Select Medication"/></SelectTrigger>
+												<SelectTrigger class="h-9"
+													><SelectPrimitive.Value placeholder="Select Medication" /></SelectTrigger
+												>
 												<SelectContent>
 													{#each pharmacyStore.items || [] as med}
-														<SelectItem value={med.id}>{med.itemName} (Stock: {med.currentStock})</SelectItem>
+														<SelectItem value={med.id}
+															>{med.itemName} (Stock: {med.currentStock})</SelectItem
+														>
 													{/each}
 												</SelectContent>
 											</Select>
@@ -344,7 +437,9 @@
 											<Label>Qty</Label>
 											<Input type="number" bind:value={quantity} min={1} class="h-9" />
 										</div>
-										<Button onclick={handleAddMed} class="h-9"><Plus class="size-4 mr-2" /> Add</Button>
+										<Button onclick={handleAddMed} class="h-9"
+											><Plus class="size-4 mr-2" /> Add</Button
+										>
 									</div>
 								</CardContent>
 							</Card>
@@ -352,10 +447,28 @@
 							{#if prescriptions.length > 0}
 								<div class="border rounded-lg overflow-hidden">
 									<table class="w-full text-sm">
-										<thead class="bg-muted/50 border-b"><tr><th class="px-3 py-2 text-left font-medium">Medication</th><th class="px-3 py-2 text-left font-medium">Qty</th><th class="px-3 py-2 text-right"></th></tr></thead>
+										<thead class="bg-muted/50 border-b"
+											><tr
+												><th class="px-3 py-2 text-left font-medium">Medication</th><th
+													class="px-3 py-2 text-left font-medium">Qty</th
+												><th class="px-3 py-2 text-right"></th></tr
+											></thead
+										>
 										<tbody class="divide-y">
 											{#each prescriptions as p, i}
-												<tr class="hover:bg-muted/30"><td class="px-3 py-2">{p.name}</td><td class="px-3 py-2">{p.quantity}</td><td class="px-3 py-2 text-right"><Button variant="ghost" size="sm" class="text-destructive h-7 px-2" onclick={() => (prescriptions = prescriptions.filter((_, idx) => idx !== i))}><Trash2 class="size-3" /></Button></td></tr>
+												<tr class="hover:bg-muted/30"
+													><td class="px-3 py-2">{p.name}</td><td class="px-3 py-2">{p.quantity}</td
+													><td class="px-3 py-2 text-right"
+														><Button
+															variant="ghost"
+															size="sm"
+															class="text-destructive h-7 px-2"
+															onclick={() =>
+																(prescriptions = prescriptions.filter((_, idx) => idx !== i))}
+															><Trash2 class="size-3" /></Button
+														></td
+													></tr
+												>
 											{/each}
 										</tbody>
 									</table>
@@ -385,18 +498,28 @@
 								<Label>Clinical Notes for Lab</Label>
 								<Textarea bind:value={labNotes} placeholder="Reason for test..." />
 							</div>
-							<div class="p-3 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-xs flex gap-2">
+							<div
+								class="p-3 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-xs flex gap-2"
+							>
 								<FlaskConical class="size-4 shrink-0" />
-								This request will be sent to the Pharmacy/Lab dashboard immediately upon completing the consultation.
+								This request will be sent to the Pharmacy/Lab dashboard immediately upon completing the
+								consultation.
 							</div>
 						</TabsContent>
 
 						<TabsContent value="referral" class="m-0 space-y-4 animate-in fade-in-50 zoom-in-95">
-							<div class="p-6 border-2 border-dashed rounded-xl flex flex-col items-center justify-center text-center space-y-3">
-								<div class="p-3 bg-muted rounded-full text-muted-foreground"><Link class="size-6" /></div>
+							<div
+								class="p-6 border-2 border-dashed rounded-xl flex flex-col items-center justify-center text-center space-y-3"
+							>
+								<div class="p-3 bg-muted rounded-full text-muted-foreground">
+									<Link class="size-6" />
+								</div>
 								<div>
 									<h4 class="font-semibold text-foreground">External Referral</h4>
-									<p class="text-sm text-muted-foreground mt-1 max-w-sm">Need to transfer to a secondary facility? Generate a standardized referral letter.</p>
+									<p class="text-sm text-muted-foreground mt-1 max-w-sm">
+										Need to transfer to a secondary facility? Generate a standardized referral
+										letter.
+									</p>
 								</div>
 								<Button variant="outline" class="mt-2">Generate Referral Letter</Button>
 							</div>
@@ -413,7 +536,9 @@
 					<User class="size-4 text-primary" /> Patient Summary
 				</h3>
 				<!-- Same content as left pane for mobile -->
-				<p class="text-xs text-muted-foreground">Please use a tablet or desktop for the full consultation interface.</p>
+				<p class="text-xs text-muted-foreground">
+					Please use a tablet or desktop for the full consultation interface.
+				</p>
 			</div>
 			<!-- Tab content stacked for mobile -->
 		</div>

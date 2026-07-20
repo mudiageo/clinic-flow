@@ -47,4 +47,16 @@ export abstract class LocalCollection<
 			synced: 0
 		});
 	}
+
+	async delete(id: string): Promise<void> {
+		await this.table.delete(id);
+		await db.syncLog.add({
+			entityType: this.entityType,
+			entityId: id,
+			operation: 'delete',
+			payload: { id },
+			timestamp: Date.now(),
+			synced: 0
+		});
+	}
 }

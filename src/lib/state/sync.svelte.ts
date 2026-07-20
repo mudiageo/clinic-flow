@@ -138,7 +138,8 @@ class SyncStore {
 									'visitDate',
 									'dueDate',
 									'sentAt',
-									'dispensedAt'
+									'dispensedAt',
+									'createdAt'
 								].includes(k) &&
 								typeof v === 'string'
 							) {

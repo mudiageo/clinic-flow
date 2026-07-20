@@ -29,7 +29,8 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 		triageRules: schema.triageRules,
 		prescriptions: schema.prescriptions,
 		encounters: schema.encounters,
-		labRequests: schema.labRequests
+		labRequests: schema.labRequests,
+		restockRequests: schema.restockRequests
 	};
 
 	for (const op of operations) {
@@ -84,7 +85,8 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 					'visitDate',
 					'dueDate',
 					'sentAt',
-					'dispensedAt'
+					'dispensedAt',
+					'createdAt'
 				].includes(k) &&
 				typeof v === 'number'
 			) {

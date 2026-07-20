@@ -240,10 +240,18 @@ export const labRequests = pgTable(
 	'lab_requests',
 	{
 		id: uuid('id').primaryKey().defaultRandom(),
-		encounterId: uuid('encounter_id').notNull().references(() => encounters.id),
-		patientId: uuid('patient_id').notNull().references(() => patients.id),
-		phcId: uuid('phc_id').notNull().references(() => phcs.id),
-		requestedByStaffId: uuid('requested_by_staff_id').notNull().references(() => staff.id),
+		encounterId: uuid('encounter_id')
+			.notNull()
+			.references(() => encounters.id),
+		patientId: uuid('patient_id')
+			.notNull()
+			.references(() => patients.id),
+		phcId: uuid('phc_id')
+			.notNull()
+			.references(() => phcs.id),
+		requestedByStaffId: uuid('requested_by_staff_id')
+			.notNull()
+			.references(() => staff.id),
 		testType: varchar('test_type', { length: 100 }).notNull(), // e.g., 'Malaria RDT'
 		urgency: labUrgencyEnum('urgency').notNull().default('routine'),
 		notes: text('notes'),
