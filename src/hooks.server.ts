@@ -55,8 +55,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 		const role = event.locals.role;
 
-		// Admin can access all routes
-		if (role !== 'admin') {
+		// Superadmin and Admin can access standard clinic routes
+		if (role !== 'admin' && role !== 'superadmin') {
 			if (pathname.startsWith('/nurse') && role !== 'nurse') {
 				redirect(302, '/login');
 			}
@@ -69,6 +69,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 			if (pathname.startsWith('/admin')) {
 				redirect(302, '/login');
 			}
+		}
+		
+		if (pathname.startsWith('/superadmin') && role !== 'superadmin') {
+			redirect(302, '/login');
 		}
 	}
 

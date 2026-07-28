@@ -13,7 +13,20 @@
 	import { Alert, AlertDescription, AlertTitle } from '$lib/components/ui/alert';
 	import { HeartPulse, KeyRound, Mail, AlertCircle, ShieldAlert } from '@lucide/svelte';
 
+	import { onMount } from 'svelte';
+	import { db } from '$lib/local-db/db';
+
 	const allIssues = $derived(signInAction.fields.allIssues() ?? []);
+
+	onMount(async () => {
+		// Clear local database when on login page to ensure data isolation
+		try {
+			await db.delete();
+			console.log('Local DB cleared on logout/login');
+		} catch (e) {
+			console.error('Failed to clear local DB:', e);
+		}
+	});
 </script>
 
 <svelte:head>

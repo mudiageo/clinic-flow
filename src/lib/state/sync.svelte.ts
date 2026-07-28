@@ -1,5 +1,6 @@
 import { db } from '$lib/local-db/db';
 import { pushOperations, pullChanges } from '../../routes/sync/sync.remote';
+import { toast } from 'svelte-sonner';
 
 // Generate a stable device ID for sync segregation
 function getDeviceId() {
@@ -94,6 +95,7 @@ class SyncStore {
 					// Handle conflicts by logging them
 					for (const conflict of conflicts) {
 						console.warn('Sync Conflict:', conflict);
+						toast.warning('Sync conflict detected and marked for review');
 						// Update local DB to mark conflict
 						const conf = conflict as { localId: number; serverVersion?: any; reason?: string };
 						const logEntry = batch.find((b) => b.localId === conf.localId);
@@ -106,6 +108,7 @@ class SyncStore {
 					}
 				} catch (e) {
 					console.error('Push batch failed:', e);
+					toast.error('Sync failed. Will retry later.');
 					break; // Stop on first network error, retry next time
 				}
 			}

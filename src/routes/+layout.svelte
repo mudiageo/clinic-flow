@@ -2,6 +2,7 @@
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { Toaster } from '$lib/components/ui/sonner';
+	import PWAManager from '$lib/components/PWAManager.svelte';
 
 	let { children } = $props();
 
@@ -33,4 +34,5 @@
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 <Toaster richColors position="top-right" />
+<PWAManager />
 {@render children()}
