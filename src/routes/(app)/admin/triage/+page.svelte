@@ -19,8 +19,18 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Button } from '$lib/components/ui/button';
 	import { ScrollArea } from '$lib/components/ui/scroll-area';
+	import {
+		Dialog,
+		DialogContent,
+		DialogHeader,
+		DialogTitle,
+		DialogDescription,
+		DialogTrigger
+	} from '$lib/components/ui/dialog';
+	import { Switch } from '$lib/components/ui/switch';
+	import { Label } from '$lib/components/ui/label';
 	import { toast } from 'svelte-sonner';
-	import { Settings, Edit2, Check, X, ShieldAlert, AlertTriangle } from '@lucide/svelte';
+	import { Settings, Edit2, Check, X, ShieldAlert, AlertTriangle, Plus } from '@lucide/svelte';
 
 	const rules = $derived(triageRuleStore.items);
 
@@ -33,21 +43,65 @@
 		}
 	}
 
-	let editingId = $state<string | null>(null);
-	let editThreshold = $state<number>(0);
+	let isAddDialogOpen = $state(false);
+	let newRule = $state({
+		field: 'temperatureCelsius',
+		operator: '>',
+		threshold: 37.5,
+		resultingLevel: 'amber' as 'red' | 'amber' | 'green',
+		requiresPregnant: false,
+		reasonTemplate: ''
+	});
 
-	function startEdit(rule: any) {
-		editingId = rule.id;
-		editThreshold = rule.threshold;
+	let editingRule = $state<any>(null);
+	let isEditDialogOpen = $state(false);
+
+	function startEditFull(rule: any) {
+		editingRule = { ...rule };
+		isEditDialogOpen = true;
 	}
 
-	async function saveEdit(ruleId: string) {
+	async function saveEditFull() {
 		try {
-			await triageRuleStore.update(ruleId, { threshold: editThreshold, version: Date.now() });
-			editingId = null;
-			toast.success('Threshold updated');
+			await triageRuleStore.update(editingRule.id, {
+				field: editingRule.field,
+				operator: editingRule.operator,
+				threshold: editingRule.threshold,
+				resultingLevel: editingRule.resultingLevel,
+				requiresPregnant: editingRule.requiresPregnant,
+				reasonTemplate: editingRule.reasonTemplate,
+				version: Date.now()
+			});
+			isEditDialogOpen = false;
+			editingRule = null;
+			toast.success('Rule updated successfully');
 		} catch (e: any) {
-			toast.error('Failed to save threshold');
+			toast.error('Failed to update rule');
+		}
+	}
+
+	async function handleAddRule(e: Event) {
+		e.preventDefault();
+		try {
+			await triageRuleStore.create({
+				...newRule,
+				phcId: 'demo-phc-1',
+				active: true,
+				version: Date.now()
+			});
+			isAddDialogOpen = false;
+			toast.success('Rule added successfully');
+			// Reset form
+			newRule = {
+				field: 'temperatureCelsius',
+				operator: '>',
+				threshold: 37.5,
+				resultingLevel: 'amber',
+				requiresPregnant: false,
+				reasonTemplate: ''
+			};
+		} catch (error) {
+			toast.error('Failed to add rule');
 		}
 	}
 </script>
@@ -57,16 +111,82 @@
 </svelte:head>
 
 <div class="space-y-8 animate-fade-in">
-	<div class="flex items-start gap-3">
-		<div class="p-2.5 rounded-xl bg-primary/10 text-primary">
-			<Settings class="size-6" />
+	<div class="flex items-start justify-between gap-3">
+		<div class="flex items-start gap-3">
+			<div class="p-2.5 rounded-xl bg-primary/10 text-primary">
+				<Settings class="size-6" />
+			</div>
+			<div>
+				<h1 class="text-2xl font-bold text-foreground tracking-tight">Triage Rules Config</h1>
+				<p class="text-muted-foreground text-sm mt-0.5 font-medium">
+					Configure clinical thresholds for automatic triage flagging
+				</p>
+			</div>
 		</div>
-		<div>
-			<h1 class="text-2xl font-bold text-foreground tracking-tight">Triage Rules Config</h1>
-			<p class="text-muted-foreground text-sm mt-0.5 font-medium">
-				Configure clinical thresholds for automatic triage flagging
-			</p>
-		</div>
+		
+		<Dialog bind:open={isAddDialogOpen}>
+			<DialogTrigger class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2">
+				<Plus class="size-4 mr-2" />
+				Add Rule
+			</DialogTrigger>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>Add New Triage Rule</DialogTitle>
+					<DialogDescription>Define a new condition that will automatically flag a patient's vitals.</DialogDescription>
+				</DialogHeader>
+				<form onsubmit={handleAddRule} class="space-y-4 py-4">
+					<div class="grid grid-cols-2 gap-4">
+						<div class="space-y-2">
+							<Label for="field">Field</Label>
+							<select id="field" bind:value={newRule.field} class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+								<option value="temperatureCelsius">Temperature</option>
+								<option value="systolicBp">Systolic BP</option>
+								<option value="diastolicBp">Diastolic BP</option>
+								<option value="heartRateBpm">Heart Rate</option>
+								<option value="respiratoryRateBpm">Resp. Rate</option>
+								<option value="oxygenSaturationPercent">SpO2 %</option>
+							</select>
+						</div>
+						<div class="space-y-2">
+							<Label for="operator">Operator</Label>
+							<select id="operator" bind:value={newRule.operator} class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+								<option value=">">Greater than (>)</option>
+								<option value="<">Less than (&lt;)</option>
+								<option value=">=">Greater or eq (>=)</option>
+								<option value="<=">Less or eq (&lt;=)</option>
+								<option value="==">Equals (==)</option>
+							</select>
+						</div>
+					</div>
+					<div class="grid grid-cols-2 gap-4">
+						<div class="space-y-2">
+							<Label for="threshold">Threshold</Label>
+							<Input id="threshold" type="number" step="0.1" bind:value={newRule.threshold} required />
+						</div>
+						<div class="space-y-2">
+							<Label for="level">Result Level</Label>
+							<select id="level" bind:value={newRule.resultingLevel} class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+								<option value="red">RED (Emergency)</option>
+								<option value="amber">AMBER (Priority)</option>
+								<option value="green">GREEN (Standard)</option>
+							</select>
+						</div>
+					</div>
+					<div class="space-y-2">
+						<Label for="reason">Clinical Reason (Optional)</Label>
+						<Input id="reason" bind:value={newRule.reasonTemplate} placeholder="e.g. Fever indicator" />
+					</div>
+					<div class="flex items-center space-x-2 bg-muted/30 p-3 rounded-lg border">
+						<Switch id="pregnant" bind:checked={newRule.requiresPregnant} />
+						<Label for="pregnant" class="font-medium cursor-pointer">Requires Pregnancy</Label>
+					</div>
+					<div class="flex justify-end gap-2 pt-2">
+						<Button type="button" variant="outline" onclick={() => isAddDialogOpen = false}>Cancel</Button>
+						<Button type="submit">Add Rule</Button>
+					</div>
+				</form>
+			</DialogContent>
+		</Dialog>
 	</div>
 
 	<Card class="overflow-hidden card-hover bg-card/60">
@@ -127,44 +247,19 @@
 								>{rule.operator}</TableCell
 							>
 							<TableCell class="px-6 py-4">
-								{#if editingId === rule.id}
-									<div class="flex items-center gap-2 animate-fade-in">
-										<Input
-											type="number"
-											bind:value={editThreshold}
-											class="w-20 h-8 bg-background border-border text-foreground text-xs"
-										/>
-										<Button
-											size="icon"
-											class="h-8 w-8 bg-primary text-primary-foreground hover:bg-primary/95 btn-press"
-											onclick={() => saveEdit(rule.id)}
-										>
-											<Check class="size-3.5" />
-										</Button>
-										<Button
-											size="icon"
-											variant="ghost"
-											class="h-8 w-8 text-muted-foreground hover:text-foreground btn-press"
-											onclick={() => (editingId = null)}
-										>
-											<X class="size-3.5" />
-										</Button>
-									</div>
-								{:else}
-									<div class="flex items-center gap-3">
-										<span class="text-foreground font-bold text-sm tabular-nums"
-											>{rule.threshold}</span
-										>
-										<Button
-											variant="ghost"
-											size="icon"
-											class="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted btn-press"
-											onclick={() => startEdit(rule)}
-										>
-											<Edit2 class="size-3" />
-										</Button>
-									</div>
-								{/if}
+								<div class="flex items-center gap-3">
+									<span class="text-foreground font-bold text-sm tabular-nums"
+										>{rule.threshold}</span
+									>
+									<Button
+										variant="ghost"
+										size="icon"
+										class="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted btn-press"
+										onclick={() => startEditFull(rule)}
+									>
+										<Edit2 class="size-3" />
+									</Button>
+								</div>
 							</TableCell>
 							<TableCell class="px-6 py-4">
 								{#if rule.resultingLevel === 'red'}
@@ -203,4 +298,65 @@
 			</Table>
 		</ScrollArea>
 	</Card>
+
+	<Dialog bind:open={isEditDialogOpen}>
+		<DialogContent>
+			<DialogHeader>
+				<DialogTitle>Edit Triage Rule</DialogTitle>
+			</DialogHeader>
+			{#if editingRule}
+				<div class="space-y-4 py-4">
+					<div class="grid grid-cols-2 gap-4">
+						<div class="space-y-2">
+							<Label for="edit-field">Field</Label>
+							<select id="edit-field" bind:value={editingRule.field} class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+								<option value="temperatureCelsius">Temperature</option>
+								<option value="systolicBp">Systolic BP</option>
+								<option value="diastolicBp">Diastolic BP</option>
+								<option value="heartRateBpm">Heart Rate</option>
+								<option value="respiratoryRateBpm">Resp. Rate</option>
+								<option value="oxygenSaturationPercent">SpO2 %</option>
+							</select>
+						</div>
+						<div class="space-y-2">
+							<Label for="edit-operator">Operator</Label>
+							<select id="edit-operator" bind:value={editingRule.operator} class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+								<option value=">">Greater than (>)</option>
+								<option value="<">Less than (&lt;)</option>
+								<option value=">=">Greater or eq (>=)</option>
+								<option value="<=">Less or eq (&lt;=)</option>
+								<option value="==">Equals (==)</option>
+							</select>
+						</div>
+					</div>
+					<div class="grid grid-cols-2 gap-4">
+						<div class="space-y-2">
+							<Label for="edit-threshold">Threshold</Label>
+							<Input id="edit-threshold" type="number" step="0.1" bind:value={editingRule.threshold} required />
+						</div>
+						<div class="space-y-2">
+							<Label for="edit-level">Result Level</Label>
+							<select id="edit-level" bind:value={editingRule.resultingLevel} class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+								<option value="red">RED (Emergency)</option>
+								<option value="amber">AMBER (Priority)</option>
+								<option value="green">GREEN (Standard)</option>
+							</select>
+						</div>
+					</div>
+					<div class="space-y-2">
+						<Label for="edit-reason">Clinical Reason (Optional)</Label>
+						<Input id="edit-reason" bind:value={editingRule.reasonTemplate} placeholder="e.g. Fever indicator" />
+					</div>
+					<div class="flex items-center space-x-2 bg-muted/30 p-3 rounded-lg border">
+						<Switch id="edit-pregnant" bind:checked={editingRule.requiresPregnant} />
+						<Label for="edit-pregnant" class="font-medium cursor-pointer">Requires Pregnancy</Label>
+					</div>
+					<div class="flex justify-end gap-2 pt-2">
+						<Button type="button" variant="outline" onclick={() => isEditDialogOpen = false}>Cancel</Button>
+						<Button type="button" onclick={saveEditFull}>Save Changes</Button>
+					</div>
+				</div>
+			{/if}
+		</DialogContent>
+	</Dialog>
 </div>

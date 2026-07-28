@@ -52,6 +52,19 @@ export const reminderStatusEnum = pgEnum('reminder_status', [
 ]);
 export const labUrgencyEnum = pgEnum('lab_urgency', ['routine', 'urgent', 'stat']);
 export const labStatusEnum = pgEnum('lab_status', ['pending', 'processing', 'completed']);
+export const appointmentTypeEnum = pgEnum('appointment_type', [
+	'antenatal',
+	'immunization',
+	'follow-up',
+	'general',
+	'lab-follow-up'
+]);
+export const appointmentStatusEnum = pgEnum('appointment_status', [
+	'scheduled',
+	'completed',
+	'cancelled',
+	'no-show'
+]);
 
 // ─────────────────────────────────────────────────────────────
 // USERS & AUTH (Better Auth compatible core fields kept minimal here;
@@ -75,6 +88,8 @@ export const phcs = pgTable('phcs', {
 	name: varchar('name', { length: 160 }).notNull(),
 	lga: varchar('lga', { length: 120 }).notNull(),
 	state: varchar('state', { length: 80 }).notNull(),
+	termiiApiKey: varchar('termii_api_key', { length: 255 }),
+	syncPollInterval: integer('sync_poll_interval').notNull().default(30),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 });
 
@@ -401,6 +416,36 @@ export const reminders = pgTable(
 );
 
 // ─────────────────────────────────────────────────────────────
+// APPOINTMENTS
+// ─────────────────────────────────────────────────────────────
+
+export const appointments = pgTable(
+	'appointments',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		patientId: uuid('patient_id')
+			.notNull()
+			.references(() => patients.id),
+		phcId: uuid('phc_id')
+			.notNull()
+			.references(() => phcs.id),
+		assignedStaffId: uuid('assigned_staff_id').references(() => staff.id),
+		type: appointmentTypeEnum('type').notNull(),
+		scheduledAt: timestamp('scheduled_at', { withTimezone: true }).notNull(),
+		durationMinutes: integer('duration_minutes').notNull().default(30),
+		notes: text('notes'),
+		status: appointmentStatusEnum('status').notNull().default('scheduled'),
+		smsReminderSent: boolean('sms_reminder_sent').notNull().default(false),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(table) => ({
+		scheduledAtIdx: index('appointments_scheduled_at_idx').on(table.scheduledAt),
+		patientIdx: index('appointments_patient_idx').on(table.patientId)
+	})
+);
+
+// ─────────────────────────────────────────────────────────────
 // SYNC INFRASTRUCTURE (server-side mirror of client syncLog concept)
 // ─────────────────────────────────────────────────────────────
 
@@ -435,12 +480,14 @@ export const patientsRelations = relations(patients, ({ one, many }) => ({
 	encounters: many(encounters),
 	vitalsRecords: many(vitalsRecords),
 	queueTickets: many(queueTickets),
-	reminders: many(reminders)
+	reminders: many(reminders),
+	appointments: many(appointments)
 }));
 
 export const staffRelations = relations(staff, ({ many, one }) => ({
 	phc: one(phcs, { fields: [staff.phcId], references: [phcs.id] }),
-	permissions: many(permissions, { relationName: 'grantedPermissions' })
+	permissions: many(permissions, { relationName: 'grantedPermissions' }),
+	appointments: many(appointments)
 }));
 
 export const phcsRelations = relations(phcs, ({ many }) => ({
@@ -473,6 +520,11 @@ export const pharmacyInventoryRelations = relations(pharmacyInventory, ({ many }
 export const queueTicketsRelations = relations(queueTickets, ({ one }) => ({
 	patient: one(patients, { fields: [queueTickets.patientId], references: [patients.id] }),
 	encounter: one(encounters, { fields: [queueTickets.encounterId], references: [encounters.id] })
+}));
+
+export const appointmentsRelations = relations(appointments, ({ one }) => ({
+	patient: one(patients, { fields: [appointments.patientId], references: [patients.id] }),
+	assignedStaff: one(staff, { fields: [appointments.assignedStaffId], references: [staff.id] })
 }));
 
 // Better Auth tables integration

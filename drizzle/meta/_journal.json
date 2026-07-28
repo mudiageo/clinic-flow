@@ -36,6 +36,20 @@
       "when": 1784126825280,
       "tag": "0004_lively_lizard",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1785223798590,
+      "tag": "0005_wandering_malice",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1785224072056,
+      "tag": "0006_brief_fixer",
+      "breakpoints": true
     }
   ]
 }

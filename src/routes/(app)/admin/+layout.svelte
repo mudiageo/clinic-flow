@@ -53,7 +53,7 @@
 		{
 			label: 'Configuration',
 			items: [
-				{ href: '/admin/triage-rules', label: 'Triage Rules', icon: SlidersHorizontal },
+				{ href: '/admin/triage', label: 'Triage Rules', icon: SlidersHorizontal },
 				{ href: '/admin/reminders', label: 'Reminders', icon: Bell },
 				{ href: '/admin/settings', label: 'PHC Settings', icon: Settings }
 			]

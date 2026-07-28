@@ -30,7 +30,8 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 		prescriptions: schema.prescriptions,
 		encounters: schema.encounters,
 		labRequests: schema.labRequests,
-		restockRequests: schema.restockRequests
+		restockRequests: schema.restockRequests,
+		appointments: schema.appointments
 	};
 
 	for (const op of operations) {

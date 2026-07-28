@@ -79,7 +79,8 @@ export interface LocalSyncOperation {
 		| 'prescriptions'
 		| 'restockRequests'
 		| 'reminders'
-		| 'labRequests';
+		| 'labRequests'
+		| 'appointments';
 	entityId: string;
 	operation: 'INSERT' | 'UPDATE' | 'DELETE';
 	payload: any;
@@ -181,6 +182,22 @@ export interface LocalRestockRequest {
 	updatedAt: number;
 }
 
+export interface LocalAppointment {
+	id: string;
+	patientId: string;
+	phcId: string;
+	assignedStaffId: string | null;
+	type: 'antenatal' | 'immunization' | 'follow-up' | 'general' | 'lab-follow-up';
+	scheduledAt: number;
+	durationMinutes: number;
+	notes: string;
+	status: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
+	smsReminderSent: boolean;
+	createdAt: number;
+	syncStatus: 'synced' | 'pending' | 'conflict';
+	updatedAt: number;
+}
+
 export interface SyncLogEntry {
 	localId?: number; // auto-increment
 	entityType: string;
@@ -203,6 +220,7 @@ class ClinicFlowDB extends Dexie {
 	triageRules!: Table<LocalTriageRule, string>;
 	prescriptions!: Table<LocalPrescription, string>;
 	restockRequests!: Table<LocalRestockRequest, string>;
+	appointments!: Table<LocalAppointment, string>;
 	syncLog!: Table<SyncLogEntry, number>;
 
 	constructor() {
@@ -223,6 +241,9 @@ class ClinicFlowDB extends Dexie {
 		});
 		this.version(3).stores({
 			restockRequests: 'id, inventoryItemId, status, syncStatus'
+		});
+		this.version(4).stores({
+			appointments: 'id, patientId, assignedStaffId, scheduledAt, status, syncStatus'
 		});
 	}
 }
