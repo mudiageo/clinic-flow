@@ -1,7 +1,8 @@
 import { query } from '$app/server';
+import * as v from 'valibot';
 import { db } from '$lib/server/db';
 import { phcs, staff, patients } from '$lib/server/db/schema';
-import { count, eq } from 'drizzle-orm';
+import { count, eq, sql } from 'drizzle-orm';
 
 export const getPhcList = query(async () => {
 	// In a real app we'd verify the user is a superadmin here.
@@ -31,4 +32,52 @@ export const getPhcList = query(async () => {
 	}
 
 	return results;
+});
+
+export const getPhcDetails = query(v.string(), async (id: string) => {
+	const [phc] = await db.select().from(phcs).where(eq(phcs.id, id));
+	if (!phc) return null;
+
+	const staffCount = await db
+		.select({ value: count() })
+		.from(staff)
+		.where(eq(staff.phcId, id));
+	
+	const patientCount = await db
+		.select({ value: count() })
+		.from(patients)
+		.where(eq(patients.phcId, id));
+		
+	const phcStaff = await db
+		.select({
+			id: staff.id,
+			name: staff.fullName,
+			role: staff.role,
+			active: staff.active
+		})
+		.from(staff)
+		.where(eq(staff.phcId, id));
+
+	return {
+		...phc,
+		staffCount: staffCount[0].value,
+		patientCount: patientCount[0].value,
+		staff: phcStaff
+	};
+});
+
+export const getAllUsers = query(async () => {
+	const allStaff = await db
+		.select({
+			id: staff.id,
+			name: staff.fullName,
+			email: sql`'staff@clinic.local'`.as('email'),
+			role: staff.role,
+			active: staff.active,
+			lastLogin: staff.createdAt,
+			phcName: phcs.name
+		})
+		.from(staff)
+		.leftJoin(phcs, eq(staff.phcId, phcs.id));
+	return allStaff;
 });

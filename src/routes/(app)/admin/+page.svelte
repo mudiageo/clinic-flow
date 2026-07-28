@@ -38,9 +38,9 @@
 	);
 
 	const syncStatus = $derived({
-		isOnline: syncStore.isOnline,
+		isOnline: syncStore.online,
 		pending: syncStore.pendingCount,
-		lastSync: syncStore.lastSyncTime
+		lastSync: syncStore.lastSyncedAt
 	});
 
 	const visitsPerDay = $derived.by(() => {
@@ -57,7 +57,7 @@
 		return { days, max };
 	});
 
-	const activeStaff = $derived(data.staffList.filter(s => s.active).slice(0, 5));
+	const activeStaff = $derived(data.staffList.filter((s: any) => s.active).slice(0, 5));
 
 	const triageStats = $derived({
 		red: queueItems.filter((t: any) => t.triageLevel === 'red').length,

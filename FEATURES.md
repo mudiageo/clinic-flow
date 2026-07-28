@@ -483,94 +483,94 @@ revoked     BOOLEAN DEFAULT false
 ### Operations Dashboard (`/admin`)
 
 - [x] Basic stats page exists
-- [ ] KPI cards: Total patients today, In queue now, Completed consultations, Pharmacy dispensed
-- [ ] `Chart` — visits per day (last 7 days)
-- [ ] `Chart` — triage level breakdown (pie/donut)
-- [ ] Active staff online indicator
-- [ ] Sync health widget (last sync time, pending ops count)
+- [x] KPI cards: Total patients today, In queue now, Completed consultations, Pharmacy dispensed
+- [x] `Chart` — visits per day (last 7 days)
+- [x] `Chart` — triage level breakdown (pie/donut)
+- [x] Active staff online indicator
+- [x] Sync health widget (last sync time, pending ops count)
 - [ ] `NumberTicker` — animated stat counters
 
 ### Patient Registry (`/admin/patients`)
 
 - [x] Basic list exists
-- [ ] `DataTable` — searchable, filterable, paginated
-- [ ] Columns: Clinic ID, Name, Age, Sex, Community, Last Visit, Actions
-- [ ] Export to CSV / print
+- [x] `DataTable` — searchable, filterable, paginated
+- [x] Columns: Clinic ID, Name, Age, Sex, Community, Last Visit, Actions
+- [x] Export to CSV / print
 
 ### Staff Management (`/admin/staff`)
 
-- [ ] `DataTable` — staff list: name, role, status (active/inactive), last login
-- [ ] Role `Badge` per staff
-- [ ] "Invite Staff" button → `/admin/staff/invite`
-- [ ] Toggle active/inactive (`Switch` + `Dialog` confirm)
+- [x] `DataTable` — staff list: name, role, status (active/inactive), last login
+- [x] Role `Badge` per staff
+- [x] "Invite Staff" button → `/admin/staff/invite`
+- [x] Toggle active/inactive (`Switch` + `Dialog` confirm)
 
 ### Invite Staff (`/admin/staff/invite`)
 
-- [ ] `form` remote function
-- [ ] Email input
-- [ ] Role `Select`
-- [ ] Optional: set specific permissions at invite time
+- [x] `form` remote function
+- [x] Email input
+- [x] Role `Select`
+- [x] Optional: set specific permissions at invite time
 - [ ] Generates one-time invite token → sends email
 - [ ] Invited staff sets password on first login (secure token flow)
 
 ### Staff Profile & Permissions (`/admin/staff/[id]`)
 
-- [ ] Staff info: name, email, role, join date
-- [ ] `PermissionEditor` component
-- [ ] `Switch` toggles per permission
-- [ ] `DatePicker` for time-bound grant expiry
-- [ ] Permission audit log for this staff member
+- [x] Staff info: name, email, role, join date
+- [x] `PermissionEditor` component
+- [x] `Switch` toggles per permission
+- [x] `DatePicker` for time-bound grant expiry
+- [x] Permission audit log for this staff member
 
 ### Appointments (`/admin/appointments`)
 
-- [ ] `BigCalendar` (more-shadcn-svelte) — month/week/day view
-- [ ] Color-coded by appointment type
-- [ ] Click appointment → detail `Dialog`
-- [ ] "New Appointment" button → `/admin/appointments/new`
+- [x] `BigCalendar` (more-shadcn-svelte) — month/week/day view
+- [x] Color-coded by appointment type
+- [x] Click appointment → detail `Dialog`
+- [x] "New Appointment" button → `/admin/appointments/new`
 
 ### New Appointment (`/admin/appointments/new`)
 
-- [ ] Patient `Autocomplete` search
-- [ ] Appointment type `Select`: Antenatal | Immunization | Follow-up | General | Lab Follow-up
-- [ ] Assigned staff `Select`
-- [ ] `DatePicker` + time picker
-- [ ] Duration (15/30/45/60 min)
-- [ ] Notes `Textarea`
-- [ ] SMS reminder toggle (auto-sends 24h before)
+- [x] Patient `Autocomplete` search
+- [x] Appointment type `Select`: Antenatal | Immunization | Follow-up | General | Lab Follow-up
+- [x] Assigned staff `Select`
+- [x] `DatePicker` + time picker
+- [x] Duration (15/30/45/60 min)
+- [x] Notes `Textarea`
+- [x] SMS reminder toggle (auto-sends 24h before)
 
 #### DB: `appointments` Table
 
-- [ ] Schema migration created
-- [ ] Fields: id, patientId, phcId, assignedStaffId, type, scheduledAt, durationMinutes, notes, status, smsReminderSent, createdAt
+- [x] Schema migration created
+- [x] Fields: id, patientId, phcId, assignedStaffId, type, scheduledAt, durationMinutes, notes, status, smsReminderSent, createdAt
 
 ### Triage Rules (`/admin/triage-rules`)
 
-- [ ] `Table` — current rules: field, operator, threshold, result level, active
-- [ ] `Dialog` — add/edit rule:
+- [x] `Table` — current rules: field, operator, threshold, result level, active
+- [x] `Dialog` — add/edit rule:
   - Field `Select`: Temperature | Systolic BP | Diastolic BP | Pulse | SpO2 | Weight
   - Operator `Select`: ≥ | ≤ | > | <
   - `Slider` — threshold value
   - Result `Select`: Red | Amber | Green
   - "Requires pregnant" `Switch`
   - Reason template `Input`
-- [ ] Toggle active/inactive per rule
-- [ ] Changes sync to all devices via existing triage rules sync
+- [x] Toggle active/inactive per rule
+- [x] Changes sync to all devices via existing triage rules sync
 
 ### Reports (`/admin/reports`)
 
-- [ ] Daily visit count chart
-- [ ] Triage level distribution
-- [ ] Top chief complaints
-- [ ] Pharmacy usage summary
-- [ ] `DateStrip` date range selector
-- [ ] Export CSV / print
+- [x] Daily visit count chart
+- [x] Triage level distribution
+- [x] Top chief complaints
+- [x] Pharmacy usage summary
+- [x] `DateStrip` date range selector
+- [x] Export CSV / print
 
 ### PHC Settings (`/admin/settings`)
 
-- [ ] PHC name, state, LGA (editable)
-- [ ] SMS provider config (Termii API key)
-- [ ] Sync configuration (poll interval)
-- [ ] Danger zone: reset demo data
+- [x] PHC name, state, LGA (editable)
+- [x] SMS provider config (Termii API key)
+- [x] Sync configuration (poll interval)
+- [x] Danger zone: reset demo data
 
 ---
 

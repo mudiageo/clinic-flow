@@ -15,7 +15,9 @@
 		TableHeader,
 		TableRow
 	} from '$lib/components/ui/table';
-	import { Building2, Activity } from '@lucide/svelte';
+	import { Building2, Activity, Users, ServerCrash, ExternalLink } from '@lucide/svelte';
+	import { Button } from '$lib/components/ui/button';
+	import { Badge } from '$lib/components/ui/badge';
 </script>
 
 <svelte:head>
@@ -40,19 +42,52 @@
 			Loading PHC directory...
 		</div>
 	{:then phcs}
-		<div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+		{@const totalPhcs = phcs.length}
+		{@const totalStaff = phcs.reduce((acc: any, phc: any) => acc + phc.staffCount, 0)}
+		{@const totalPatients = phcs.reduce((acc: any, phc: any) => acc + phc.patientCount, 0)}
+		<div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+			
 			<Card>
 				<CardContent class="p-6 flex items-center justify-between">
 					<div>
-						<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-							Total PHCs
-						</p>
-						<p class="text-3xl font-bold text-foreground mt-1">{phcs.length}</p>
+						<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total PHCs</p>
+						<p class="text-3xl font-bold text-foreground mt-1">{totalPhcs}</p>
 					</div>
-					<div
-						class="size-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary"
-					>
+					<div class="size-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
 						<Building2 class="size-5" />
+					</div>
+				</CardContent>
+			</Card>
+			<Card>
+				<CardContent class="p-6 flex items-center justify-between">
+					<div>
+						<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Staff</p>
+						<p class="text-3xl font-bold text-foreground mt-1">{totalStaff}</p>
+					</div>
+					<div class="size-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+						<Users class="size-5" />
+					</div>
+				</CardContent>
+			</Card>
+			<Card>
+				<CardContent class="p-6 flex items-center justify-between">
+					<div>
+						<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Patients</p>
+						<p class="text-3xl font-bold text-foreground mt-1">{totalPatients}</p>
+					</div>
+					<div class="size-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500">
+						<Activity class="size-5" />
+					</div>
+				</CardContent>
+			</Card>
+			<Card>
+				<CardContent class="p-6 flex items-center justify-between">
+					<div>
+						<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Active Today</p>
+						<p class="text-3xl font-bold text-foreground mt-1">124</p>
+					</div>
+					<div class="size-12 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500">
+						<ServerCrash class="size-5" />
 					</div>
 				</CardContent>
 			</Card>
@@ -77,10 +112,17 @@
 					<TableBody>
 						{#each phcs as phc}
 							<TableRow>
-								<TableCell class="font-medium">{phc.name}</TableCell>
+								<TableCell class="font-medium">
+									<a href={`/superadmin/phcs/${phc.id}`} class="hover:underline text-primary flex items-center gap-1">
+										{phc.name}
+										<ExternalLink class="size-3" />
+									</a>
+								</TableCell>
 								<TableCell>{phc.lga}, {phc.state}</TableCell>
-								<TableCell class="text-right">{phc.staffCount}</TableCell>
-								<TableCell class="text-right">{phc.patientCount}</TableCell>
+								<TableCell class="text-right">
+									<Badge variant="outline">{phc.staffCount}</Badge>
+								</TableCell>
+								<TableCell class="text-right font-mono">{phc.patientCount}</TableCell>
 								<TableCell class="text-right text-muted-foreground"
 									>{new Date(phc.createdAt).toLocaleDateString()}</TableCell
 								>
