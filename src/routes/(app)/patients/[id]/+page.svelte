@@ -89,7 +89,12 @@
 						<Users class="size-5 text-primary" />
 						Family Group
 					</CardTitle>
-					<Button variant="outline" size="sm" onclick={handleLinkFamily}>Link</Button>
+					<div class="flex gap-2">
+						{#if patient.familyId}
+							<Button variant="outline" size="sm" href={`/families/${patient.familyId}`}>Dashboard</Button>
+						{/if}
+						<Button variant="outline" size="sm" onclick={handleLinkFamily}>Link</Button>
+					</div>
 				</CardHeader>
 				<CardContent>
 					{#if familyMembers.length > 0}

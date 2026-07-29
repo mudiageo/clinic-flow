@@ -775,10 +775,10 @@ revoked     BOOLEAN DEFAULT false
 
 ### 10.7 — Family Health Dashboard
 
-- [ ] View entire household in one view
-- [ ] All open reminders for family
-- [ ] Upcoming appointments per household
-- [ ] Register newborn linked to mother's record
+- [x] View entire household in one view
+- [x] All open reminders for family
+- [x] Upcoming appointments per household
+- [x] Register newborn linked to mother's record
 
 ### 10.8 — Offline Sync Health UI
 
