@@ -654,23 +654,22 @@ revoked     BOOLEAN DEFAULT false
 
 ### Profile (`/[role]/settings`)
 
-- [ ] Display name edit
-- [ ] Email (read-only, contact superadmin to change)
-- [ ] Role display (read-only)
-- [ ] PHC name display
+- [x] Display name edit
+- [x] Email (read-only, contact superadmin to change)
+- [x] Role display (read-only)
+- [x] PHC name display
 
 ### Security (`/[role]/settings/security`)
 
-- [ ] `Password` (more-shadcn-svelte) — current password verify
-- [ ] `Password` — new password with strength meter
-- [ ] `Stepper`: Verify Identity → New Password → Confirm
-- [ ] Session list (active sessions, revoke others)
+- [x] `Password` — current password verify
+- [x] `Password` — new password with strength indicator
+- [x] Session list (active sessions, revoke others)
 
 ### Notifications (`/[role]/settings/notifications`)
 
-- [ ] `Switch` toggles per notification type
-- [ ] Email notifications: on/off
-- [ ] In-app alerts: on/off per category
+- [x] `Switch` toggles per notification type
+- [x] Email notifications: on/off
+- [x] In-app alerts: on/off per category
 
 ---
 

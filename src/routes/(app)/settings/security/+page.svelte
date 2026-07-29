@@ -10,13 +10,19 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Button } from '$lib/components/ui/button';
 	import { KeyRound, ShieldAlert, MonitorSmartphone, LogOut } from '@lucide/svelte';
-	import { toast } from 'svelte-sonner';
+	import { updatePassword as updatePasswordAction, getActiveSessions, revokeSessionRemote } from '$lib/remote/auth.remote';
+	import { Skeleton } from '$lib/components/ui/skeleton';
 
 	let isSaving = $state(false);
 	
 	let currentPassword = $state('');
 	let newPassword = $state('');
 	let confirmPassword = $state('');
+	let passwordStrength = $derived(
+		newPassword.length === 0 ? 0 :
+		newPassword.length < 8 ? 25 :
+		newPassword.match(/[A-Z]/) && newPassword.match(/[0-9]/) ? 100 : 75
+	);
 
 	async function updatePassword() {
 		if (newPassword !== confirmPassword) {
@@ -28,17 +34,25 @@
 			return;
 		}
 		isSaving = true;
-		// Simulated remote function call (Better Auth update)
-		await new Promise(r => setTimeout(r, 800));
-		toast.success('Password updated successfully');
-		currentPassword = '';
-		newPassword = '';
-		confirmPassword = '';
+		const result = await updatePasswordAction.submit({ newPassword, currentPassword });
+		if (result?.success) {
+			toast.success('Password updated successfully');
+			currentPassword = '';
+			newPassword = '';
+			confirmPassword = '';
+		} else {
+			toast.error(updatePasswordAction.fields.allIssues()?.[0]?.message || 'Failed to update password');
+		}
 		isSaving = false;
 	}
 
 	async function revokeSession(id: string) {
-		toast.success('Session revoked');
+		const result = await revokeSessionRemote.submit({ sessionToken: id });
+		if (result?.success) {
+			toast.success('Session revoked');
+		} else {
+			toast.error('Failed to revoke session');
+		}
 	}
 </script>
 
@@ -69,8 +83,12 @@
 						<ShieldAlert class="absolute left-3 top-3.5 size-4 text-muted-foreground" />
 						<Input id="new-password" type="password" bind:value={newPassword} class="pl-9 h-11" />
 					</div>
-					{#if newPassword.length > 0 && newPassword.length < 8}
-						<p class="text-xs text-destructive">Password is too short (min 8 chars).</p>
+					{#if newPassword.length > 0}
+						<div class="max-w-sm mt-2 flex gap-1 h-1.5">
+							<div class="h-full flex-1 rounded-full {passwordStrength >= 25 ? (passwordStrength === 25 ? 'bg-destructive' : 'bg-primary') : 'bg-muted'}"></div>
+							<div class="h-full flex-1 rounded-full {passwordStrength >= 75 ? (passwordStrength === 75 ? 'bg-amber-500' : 'bg-primary') : 'bg-muted'}"></div>
+							<div class="h-full flex-1 rounded-full {passwordStrength === 100 ? 'bg-primary' : 'bg-muted'}"></div>
+						</div>
 					{/if}
 				</div>
 
@@ -100,38 +118,38 @@
 			<CardDescription>Review the devices currently logged into your account.</CardDescription>
 		</CardHeader>
 		<CardContent>
-			<div class="space-y-4">
-				<!-- Current Session -->
-				<div class="flex items-center justify-between p-4 rounded-xl border bg-muted/30">
-					<div class="flex items-center gap-4">
-						<div class="p-2.5 rounded-full bg-primary/10 text-primary">
-							<MonitorSmartphone class="size-5" />
-						</div>
-						<div>
-							<div class="font-medium">This Device</div>
-							<div class="text-xs text-muted-foreground">Benin City, Nigeria • Just now</div>
-						</div>
-					</div>
-					<div class="text-xs font-semibold text-primary uppercase tracking-wider bg-primary/10 px-2 py-1 rounded">Active</div>
+			{#await getActiveSessions()}
+				<div class="space-y-4">
+					<Skeleton class="h-16 w-full rounded-xl" />
+					<Skeleton class="h-16 w-full rounded-xl" />
 				</div>
-
-				<!-- Other Simulated Session -->
-				<div class="flex items-center justify-between p-4 rounded-xl border border-dashed">
-					<div class="flex items-center gap-4 opacity-70">
-						<div class="p-2.5 rounded-full bg-muted text-muted-foreground">
-							<MonitorSmartphone class="size-5" />
+			{:then sessions}
+				<div class="space-y-4">
+					{#each sessions as session (session.id)}
+						<div class="flex items-center justify-between p-4 rounded-xl border {session.id ? 'bg-muted/30' : 'border-dashed'}">
+							<div class="flex items-center gap-4">
+								<div class="p-2.5 rounded-full bg-primary/10 text-primary">
+									<MonitorSmartphone class="size-5" />
+								</div>
+								<div>
+									<div class="font-medium">Device Session</div>
+									<div class="text-xs text-muted-foreground">Expires {new Date(session.expiresAt).toLocaleDateString()}</div>
+								</div>
+							</div>
+							<div class="flex items-center gap-2">
+								<Button variant="outline" size="sm" class="text-destructive hover:bg-destructive/10 hover:text-destructive" onclick={() => revokeSession(session.token)}>
+									<LogOut class="size-3.5 mr-1.5" />
+									Revoke
+								</Button>
+							</div>
 						</div>
-						<div>
-							<div class="font-medium">Clinic Kiosk (Tauri App)</div>
-							<div class="text-xs text-muted-foreground">Oredo PHC • Last active 2 hours ago</div>
-						</div>
-					</div>
-					<Button variant="outline" size="sm" class="text-destructive hover:bg-destructive/10 hover:text-destructive" onclick={() => revokeSession('123')}>
-						<LogOut class="size-3.5 mr-1.5" />
-						Revoke
-					</Button>
+					{/each}
+					
+					{#if sessions.length === 0}
+						<p class="text-sm text-muted-foreground text-center py-4">No active sessions found.</p>
+					{/if}
 				</div>
-			</div>
+			{/await}
 		</CardContent>
 	</Card>
 </div>

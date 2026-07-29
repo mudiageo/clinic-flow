@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getUserProfile } from '$lib/remote/auth.remote';
+	import { getUserProfile, updateProfile } from '$lib/remote/auth.remote';
 	import {
 		Card,
 		CardContent,
@@ -16,11 +16,14 @@
 
 	let isSaving = $state(false);
 
-	async function handleSave() {
+	async function handleSave(name: string) {
 		isSaving = true;
-		// Simulated save (Better Auth handles this in a real app)
-		await new Promise(r => setTimeout(r, 600));
-		toast.success('Profile updated successfully');
+		const result = await updateProfile.submit({ name });
+		if (result?.success) {
+			toast.success('Profile updated successfully');
+		} else {
+			toast.error('Failed to update profile');
+		}
 		isSaving = false;
 	}
 </script>
@@ -69,7 +72,7 @@
 						<p class="text-xs text-muted-foreground">Contact your Superadmin if you need to change your email address.</p>
 					</div>
 					
-					<Button onclick={handleSave} disabled={isSaving} class="w-full sm:w-auto h-11">
+					<Button onclick={() => handleSave(profile.name)} disabled={isSaving} class="w-full sm:w-auto h-11">
 						{#if isSaving}
 							<div class="size-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2"></div>
 							Saving...

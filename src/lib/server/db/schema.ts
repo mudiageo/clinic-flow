@@ -80,6 +80,7 @@ export const staff = pgTable('staff', {
 		.notNull()
 		.references(() => phcs.id),
 	active: boolean('active').notNull().default(true),
+	preferences: text('preferences'), // JSON serialized preferences
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 });
 

@@ -10,9 +10,11 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Button } from '$lib/components/ui/button';
 	import { BellRing, Mail, Smartphone, RefreshCw, Save } from '@lucide/svelte';
-	import { toast } from 'svelte-sonner';
+	import { getUserPreferences, updatePreferences } from '$lib/remote/auth.remote';
+	import { Skeleton } from '$lib/components/ui/skeleton';
 
 	let isSaving = $state(false);
+	let isLoaded = $state(false);
 
 	let prefs = $state({
 		emailAlerts: true,
@@ -22,11 +24,23 @@
 		syncUpdates: false
 	});
 
+	$effect(() => {
+		if (!isLoaded) {
+			getUserPreferences().then((data) => {
+				if (data) prefs = data;
+				isLoaded = true;
+			});
+		}
+	});
+
 	async function savePreferences() {
 		isSaving = true;
-		// Simulated remote call
-		await new Promise(r => setTimeout(r, 600));
-		toast.success('Notification preferences updated');
+		const result = await updatePreferences.submit(prefs);
+		if (result?.success) {
+			toast.success('Notification preferences updated');
+		} else {
+			toast.error('Failed to update preferences');
+		}
 		isSaving = false;
 	}
 </script>
@@ -103,7 +117,7 @@
 	</Card>
 
 	<div class="flex justify-end pt-4">
-		<Button onclick={savePreferences} disabled={isSaving} class="h-11 px-8">
+		<Button onclick={savePreferences} disabled={isSaving || !isLoaded} class="h-11 px-8">
 			{#if isSaving}
 				<div class="size-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2"></div>
 				Saving...

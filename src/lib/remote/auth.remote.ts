@@ -6,6 +6,7 @@ import * as v from 'valibot';
 import { db } from '$lib/server/db';
 import { phcs, staff } from '$lib/server/db/schema';
 import { APIError } from 'better-auth/api';
+import { eq, sql } from 'drizzle-orm';
 
 export const signInAction = form(
 	v.object({
@@ -79,6 +80,112 @@ export const getUserProfile = query(async () => {
 		phcName
 	};
 });
+
+export const updateProfile = form(
+	v.object({
+		name: v.string()
+	}),
+	async (data) => {
+		const event = getRequestEvent();
+		if (!event.locals.user || !event.locals.staffId) return invalid('Unauthorized');
+		
+		await db.update(staff)
+			.set({ fullName: data.name })
+			.where(eq(staff.id, event.locals.staffId));
+			
+		// Also update Better Auth user
+		// We use direct DB since better auth user update is admin API
+		// Note: The `users` table is maintained by Better Auth
+		await db.execute(sql`UPDATE "user" SET name = ${data.name} WHERE id = ${event.locals.user.id}`);
+		
+		return { success: true };
+	}
+);
+
+export const updatePassword = form(
+	v.object({
+		newPassword: v.string(),
+		currentPassword: v.string()
+	}),
+	async (data, issue) => {
+		const event = getRequestEvent();
+		try {
+			await auth.api.changePassword({
+				body: {
+					newPassword: data.newPassword,
+					currentPassword: data.currentPassword
+				},
+				headers: event.request.headers
+			});
+			return { success: true };
+		} catch (e: any) {
+			if (e instanceof APIError) {
+				return invalid(issue(e.message));
+			}
+			return invalid(issue('Failed to change password'));
+		}
+	}
+);
+
+export const getUserPreferences = query(async () => {
+	const event = getRequestEvent();
+	if (!event.locals.staffId) return null;
+	const staffMember = await db.query.staff.findFirst({
+		where: eq(staff.id, event.locals.staffId)
+	});
+	if (staffMember?.preferences) {
+		return JSON.parse(staffMember.preferences);
+	}
+	return {
+		emailAlerts: true,
+		smsAlerts: false,
+		inAppUrgent: true,
+		inAppRoutine: true,
+		syncUpdates: false
+	};
+});
+
+export const updatePreferences = form(
+	v.object({
+		emailAlerts: v.boolean(),
+		smsAlerts: v.boolean(),
+		inAppUrgent: v.boolean(),
+		inAppRoutine: v.boolean(),
+		syncUpdates: v.boolean()
+	}),
+	async (data) => {
+		const event = getRequestEvent();
+		if (!event.locals.staffId) return invalid('Unauthorized');
+		await db.update(staff)
+			.set({ preferences: JSON.stringify(data) })
+			.where(eq(staff.id, event.locals.staffId));
+		return { success: true };
+	}
+);
+
+export const getActiveSessions = query(async () => {
+	const event = getRequestEvent();
+	if (!event.locals.user) return [];
+	
+	const sessions = await auth.api.listSessions({
+		headers: event.request.headers
+	});
+	return sessions ?? [];
+});
+
+export const revokeSessionRemote = form(
+	v.object({
+		sessionToken: v.string()
+	}),
+	async (data) => {
+		const event = getRequestEvent();
+		await auth.api.revokeSession({
+			body: { token: data.sessionToken },
+			headers: event.request.headers
+		});
+		return { success: true };
+	}
+);
 
 export const signOutAction = form(v.object({}), async () => {
 	const event = getRequestEvent();
