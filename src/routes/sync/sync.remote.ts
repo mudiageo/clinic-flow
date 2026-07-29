@@ -243,7 +243,11 @@ export const updatePhcSettings = command(
 			immunizationEnabled: v.optional(v.boolean()),
 			aiVoiceEnabled: v.optional(v.boolean()),
 			outbreakDetectionEnabled: v.optional(v.boolean()),
-			twoWaySmsEnabled: v.optional(v.boolean())
+			twoWaySmsEnabled: v.optional(v.boolean()),
+			referralsEnabled: v.optional(v.boolean()),
+			familyHealthEnabled: v.optional(v.boolean()),
+			realTimeNotificationsEnabled: v.optional(v.boolean()),
+			nhisTrackingEnabled: v.optional(v.boolean())
 		})
 	}),
 	async ({ phcId, settings }) => {

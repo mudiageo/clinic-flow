@@ -38,6 +38,10 @@
 	let aiVoiceEnabled = $state(true);
 	let outbreakDetectionEnabled = $state(true);
 	let twoWaySmsEnabled = $state(true);
+	let referralsEnabled = $state(true);
+	let familyHealthEnabled = $state(true);
+	let realTimeNotificationsEnabled = $state(true);
+	let nhisTrackingEnabled = $state(true);
 
 	let isSaving = $state(false);
 	let isResetting = $state(false);
@@ -55,6 +59,10 @@
 			aiVoiceEnabled = data.settings.aiVoiceEnabled ?? true;
 			outbreakDetectionEnabled = data.settings.outbreakDetectionEnabled ?? true;
 			twoWaySmsEnabled = data.settings.twoWaySmsEnabled ?? true;
+			referralsEnabled = data.settings.referralsEnabled ?? true;
+			familyHealthEnabled = data.settings.familyHealthEnabled ?? true;
+			realTimeNotificationsEnabled = data.settings.realTimeNotificationsEnabled ?? true;
+			nhisTrackingEnabled = data.settings.nhisTrackingEnabled ?? true;
 		}
 	});
 
@@ -72,7 +80,11 @@
 				immunizationEnabled,
 				aiVoiceEnabled,
 				outbreakDetectionEnabled,
-				twoWaySmsEnabled
+				twoWaySmsEnabled,
+				referralsEnabled,
+				familyHealthEnabled,
+				realTimeNotificationsEnabled,
+				nhisTrackingEnabled
 			});
 			if (res?.success) {
 				toast.success('Settings saved successfully');
@@ -83,7 +95,11 @@
 					immunizationEnabled,
 					aiVoiceEnabled,
 					outbreakDetectionEnabled,
-					twoWaySmsEnabled
+					twoWaySmsEnabled,
+					referralsEnabled,
+					familyHealthEnabled,
+					realTimeNotificationsEnabled,
+					nhisTrackingEnabled
 				});
 			} else {
 				toast.error('Failed to save settings');
@@ -235,6 +251,34 @@
 						<p class="text-sm text-muted-foreground">Allow patients to reply 'CONFIRM' to SMS reminders.</p>
 					</div>
 					<Switch bind:checked={twoWaySmsEnabled} />
+				</div>
+				<div class="flex items-center justify-between">
+					<div class="space-y-0.5">
+						<Label class="text-base">External Referrals System</Label>
+						<p class="text-sm text-muted-foreground">Generate and print standardized referral letters to secondary facilities.</p>
+					</div>
+					<Switch bind:checked={referralsEnabled} />
+				</div>
+				<div class="flex items-center justify-between">
+					<div class="space-y-0.5">
+						<Label class="text-base">Family Health Dashboards</Label>
+						<p class="text-sm text-muted-foreground">Group patients by households for unified view of appointments and metrics.</p>
+					</div>
+					<Switch bind:checked={familyHealthEnabled} />
+				</div>
+				<div class="flex items-center justify-between">
+					<div class="space-y-0.5">
+						<Label class="text-base">Real-Time Staff Notifications</Label>
+						<p class="text-sm text-muted-foreground">Enable cross-device alerts for queues, lab results, and prescriptions.</p>
+					</div>
+					<Switch bind:checked={realTimeNotificationsEnabled} />
+				</div>
+				<div class="flex items-center justify-between">
+					<div class="space-y-0.5">
+						<Label class="text-base">NHIS / HMO Tracking</Label>
+						<p class="text-sm text-muted-foreground">Flag enrollees and track billable services for health insurance claims.</p>
+					</div>
+					<Switch bind:checked={nhisTrackingEnabled} />
 				</div>
 			</CardContent>
 		</Card>

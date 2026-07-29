@@ -104,6 +104,10 @@ export const phcs = pgTable('phcs', {
 	aiVoiceEnabled: boolean('ai_voice_enabled').notNull().default(true),
 	outbreakDetectionEnabled: boolean('outbreak_detection_enabled').notNull().default(true),
 	twoWaySmsEnabled: boolean('two_way_sms_enabled').notNull().default(true),
+	referralsEnabled: boolean('referrals_enabled').notNull().default(true),
+	familyHealthEnabled: boolean('family_health_enabled').notNull().default(true),
+	realTimeNotificationsEnabled: boolean('real_time_notifications_enabled').notNull().default(true),
+	nhisTrackingEnabled: boolean('nhis_tracking_enabled').notNull().default(true),
 
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 });

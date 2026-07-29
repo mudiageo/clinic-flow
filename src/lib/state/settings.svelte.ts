@@ -8,6 +8,10 @@ export type PhcSettings = {
 	aiVoiceEnabled: boolean;
 	outbreakDetectionEnabled: boolean;
 	twoWaySmsEnabled: boolean;
+	referralsEnabled: boolean;
+	familyHealthEnabled: boolean;
+	realTimeNotificationsEnabled: boolean;
+	nhisTrackingEnabled: boolean;
 };
 
 const DEFAULT_SETTINGS: PhcSettings = {
@@ -15,7 +19,11 @@ const DEFAULT_SETTINGS: PhcSettings = {
 	immunizationEnabled: true,
 	aiVoiceEnabled: true,
 	outbreakDetectionEnabled: true,
-	twoWaySmsEnabled: true
+	twoWaySmsEnabled: true,
+	referralsEnabled: true,
+	familyHealthEnabled: true,
+	realTimeNotificationsEnabled: true,
+	nhisTrackingEnabled: true
 };
 
 class SettingsStore {
@@ -49,7 +57,11 @@ class SettingsStore {
 					immunizationEnabled: serverSettings.immunizationEnabled,
 					aiVoiceEnabled: serverSettings.aiVoiceEnabled,
 					outbreakDetectionEnabled: serverSettings.outbreakDetectionEnabled,
-					twoWaySmsEnabled: serverSettings.twoWaySmsEnabled
+					twoWaySmsEnabled: serverSettings.twoWaySmsEnabled,
+					referralsEnabled: serverSettings.referralsEnabled ?? true,
+					familyHealthEnabled: serverSettings.familyHealthEnabled ?? true,
+					realTimeNotificationsEnabled: serverSettings.realTimeNotificationsEnabled ?? true,
+					nhisTrackingEnabled: serverSettings.nhisTrackingEnabled ?? true
 				};
 				localStorage.setItem('phcSettings', JSON.stringify(this.#settings));
 			}

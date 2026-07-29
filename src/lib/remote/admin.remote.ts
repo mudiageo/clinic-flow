@@ -98,7 +98,16 @@ export const updatePhcSettings = command(
 		state: v.string(),
 		lga: v.string(),
 		termiiApiKey: v.nullable(v.string()),
-		syncPollInterval: v.number()
+		syncPollInterval: v.number(),
+		maternalHealthEnabled: v.boolean(),
+		immunizationEnabled: v.boolean(),
+		aiVoiceEnabled: v.boolean(),
+		outbreakDetectionEnabled: v.boolean(),
+		twoWaySmsEnabled: v.boolean(),
+		referralsEnabled: v.boolean(),
+		familyHealthEnabled: v.boolean(),
+		realTimeNotificationsEnabled: v.boolean(),
+		nhisTrackingEnabled: v.boolean()
 	}),
 	async (data) => {
 		const event = getRequestEvent();
