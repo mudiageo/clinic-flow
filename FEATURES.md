@@ -782,10 +782,10 @@ revoked     BOOLEAN DEFAULT false
 
 ### 10.8 — Offline Sync Health UI
 
-- [ ] Sync progress bar in sidebar footer
-- [ ] "Last synced X min ago" live counter
-- [ ] Conflict resolution UI (admin reviews conflicts)
-- [ ] Per-device sync history log
+- [x] Sync progress bar in sidebar footer
+- [x] "Last synced X min ago" live counter
+- [x] Conflict resolution UI (admin reviews conflicts)
+- [x] Per-device sync history log
 
 ### 10.9 — Real-Time Staff Notifications
 

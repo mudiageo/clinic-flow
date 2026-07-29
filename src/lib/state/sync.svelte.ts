@@ -17,6 +17,8 @@ class SyncStore {
 	online = $state(typeof navigator !== 'undefined' ? navigator.onLine : true);
 	pendingCount = $state(0);
 	lastSyncedAt = $state<number | null>(null);
+	isSyncing = $state(false);
+	conflicts = $state<{id: string, entityType: string, reason: string}[]>([]);
 
 	private phcId: string | null = null;
 	private cursor = 0;
@@ -61,7 +63,8 @@ class SyncStore {
 	}
 
 	async flush() {
-		if (!this.online || !this.phcId) return;
+		if (!this.online || !this.phcId || this.isSyncing) return;
+		this.isSyncing = true;
 
 		// --- PUSH ---
 		const pending = await db.syncLog.where('synced').equals(0).toArray();
@@ -104,6 +107,11 @@ class SyncStore {
 							if (table) {
 								await table.update(logEntry.entityId, { syncStatus: 'conflict' });
 							}
+							this.conflicts.push({
+								id: String(logEntry.entityId),
+								entityType: logEntry.entityType,
+								reason: conf.reason || 'Server rejection'
+							});
 						}
 					}
 				} catch (e) {
@@ -164,6 +172,8 @@ class SyncStore {
 			this.lastSyncedAt = Date.now();
 		} catch (e) {
 			console.error('Pull changes failed:', e);
+		} finally {
+			this.isSyncing = false;
 		}
 	}
 
