@@ -81,6 +81,85 @@
 	</div>
 </section>
 
+<!-- How it works Stepper -->
+<section class="py-24 relative overflow-hidden">
+	<div class="container mx-auto px-4 md:px-8 max-w-4xl">
+		<div class="text-center mb-16">
+			<h2 class="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+				How ClinicFlow Works
+			</h2>
+			<p class="mt-4 text-muted-foreground text-lg">
+				A seamless workflow from registration to pharmacy, completely offline.
+			</p>
+		</div>
+
+		<div class="relative pl-4 md:pl-0">
+			<!-- Step 1 -->
+			<div class="relative pb-12 md:pb-16 flex gap-6 md:gap-8">
+				<div class="flex flex-col items-center">
+					<div class="size-10 md:size-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-lg z-10 shrink-0 shadow-lg ring-4 ring-background">
+						1
+					</div>
+					<div class="w-px h-full bg-border absolute top-10 md:top-12 bottom-0 left-5 md:left-6 -z-10"></div>
+				</div>
+				<div class="pt-1 md:pt-2">
+					<h3 class="text-xl md:text-2xl font-bold text-foreground mb-2">Nurse Registration & Triage</h3>
+					<p class="text-muted-foreground leading-relaxed">
+						Patients are registered at the kiosk. Nurses record vitals which are instantly analyzed by our smart rules engine to assign a color-coded triage level (Red/Amber/Green).
+					</p>
+				</div>
+			</div>
+
+			<!-- Step 2 -->
+			<div class="relative pb-12 md:pb-16 flex gap-6 md:gap-8">
+				<div class="flex flex-col items-center">
+					<div class="size-10 md:size-12 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-bold text-lg z-10 shrink-0 shadow-lg ring-4 ring-background">
+						2
+					</div>
+					<div class="w-px h-full bg-border absolute top-10 md:top-12 bottom-0 left-5 md:left-6 -z-10"></div>
+				</div>
+				<div class="pt-1 md:pt-2">
+					<h3 class="text-xl md:text-2xl font-bold text-foreground mb-2">Doctor Consultation</h3>
+					<p class="text-muted-foreground leading-relaxed">
+						Doctors view the prioritized live queue on their tablets. They can review vitals, dictate clinical notes using local language voice AI, and issue digital prescriptions.
+					</p>
+				</div>
+			</div>
+
+			<!-- Step 3 -->
+			<div class="relative pb-12 md:pb-16 flex gap-6 md:gap-8">
+				<div class="flex flex-col items-center">
+					<div class="size-10 md:size-12 rounded-full bg-triage-amber text-triage-amber-foreground flex items-center justify-center font-bold text-lg z-10 shrink-0 shadow-lg ring-4 ring-background">
+						3
+					</div>
+					<div class="w-px h-full bg-border absolute top-10 md:top-12 bottom-0 left-5 md:left-6 -z-10"></div>
+				</div>
+				<div class="pt-1 md:pt-2">
+					<h3 class="text-xl md:text-2xl font-bold text-foreground mb-2">Pharmacy Dispensing</h3>
+					<p class="text-muted-foreground leading-relaxed">
+						Prescriptions instantly appear on the Pharmacy dashboard. Pharmacists fulfill orders, and stock levels are automatically decremented from the local inventory.
+					</p>
+				</div>
+			</div>
+
+			<!-- Step 4 -->
+			<div class="relative flex gap-6 md:gap-8">
+				<div class="flex flex-col items-center">
+					<div class="size-10 md:size-12 rounded-full bg-green-500 text-white flex items-center justify-center font-bold text-lg z-10 shrink-0 shadow-lg ring-4 ring-background">
+						4
+					</div>
+				</div>
+				<div class="pt-1 md:pt-2">
+					<h3 class="text-xl md:text-2xl font-bold text-foreground mb-2">Background Sync</h3>
+					<p class="text-muted-foreground leading-relaxed">
+						All of the above happens via local Wi-Fi without internet. Once a connection is detected, the clinic's local server quietly pushes encrypted records to the cloud for regional admins to review.
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
 <!-- Features Section -->
 <section id="features" class="py-24 bg-muted/30 border-y border-border/40 relative">
 	<div class="container mx-auto px-4 md:px-8 max-w-7xl">
@@ -136,3 +215,5 @@
 		</div>
 	</div>
 </section>
+
+

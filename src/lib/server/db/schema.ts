@@ -65,6 +65,12 @@ export const appointmentStatusEnum = pgEnum('appointment_status', [
 	'cancelled',
 	'no-show'
 ]);
+export const pregnancyStatusEnum = pgEnum('pregnancy_status', [
+	'active',
+	'delivered',
+	'miscarriage',
+	'transferred'
+]);
 
 // ─────────────────────────────────────────────────────────────
 // USERS & AUTH (Better Auth compatible core fields kept minimal here;
@@ -91,6 +97,14 @@ export const phcs = pgTable('phcs', {
 	state: varchar('state', { length: 80 }).notNull(),
 	termiiApiKey: varchar('termii_api_key', { length: 255 }),
 	syncPollInterval: integer('sync_poll_interval').notNull().default(30),
+	
+	// Feature Flags
+	maternalHealthEnabled: boolean('maternal_health_enabled').notNull().default(true),
+	immunizationEnabled: boolean('immunization_enabled').notNull().default(true),
+	aiVoiceEnabled: boolean('ai_voice_enabled').notNull().default(true),
+	outbreakDetectionEnabled: boolean('outbreak_detection_enabled').notNull().default(true),
+	twoWaySmsEnabled: boolean('two_way_sms_enabled').notNull().default(true),
+
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 });
 
@@ -158,6 +172,31 @@ export const patients = pgTable(
 		familyIdx: index('patients_family_idx').on(table.familyId)
 	})
 );
+
+export const pregnancyRecords = pgTable(
+	'pregnancy_records',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		patientId: uuid('patient_id')
+			.notNull()
+			.references(() => patients.id),
+		phcId: uuid('phc_id')
+			.notNull()
+			.references(() => phcs.id),
+		lmpDate: timestamp('lmp_date', { mode: 'date' }),
+		eddDate: timestamp('edd_date', { mode: 'date' }),
+		status: pregnancyStatusEnum('status').notNull().default('active'),
+		gravida: integer('gravida'),
+		parity: integer('parity'),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(table) => ({
+		patientIdx: index('pregnancy_patient_idx').on(table.patientId),
+		statusIdx: index('pregnancy_status_idx').on(table.status)
+	})
+);
+
 
 export const familyRelationships = pgTable(
 	'family_relationships',
@@ -482,7 +521,8 @@ export const patientsRelations = relations(patients, ({ one, many }) => ({
 	vitalsRecords: many(vitalsRecords),
 	queueTickets: many(queueTickets),
 	reminders: many(reminders),
-	appointments: many(appointments)
+	appointments: many(appointments),
+	pregnancyRecords: many(pregnancyRecords)
 }));
 
 export const staffRelations = relations(staff, ({ many, one }) => ({

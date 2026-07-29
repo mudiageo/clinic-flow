@@ -1,8 +1,10 @@
-import { getUserProfile, getUserPreferences, updateProfile as remoteUpdateProfile, updatePreferences as remoteUpdatePreferences } from '$lib/remote/auth.remote';
+import { getUserProfile, getUserPreferences } from '$lib/remote/auth.remote';
 import { toast } from 'svelte-sonner';
+import { db } from '$lib/local-db/db';
+import { syncStore } from '$lib/state/sync.svelte';
 
 class AuthStore {
-	profile = $state<{ name: string; email: string; role: string; phcName: string } | null>(null);
+	profile = $state<{ staffId: string; name: string; email: string; role: string; phcName: string } | null>(null);
 	preferences = $state<any>(null);
 	isLoaded = $state(false);
 	
@@ -53,39 +55,51 @@ class AuthStore {
 	}
 
 	async updateProfile(name: string) {
-		// Optimistic update
-		if (this.profile) {
-			this.profile.name = name;
-			localStorage.setItem('clinicflow_profile', JSON.stringify(this.profile));
-		}
+		if (!this.profile) return;
 		
-		// Background sync
+		// Optimistic update
+		this.profile.name = name;
+		localStorage.setItem('clinicflow_profile', JSON.stringify(this.profile));
+		
+		// Queue background sync
 		try {
-			const result = await remoteUpdateProfile.submit({ name });
-			if (result?.success) {
-				toast.success('Profile updated');
-			} else {
-				toast.error('Failed to save profile remotely, changes saved locally');
-			}
+			await db.syncLog.add({
+				entityType: 'profile',
+				entityId: this.profile.staffId,
+				operation: 'update',
+				payload: { name },
+				timestamp: Date.now(),
+				synced: 0
+			});
+			syncStore.flush(); // Manually trigger sync
+			toast.success('Profile updated');
 		} catch (e) {
+			console.error(e);
 			toast.info('Offline: Profile saved locally and will sync later.');
 		}
 	}
 
 	async updatePreferences(prefs: any) {
+		if (!this.profile) return;
+
 		// Optimistic update
 		this.preferences = prefs;
 		localStorage.setItem('clinicflow_prefs', JSON.stringify(prefs));
 		
-		// Background sync
+		// Queue background sync
 		try {
-			const result = await remoteUpdatePreferences.submit(prefs);
-			if (result?.success) {
-				toast.success('Preferences updated');
-			} else {
-				toast.error('Failed to save preferences remotely, changes saved locally');
-			}
+			await db.syncLog.add({
+				entityType: 'preferences',
+				entityId: this.profile.staffId,
+				operation: 'update',
+				payload: prefs,
+				timestamp: Date.now(),
+				synced: 0
+			});
+			syncStore.flush(); // Manually trigger sync
+			toast.success('Preferences updated');
 		} catch (e) {
+			console.error(e);
 			toast.info('Offline: Preferences saved locally and will sync later.');
 		}
 	}

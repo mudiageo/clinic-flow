@@ -42,6 +42,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const isPublic =
 		pathname === '/' ||
 		pathname.startsWith('/login') ||
+		pathname.startsWith('/register') ||
+		pathname.startsWith('/download') ||
 		pathname.startsWith('/waiting-room') ||
 		pathname.startsWith('/api/') ||
 		pathname.startsWith('/demo') ||

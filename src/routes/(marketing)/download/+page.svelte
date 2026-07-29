@@ -84,5 +84,100 @@
 				</Button>
 			</CardContent>
 		</Card>
+		<!-- macOS -->
+		<Card class="bg-card/60 card-hover overflow-hidden border-border/80">
+			<div class="h-2 w-full bg-slate-500"></div>
+			<CardHeader>
+				<div
+					class="size-12 rounded-xl bg-slate-500/10 text-slate-500 flex items-center justify-center mb-4"
+				>
+					<Monitor class="size-6" />
+				</div>
+				<CardTitle class="text-2xl">macOS (Apple Silicon / Intel)</CardTitle>
+				<CardDescription>Recommended for Admin and Pharmacy Desks.</CardDescription>
+			</CardHeader>
+			<CardContent class="space-y-6">
+				<ul class="space-y-2 text-sm text-muted-foreground">
+					<li class="flex items-center gap-2"><Cpu class="size-4" /> macOS 11.0 or higher</li>
+					<li class="flex items-center gap-2"><HardDrive class="size-4" /> 4GB RAM minimum</li>
+					<li class="flex items-center gap-2">
+						<ShieldCheck class="size-4" /> Auto-updates enabled
+					</li>
+				</ul>
+				<Button
+					href="/api/download?os=macos"
+					class="w-full h-12 text-base font-bold bg-slate-600 hover:bg-slate-700 text-white btn-press"
+				>
+					<Download class="mr-2 size-5" />
+					Download .dmg Installer
+				</Button>
+			</CardContent>
+		</Card>
+
+		<!-- Linux -->
+		<Card class="bg-card/60 card-hover overflow-hidden border-border/80">
+			<div class="h-2 w-full bg-orange-500"></div>
+			<CardHeader>
+				<div
+					class="size-12 rounded-xl bg-orange-500/10 text-orange-500 flex items-center justify-center mb-4"
+				>
+					<Monitor class="size-6" />
+				</div>
+				<CardTitle class="text-2xl">Linux (Debian/Ubuntu)</CardTitle>
+				<CardDescription>Recommended for affordable open-source setups.</CardDescription>
+			</CardHeader>
+			<CardContent class="space-y-6">
+				<ul class="space-y-2 text-sm text-muted-foreground">
+					<li class="flex items-center gap-2"><Cpu class="size-4" /> Ubuntu 20.04+ or Debian 11+</li>
+					<li class="flex items-center gap-2"><HardDrive class="size-4" /> 4GB RAM minimum</li>
+					<li class="flex items-center gap-2">
+						<ShieldCheck class="size-4" /> dpkg installation required
+					</li>
+				</ul>
+				<Button
+					href="/api/download?os=linux"
+					class="w-full h-12 text-base font-bold bg-orange-600 hover:bg-orange-700 text-white btn-press"
+				>
+					<Download class="mr-2 size-5" />
+					Download .deb Installer
+				</Button>
+			</CardContent>
+		</Card>
+	</div>
+
+	<!-- Installation Guide -->
+	<div class="mt-20">
+		<h2 class="text-3xl font-bold tracking-tight text-foreground text-center mb-8">
+			Installation Guide
+		</h2>
+		<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+			<Card class="bg-card/40 border-border shadow-sm">
+				<CardHeader>
+					<div class="size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg mb-2">1</div>
+					<CardTitle>Download & Install</CardTitle>
+				</CardHeader>
+				<CardContent class="text-muted-foreground text-sm">
+					Choose the correct installer for your operating system above. Run the installer and follow the on-screen instructions.
+				</CardContent>
+			</Card>
+			<Card class="bg-card/40 border-border shadow-sm">
+				<CardHeader>
+					<div class="size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg mb-2">2</div>
+					<CardTitle>First Launch</CardTitle>
+				</CardHeader>
+				<CardContent class="text-muted-foreground text-sm">
+					Open the ClinicFlow app. You will need an active internet connection on the first launch to perform the initial database pull.
+				</CardContent>
+			</Card>
+			<Card class="bg-card/40 border-border shadow-sm">
+				<CardHeader>
+					<div class="size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg mb-2">3</div>
+					<CardTitle>Go Offline</CardTitle>
+				</CardHeader>
+				<CardContent class="text-muted-foreground text-sm">
+					Once synchronized, the app operates 100% locally. You can disconnect from the internet and continue registering patients and dispensing drugs.
+				</CardContent>
+			</Card>
+		</div>
 	</div>
 </div>

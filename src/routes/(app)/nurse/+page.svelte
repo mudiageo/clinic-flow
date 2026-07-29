@@ -13,6 +13,7 @@
 	import QueueTicketCard from '$lib/components/queue-ticket-card.svelte';
 	import { ScrollArea } from '$lib/components/ui/scroll-area';
 	import { ShinyButton } from '$lib/components/ui/shiny-button';
+	import { Walkthrough } from '$lib/components/ui/walkthrough';
 	import {
 		Users,
 		AlertCircle,
@@ -67,6 +68,7 @@
 		</div>
 		<div class="flex items-center gap-3">
 			<ShinyButton
+				id="call-next-btn"
 				onclick={handleCallNext}
 				disabled={!nextTicket}
 				class="bg-primary text-primary-foreground font-semibold rounded-xl shadow-lg shadow-primary/20 h-11 px-5 btn-press"
@@ -78,7 +80,7 @@
 	</div>
 
 	<!-- Stats Grid -->
-	<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-stagger">
+	<div id="stats-grid" class="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-stagger">
 		<Card class="card-hover cursor-default bg-card/60">
 			<CardContent class="p-5 flex items-center justify-between">
 				<div>
@@ -143,7 +145,7 @@
 	</div>
 
 	<!-- Queue List -->
-	<Card class="overflow-hidden card-hover border-0 shadow-none bg-transparent">
+	<Card id="queue-list" class="overflow-hidden card-hover border-0 shadow-none bg-transparent">
 		<CardHeader class="px-0 pt-0 pb-4">
 			<CardTitle class="text-base font-semibold text-foreground">Active Queue</CardTitle>
 			<CardDescription>Real-time patient flow and triaging</CardDescription>
@@ -164,4 +166,30 @@
 			{/if}
 		</div>
 	</Card>
+
 </div>
+
+<Walkthrough
+	open={true}
+	padding={8}
+	steps={[
+		{
+			target: 'call-next-btn',
+			title: 'Call Next Patient',
+			description: 'Click here to automatically call the highest priority patient from the queue to your station.',
+			position: 'bottom'
+		},
+		{
+			target: 'stats-grid',
+			title: 'Triage Overview',
+			description: 'Monitor the live queue categorized by urgency. Red Alert patients need immediate attention.',
+			position: 'bottom'
+		},
+		{
+			target: 'queue-list',
+			title: 'Active Queue',
+			description: 'This is the real-time queue. Click on any patient card to manually manage their status.',
+			position: 'top'
+		}
+	]}
+/>

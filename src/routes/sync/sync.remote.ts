@@ -31,7 +31,9 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 		encounters: schema.encounters,
 		labRequests: schema.labRequests,
 		restockRequests: schema.restockRequests,
-		appointments: schema.appointments
+		appointments: schema.appointments,
+		pregnancyRecords: schema.pregnancyRecords,
+		staff: schema.staff
 	};
 
 	for (const op of operations) {
@@ -55,6 +57,33 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 					clientUpdatedAt: new Date(op.timestamp)
 				});
 			}
+			continue;
+		}
+
+		if (op.entityType === 'profile') {
+			const payload = op.payload as any;
+			if (payload.name) {
+				await serverDb.update(schema.staff)
+					.set({ fullName: payload.name })
+					.where(eq(schema.staff.id, op.entityId));
+				// Also update Better Auth user using the authUserId relationship
+				const staffMember = await serverDb.query.staff.findFirst({
+					where: eq(schema.staff.id, op.entityId)
+				});
+				if (staffMember) {
+					await serverDb.execute(sql`UPDATE "user" SET name = ${payload.name} WHERE id = ${staffMember.authUserId}`);
+				}
+				accepted.push(op.localId);
+			}
+			continue;
+		}
+
+		if (op.entityType === 'preferences') {
+			const payload = op.payload as any;
+			await serverDb.update(schema.staff)
+				.set({ preferences: JSON.stringify(payload) })
+				.where(eq(schema.staff.id, op.entityId));
+			accepted.push(op.localId);
 			continue;
 		}
 
@@ -87,7 +116,9 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 					'dueDate',
 					'sentAt',
 					'dispensedAt',
-					'createdAt'
+					'createdAt',
+					'lmpDate',
+					'eddDate'
 				].includes(k) &&
 				typeof v === 'number'
 			) {
@@ -194,5 +225,29 @@ export const getQueueUpdates = query.live(
 			}
 			await new Promise((r) => setTimeout(r, 2000));
 		}
+	}
+);
+
+export const getPhcSettings = query(v.string(), async (phcId) => {
+	const phc = await serverDb.query.phcs.findFirst({
+		where: (t, { eq }) => eq(t.id, phcId)
+	});
+	return phc || null;
+});
+
+export const updatePhcSettings = command(
+	v.object({
+		phcId: v.string(),
+		settings: v.object({
+			maternalHealthEnabled: v.optional(v.boolean()),
+			immunizationEnabled: v.optional(v.boolean()),
+			aiVoiceEnabled: v.optional(v.boolean()),
+			outbreakDetectionEnabled: v.optional(v.boolean()),
+			twoWaySmsEnabled: v.optional(v.boolean())
+		})
+	}),
+	async ({ phcId, settings }) => {
+		await serverDb.update(schema.phcs).set(settings).where(eq(schema.phcs.id, phcId));
+		return true;
 	}
 );

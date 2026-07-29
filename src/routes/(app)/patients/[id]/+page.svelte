@@ -4,7 +4,10 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
-	import { ArrowLeft, Users, Calendar, Phone, MapPin } from '@lucide/svelte'; //@TODO
+	import { ArrowLeft, Users, Calendar, Phone, MapPin } from '@lucide/svelte';
+	import AncTracker from '$lib/components/maternal/anc-tracker.svelte';
+	import ImmunizationCard from '$lib/components/pediatrics/immunization-card.svelte';
+	import { settingsStore } from '$lib/state/settings.svelte';
 
 	let clinicId = $derived($page.params.id);
 	let patient = $derived(clinicId ? patientStore.findByClinicId(clinicId) : null);
@@ -114,6 +117,14 @@
 				</CardContent>
 			</Card>
 		</div>
+
+		{#if patient.sex === 'female' && settingsStore.current.maternalHealthEnabled}
+			<AncTracker patientId={patient.id} />
+		{/if}
+
+		{#if settingsStore.current.immunizationEnabled}
+			<ImmunizationCard patientId={patient.id} />
+		{/if}
 	{:else}
 		<div class="p-12 text-center text-muted-foreground">
 			Patient record not found locally. Please ensure you are synced.

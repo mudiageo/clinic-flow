@@ -1,10 +1,24 @@
 <script lang="ts">
 	import { getCurrentSession } from '$lib/remote/auth.remote';
+	import { syncEngine } from '$lib/sync/sync-engine.svelte';
+	import { settingsStore } from '$lib/state/settings.svelte';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { ModeWatcher } from 'mode-watcher';
-	import { setContext } from 'svelte';
+	import { setContext, onMount, onDestroy } from 'svelte';
 
 	let { children } = $props();
+
+	onMount(() => {
+		// 4. Start sync engine
+		syncEngine.start();
+
+		// 5. Fetch remote settings
+		settingsStore.fetchFromServer();
+	});
+
+	onDestroy(() => {
+		syncEngine.stop();
+	});
 </script>
 
 <ModeWatcher />

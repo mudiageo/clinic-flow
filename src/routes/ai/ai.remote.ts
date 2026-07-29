@@ -3,7 +3,9 @@ import { GoogleGenAI } from '@google/genai';
 import { AI_PROMPTS } from '../../lib/services/ai/prompts';
 import * as v from 'valibot';
 
-export const structureIntake = command(v.string(), async (transcript: string) => {
+export const structureIntake = command(
+	v.object({ transcript: v.string(), language: v.optional(v.string()) }),
+	async ({ transcript, language }) => {
 	const apiKey = process.env.GEMINI_API_KEY;
 	if (!apiKey) {
 		throw new Error('GEMINI_API_KEY is not set. Please configure it to use AI Voice Intake.');
@@ -11,7 +13,7 @@ export const structureIntake = command(v.string(), async (transcript: string) =>
 
 	const ai = new GoogleGenAI({ apiKey });
 
-	const prompt = AI_PROMPTS.voiceIntake.buildPrompt(transcript);
+	const prompt = AI_PROMPTS.voiceIntake.buildPrompt(transcript, language);
 
 	try {
 		const response = await ai.models.generateContent({

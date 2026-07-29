@@ -63,21 +63,23 @@ export const getCurrentSession = query(async () => {
 
 export const getUserProfile = query(async () => {
 	const event = getRequestEvent();
-	if (!event.locals.user) return null;
-	
-	let phcName = 'Unknown Facility';
-	if (event.locals.phcId) {
-		const phc = await db.query.phcs.findFirst({
-			where: (p, { eq }) => eq(p.id, event.locals.phcId!)
-		});
-		if (phc) phcName = phc.name;
-	}
+	if (!event.locals.user || !event.locals.staffId) return null;
+
+	const staffMember = await db.query.staff.findFirst({
+		where: eq(staff.id, event.locals.staffId),
+		with: {
+			phcs: true
+		}
+	});
+
+	if (!staffMember) return null;
 
 	return {
-		name: event.locals.user.name,
+		staffId: staffMember.id,
+		name: staffMember.fullName,
 		email: event.locals.user.email,
-		role: event.locals.role ?? 'Unknown',
-		phcName
+		role: staffMember.role,
+		phcName: staffMember.phcs?.name ?? 'Unknown Facility'
 	};
 });
 

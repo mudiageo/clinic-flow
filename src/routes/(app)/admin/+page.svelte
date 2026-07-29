@@ -4,6 +4,8 @@
 	import { pharmacyStore } from '$lib/state/pharmacy.svelte';
 	import { encounterStore } from '$lib/state/encounters.svelte';
 	import { syncStore } from '$lib/state/sync.svelte';
+	import { outbreakEngine } from '$lib/state/outbreaks.svelte';
+	import { settingsStore } from '$lib/state/settings.svelte';
 	import {
 		Card,
 		CardHeader,
@@ -23,7 +25,8 @@
 	} from '$lib/components/ui/table';
 	import { SpotlightCard } from '$lib/components/ui/spotlight-card';
 	import { NumberTicker } from '$lib/components/ui/number-ticker';
-	import { Users, ClipboardList, AlertTriangle, Activity, ShieldAlert, CheckCircle2, CloudSync, Wifi, WifiOff } from '@lucide/svelte';
+	import { Alert, AlertTitle, AlertDescription } from '$lib/components/ui/alert';
+	import { Users, ClipboardList, AlertTriangle, Activity, ShieldAlert, CheckCircle2, CloudSync, Wifi, WifiOff, Siren } from '@lucide/svelte';
 
 	let { data } = $props<{ data: { staffList: any[] } }>();
 
@@ -91,6 +94,24 @@
 			<p class="text-muted-foreground text-sm mt-0.5">Primary Health Centre metrics and alerts</p>
 		</div>
 	</div>
+
+	<!-- Outbreak Alerts -->
+	{#if settingsStore.current.outbreakDetectionEnabled && outbreakEngine.alerts.length > 0}
+		<div class="space-y-3">
+			{#each outbreakEngine.alerts as outbreak}
+				<Alert variant="destructive" class="border-destructive/30 bg-destructive/10 text-destructive animate-in slide-in-from-top-4">
+					<Siren class="size-4" />
+					<AlertTitle class="font-bold tracking-wide">POSSIBLE EPIDEMIOLOGICAL OUTBREAK DETECTED</AlertTitle>
+					<AlertDescription class="font-medium mt-1">
+						{outbreak.disease} × {outbreak.count} cases detected in {outbreak.community} community within the last 7 days.
+						<div class="mt-2 text-xs opacity-80">
+							Last case flagged: {new Date(outbreak.lastEncounterDate).toLocaleString()}
+						</div>
+					</AlertDescription>
+				</Alert>
+			{/each}
+		</div>
+	{/if}
 
 	<!-- Key Metrics row -->
 	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 animate-stagger">

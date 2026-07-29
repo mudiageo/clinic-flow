@@ -8,11 +8,11 @@ export class RemoteGeminiProvider implements AIProvider {
 		return navigator.onLine;
 	}
 
-	async structureIntake(transcript: string): Promise<AIStructuredIntake> {
+	async structureIntake(transcript: string, language?: string): Promise<AIStructuredIntake> {
 		if (!this.isAvailable()) {
 			throw new Error('Network is offline. Cannot reach Gemini cloud.');
 		}
-		const result = await structureIntake(transcript);
+		const result = await structureIntake({ transcript, language });
 		return result as AIStructuredIntake;
 	}
 }

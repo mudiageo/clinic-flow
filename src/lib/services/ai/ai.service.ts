@@ -13,7 +13,7 @@ class AIService {
 		this.providers.push(new LocalWebLLMProvider());
 	}
 
-	async structureIntake(transcript: string): Promise<AIStructuredIntake> {
+	async structureIntake(transcript: string, language?: string): Promise<AIStructuredIntake> {
 		let lastError = null;
 
 		for (const provider of this.providers) {
@@ -21,7 +21,7 @@ class AIService {
 				const isAvail = await provider.isAvailable();
 				if (isAvail) {
 					console.log(`[AIService] Attempting structureIntake via ${provider.name}`);
-					const result = await provider.structureIntake(transcript);
+					const result = await provider.structureIntake(transcript, language);
 					return result;
 				} else {
 					console.log(`[AIService] ${provider.name} is not available, skipping.`);

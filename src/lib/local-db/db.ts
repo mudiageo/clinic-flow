@@ -198,6 +198,20 @@ export interface LocalAppointment {
 	updatedAt: number;
 }
 
+export interface LocalPregnancyRecord {
+	id: string;
+	patientId: string;
+	phcId: string;
+	lmpDate: number | null;
+	eddDate: number | null;
+	status: 'active' | 'delivered' | 'miscarriage' | 'transferred';
+	gravida: number | null;
+	parity: number | null;
+	createdAt: number;
+	updatedAt: number;
+	syncStatus: 'synced' | 'pending' | 'conflict';
+}
+
 export interface SyncLogEntry {
 	localId?: number; // auto-increment
 	entityType: string;
@@ -221,6 +235,7 @@ class ClinicFlowDB extends Dexie {
 	prescriptions!: Table<LocalPrescription, string>;
 	restockRequests!: Table<LocalRestockRequest, string>;
 	appointments!: Table<LocalAppointment, string>;
+	pregnancyRecords!: Table<LocalPregnancyRecord, string>;
 	syncLog!: Table<SyncLogEntry, number>;
 
 	constructor() {
@@ -244,6 +259,9 @@ class ClinicFlowDB extends Dexie {
 		});
 		this.version(4).stores({
 			appointments: 'id, patientId, assignedStaffId, scheduledAt, status, syncStatus'
+		});
+		this.version(5).stores({
+			pregnancyRecords: 'id, patientId, status, syncStatus'
 		});
 	}
 }

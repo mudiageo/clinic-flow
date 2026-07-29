@@ -8,6 +8,7 @@
 	import { encounterStore } from '$lib/state/encounters.svelte';
 	import { labRequestStore } from '$lib/state/lab-requests.svelte';
 	import { reminderStore } from '$lib/state/reminders.svelte';
+	import { settingsStore } from '$lib/state/settings.svelte';
 
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
@@ -92,6 +93,8 @@
 	let recognition: any = null;
 	let interimTranscript = $state('');
 	let finalTranscript = $state('');
+	
+	let selectedLanguage = $state('English');
 
 	onMount(() => {
 		// Just in case they navigate directly to an invalid ticket
@@ -140,11 +143,11 @@
 		if (!text) return;
 
 		aiProcessing = true;
-		toast.info('Structuring intake with AI...');
+		toast.info(`Structuring intake with AI (${selectedLanguage})...`);
 		try {
-			const structured = await aiService.structureIntake(text);
+			const structured = await aiService.structureIntake(text, selectedLanguage);
 			chiefComplaint = structured.chiefComplaint || '';
-			let note = `[AI Structuring]\nDuration: ${structured.duration || 'N/A'}\nAssociated Symptoms: ${(structured.associatedSymptoms || []).join(', ')}\n\n[Raw Transcript]:\n${text}`;
+			let note = `[AI Structuring]\nLanguage: ${selectedLanguage}\nDuration: ${structured.duration || 'N/A'}\nAssociated Symptoms: ${(structured.associatedSymptoms || []).join(', ')}\n\n[Raw Transcript]:\n${text}`;
 			doctorNotes = doctorNotes ? doctorNotes + '\n\n' + note : note;
 			toast.success('Intake structured');
 		} catch (e) {
@@ -375,23 +378,35 @@
 									<Label class="font-semibold flex items-center gap-1.5"
 										><Clipboard class="size-4" /> Chief Complaint</Label
 									>
-									<Button
-										variant={isRecording ? 'destructive' : 'outline'}
-										size="sm"
-										class="h-7 text-xs"
-										onmousedown={startRecording}
-										onmouseup={stopRecording}
-										onmouseleave={stopRecording}
-										disabled={aiProcessing}
-									>
-										{#if aiProcessing}
-											<Loader2 class="size-3 animate-spin mr-1" /> Processing...
-										{:else if isRecording}
-											<MicOff class="size-3 mr-1 animate-pulse" /> Recording...
-										{:else}
-											<Mic class="size-3 mr-1" /> Hold to Dictate
-										{/if}
-									</Button>
+									
+									{#if settingsStore.current.aiVoiceEnabled}
+										<div class="flex items-center gap-2">
+											<Select type="single" bind:value={selectedLanguage}>
+												<SelectTrigger class="h-7 text-xs w-[110px]"><SelectPrimitive.Value placeholder="Language" /></SelectTrigger>
+												<SelectContent>
+													<SelectItem value="English">English</SelectItem>
+													<SelectItem value="Nigerian Pidgin">Pidgin</SelectItem>
+												</SelectContent>
+											</Select>
+											<Button
+												variant={isRecording ? 'destructive' : 'outline'}
+												size="sm"
+												class="h-7 text-xs"
+												onmousedown={startRecording}
+												onmouseup={stopRecording}
+												onmouseleave={stopRecording}
+												disabled={aiProcessing}
+											>
+												{#if aiProcessing}
+													<Loader2 class="size-3 animate-spin mr-1" /> Processing...
+												{:else if isRecording}
+													<MicOff class="size-3 mr-1 animate-pulse" /> Recording...
+												{:else}
+													<Mic class="size-3 mr-1" /> Hold to Dictate
+												{/if}
+											</Button>
+										</div>
+									{/if}
 								</div>
 								<Textarea
 									bind:value={chiefComplaint}

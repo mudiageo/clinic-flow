@@ -19,8 +19,10 @@
 		Settings,
 		Sun,
 		Moon,
-		Monitor
+		Monitor,
+		ShieldAlert
 	} from '@lucide/svelte';
+	import { page } from '$app/state';
 	import type { NavGroup } from '$lib/components/app-sidebar.svelte';
 
 	let { children } = $props();
@@ -58,6 +60,16 @@
 		}
 	];
 
+	const publicHealthData = {
+		data: [
+			{
+				title: 'Disease Outbreaks',
+				url: '/superadmin/epidemiology',
+				icon: ShieldAlert
+			}
+		]
+	};
+
 	const bottomNavItems: BottomNavItem[] = [
 		{ href: '/superadmin', label: 'Overview', icon: Building2 },
 		{ href: '/superadmin/users', label: 'Users', icon: Users },
@@ -83,7 +95,32 @@
 		phcName="Platform Admin"
 		userName={user?.name ?? 'Superadmin'}
 		{userInitials}
-	/>
+	>
+		{#snippet extraContent()}
+			<Sidebar.Group>
+				<Sidebar.GroupLabel>Public Health</Sidebar.GroupLabel>
+				<Sidebar.GroupContent>
+					<Sidebar.Menu>
+						{#each publicHealthData.data as item}
+							<Sidebar.MenuItem>
+								<Sidebar.MenuButton
+									isActive={page.url.pathname === item.url}
+									class={page.url.pathname === item.url ? 'bg-primary/10 text-primary font-medium' : ''}
+								>
+									{#snippet child({ props })}
+										<a href={item.url} {...props}>
+											<item.icon />
+											<span>{item.title}</span>
+										</a>
+									{/snippet}
+								</Sidebar.MenuButton>
+							</Sidebar.MenuItem>
+						{/each}
+					</Sidebar.Menu>
+				</Sidebar.GroupContent>
+			</Sidebar.Group>
+		{/snippet}
+	</AppSidebar>
 
 	<Sidebar.Inset>
 		<header

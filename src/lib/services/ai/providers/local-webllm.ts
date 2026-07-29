@@ -38,11 +38,11 @@ export class LocalWebLLMProvider implements AIProvider {
 		return this.engine;
 	}
 
-	async structureIntake(transcript: string): Promise<AIStructuredIntake> {
+	async structureIntake(transcript: string, language?: string): Promise<AIStructuredIntake> {
 		const engine = await this.getEngine();
 		if (!engine) throw new Error('Local AI Engine failed to load.');
 
-		const prompt = AI_PROMPTS.voiceIntake.buildPrompt(transcript);
+		const prompt = AI_PROMPTS.voiceIntake.buildPrompt(transcript, language);
 
 		const reply = await engine.chat.completions.create({
 			messages: [{ role: 'user', content: prompt }],

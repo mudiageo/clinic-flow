@@ -248,47 +248,47 @@ revoked     BOOLEAN DEFAULT false
 ### Queue Board (`/nurse`)
 
 - [x] Basic queue board exists
-- [ ] Live updates via Dexie `liveQuery` (already wired via `QueueStore`)
+- [x] Live updates via Dexie `liveQuery` (already wired via `QueueStore`)
 - [ ] Reduce sync poll for `queueTickets` to 5s (vs 30s for other entities)
-- [ ] `BroadcastChannel` for same-machine multi-window sync
-- [ ] Triage level color coding (red/amber/green rows)
-- [ ] "Call Next" button with `SidebarMenuBadge` count
-- [ ] Ticket card: patient name, ticket #, triage level badge, wait time
-- [ ] Mark as No-Show button
-- [ ] Mark as Done button
-- [ ] Empty state illustration when queue is empty
+- [x] `BroadcastChannel` for same-machine multi-window sync
+- [x] Triage level color coding (red/amber/green rows)
+- [x] "Call Next" button with `SidebarMenuBadge` count
+- [x] Ticket card: patient name, ticket #, triage level badge, wait time
+- [x] Mark as No-Show button
+- [x] Mark as Done button
+- [x] Empty state illustration when queue is empty
 
 ### Patient Registration Wizard (`/nurse/register`)
 
 - [x] Basic form exists
-- [ ] Multi-step `Stepper` (more-shadcn-svelte):
+- [x] Multi-step `Stepper` (more-shadcn-svelte):
   - Step 1: Demographics (name, DOB, sex, community)
   - Step 2: Contact (phone, address, next of kin)
   - Step 3: Family Link (new family / link to existing)
   - Step 4: Confirm + Print QR Card
-- [ ] `PhoneInput` (more-shadcn-svelte) — phone with +234 default
-- [ ] `DatePicker` or `DateStrip` — date of birth
-- [ ] `ChoiceBox` (more-shadcn-svelte) — sex selection (large tap targets)
-- [ ] `Autocomplete` — Nigerian state/LGA list
-- [ ] Estimated age input (when DOB unknown)
-- [ ] Pregnancy toggle (affects triage rules)
-- [ ] QR code generation on completion
-- [ ] Print QR card (patient ID card) — offline printable
-- [ ] Auto-add to queue after registration toggle
+- [x] `PhoneInput` (more-shadcn-svelte) — phone with +234 default
+- [x] `DatePicker` or `DateStrip` — date of birth
+- [x] `ChoiceBox` (more-shadcn-svelte) — sex selection (large tap targets)
+- [x] `Autocomplete` — Nigerian state/LGA list
+- [x] Estimated age input (when DOB unknown)
+- [x] Pregnancy toggle (affects triage rules)
+- [x] QR code generation on completion
+- [x] Print QR card (patient ID card) — offline printable
+- [x] Auto-add to queue after registration toggle
 
 ### Vitals & Triage (`/nurse/vitals`)
 
 - [x] Basic vitals form exists
-- [ ] `Stepper`: Select Patient → Enter Vitals → AI Triage → Confirm
-- [ ] QR scanner for patient lookup (Tauri camera plugin)
-- [ ] Manual patient search as fallback (`Autocomplete`)
-- [ ] Vitals fields: Temperature, BP (systolic/diastolic), Pulse, Weight, SpO2
-- [ ] AI triage calculation (local rules from `triageRules` store)
-- [ ] Triage level badge shown immediately on calculation
-- [ ] Chief complaint input (text + voice button)
-- [ ] `AudioWave` animation during voice recording
-- [ ] Nigerian language selector for voice (English / Pidgin / Hausa / Yoruba / Igbo)
-- [ ] Submit → auto-add patient to consultation queue with triage level
+- [x] `Stepper`: Select Patient → Enter Vitals → AI Triage → Confirm
+- [x] QR scanner for patient lookup (Tauri camera plugin)
+- [x] Manual patient search as fallback (`Autocomplete`)
+- [x] Vitals fields: Temperature, BP (systolic/diastolic), Pulse, Weight, SpO2
+- [x] AI triage calculation (local rules from `triageRules` store)
+- [x] Triage level badge shown immediately on calculation
+- [x] Chief complaint input (text + voice button)
+- [x] `AudioWave` animation during voice recording
+- [x] Nigerian language selector for voice (English / Pidgin / Hausa / Yoruba / Igbo)
+- [x] Submit → auto-add patient to consultation queue with triage level
 
 ### Patient Search (`/nurse/search`)
 
@@ -334,24 +334,24 @@ revoked     BOOLEAN DEFAULT false
 ### Consultation Queue (`/doctor`)
 
 - [x] Basic page exists
-- [ ] Live queue from `QueueStore` (Dexie) — status `called` | `in_progress`
-- [ ] "Start Consultation" button → navigates to `/doctor/consult/[encounterId]`
-- [ ] Patient triage level badge visible on each card
-- [ ] Estimated wait time per patient
+- [x] Live queue from `QueueStore` (Dexie) — status `called` | `in_progress`
+- [x] "Start Consultation" button → navigates to `/doctor/consult/[encounterId]`
+- [x] Patient triage level badge visible on each card
+- [x] Estimated wait time per patient
 
 ### Consultation View (`/doctor/consult/[encounterId]`)
 
 - [x] Partial implementation exists
-- [ ] Split panel layout: Patient Summary (left) | Consultation (right)
-- [ ] Patient summary: demographics, vitals recorded today, past 3 encounters
-- [ ] `Tabs`: Notes | Prescriptions | Lab | Referral
-- [ ] Doctor notes `Textarea` with voice input button
-- [ ] Pidgin/English voice transcription → structured notes (AI route)
-- [ ] `Stepper`: Review Vitals → Write Notes → Prescribe → Lab → Referral → Complete
-- [ ] Prescription form: medication `Autocomplete` (from inventory), quantity, dosage
-- [ ] Lab request form (see below)
-- [ ] Referral letter generator (structured text → printable PDF)
-- [ ] "Complete Consultation" → marks encounter done, moves ticket to `done`
+- [x] Split panel layout: Patient Summary (left) | Consultation (right)
+- [x] Patient summary: demographics, vitals recorded today, past 3 encounters
+- [x] `Tabs`: Notes | Prescriptions | Lab | Referral
+- [x] Doctor notes `Textarea` with voice input button
+- [x] Pidgin/English voice transcription → structured notes (AI route)
+- [x] `Stepper`: Review Vitals → Write Notes → Prescribe → Lab → Referral → Complete
+- [x] Prescription form: medication `Autocomplete` (from inventory), quantity, dosage
+- [x] Lab request form (see below)
+- [x] Referral letter generator (structured text → printable PDF)
+- [x] "Complete Consultation" → marks encounter done, moves ticket to `done`
 
 ### Patient Profile (`/doctor/patients/[patientId]`)
 
@@ -593,18 +593,18 @@ revoked     BOOLEAN DEFAULT false
 ### Platform Overview (`/superadmin`)
 
 - [x] Basic page exists (PHC list)
-- [ ] KPIs: Total PHCs, Total patients, Total staff, Daily active users
+- [x] KPIs: Total PHCs, Total patients, Total staff, Daily active users
 - [ ] `NumberTicker` animated counters
-- [ ] PHC health table: name, state, last sync, active staff, patient count
+- [x] PHC health table: name, state, last sync, active staff, patient count
 - [ ] System alerts: sync errors, failed SMS, low stock (any PHC)
 
 ### PHC Deep-Dive (`/superadmin/phcs/[id]`)
 
-- [ ] PHC info: name, LGA, state, created, subscription status
-- [ ] Staff list with roles
-- [ ] Usage stats: visits (30d), patients registered (all time)
-- [ ] Sync health: last sync, pending operations, conflict count
-- [ ] Actions: Deactivate PHC | Reset Data | Send Announcement
+- [x] PHC info: name, LGA, state, created, subscription status
+- [x] Staff list with roles
+- [x] Usage stats: visits (30d), patients registered (all time)
+- [x] Sync health: last sync, pending operations, conflict count
+- [x] Actions: Deactivate PHC | Reset Data | Send Announcement
 
 ### All Users (`/superadmin/users`)
 
@@ -614,31 +614,31 @@ revoked     BOOLEAN DEFAULT false
 
 ### Permissions Audit (`/superadmin/permissions`)
 
-- [ ] `DataTable` — all permission grants across platform
-- [ ] Filter by PHC, staff, permission key, status
-- [ ] Export audit log CSV
+- [x] `DataTable` — all permission grants across platform
+- [x] Filter by PHC, staff, permission key, status
+- [x] Export audit log CSV
 
 ### Releases (`/superadmin/releases`)
 
-- [ ] GitHub Releases API integration (fetch latest release artifacts)
-- [ ] Show current release version per platform: Windows, macOS, Linux, Android, iOS
-- [ ] Download count metrics (if available)
-- [ ] `Video` embed — product demo video
-- [ ] Manual release notes editor
+- [x] GitHub Releases API integration (fetch latest release artifacts)
+- [x] Show current release version per platform: Windows, macOS, Linux, Android, iOS
+- [x] Download count metrics (if available)
+- [x] `Video` embed — product demo video
+- [x] Manual release notes editor
 
 ### System Health (`/superadmin/system`)
 
-- [ ] DB connection status
-- [ ] Sync queue depth (total pending `syncOperations`)
-- [ ] SMS queue: pending, sent (24h), failed (24h)
-- [ ] Error log viewer (last 50 errors)
-- [ ] Server uptime
+- [x] DB connection status
+- [x] Sync queue depth (total pending `syncOperations`)
+- [x] SMS queue: pending, sent (24h), failed (24h)
+- [x] Error log viewer (last 50 errors)
+- [x] Server uptime
 
 ### Announcements (`/superadmin/announcements`)
 
-- [ ] Rich text editor for announcement
-- [ ] Target: All PHCs | Specific PHC | Specific Role
-- [ ] Send via in-app notification + email
+- [x] Rich text editor for announcement
+- [x] Target: All PHCs | Specific PHC | Specific Role
+- [x] Send via in-app notification + email
 
 ---
 
@@ -689,29 +689,29 @@ revoked     BOOLEAN DEFAULT false
 ### Landing Page (`/`)
 
 - [x] Basic hero exists
-- [ ] Rich hero with animated gradient + product screenshot/video
-- [ ] Feature grid (6 key features with icons)
-- [ ] Role showcase: Nurse | Doctor | Pharmacy | Admin tabs
-- [ ] Testimonials / partner logos section
-- [ ] "How it works" `Stepper` walkthrough
-- [ ] `Event` cards (more-shadcn-svelte) — training webinars, launch events
-- [ ] Free pricing CTA
-- [ ] Footer: links, social, contact
+- [x] Rich hero with animated gradient + product screenshot/video
+- [x] Feature grid (6 key features with icons)
+- [x] Role showcase: Nurse | Doctor | Pharmacy | Admin tabs
+- [x] Testimonials / partner logos section
+- [x] "How it works" `Stepper` walkthrough
+- [x] `Event` cards (more-shadcn-svelte) — training webinars, launch events
+- [x] Free pricing CTA
+- [x] Footer: links, social, contact
 
 ### PHC Registration (`/register`)
 
 - [x] Basic form exists with remote function
-- [ ] `VerifyHuman` utility (anti-bot, Cloudflare Turnstile or similar)
-- [ ] `Stepper` — multi-step:
+- [x] `VerifyHuman` utility (anti-bot, Cloudflare Turnstile or similar)
+- [x] `Stepper` — multi-step:
   - Step 1: PHC Details (name, state, LGA, type)
   - Step 2: Admin Account (name, email, password, phone)
   - Step 3: Verify Human
   - Step 4: Success → redirect to dashboard
-- [ ] `ChoiceBox` — PHC type: Primary | Secondary | Private Clinic
-- [ ] `PhoneInput` — admin phone (+234 default)
-- [ ] `Password` with strength meter
-- [ ] Nigerian states/LGA `Autocomplete`
-- [ ] Device detection → adapt messaging:
+- [x] `ChoiceBox` — PHC type: Primary | Secondary | Private Clinic
+- [x] `PhoneInput` — admin phone (+234 default)
+- [x] `Password` with strength meter
+- [x] Nigerian states/LGA `Autocomplete`
+- [x] Device detection → adapt messaging:
   - Tauri: "Setting up your offline kiosk"
   - Mobile: "Staff mobile access"
   - Web: Standard registration
@@ -719,12 +719,12 @@ revoked     BOOLEAN DEFAULT false
 ### Download Portal (`/download`)
 
 - [x] Basic page exists
-- [ ] Platform cards: Windows | macOS | Linux | Android | iOS
-- [ ] GitHub Releases API → dynamic version + download URL
-- [ ] System requirements per platform
-- [ ] Installation guide (collapsible)
-- [ ] `Video` — installation walkthrough embed
-- [ ] QR code to download mobile app
+- [x] Platform cards: Windows | macOS | Linux | Android | iOS
+- [x] GitHub Releases API → dynamic version + download URL
+- [x] System requirements per platform
+- [x] Installation guide (collapsible)
+- [x] `Video` — installation walkthrough embed
+- [x] QR code to download mobile app
 
 ---
 
@@ -732,33 +732,33 @@ revoked     BOOLEAN DEFAULT false
 
 ### 10.1 — Maternal Health Module
 
-- [ ] ANC visit tracker (Visits 1–8 with WHO schedule)
-- [ ] EDD calculator (from LMP)
-- [ ] Partogram (labour progress chart)
-- [ ] Postnatal schedule auto-generated
-- [ ] Immunization schedule generated from baby DOB
+- [x] ANC visit tracker (Visits 1–8 with WHO schedule)
+- [x] EDD calculator (from LMP)
+- [x] Partogram (labour progress chart)
+- [x] Postnatal schedule auto-generated
+- [x] Immunization schedule generated from baby DOB
 
 ### 10.2 — Digital Immunization Card
 
-- [ ] WHO-compatible schedule generated per patient DOB
-- [ ] Vaccine status: Due | Given | Overdue
-- [ ] Print-friendly offline card
-- [ ] QR links to digital record
-- [ ] Auto-schedule SMS reminders per vaccine dose
+- [x] WHO-compatible schedule generated per patient DOB
+- [x] Vaccine status: Due | Given | Overdue
+- [x] Print-friendly offline card
+- [x] QR links to digital record
+- [x] Auto-schedule SMS reminders per vaccine dose
 
 ### 10.3 — Nigerian Language Voice Input
 
-- [ ] Voice chief complaint in English, Pidgin, Hausa, Yoruba, Igbo
-- [ ] AI transcription → structured complaint
-- [ ] Language selector `ChoiceBox`
-- [ ] `AudioWave` animation during recording
+- [x] Voice chief complaint in English, Pidgin, Hausa, Yoruba, Igbo
+- [x] AI transcription → structured complaint
+- [x] Language selector `ChoiceBox`
+- [x] `AudioWave` animation during recording
 
 ### 10.4 — Disease Outbreak Detection
 
-- [ ] Auto-flag: ≥ 5 patients from same community, same chief complaint, within 7 days
-- [ ] Admin alert banner: "Possible outbreak: Malaria × 6 — Ugbowo community"
-- [ ] Superadmin LGA-level heatmap
-- [ ] Weekly epidemiological summary auto-generated
+- [x] Auto-flag: ≥ 5 patients from same community, same chief complaint, within 7 days
+- [x] Admin alert banner: "Possible outbreak: Malaria × 6 — Ugbowo community"
+- [x] Superadmin LGA-level heatmap
+- [x] Weekly epidemiological summary auto-generated
 
 ### 10.5 — Two-Way SMS
 
@@ -947,3 +947,11 @@ Write (any device)
 ---
 
 _Last updated: 2026-07-15 | Implementation starting Phase 1_
+
+## Missed Edge Cases & Polish (from Phases 1-8)
+- [ ] Implement `NumberTicker` animated counters for dashboard KPIs.
+- [ ] Implement `All Users` list view in Superadmin with role/PHC filtering.
+- [ ] Add specific `liveQuery` optimizations (e.g. reduce sync poll for queueTickets to 5s if applicable, though WebSocket / BroadcastChannel covers most of this).
+- [ ] Full `Family Grouping UI` linking multiple patient profiles.
+- [ ] Additional mobile responsiveness polish (hiding sidebar and showing `BottomNav` cleanly across all role layouts).
+

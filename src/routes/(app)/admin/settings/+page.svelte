@@ -21,7 +21,9 @@
 		DialogTrigger
 	} from '$lib/components/ui/dialog';
 	import { toast } from 'svelte-sonner';
-	import { Settings, Save, Smartphone, RotateCcw, AlertOctagon, TestTube2, CloudCog } from '@lucide/svelte';
+	import { Settings, Save, Smartphone, RotateCcw, AlertOctagon, TestTube2, CloudCog, LayoutDashboard } from '@lucide/svelte';
+	import { Switch } from '$lib/components/ui/switch';
+	import { settingsStore } from '$lib/state/settings.svelte';
 
 	let { data } = $props<{ data: { settings: any } }>();
 
@@ -31,6 +33,12 @@
 	let termiiApiKey = $state('');
 	let syncPollInterval = $state(15);
 	
+	let maternalHealthEnabled = $state(true);
+	let immunizationEnabled = $state(true);
+	let aiVoiceEnabled = $state(true);
+	let outbreakDetectionEnabled = $state(true);
+	let twoWaySmsEnabled = $state(true);
+
 	let isSaving = $state(false);
 	let isResetting = $state(false);
 
@@ -41,6 +49,12 @@
 			phcLga = data.settings.lga || '';
 			termiiApiKey = data.settings.termiiApiKey || '';
 			syncPollInterval = data.settings.syncPollInterval || 15;
+			
+			maternalHealthEnabled = data.settings.maternalHealthEnabled ?? true;
+			immunizationEnabled = data.settings.immunizationEnabled ?? true;
+			aiVoiceEnabled = data.settings.aiVoiceEnabled ?? true;
+			outbreakDetectionEnabled = data.settings.outbreakDetectionEnabled ?? true;
+			twoWaySmsEnabled = data.settings.twoWaySmsEnabled ?? true;
 		}
 	});
 
@@ -53,10 +67,24 @@
 				state: phcState,
 				lga: phcLga,
 				termiiApiKey,
-				syncPollInterval: Number(syncPollInterval)
+				syncPollInterval: Number(syncPollInterval),
+				maternalHealthEnabled,
+				immunizationEnabled,
+				aiVoiceEnabled,
+				outbreakDetectionEnabled,
+				twoWaySmsEnabled
 			});
 			if (res?.success) {
 				toast.success('Settings saved successfully');
+				
+				// Update local reactive store
+				settingsStore.updateLocal({
+					maternalHealthEnabled,
+					immunizationEnabled,
+					aiVoiceEnabled,
+					outbreakDetectionEnabled,
+					twoWaySmsEnabled
+				});
 			} else {
 				toast.error('Failed to save settings');
 			}
@@ -159,6 +187,54 @@
 						</Button>
 					</div>
 					<p class="text-xs text-muted-foreground mt-1">Get this from your Termii dashboard.</p>
+				</div>
+			</CardContent>
+		</Card>
+
+		<!-- Feature Modules -->
+		<Card>
+			<CardHeader>
+				<CardTitle class="flex items-center gap-2">
+					<LayoutDashboard class="size-4" />
+					Feature Modules
+				</CardTitle>
+				<CardDescription>Enable or disable specialized modules for this facility.</CardDescription>
+			</CardHeader>
+			<CardContent class="space-y-6">
+				<div class="flex items-center justify-between">
+					<div class="space-y-0.5">
+						<Label class="text-base">Maternal Health Module</Label>
+						<p class="text-sm text-muted-foreground">ANC tracking, EDD calculators, and digital partograms.</p>
+					</div>
+					<Switch bind:checked={maternalHealthEnabled} />
+				</div>
+				<div class="flex items-center justify-between">
+					<div class="space-y-0.5">
+						<Label class="text-base">Digital Immunizations</Label>
+						<p class="text-sm text-muted-foreground">Automated NPI vaccine schedules for infants.</p>
+					</div>
+					<Switch bind:checked={immunizationEnabled} />
+				</div>
+				<div class="flex items-center justify-between">
+					<div class="space-y-0.5">
+						<Label class="text-base">AI Voice Transcription</Label>
+						<p class="text-sm text-muted-foreground">Record chief complaints in local languages (Pidgin, Hausa, etc).</p>
+					</div>
+					<Switch bind:checked={aiVoiceEnabled} />
+				</div>
+				<div class="flex items-center justify-between">
+					<div class="space-y-0.5">
+						<Label class="text-base">Disease Outbreak Detection</Label>
+						<p class="text-sm text-muted-foreground">Automatically detect and flag potential epidemiological outbreaks.</p>
+					</div>
+					<Switch bind:checked={outbreakDetectionEnabled} />
+				</div>
+				<div class="flex items-center justify-between">
+					<div class="space-y-0.5">
+						<Label class="text-base">Two-Way SMS Confirmations</Label>
+						<p class="text-sm text-muted-foreground">Allow patients to reply 'CONFIRM' to SMS reminders.</p>
+					</div>
+					<Switch bind:checked={twoWaySmsEnabled} />
 				</div>
 			</CardContent>
 		</Card>

@@ -8,5 +8,5 @@ export interface AIStructuredIntake {
 export interface AIProvider {
 	name: string;
 	isAvailable(): Promise<boolean> | boolean;
-	structureIntake(transcript: string): Promise<AIStructuredIntake>;
+	structureIntake(transcript: string, language?: string): Promise<AIStructuredIntake>;
 }

@@ -14,7 +14,7 @@ Do NOT include markdown fences, just the raw JSON object.
   "detectedLanguage": "english or pidgin or other"
 }`.trim(),
 
-		buildPrompt: (transcript: string) =>
-			`${AI_PROMPTS.voiceIntake.system}\n\nTranscript:\n"${transcript}"`
+		buildPrompt: (transcript: string, language?: string) =>
+			`${AI_PROMPTS.voiceIntake.system}\n\n${language ? `Note: The input transcript is primarily in ${language}.\n\n` : ''}Transcript:\n"${transcript}"`
 	}
 };
