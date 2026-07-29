@@ -455,6 +455,27 @@ export const reminders = pgTable(
 	})
 );
 
+export const smsInbox = pgTable(
+	'sms_inbox',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		phcId: uuid('phc_id')
+			.references(() => phcs.id),
+		patientId: uuid('patient_id')
+			.references(() => patients.id),
+		fromPhone: varchar('from_phone', { length: 20 }).notNull(),
+		toPhone: varchar('to_phone', { length: 20 }),
+		message: text('message').notNull(),
+		providerMessageId: varchar('provider_message_id', { length: 120 }),
+		isRead: boolean('is_read').notNull().default(false),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(table) => ({
+		phcIdx: index('sms_inbox_phc_idx').on(table.phcId),
+		phoneIdx: index('sms_inbox_phone_idx').on(table.fromPhone)
+	})
+);
+
 // ─────────────────────────────────────────────────────────────
 // APPOINTMENTS
 // ─────────────────────────────────────────────────────────────
@@ -476,6 +497,7 @@ export const appointments = pgTable(
 		notes: text('notes'),
 		status: appointmentStatusEnum('status').notNull().default('scheduled'),
 		smsReminderSent: boolean('sms_reminder_sent').notNull().default(false),
+		isConfirmed: boolean('is_confirmed').notNull().default(false),
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 		updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
 	},
@@ -522,7 +544,8 @@ export const patientsRelations = relations(patients, ({ one, many }) => ({
 	queueTickets: many(queueTickets),
 	reminders: many(reminders),
 	appointments: many(appointments),
-	pregnancyRecords: many(pregnancyRecords)
+	pregnancyRecords: many(pregnancyRecords),
+	smsMessages: many(smsInbox)
 }));
 
 export const staffRelations = relations(staff, ({ many, one }) => ({
@@ -534,7 +557,8 @@ export const staffRelations = relations(staff, ({ many, one }) => ({
 export const phcsRelations = relations(phcs, ({ many }) => ({
 	staff: many(staff),
 	patients: many(patients),
-	permissions: many(permissions)
+	permissions: many(permissions),
+	smsMessages: many(smsInbox)
 }));
 
 export const permissionsRelations = relations(permissions, ({ one }) => ({

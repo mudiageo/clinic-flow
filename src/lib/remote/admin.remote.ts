@@ -123,3 +123,16 @@ export const getStaffPermissionAuditLog = query(v.string(), async (staffId) => {
 		}
 	});
 });
+
+export const getSmsInbox = query(async () => {
+	const event = getRequestEvent();
+	if (!event.locals.staffId || !event.locals.phcId) throw new Error('Unauthorized');
+	await requirePermission(event.locals.staffId, 'manage:phc');
+
+	// Return recent SMS
+	return await db.query.smsInbox.findMany({
+		where: (t, { eq }) => eq(t.phcId, event.locals.phcId),
+		orderBy: (t, { desc }) => [desc(t.createdAt)],
+		limit: 100
+	});
+});

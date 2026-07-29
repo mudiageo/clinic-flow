@@ -762,9 +762,9 @@ revoked     BOOLEAN DEFAULT false
 
 ### 10.5 — Two-Way SMS
 
-- [ ] Inbound SMS webhook (Termii → `/api/sms/inbound`)
-- [ ] Patient replies: CONFIRM → confirms appointment, STOP → unsubscribes
-- [ ] SMS inbox viewer for admin
+- [x] Inbound SMS webhook (Termii → `/api/sms/inbound`)
+- [x] Patient replies: CONFIRM → confirms appointment, STOP → unsubscribes
+- [x] SMS inbox viewer for admin
 
 ### 10.6 — Referral System
 
