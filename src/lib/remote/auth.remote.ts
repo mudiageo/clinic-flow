@@ -60,6 +60,26 @@ export const getCurrentSession = query(async () => {
 	};
 });
 
+export const getUserProfile = query(async () => {
+	const event = getRequestEvent();
+	if (!event.locals.user) return null;
+	
+	let phcName = 'Unknown Facility';
+	if (event.locals.phcId) {
+		const phc = await db.query.phcs.findFirst({
+			where: (p, { eq }) => eq(p.id, event.locals.phcId!)
+		});
+		if (phc) phcName = phc.name;
+	}
+
+	return {
+		name: event.locals.user.name,
+		email: event.locals.user.email,
+		role: event.locals.role ?? 'Unknown',
+		phcName
+	};
+});
+
 export const signOutAction = form(v.object({}), async () => {
 	const event = getRequestEvent();
 	await auth.api.signOut({

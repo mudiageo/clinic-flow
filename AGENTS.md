@@ -47,3 +47,8 @@ Never use Dexie directly in components. Always use the stores defined in `$lib/s
 ### 5. Date Formatting
 
 Do not use `date-fns` for formatting dates. Always use the native `Intl` API, preferably through the `$lib/utils/date.ts` utility functions.
+
+### 6. Server Architecture & Data Fetching
+
+**CRITICAL:** Do NOT use `+page.server.ts` or `+layout.server.ts` for server-side logic and data fetching. We use a Client-Server architecture utilizing SvelteKit's experimental **remote functions** (`import { query, form } from '$app/server'`). 
+All server-side queries and mutations MUST be defined in `$lib/remote/*.remote.ts` files, and imported directly into `+page.svelte` components. If you need data, write a `query` remote function. If you need mutations, write a `form` remote function.

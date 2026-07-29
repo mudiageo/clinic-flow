@@ -20,7 +20,7 @@
 	import { Avatar, AvatarFallback } from '$lib/components/ui/avatar';
 	import SyncIndicator from '$lib/components/SyncIndicator.svelte';
 	import { signOutAction } from '$lib/remote/auth.remote';
-	import { HeartPulse, LogOut } from '@lucide/svelte';
+	import { HeartPulse, LogOut, UserCircle } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
 
 	type Props = {
@@ -114,6 +114,18 @@
 						<span class="truncate font-semibold">{userName}</span>
 						<span class="truncate text-xs text-sidebar-foreground/60 capitalize">{role}</span>
 					</div>
+				</Sidebar.MenuButton>
+			</Sidebar.MenuItem>
+
+			<!-- Account Settings -->
+			<Sidebar.MenuItem>
+				<Sidebar.MenuButton isActive={page.url.pathname.startsWith('/settings')}>
+					{#snippet child({ props })}
+						<a href="/settings" {...props}>
+							<UserCircle />
+							<span>Account Settings</span>
+						</a>
+					{/snippet}
 				</Sidebar.MenuButton>
 			</Sidebar.MenuItem>
 
