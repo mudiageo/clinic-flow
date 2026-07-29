@@ -9,6 +9,7 @@
 	import { labRequestStore } from '$lib/state/lab-requests.svelte';
 	import { reminderStore } from '$lib/state/reminders.svelte';
 	import { settingsStore } from '$lib/state/settings.svelte';
+	import { notificationStore } from '$lib/state/notifications.svelte';
 
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
@@ -75,6 +76,7 @@
 	// Form state
 	let chiefComplaint = $state('');
 	let doctorNotes = $state('');
+	let isNhisBillable = $state(false);
 
 	// Prescriptions state
 	let selectedMedId = $state('');
@@ -131,6 +133,16 @@
 
 		if (ticket.status === 'waiting') {
 			queueStore.update(ticket.id, { status: 'in_progress', calledAt: Date.now() });
+			
+			// Notify nurse that patient has been called in by the doctor
+			if (patient) {
+				notificationStore.broadcast(
+					'Patient Called',
+					`Dr. has called ${patient.name} for consultation.`,
+					'nurse',
+					`/patients/${patient.clinicId}`
+				);
+			}
 		}
 
 		const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -206,6 +218,7 @@
 					phcId: ticket.phcId,
 					chiefComplaint,
 					doctorNotes,
+					isNhisBillable,
 					visitDate: Date.now()
 				} as any);
 				encounterId = enc;
@@ -241,6 +254,15 @@
 					dosage: p.dosage,
 					status: 'pending'
 				} as any);
+			}
+
+			if (prescriptions.length > 0) {
+				notificationStore.broadcast(
+					'New Prescription', 
+					`Dr. has prescribed ${prescriptions.length} item(s) for ${patient.name}.`,
+					'pharmacy',
+					'/pharmacy'
+				);
 			}
 
 			// 4. Mark ticket as done
@@ -570,6 +592,18 @@
 							</div>
 						</TabsContent>
 					</div>
+					
+					{#if patient.isNhis}
+						<div class="mt-6 p-4 border rounded-xl bg-blue-500/5 border-blue-500/20">
+							<label class="flex items-center gap-3 cursor-pointer">
+								<input type="checkbox" bind:checked={isNhisBillable} class="accent-blue-600 size-5" />
+								<div class="space-y-0.5">
+									<p class="font-semibold text-blue-900 dark:text-blue-200">Submit as NHIS Claim</p>
+									<p class="text-xs text-blue-700/70 dark:text-blue-300/70">Flag this encounter and its services for HMO billing.</p>
+								</div>
+							</label>
+						</div>
+					{/if}
 				</Tabs>
 			</Resizable.Pane>
 		</Resizable.PaneGroup>

@@ -12,9 +12,9 @@ export interface LocalPatient {
 	sex: 'male' | 'female' | 'other';
 	address: string | null;
 	community: string | null;
-	nextOfKinName: string | null;
 	nextOfKinPhone: string | null;
 	isPregnant: boolean;
+	isNhis?: boolean;
 	syncStatus: 'synced' | 'pending' | 'conflict';
 	updatedAt: number; // epoch ms, used for LWW + sync cursors
 	serverUpdatedAt: number | null;
@@ -118,6 +118,7 @@ export interface LocalEncounter {
 	chiefComplaintRaw: string | null;
 	chiefComplaintLanguage: string | null;
 	doctorNotes: string | null;
+	isNhisBillable?: boolean;
 	createdAt: number;
 	updatedAt: number;
 	syncStatus: 'synced' | 'pending' | 'conflict';

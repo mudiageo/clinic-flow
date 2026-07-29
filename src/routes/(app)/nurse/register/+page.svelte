@@ -65,6 +65,7 @@
 		dob: '',
 		sex: 'female' as 'female' | 'male' | 'other',
 		isPregnant: false,
+		isNhis: false,
 		address: '',
 		community: '',
 		nextOfKinName: '',
@@ -120,6 +121,7 @@
 				nextOfKinName: form.nextOfKinName || null,
 				nextOfKinPhone: form.nextOfKinPhone || null,
 				isPregnant: form.isPregnant,
+				isNhis: form.isNhis,
 				serverUpdatedAt: null,
 				deleted: false
 			});
@@ -319,8 +321,21 @@
 												/>
 												Patient is currently pregnant
 											</label>
-										</div>
 									{/if}
+								</div>
+
+								<div class="col-span-1 md:col-span-2 pt-2">
+									<label
+										class="flex items-center gap-2 text-sm border p-3 h-11 rounded-md cursor-pointer hover:bg-muted/50 transition-colors"
+									>
+										<input
+											type="checkbox"
+											bind:checked={form.isNhis}
+											class="accent-primary size-4"
+										/>
+										Patient is an NHIS/HMO enrollee
+									</label>
+								</div>
 								</div>
 							</div>
 						{:else if currentStep === 2}

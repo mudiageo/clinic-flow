@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { labRequestStore } from '$lib/state/lab-requests.svelte';
 	import { patientStore } from '$lib/state/patients.svelte';
+	import { notificationStore } from '$lib/state/notifications.svelte';
 	import {
 		Table,
 		TableBody,
@@ -69,6 +70,17 @@
 				status: statusUpdate,
 				resultEnteredAt: Date.now()
 			} as any);
+
+			if (statusUpdate === 'completed') {
+				const pt = patientStore.get(selectedLab.patientId);
+				notificationStore.broadcast(
+					'Lab Result Ready',
+					`Result entered for ${pt?.name || 'Unknown'} (${selectedLab.testType})`,
+					'doctor',
+					`/doctor/consult/${selectedLab.encounterId}`
+				);
+			}
+
 			toast.success('Lab result saved successfully!');
 			isResultModalOpen = false;
 		} catch (e: any) {

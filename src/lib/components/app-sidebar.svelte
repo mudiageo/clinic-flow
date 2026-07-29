@@ -20,8 +20,15 @@
 	import { Avatar, AvatarFallback } from '$lib/components/ui/avatar';
 	import SyncIndicator from '$lib/components/SyncIndicator.svelte';
 	import { signOutAction } from '$lib/remote/auth.remote';
-	import { HeartPulse, LogOut, UserCircle } from '@lucide/svelte';
+	import { notificationStore } from '$lib/state/notifications.svelte';
+	import { HeartPulse, LogOut, UserCircle, Bell } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
+	import * as Popover from '$lib/components/ui/popover';
+	import { Badge } from '$lib/components/ui/badge';
+	import { ScrollArea } from '$lib/components/ui/scroll-area';
+	import { Button } from '$lib/components/ui/button';
+	import { formatDistanceToNow } from '$lib/utils/date';
+	import { onMount } from 'svelte';
 
 	type Props = {
 		navGroups: NavGroup[];
@@ -32,6 +39,10 @@
 	};
 
 	let { navGroups, role, phcName, userName, userInitials }: Props = $props();
+
+	onMount(() => {
+		notificationStore.setRole(role);
+	});
 </script>
 
 <Sidebar.Root collapsible="icon">
@@ -100,6 +111,62 @@
 				<div class="px-2 py-1">
 					<SyncIndicator />
 				</div>
+			</Sidebar.MenuItem>
+
+			<!-- Notifications -->
+			<Sidebar.MenuItem>
+				<Popover.Root>
+					<Popover.Trigger>
+						{#snippet child({ props })}
+							<Sidebar.MenuButton {...props}>
+								<Bell />
+								<span>Notifications</span>
+								{#if notificationStore.unreadCount > 0}
+									<Sidebar.MenuBadge class="bg-primary text-primary-foreground">
+										{notificationStore.unreadCount}
+									</Sidebar.MenuBadge>
+								{/if}
+							</Sidebar.MenuButton>
+						{/snippet}
+					</Popover.Trigger>
+					<Popover.Content side="right" align="end" class="w-80 p-0">
+						<div class="flex items-center justify-between px-4 py-3 border-b">
+							<h4 class="font-semibold">Notifications</h4>
+							{#if notificationStore.unreadCount > 0}
+								<Button variant="ghost" size="sm" class="h-auto px-2 text-xs" onclick={() => notificationStore.markAllAsRead()}>
+									Mark all read
+								</Button>
+							{/if}
+						</div>
+						<ScrollArea class="h-80">
+							{#if notificationStore.items.length === 0}
+								<div class="p-8 text-center text-muted-foreground text-sm">
+									No notifications yet
+								</div>
+							{:else}
+								<div class="flex flex-col">
+									{#each notificationStore.items as notif}
+										<button 
+											class="flex flex-col gap-1 p-4 text-left hover:bg-muted/50 transition-colors border-b last:border-0 {notif.read ? 'opacity-70' : 'bg-primary/5'}"
+											onclick={() => {
+												notificationStore.markAsRead(notif.id);
+												if (notif.link) window.location.href = notif.link;
+											}}
+										>
+											<div class="flex justify-between items-start gap-2">
+												<span class="font-semibold text-sm">{notif.title}</span>
+												<span class="text-[10px] text-muted-foreground whitespace-nowrap">
+													{formatDistanceToNow(notif.timestamp)}
+												</span>
+											</div>
+											<span class="text-sm text-muted-foreground line-clamp-2">{notif.message}</span>
+										</button>
+									{/each}
+								</div>
+							{/if}
+						</ScrollArea>
+					</Popover.Content>
+				</Popover.Root>
 			</Sidebar.MenuItem>
 
 			<!-- User info -->

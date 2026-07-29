@@ -789,17 +789,17 @@ revoked     BOOLEAN DEFAULT false
 
 ### 10.9 — Real-Time Staff Notifications
 
-- [ ] Nurse notified when doctor calls their patient
-- [ ] Doctor notified when lab result is entered
-- [ ] Pharmacy notified on new prescription
-- [ ] In-app notification bell with unread count
-- [ ] Powered by `BroadcastChannel` (LAN) + `query.live` (online)
+- [x] Nurse notified when doctor calls their patient
+- [x] Doctor notified when lab result is entered
+- [x] Pharmacy notified on new prescription
+- [x] In-app notification bell with unread count
+- [x] Powered by `BroadcastChannel` (LAN) + `query.live` (online)
 
 ### 10.10 — NHIS/HMO Tracking (stub)
 
-- [ ] Flag patients as NHIS enrollees on registration
-- [ ] Track NHIS-billable services per encounter
-- [ ] Simple visit claim form (not connected to NHIS API yet)
+- [x] Flag patients as NHIS enrollees on registration
+- [x] Track NHIS-billable services per encounter
+- [x] Simple visit claim form (not connected to NHIS API yet)
 
 ### 10.11 — First-Launch Onboarding Wizard (Tauri)
 

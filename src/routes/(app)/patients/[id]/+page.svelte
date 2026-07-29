@@ -65,6 +65,12 @@
 							<span class="capitalize">{patient.sex}</span>
 						</div>
 						<div>
+							<span class="text-muted-foreground block mb-1">Insurance</span>
+							<Badge variant={patient.isNhis ? 'default' : 'secondary'} class="font-normal text-xs mt-0.5">
+								{patient.isNhis ? 'NHIS Enrollee' : 'None'}
+							</Badge>
+						</div>
+						<div>
 							<span class="text-muted-foreground block mb-1">Phone Number</span>
 							<div class="flex items-center gap-2">
 								<Phone class="size-4 text-primary/70" />
