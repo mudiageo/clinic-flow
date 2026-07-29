@@ -10,12 +10,10 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Button } from '$lib/components/ui/button';
 	import { BellRing, Mail, Smartphone, RefreshCw, Save } from '@lucide/svelte';
-	import { getUserPreferences, updatePreferences } from '$lib/remote/auth.remote';
-	import { Skeleton } from '$lib/components/ui/skeleton';
+	import { authStore } from '$lib/state/auth.svelte';
 
 	let isSaving = $state(false);
-	let isLoaded = $state(false);
-
+	
 	let prefs = $state({
 		emailAlerts: true,
 		smsAlerts: false,
@@ -24,34 +22,35 @@
 		syncUpdates: false
 	});
 
+	let initDone = $state(false);
+
 	$effect(() => {
-		if (!isLoaded) {
-			getUserPreferences().then((data) => {
-				if (data) prefs = data;
-				isLoaded = true;
-			});
+		if (authStore.preferences && !initDone) {
+			prefs = $state.snapshot(authStore.preferences);
+			initDone = true;
 		}
 	});
 
 	async function savePreferences() {
 		isSaving = true;
-		const result = await updatePreferences.submit(prefs);
-		if (result?.success) {
-			toast.success('Notification preferences updated');
-		} else {
-			toast.error('Failed to update preferences');
-		}
+		await authStore.updatePreferences(prefs);
 		isSaving = false;
 	}
 </script>
 
 <div class="space-y-6">
-	<div>
-		<h2 class="text-2xl font-bold tracking-tight">Notifications</h2>
-		<p class="text-muted-foreground mt-1">Control how and when you are notified.</p>
+	<div class="mb-8">
+		<h1 class="text-3xl font-bold tracking-tight">Notification Settings</h1>
+		<p class="text-muted-foreground mt-2">Choose what you want to be notified about and how.</p>
 	</div>
 
-	<Card>
+	{#if !authStore.preferences}
+		<div class="space-y-4">
+			<div class="h-40 rounded-xl bg-muted animate-pulse"></div>
+			<div class="h-40 rounded-xl bg-muted animate-pulse"></div>
+		</div>
+	{:else}
+		<Card class="border-none shadow-md overflow-hidden">
 		<CardHeader>
 			<CardTitle class="flex items-center gap-2">
 				<Mail class="size-5 text-muted-foreground" />
@@ -117,7 +116,7 @@
 	</Card>
 
 	<div class="flex justify-end pt-4">
-		<Button onclick={savePreferences} disabled={isSaving || !isLoaded} class="h-11 px-8">
+		<Button onclick={savePreferences} disabled={isSaving || !initDone} class="h-11 px-8">
 			{#if isSaving}
 				<div class="size-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2"></div>
 				Saving...
@@ -127,4 +126,5 @@
 			{/if}
 		</Button>
 	</div>
+	{/if}
 </div>
