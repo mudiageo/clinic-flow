@@ -768,10 +768,10 @@ revoked     BOOLEAN DEFAULT false
 
 ### 10.6 — Referral System
 
-- [ ] Doctor generates structured referral letter
-- [ ] Fields: from-PHC, to-facility, patient, reason, urgency, doctor name
-- [ ] Referral PDF export (offline-capable)
-- [ ] SMS referral summary to receiving facility
+- [x] Doctor generates structured referral letter
+- [x] Fields: from-PHC, to-facility, patient, reason, urgency, doctor name
+- [x] Referral PDF export (offline-capable)
+- [x] SMS referral summary to receiving facility
 
 ### 10.7 — Family Health Dashboard
 

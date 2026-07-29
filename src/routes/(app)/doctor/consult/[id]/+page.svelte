@@ -16,6 +16,7 @@
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
+	import * as Dialog from '$lib/components/ui/dialog';
 	import {
 		Card,
 		CardContent,
@@ -48,7 +49,8 @@
 		CheckCircle2,
 		ChevronLeft,
 		FlaskConical,
-		Link
+		Link,
+		Send
 	} from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -82,10 +84,33 @@
 		[]
 	);
 
-	// Lab request state
+	// Lab Requests
 	let testType = $state('');
-	let urgency = $state<'routine' | 'urgent' | 'stat'>('routine');
+	let urgency = $state('routine');
 	let labNotes = $state('');
+
+	// Referral
+	let showReferralDialog = $state(false);
+	let referralFacility = $state('');
+	let referralReason = $state('');
+	let referralUrgency = $state('routine');
+
+	function generateReferral() {
+		if (!patient) return;
+		localStorage.setItem('temp_referral', JSON.stringify({
+			patientName: patient.name,
+			clinicId: patient.clinicId,
+			age: patient.dob ? new Date().getFullYear() - new Date(patient.dob).getFullYear() : 'Unknown',
+			sex: patient.sex,
+			facility: referralFacility,
+			reason: referralReason,
+			urgency: referralUrgency,
+			date: new Date().toISOString(),
+			vitals: vitals
+		}));
+		window.open(`/doctor/referral/print`, '_blank');
+		showReferralDialog = false;
+	}
 
 	// Voice dictation
 	let isRecording = $state(false);
@@ -266,9 +291,14 @@
 					</p>
 				</div>
 			</div>
-			<Button onclick={handleCompleteEncounter} class="bg-primary shadow-md hover:bg-primary/95">
-				<CheckCircle2 class="size-4 mr-2" /> Complete
-			</Button>
+			<div class="flex items-center gap-2">
+				<Button variant="outline" onclick={() => showReferralDialog = true}>
+					<Send class="size-4 mr-2" /> Refer Patient
+				</Button>
+				<Button onclick={handleCompleteEncounter} class="bg-primary shadow-md hover:bg-primary/95">
+					<CheckCircle2 class="size-4 mr-2" /> Complete
+				</Button>
+			</div>
 		</div>
 
 		<!-- Main Workspace (Resizable Split Pane) -->
@@ -559,3 +589,43 @@
 		</div>
 	</div>
 {/if}
+
+<Dialog.Root bind:open={showReferralDialog}>
+	<Dialog.Content class="sm:max-w-[425px]">
+		<Dialog.Header>
+			<Dialog.Title>Generate Referral Letter</Dialog.Title>
+			<Dialog.Description>
+				Create a structured referral for {patient?.name}.
+			</Dialog.Description>
+		</Dialog.Header>
+		<div class="grid gap-4 py-4">
+			<div class="space-y-2">
+				<Label>Receiving Facility</Label>
+				<Input bind:value={referralFacility} placeholder="e.g. General Hospital, Benin City" />
+			</div>
+			<div class="space-y-2">
+				<Label>Reason for Referral / Provisional Diagnosis</Label>
+				<Textarea bind:value={referralReason} placeholder="Enter reason for referral..." rows={3} />
+			</div>
+			<div class="space-y-2">
+				<Label>Urgency</Label>
+				<Select bind:value={referralUrgency}>
+					<SelectTrigger>
+						{referralUrgency}
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="routine">Routine</SelectItem>
+						<SelectItem value="urgent">Urgent</SelectItem>
+						<SelectItem value="emergency">Emergency (Stat)</SelectItem>
+					</SelectContent>
+				</Select>
+			</div>
+		</div>
+		<Dialog.Footer>
+			<Button variant="outline" onclick={() => showReferralDialog = false}>Cancel</Button>
+			<Button onclick={generateReferral} disabled={!referralFacility || !referralReason}>
+				Generate PDF
+			</Button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
