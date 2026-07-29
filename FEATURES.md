@@ -803,16 +803,16 @@ revoked     BOOLEAN DEFAULT false
 
 ### 10.11 — First-Launch Onboarding Wizard (Tauri)
 
-- [ ] Detected on first Tauri launch (no PHC data in local DB)
-- [ ] `Stepper`:
+- [x] Detected on first Tauri launch (no PHC data in local DB)
+- [x] `Stepper`:
   - Step 1: Welcome + `Video` tutorial
   - Step 2: Register or Login PHC
   - Step 3: Database initialization progress
   - Step 4: First admin account setup
   - Step 5: Invite staff or launch solo
   - Step 6: Done → Dashboard
-- [ ] Offline seed data option (demo patients for training)
-- [ ] QR scanner test/calibration step
+- [x] Offline seed data option (demo patients for training)
+- [x] QR scanner test/calibration step
 
 ---
 
