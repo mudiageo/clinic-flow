@@ -34,6 +34,7 @@ export default defineConfig({
 				]
 			},
 			workbox: {
+				maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
 				globPatterns: ['client/**/*.{js,css,ico,png,svg,webp,woff,woff2}'],
 				runtimeCaching: [
 					{
