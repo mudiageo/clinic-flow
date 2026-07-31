@@ -3,7 +3,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '$lib/components/ui/select';
+	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
 	import { Baby, Calendar, CheckCircle2 } from '@lucide/svelte';
 	import { patientStore } from '$lib/state/patients.svelte';
 	import { appointmentStore } from '$lib/state/appointments.svelte';
@@ -196,9 +196,9 @@
 			<div class="grid grid-cols-2 gap-4">
 				<div class="space-y-2">
 					<Label>Sex</Label>
-					<Select bind:value={babySex}>
-						<SelectTrigger>
-							<SelectValue placeholder="Select Sex" />
+					<Select type="single" value={babySex} onValueChange={(v) => (babySex = v as any)}>
+						<SelectTrigger class="capitalize">
+							{babySex || "Select Sex"}
 						</SelectTrigger>
 						<SelectContent>
 							<SelectItem value="male">Male</SelectItem>
