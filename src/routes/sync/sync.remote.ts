@@ -229,6 +229,8 @@ export const getQueueUpdates = query.live(
 );
 
 export const getPhcSettings = query(v.string(), async (phcId) => {
+	if (phcId === 'demo-phc-1') return null;
+	
 	const phc = await serverDb.query.phcs.findFirst({
 		where: (t, { eq }) => eq(t.id, phcId)
 	});

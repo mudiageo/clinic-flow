@@ -38,6 +38,15 @@ class NotificationStore {
 
 	setRole(role: string) {
 		this.currentRole = role;
+		this.requestWebNotificationPermission();
+	}
+
+	private requestWebNotificationPermission() {
+		if (typeof window !== 'undefined' && 'Notification' in window) {
+			if (Notification.permission === 'default') {
+				Notification.requestPermission();
+			}
+		}
 	}
 
 	private handleIncoming(notification: AppNotification) {
@@ -52,6 +61,20 @@ class NotificationStore {
 					onClick: () => { window.location.href = notification.link!; }
 				} : undefined
 			});
+
+			// Trigger native web notification if app is in background
+			if (typeof document !== 'undefined' && document.hidden && 'Notification' in window && Notification.permission === 'granted') {
+				const n = new Notification(notification.title, {
+					body: notification.message,
+					icon: '/favicon.png'
+				});
+				if (notification.link) {
+					n.onclick = () => {
+						window.focus();
+						window.location.href = notification.link!;
+					};
+				}
+			}
 		}
 	}
 

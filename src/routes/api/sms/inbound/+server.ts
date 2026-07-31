@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { db } from '$lib/server/db/db';
+import { db } from '$lib/server/db';
 import * as schema from '$lib/server/db/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import type { RequestEvent } from './$types';

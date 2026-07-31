@@ -18,6 +18,7 @@
 	import { Building2, Activity, Users, ServerCrash, ExternalLink } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
+	import NumberTicker from '$lib/components/ui/number-ticker/number-ticker.svelte';
 </script>
 
 <svelte:head>
@@ -51,7 +52,7 @@
 				<CardContent class="p-6 flex items-center justify-between">
 					<div>
 						<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total PHCs</p>
-						<p class="text-3xl font-bold text-foreground mt-1">{totalPhcs}</p>
+						<NumberTicker value={totalPhcs} class="text-3xl font-bold mt-1 block" />
 					</div>
 					<div class="size-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
 						<Building2 class="size-5" />
@@ -62,7 +63,7 @@
 				<CardContent class="p-6 flex items-center justify-between">
 					<div>
 						<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Staff</p>
-						<p class="text-3xl font-bold text-foreground mt-1">{totalStaff}</p>
+						<NumberTicker value={totalStaff} class="text-3xl font-bold mt-1 block" />
 					</div>
 					<div class="size-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
 						<Users class="size-5" />
@@ -73,7 +74,7 @@
 				<CardContent class="p-6 flex items-center justify-between">
 					<div>
 						<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Patients</p>
-						<p class="text-3xl font-bold text-foreground mt-1">{totalPatients}</p>
+						<NumberTicker value={totalPatients} class="text-3xl font-bold mt-1 block" />
 					</div>
 					<div class="size-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500">
 						<Activity class="size-5" />
@@ -84,7 +85,7 @@
 				<CardContent class="p-6 flex items-center justify-between">
 					<div>
 						<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Active Today</p>
-						<p class="text-3xl font-bold text-foreground mt-1">124</p>
+						<NumberTicker value={124} class="text-3xl font-bold mt-1 block" />
 					</div>
 					<div class="size-12 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500">
 						<ServerCrash class="size-5" />

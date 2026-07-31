@@ -1,4 +1,4 @@
-import { getPhcSettings } from '$routes/sync/sync.remote';
+import { getPhcSettings } from '../../routes/sync/sync.remote';
 import { get } from 'svelte/store';
 import { untrack } from 'svelte';
 

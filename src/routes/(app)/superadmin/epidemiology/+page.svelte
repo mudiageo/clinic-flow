@@ -6,7 +6,7 @@
 	import { Globe, AlertTriangle, ShieldAlert, FileText, Download } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button';
 
-	let isGenerating = false;
+	let isGenerating = $state(false);
 
 	function generateReport() {
 		isGenerating = true;

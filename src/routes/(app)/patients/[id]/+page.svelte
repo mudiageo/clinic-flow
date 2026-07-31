@@ -8,9 +8,13 @@
 	import AncTracker from '$lib/components/maternal/anc-tracker.svelte';
 	import ImmunizationCard from '$lib/components/pediatrics/immunization-card.svelte';
 	import { settingsStore } from '$lib/state/settings.svelte';
+	import LinkFamilyDialog from '$lib/components/link-family-dialog.svelte';
 
 	let clinicId = $derived($page.params.id);
 	let patient = $derived(clinicId ? patientStore.findByClinicId(clinicId) : null);
+
+	// State for family linking dialog
+	let isLinkFamilyOpen = $state(false);
 
 	// Find family members (excluding self)
 	let familyMembers = $derived(
@@ -18,13 +22,6 @@
 			? patientStore.familyMembers(patient.familyId).filter((p) => p.id !== patient?.id)
 			: []
 	);
-
-	// Link a new family member (Mock UI for now)
-	function handleLinkFamily() {
-		alert(
-			'Family linking UI would open here to link this patient to another family or add a new family member.'
-		);
-	}
 </script>
 
 <svelte:head>
@@ -98,8 +95,9 @@
 					<div class="flex gap-2">
 						{#if patient.familyId}
 							<Button variant="outline" size="sm" href={`/families/${patient.familyId}`}>Dashboard</Button>
+						{:else}
+							<Button variant="outline" size="sm" onclick={() => isLinkFamilyOpen = true}>Link Family</Button>
 						{/if}
-						<Button variant="outline" size="sm" onclick={handleLinkFamily}>Link</Button>
 					</div>
 				</CardHeader>
 				<CardContent>
@@ -142,3 +140,7 @@
 		</div>
 	{/if}
 </div>
+
+{#if patient}
+	<LinkFamilyDialog bind:open={isLinkFamilyOpen} {patient} />
+{/if}

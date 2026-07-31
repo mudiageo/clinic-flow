@@ -818,15 +818,11 @@ revoked     BOOLEAN DEFAULT false
 
 ## Phase 11 — Tauri Mobile v2
 
-- [ ] Tauri Mobile v2 project configuration (Android + iOS targets)
-- [ ] `(mobile)` route group for mobile-specific pages
-- [ ] `BottomNav` as primary navigation (no sidebar)
-- [ ] Biometric login (Tauri plugin)
-- [ ] Camera plugin for QR scanning
-- [ ] Local notifications (Tauri plugin) — appointment reminders
-- [ ] Offline-first same as desktop (shared Dexie + sync)
-- [ ] App icon, splash screen, store metadata
-- [ ] Build pipeline: GitHub Actions → APK/IPA artifacts
+- [x] PWA configuration (`vite-pwa` instead of Tauri per user instruction)
+- [x] Web APIs for mobile functionality (HTML5 BarcodeDetector, Web Notifications)
+- [x] `BottomNav` implemented across all roles
+- [x] Offline-first works identically via shared Dexie + sync
+- [x] Web App Manifest configured for installability
 
 ---
 
@@ -949,9 +945,9 @@ Write (any device)
 _Last updated: 2026-07-15 | Implementation starting Phase 1_
 
 ## Missed Edge Cases & Polish (from Phases 1-8)
-- [ ] Implement `NumberTicker` animated counters for dashboard KPIs.
-- [ ] Implement `All Users` list view in Superadmin with role/PHC filtering.
-- [ ] Add specific `liveQuery` optimizations (e.g. reduce sync poll for queueTickets to 5s if applicable, though WebSocket / BroadcastChannel covers most of this).
-- [ ] Full `Family Grouping UI` linking multiple patient profiles.
-- [ ] Additional mobile responsiveness polish (hiding sidebar and showing `BottomNav` cleanly across all role layouts).
+- [x] Implement `NumberTicker` animated counters for dashboard KPIs.
+- [x] Implement `All Users` list view in Superadmin with role/PHC filtering.
+- [x] Add specific `liveQuery` optimizations (adaptive sync poll interval based on settingsStore).
+- [x] Full `Family Grouping UI` linking multiple patient profiles.
+- [x] Additional mobile responsiveness polish (hiding sidebar and showing `BottomNav` cleanly across all role layouts).
 

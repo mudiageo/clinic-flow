@@ -1,4 +1,4 @@
-import { LocalCollection } from './base.svelte';
+import { LocalCollection } from './local-collection.svelte';
 import { db, type LocalPregnancyRecord } from '$lib/local-db/db';
 
 class PregnancyStore extends LocalCollection<LocalPregnancyRecord> {

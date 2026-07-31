@@ -1,6 +1,7 @@
 import { db } from '$lib/local-db/db';
 import { pushOperations, pullChanges } from '../../routes/sync/sync.remote';
 import { toast } from 'svelte-sonner';
+import { settingsStore } from '$lib/state/settings.svelte';
 
 // Generate a stable device ID for sync segregation
 function getDeviceId() {
@@ -41,8 +42,13 @@ class SyncStore {
 			const savedCursor = localStorage.getItem('clinicflow_sync_cursor');
 			if (savedCursor) this.cursor = parseInt(savedCursor, 10);
 
-			// Auto flush every 30s
-			this.intervalHandle = setInterval(() => this.flush(), 30_000);
+			// Auto flush using dynamic interval
+			const pollLoop = () => {
+				this.flush();
+				const interval = (settingsStore.current?.syncPollInterval || 15) * 1000;
+				this.intervalHandle = setTimeout(pollLoop, Math.max(5000, interval));
+			};
+			this.intervalHandle = setTimeout(pollLoop, 15_000);
 
 			// Setup BroadcastChannel for cross-tab sync triggers
 			this.bc = new BroadcastChannel('clinicflow_sync_channel');

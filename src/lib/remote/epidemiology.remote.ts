@@ -1,5 +1,5 @@
 import { query } from '$app/server';
-import { db as serverDb } from '$lib/server/db/db';
+import { db as serverDb } from '$lib/server/db';
 import * as schema from '$lib/server/db/schema';
 import * as v from 'valibot';
 

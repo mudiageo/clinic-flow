@@ -25,6 +25,7 @@
 		UserCheck,
 		Check
 	} from '@lucide/svelte';
+	import { NumberTicker } from '$lib/components/ui/number-ticker';
 
 	// Get reactive queue items
 	const sortedQueue = $derived(queueStore.sortedQueue);
@@ -87,7 +88,7 @@
 					<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
 						Waiting
 					</p>
-					<p class="text-2xl font-bold text-foreground mt-1 tabular-nums">{stats.total}</p>
+					<NumberTicker value={stats.total} class="text-2xl font-bold mt-1 block" />
 				</div>
 				<div
 					class="size-10 rounded-lg bg-muted flex items-center justify-center text-muted-foreground"
@@ -101,7 +102,7 @@
 			<CardContent class="p-5 flex items-center justify-between">
 				<div>
 					<p class="text-xs font-semibold text-triage-red uppercase tracking-wider">Red Alert</p>
-					<p class="text-2xl font-bold text-triage-red mt-1 tabular-nums">{stats.red}</p>
+					<NumberTicker value={stats.red} class="text-2xl font-bold text-triage-red mt-1 block" />
 				</div>
 				<div
 					class="size-10 rounded-lg bg-triage-red/10 flex items-center justify-center text-triage-red ring-1 ring-triage-red/20"
@@ -117,7 +118,7 @@
 					<p class="text-xs font-semibold text-triage-amber uppercase tracking-wider">
 						Amber Warning
 					</p>
-					<p class="text-2xl font-bold text-triage-amber mt-1 tabular-nums">{stats.amber}</p>
+					<NumberTicker value={stats.amber} class="text-2xl font-bold text-triage-amber mt-1 block" />
 				</div>
 				<div
 					class="size-10 rounded-lg bg-triage-amber/10 flex items-center justify-center text-triage-amber ring-1 ring-triage-amber/20"
@@ -131,9 +132,9 @@
 			<CardContent class="p-5 flex items-center justify-between">
 				<div>
 					<p class="text-xs font-semibold text-triage-green uppercase tracking-wider">
-						Green Stable
+						Green Routine
 					</p>
-					<p class="text-2xl font-bold text-triage-green mt-1 tabular-nums">{stats.green}</p>
+					<NumberTicker value={stats.green} class="text-2xl font-bold text-triage-green mt-1 block" />
 				</div>
 				<div
 					class="size-10 rounded-lg bg-triage-green/10 flex items-center justify-center text-triage-green ring-1 ring-triage-green/20"

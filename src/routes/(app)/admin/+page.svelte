@@ -28,8 +28,18 @@
 	import { Alert, AlertTitle, AlertDescription } from '$lib/components/ui/alert';
 	import { Users, ClipboardList, AlertTriangle, Activity, ShieldAlert, CheckCircle2, CloudSync, Wifi, WifiOff, Siren } from '@lucide/svelte';
 
-	let { data } = $props<{ data: { staffList: any[] } }>();
+	import { onMount } from 'svelte';
+	import { getPhcStaffList } from '$lib/remote/admin.remote';
 
+	let staffList = $state<any[]>([]);
+
+	onMount(async () => {
+		try {
+			staffList = await getPhcStaffList();
+		} catch (e) {
+			console.error('Failed to fetch staff list', e);
+		}
+	});
 	const totalPatients = $derived(patientStore.items.length);
 	const queueItems = $derived(queueStore.items);
 	const lowStockItems = $derived(pharmacyStore.lowStock);
@@ -60,7 +70,7 @@
 		return { days, max };
 	});
 
-	const activeStaff = $derived(data.staffList.filter((s: any) => s.active).slice(0, 5));
+	const activeStaff = $derived(staffList.filter((s: any) => s.active).slice(0, 5));
 
 	const triageStats = $derived({
 		red: queueItems.filter((t: any) => t.triageLevel === 'red').length,

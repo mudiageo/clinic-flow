@@ -78,16 +78,19 @@
 				}
 			})}
 			class="space-y-8"
+			novalidate
 		>
-			{#if currentStep === 1}
-				<!-- Step 1: Admin Details -->
-				<div class="space-y-4 animate-in fade-in slide-in-from-right-4">
+			<!-- Step 1: Admin Details -->
+			<div class="space-y-4 animate-in fade-in slide-in-from-right-4" class:hidden={currentStep !== 1}>
 					<div class="space-y-2">
 						<Label for="adminName">Admin Full Name</Label>
 						<div class="relative">
 							<User class="absolute left-3 top-3 size-4 text-muted-foreground" />
 							<Input {...registerAction.fields.adminName.as('text')} id="adminName" placeholder="e.g. John Doe" class="pl-10" required />
 						</div>
+						{#if registerAction.fields.adminName.issues()}
+							<p class="text-sm text-destructive">{registerAction.fields.adminName.issues()}</p>
+						{/if}
 					</div>
 					<div class="space-y-2">
 						<Label for="email">Admin Email</Label>
@@ -95,6 +98,9 @@
 							<Mail class="absolute left-3 top-3 size-4 text-muted-foreground" />
 							<Input {...registerAction.fields.email.as('email')} id="email" type="email" placeholder="admin@phc.gov.ng" class="pl-10" required />
 						</div>
+						{#if registerAction.fields.email.issues()}
+							<p class="text-sm text-destructive">{registerAction.fields.email.issues()}</p>
+						{/if}
 					</div>
 					<div class="space-y-2">
 						<Label for="password">Password</Label>
@@ -102,7 +108,11 @@
 							<Lock class="absolute left-3 top-3 size-4 text-muted-foreground" />
 							<Input {...registerAction.fields.password.as('password')} id="password" type="password" class="pl-10" required minlength={8} />
 						</div>
-						<p class="text-xs text-muted-foreground mt-1">Must be at least 8 characters long.</p>
+						{#if registerAction.fields.password.issues()}
+							<p class="text-sm text-destructive">{registerAction.fields.password.issues()}</p>
+						{:else}
+							<p class="text-xs text-muted-foreground mt-1">Must be at least 8 characters long.</p>
+						{/if}
 					</div>
 					
 					<div class="flex justify-end pt-4">
@@ -111,15 +121,18 @@
 					    </Button>
 					</div>
 				</div>
-			{:else if currentStep === 2}
+
 				<!-- Step 2: Clinic Details -->
-				<div class="space-y-4 animate-in fade-in slide-in-from-right-4">
+				<div class="space-y-4 animate-in fade-in slide-in-from-right-4" class:hidden={currentStep !== 2}>
 					<div class="space-y-2">
 						<Label for="phcName">Primary Healthcare Center Name</Label>
 						<div class="relative">
 							<Building class="absolute left-3 top-3 size-4 text-muted-foreground" />
 							<Input {...registerAction.fields.phcName.as('text')} id="phcName" placeholder="e.g. Oredo PHC" class="pl-10" required />
 						</div>
+						{#if registerAction.fields.phcName.issues()}
+							<p class="text-sm text-destructive">{registerAction.fields.phcName.issues()}</p>
+						{/if}
 					</div>
 					<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 						<div class="space-y-2">
@@ -128,10 +141,16 @@
 								<MapPin class="absolute left-3 top-3 size-4 text-muted-foreground" />
 								<Input {...registerAction.fields.state.as('text')} id="state" placeholder="e.g. Edo State" class="pl-10" required />
 							</div>
+							{#if registerAction.fields.state.issues()}
+								<p class="text-sm text-destructive">{registerAction.fields.state.issues()}</p>
+							{/if}
 						</div>
 						<div class="space-y-2">
 							<Label for="lga">LGA</Label>
 							<Input {...registerAction.fields.lga.as('text')} id="lga" placeholder="e.g. Oredo" required />
+							{#if registerAction.fields.lga.issues()}
+								<p class="text-sm text-destructive">{registerAction.fields.lga.issues()}</p>
+							{/if}
 						</div>
 					</div>
 					
@@ -144,9 +163,9 @@
 					    </Button>
 					</div>
 				</div>
-			{:else if currentStep === 3}
+
 			    <!-- Step 3: Success -->
-			    <div class="flex flex-col items-center text-center space-y-6 animate-in zoom-in-95 py-8">
+			    <div class="flex flex-col items-center text-center space-y-6 animate-in zoom-in-95 py-8" class:hidden={currentStep !== 3}>
 			        <div class="size-20 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center">
 			            <CheckCircle2 class="size-10" />
 			        </div>
@@ -169,7 +188,6 @@
 			            </Button>
 			        </div>
 			    </div>
-			{/if}
 		</form>
 	</div>
 </div>

@@ -75,4 +75,8 @@
 							Save Changes
 						{/if}
 					</Button>
+				</div>
+			</CardContent>
+		</Card>
+	{/if}
 </div>

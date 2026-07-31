@@ -206,7 +206,7 @@ export const registerAction = form(
 		email: v.pipe(v.string(), v.email('Invalid email')),
 		password: v.pipe(v.string(), v.minLength(8, 'Password must be at least 8 characters'))
 	}),
-	async (data) => {
+	async (data, issue) => {
 		try {
 			// 1. Create PHC
 			const [newPhc] = await db
@@ -228,7 +228,7 @@ export const registerAction = form(
 			});
 
 			if (!res?.user) {
-				throw new Error('Failed to create user account');
+				return invalid(issue('email', 'Failed to create user account'));
 			}
 
 			// 3. Create Admin Staff Record
@@ -245,7 +245,7 @@ export const registerAction = form(
 			if (isRedirect(error)) {
 				throw error;
 			}
-			throw new Error(error.message || 'Registration failed');
+			return invalid(issue('email', error.message || 'Registration failed'));
 		}
 	}
 );

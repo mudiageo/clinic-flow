@@ -321,6 +321,7 @@
 												/>
 												Patient is currently pregnant
 											</label>
+										</div>
 									{/if}
 								</div>
 
@@ -335,7 +336,6 @@
 										/>
 										Patient is an NHIS/HMO enrollee
 									</label>
-								</div>
 								</div>
 							</div>
 						{:else if currentStep === 2}

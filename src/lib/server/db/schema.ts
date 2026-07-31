@@ -555,7 +555,7 @@ export const patientsRelations = relations(patients, ({ one, many }) => ({
 export const staffRelations = relations(staff, ({ many, one }) => ({
 	phc: one(phcs, { fields: [staff.phcId], references: [phcs.id] }),
 	permissions: many(permissions, { relationName: 'grantedPermissions' }),
-	appointments: many(appointments)
+	appointments: many(appointments, { relationName: 'assignedStaff' })
 }));
 
 export const phcsRelations = relations(phcs, ({ many }) => ({
@@ -593,7 +593,50 @@ export const queueTicketsRelations = relations(queueTickets, ({ one }) => ({
 
 export const appointmentsRelations = relations(appointments, ({ one }) => ({
 	patient: one(patients, { fields: [appointments.patientId], references: [patients.id] }),
-	assignedStaff: one(staff, { fields: [appointments.assignedStaffId], references: [staff.id] })
+	assignedStaff: one(staff, { fields: [appointments.assignedStaffId], references: [staff.id], relationName: 'assignedStaff' })
+}));
+
+export const labRequestsRelations = relations(labRequests, ({ one }) => ({
+	patient: one(patients, { fields: [labRequests.patientId], references: [patients.id] }),
+	encounter: one(encounters, { fields: [labRequests.encounterId], references: [encounters.id] })
+}));
+
+export const familyRelationshipsRelations = relations(familyRelationships, ({ one }) => ({
+	patient: one(patients, { fields: [familyRelationships.patientId], references: [patients.id] }),
+	relatedPatient: one(patients, { fields: [familyRelationships.relatedPatientId], references: [patients.id] })
+}));
+
+export const vitalsRecordsRelations = relations(vitalsRecords, ({ one }) => ({
+	patient: one(patients, { fields: [vitalsRecords.patientId], references: [patients.id] }),
+	encounter: one(encounters, { fields: [vitalsRecords.encounterId], references: [encounters.id] })
+}));
+
+export const remindersRelations = relations(reminders, ({ one }) => ({
+	patient: one(patients, { fields: [reminders.patientId], references: [patients.id] })
+}));
+
+export const pregnancyRecordsRelations = relations(pregnancyRecords, ({ one }) => ({
+	patient: one(patients, { fields: [pregnancyRecords.patientId], references: [patients.id] }),
+	phc: one(phcs, { fields: [pregnancyRecords.phcId], references: [phcs.id] })
+}));
+
+export const smsInboxRelations = relations(smsInbox, ({ one }) => ({
+	patient: one(patients, { fields: [smsInbox.patientId], references: [patients.id] }),
+	phc: one(phcs, { fields: [smsInbox.phcId], references: [phcs.id] })
+}));
+
+export const prescriptionsRelations = relations(prescriptions, ({ one }) => ({
+	patient: one(patients, { fields: [prescriptions.patientId], references: [patients.id] }),
+	encounter: one(encounters, { fields: [prescriptions.encounterId], references: [encounters.id] }),
+	medication: one(pharmacyInventory, { fields: [prescriptions.inventoryItemId], references: [pharmacyInventory.id] })
+}));
+
+export const restockRequestsRelations = relations(restockRequests, ({ one }) => ({
+	medication: one(pharmacyInventory, { fields: [restockRequests.inventoryItemId], references: [pharmacyInventory.id] })
+}));
+
+export const familiesRelations = relations(families, ({ many }) => ({
+	patients: many(patients)
 }));
 
 // Better Auth tables integration

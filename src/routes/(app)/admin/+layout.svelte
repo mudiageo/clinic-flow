@@ -62,9 +62,10 @@
 		},
 		{
 			label: 'System',
-			items: [{ href: '/superadmin', label: 'Makers Dashboard', icon: Shield }]
+			items: [{ href: '/superadmin', label: 'Makers Dashboard', icon: Shield }],
+			hide: role !== 'superadmin'
 		}
-	];
+	].filter(group => !group.hide);
 
 	const bottomNavItems: BottomNavItem[] = [
 		{ href: '/admin', label: 'Overview', icon: BarChart3 },

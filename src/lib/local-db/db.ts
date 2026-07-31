@@ -21,6 +21,14 @@ export interface LocalPatient {
 	deleted: boolean;
 }
 
+export interface LocalFamily {
+	id: string;
+	householdName: string | null;
+	community: string | null;
+	syncStatus: 'synced' | 'pending' | 'conflict';
+	updatedAt: number;
+}
+
 export interface LocalQueueTicket {
 	id: string;
 	patientId: string;
@@ -237,6 +245,7 @@ class ClinicFlowDB extends Dexie {
 	restockRequests!: Table<LocalRestockRequest, string>;
 	appointments!: Table<LocalAppointment, string>;
 	pregnancyRecords!: Table<LocalPregnancyRecord, string>;
+	families!: Table<LocalFamily, string>;
 	syncLog!: Table<SyncLogEntry, number>;
 
 	constructor() {
@@ -263,6 +272,9 @@ class ClinicFlowDB extends Dexie {
 		});
 		this.version(5).stores({
 			pregnancyRecords: 'id, patientId, status, syncStatus'
+		});
+		this.version(6).stores({
+			families: 'id, householdName, syncStatus'
 		});
 	}
 }
