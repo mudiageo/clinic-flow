@@ -31,6 +31,15 @@
 	const user = session?.user;
 	const role = session?.role ?? 'superadmin';
 
+	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
+
+	onMount(() => {
+		if (role !== 'superadmin') {
+			goto('/login');
+		}
+	});
+
 	const navGroups: NavGroup[] = [
 		{
 			label: 'Platform',
