@@ -10,6 +10,10 @@
 	import { reminderStore } from '$lib/state/reminders.svelte';
 	import { Calendar, User, Clock } from '@lucide/svelte';
 
+	import { getContext } from 'svelte';
+	
+	const session = getContext<{ phcId: string }>('session');
+
 	let { open = $bindable(false) } = $props();
 
 	let searchQuery = $state('');
@@ -54,7 +58,7 @@
 
 			await reminderStore.create({
 				patientId: selectedPatient.id,
-				phcId: crypto.randomUUID(), // Mock or from auth
+				phcId: session.phcId,
 				recipientPhone: selectedPatient.phone,
 				type,
 				label,
