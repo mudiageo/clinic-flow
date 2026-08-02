@@ -1,0 +1,53 @@
+name: 'Init Android'
+on:
+  workflow_dispatch:
+
+jobs:
+  init-android:
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup vite+
+        uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version: lts/*
+          cache: true
+
+      - name: setup java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: setup android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - name: install NDK
+        run: sdkmanager "ndk;25.2.9519653"
+
+      - name: set NDK path
+        run: echo "NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
+
+      - name: install dependencies
+        run: vp install
+
+      - name: init android
+        run: vp exec tauri android init
+
+      - name: create pull request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: 'chore: Initialize Tauri Android project'
+          title: 'Initialize Tauri Android project'
+          body: 'This PR initializes the Tauri Android project via GitHub Actions.'
+          branch: 'init-android-branch'
+          base: 'main'
