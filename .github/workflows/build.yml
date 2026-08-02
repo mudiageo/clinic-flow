@@ -35,16 +35,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xdg-utils
 
-      - name: setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: "11.13.1"
-          
-      - name: setup node
-        uses: actions/setup-node@v6
+      - name: setup vite+
+        uses: voidzero-dev/setup-vp@v1
         with:
           node-version: lts/*
-          cache: 'pnpm'
+          cache: true
           
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -57,7 +52,7 @@ jobs:
           workspaces: './src-tauri -> target'
           
       - name: install dependencies
-        run: pnpm install
+        run: vp install
         
       - uses: tauri-apps/tauri-action@v1
         env:
@@ -77,15 +72,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - name: setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: "11.13.1"
-      - name: setup node
-        uses: actions/setup-node@v6
+      - name: setup vite+
+        uses: voidzero-dev/setup-vp@v1
         with:
           node-version: lts/*
-          cache: 'pnpm'
+          cache: true
       - name: setup java
         uses: actions/setup-java@v4
         with:
@@ -102,7 +93,7 @@ jobs:
       - name: set NDK path
         run: echo "NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
       - name: install dependencies
-        run: pnpm install
+        run: vp install
       - name: build android
-        run: pnpm build:android
+        run: vp run build:android
         continue-on-error: true
