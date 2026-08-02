@@ -57,6 +57,9 @@ jobs:
       - uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DATABASE_URL: "sqlite://dummy.db"
+          BETTER_AUTH_SECRET: "dummy-secret"
+          ORIGIN: "http://localhost:5173"
         with:
           tagName: app-v__VERSION__
           releaseName: 'App v__VERSION__'
@@ -96,4 +99,8 @@ jobs:
         run: vp install
       - name: build android
         run: vp run build:android
+        env:
+          DATABASE_URL: "sqlite://dummy.db"
+          BETTER_AUTH_SECRET: "dummy-secret"
+          ORIGIN: "http://localhost:5173"
         continue-on-error: true
