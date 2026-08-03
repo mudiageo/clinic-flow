@@ -104,14 +104,22 @@ jobs:
         run: echo "NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
       - name: install dependencies
         run: vp install
-      - name: build android
-        run: vp run build:android
+      - name: build and upload android
+        uses: tauri-apps/tauri-action@v2
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DATABASE_URL: "sqlite://dummy.db"
           BETTER_AUTH_SECRET: "dummy-secret"
           ORIGIN: "http://localhost:5173"
           TAURI: "1"
-        continue-on-error: true
+        with:
+          tagName: app-v__VERSION__
+          releaseName: 'App v__VERSION__'
+          releaseDraft: true
+          prerelease: false
+          tauriScript: "vp exec tauri"
+          args: "--apk --split-per-abi --debug"
+          mobile: "android"
 
       - name: Read Tauri version
         id: tauri_version
@@ -121,7 +129,14 @@ jobs:
       - name: Rename APK
         run: |
           mkdir -p apk_output
-          find src-tauri/gen/android/app/build/outputs/apk -name "*.apk" -not -name "*unaligned*" -exec cp {} apk_output/ClinicFlow_${{ env.version }}_aarch64.apk \; || true
+          # With --split-per-abi and --debug, APKs will be located in ABI-specific folders inside build/outputs/apk/
+          find src-tauri/gen/android/app/build/outputs/apk -name "*.apk" -not -name "*unaligned*" -exec cp {} apk_output/ \; || true
+          
+          # Rename them uniquely
+          cd apk_output
+          for file in *.apk; do
+            mv "$file" "ClinicFlow_${{ env.version }}_$file"
+          done
           
       - name: Upload Release
         uses: softprops/action-gh-release@v1
