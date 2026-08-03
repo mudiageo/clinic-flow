@@ -105,20 +105,13 @@ jobs:
       - name: install dependencies
         run: vp install
       - name: build android
-        uses: tauri-apps/tauri-action@v1
+        run: vp run build:android
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DATABASE_URL: "sqlite://dummy.db"
           BETTER_AUTH_SECRET: "dummy-secret"
           ORIGIN: "http://localhost:5173"
           TAURI: "1"
-        with:
-          tagName: app-v__VERSION__
-          releaseName: 'App v__VERSION__'
-          releaseDraft: true
-          prerelease: false
-          tauriScript: "vp exec tauri"
-          args: "android build"
+        continue-on-error: true
 
       - name: Read Tauri version
         id: tauri_version
