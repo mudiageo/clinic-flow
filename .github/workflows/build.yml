@@ -104,8 +104,8 @@ jobs:
         run: echo "NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
       - name: install dependencies
         run: vp install
-      - name: build and upload android
-        uses: tauri-apps/tauri-action@v0
+      - name: build android
+        uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DATABASE_URL: "sqlite://dummy.db"
@@ -119,3 +119,23 @@ jobs:
           prerelease: false
           tauriScript: "vp exec tauri"
           args: "android build"
+
+      - name: Read Tauri version
+        id: tauri_version
+        run: |
+          echo "version=$(grep -o '"version": "[^"]*"' src-tauri/tauri.conf.json | cut -d '"' -f 4)" >> $GITHUB_ENV
+
+      - name: Rename APK
+        run: |
+          mkdir -p apk_output
+          find src-tauri/gen/android/app/build/outputs/apk -name "*.apk" -not -name "*unaligned*" -exec cp {} apk_output/ClinicFlow_${{ env.version }}_aarch64.apk \; || true
+          
+      - name: Upload Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: app-v${{ env.version }}
+          name: 'App v${{ env.version }}'
+          draft: true
+          files: apk_output/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
