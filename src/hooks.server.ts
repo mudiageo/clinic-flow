@@ -1,4 +1,5 @@
 import type { Handle } from '@sveltejs/kit';
+import { env } from '$env/dynamic/private';
 import { redirect } from '@sveltejs/kit';
 import { building } from '$app/env';
 import { auth } from '$lib/server/auth';
@@ -12,6 +13,43 @@ if (!building) {
 
 export const handle: Handle = async ({ event, resolve }) => {
 	if (building) return resolve(event);
+
+	// Determine allowed origins dynamically
+	const customOrigins = env.ALLOWED_ORIGINS?.split(',').map((s) => s.trim()) || [];
+	const ALLOWED_ORIGINS = [
+		'http://localhost:5173',
+		'http://localhost:1420',
+		'tauri://localhost',
+		'https://tauri.localhost',
+		'http://localhost',
+		...customOrigins
+	];
+
+	const origin = event.request.headers.get('origin');
+	const isRemotePath = event.url.pathname.startsWith('/_app/remote/');
+	const isRemoteCall = event.request.headers.has('X-SvelteKit-Remote');
+	const isAllowedOrigin = origin !== null && ALLOWED_ORIGINS.includes(origin);
+	const isGetRequest = event.request.method === 'GET' || event.request.method === 'HEAD';
+
+	// CORS preflight for the custom header
+	if (event.request.method === 'OPTIONS') {
+		const requestHeaders =
+			event.request.headers.get('access-control-request-headers') ??
+			'content-type,x-sveltekit-remote';
+		const allowedOrigin = isAllowedOrigin ? origin! : ALLOWED_ORIGINS[0];
+
+		return new Response(null, {
+			status: 204,
+			headers: {
+				'Access-Control-Allow-Origin': allowedOrigin,
+				'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+				'Access-Control-Allow-Headers': requestHeaders,
+				'Access-Control-Allow-Credentials': 'true',
+				'Access-Control-Max-Age': '600',
+				Vary: 'Origin'
+			}
+		});
+	}
 
 	// Let Better Auth handle its own API endpoints
 	if (event.url.pathname.startsWith('/api/auth/')) {
@@ -78,5 +116,17 @@ export const handle: Handle = async ({ event, resolve }) => {
 		}
 	}
 
-	return resolve(event);
+	const res = await resolve(event);
+
+	if (isRemotePath || isRemoteCall) {
+		res.headers.append('Vary', 'Origin');
+		if (isAllowedOrigin) {
+			res.headers.set('Access-Control-Allow-Origin', origin!);
+			res.headers.set('Access-Control-Allow-Credentials', 'true');
+		} else if (isGetRequest) {
+			res.headers.set('Access-Control-Allow-Origin', origin ?? '*');
+		}
+	}
+
+	return res;
 };

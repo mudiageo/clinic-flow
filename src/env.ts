@@ -34,5 +34,21 @@ export const variables = defineEnvVars({
 	TERMII_SENDER_ID: {
 		description: 'Optional Termii Sender ID for SMS reminders',
 		schema: v.optional(v.string())
+	},
+	BACKEND_HOST: {
+		description: 'The API host for Tauri clients to forward remote calls to',
+		public: true,
+		static: true,
+		schema: v.optional(v.string())
+	},
+	BACKEND_INSECURE: {
+		description: 'Set to "true" to disable HTTPS when forwarding to BACKEND_HOST',
+		public: true,
+		static: true,
+		schema: v.optional(v.string())
+	},
+	ALLOWED_ORIGINS: {
+		description: 'Comma separated list of allowed CORS origins for remote functions',
+		schema: v.optional(v.string())
 	}
 });
