@@ -13,8 +13,6 @@ export default defineConfig({
 		tailwindcss(),
 		SvelteKitPWA({
 			strategies: 'injectManifest',
-			srcDir: 'src',
-			filename: 'service-worker.ts',
 			registerType: 'autoUpdate',
 			manifest: {
 				name: 'ClinicFlow',
