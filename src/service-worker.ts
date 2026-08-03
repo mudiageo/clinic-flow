@@ -11,7 +11,9 @@ import { ExpirationPlugin } from 'workbox-expiration';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 import { BACKEND_HOST, BACKEND_INSECURE } from '$app/env/public';
 
-const self = globalThis.self as unknown as ServiceWorkerGlobalScope;
+
+declare let self: ServiceWorkerGlobalScope
+self = globalThis.self as unknown as ServiceWorkerGlobalScope;
 const dev = self.location.hostname === 'localhost';
 
 // Required: precache manifest injection point for injectManifest mode
