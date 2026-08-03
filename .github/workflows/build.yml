@@ -127,6 +127,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: app-v${{ env.version }}
+          name: 'App v${{ env.version }}'
+          draft: true
           files: apk_output/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
