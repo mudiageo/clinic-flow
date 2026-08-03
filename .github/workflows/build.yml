@@ -60,6 +60,7 @@ jobs:
           DATABASE_URL: "sqlite://dummy.db"
           BETTER_AUTH_SECRET: "dummy-secret"
           ORIGIN: "http://localhost:5173"
+          TAURI: "1"
         with:
           tagName: app-v__VERSION__
           releaseName: 'App v__VERSION__'
@@ -103,4 +104,5 @@ jobs:
           DATABASE_URL: "sqlite://dummy.db"
           BETTER_AUTH_SECRET: "dummy-secret"
           ORIGIN: "http://localhost:5173"
+          TAURI: "1"
         continue-on-error: true
