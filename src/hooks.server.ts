@@ -1,5 +1,5 @@
 import type { Handle } from '@sveltejs/kit';
-import { env } from '$env/dynamic/private';
+import { ALLOWED_ORIGINS } from '$app/env/private';
 import { redirect } from '@sveltejs/kit';
 import { building } from '$app/env';
 import { auth } from '$lib/server/auth';
@@ -15,8 +15,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 	if (building) return resolve(event);
 
 	// Determine allowed origins dynamically
-	const customOrigins = env.ALLOWED_ORIGINS?.split(',').map((s) => s.trim()) || [];
-	const ALLOWED_ORIGINS = [
+	const customOrigins = ALLOWED_ORIGINS?.split(',').map((s) => s.trim()) || [];
+	const allAllowedOrigins = [
 		'http://localhost:5173',
 		'http://localhost:1420',
 		'tauri://localhost',
@@ -28,7 +28,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const origin = event.request.headers.get('origin');
 	const isRemotePath = event.url.pathname.startsWith('/_app/remote/');
 	const isRemoteCall = event.request.headers.has('X-SvelteKit-Remote');
-	const isAllowedOrigin = origin !== null && ALLOWED_ORIGINS.includes(origin);
+	const isAllowedOrigin = origin !== null && allAllowedOrigins.includes(origin);
 	const isGetRequest = event.request.method === 'GET' || event.request.method === 'HEAD';
 
 	// CORS preflight for the custom header
@@ -36,7 +36,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		const requestHeaders =
 			event.request.headers.get('access-control-request-headers') ??
 			'content-type,x-sveltekit-remote';
-		const allowedOrigin = isAllowedOrigin ? origin! : ALLOWED_ORIGINS[0];
+		const allowedOrigin = isAllowedOrigin ? origin! : allAllowedOrigins[0];
 
 		return new Response(null, {
 			status: 204,

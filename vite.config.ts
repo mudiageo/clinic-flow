@@ -12,6 +12,9 @@ export default defineConfig({
 	plugins: [
 		tailwindcss(),
 		SvelteKitPWA({
+			strategies: 'injectManifest',
+			srcDir: 'src',
+			filename: 'service-worker.ts',
 			registerType: 'autoUpdate',
 			manifest: {
 				name: 'ClinicFlow',
@@ -33,25 +36,8 @@ export default defineConfig({
 					}
 				]
 			},
-			workbox: {
-				maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
-				globPatterns: ['client/**/*.{js,css,ico,png,svg,webp,woff,woff2}'],
-				runtimeCaching: [
-					{
-						urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-						handler: 'CacheFirst',
-						options: {
-							cacheName: 'google-fonts-cache',
-							expiration: {
-								maxEntries: 10,
-								maxAgeSeconds: 60 * 60 * 24 * 365
-							},
-							cacheableResponse: {
-								statuses: [0, 200]
-							}
-						}
-					}
-				]
+			injectManifest: {
+				maximumFileSizeToCacheInBytes: 10 * 1024 * 1024
 			}
 		}),
 		sveltekit({
