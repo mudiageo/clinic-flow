@@ -106,3 +106,21 @@ jobs:
           ORIGIN: "http://localhost:5173"
           TAURI: "1"
         continue-on-error: true
+
+      - name: Read Tauri version
+        id: tauri_version
+        run: |
+          echo "version=$(grep -o '"version": "[^"]*"' src-tauri/tauri.conf.json | cut -d '"' -f 4)" >> $GITHUB_ENV
+
+      - name: Rename APK
+        run: |
+          mkdir -p apk_output
+          find src-tauri/gen/android/app/build/outputs/apk -name "*.apk" -not -name "*unaligned*" -exec cp {} apk_output/ClinicFlow_${{ env.version }}_aarch64.apk \; || true
+          
+      - name: Upload Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: app-v${{ env.version }}
+          files: apk_output/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
