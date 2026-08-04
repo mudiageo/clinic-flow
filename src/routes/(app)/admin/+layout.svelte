@@ -23,7 +23,9 @@
 		Moon,
 		Monitor,
 		MessageSquare,
-		TabletSmartphone
+		TabletSmartphone,
+		Server,
+		ClipboardList
 	} from '@lucide/svelte';
 	import type { NavGroup } from '$lib/components/app-sidebar.svelte';
 
@@ -59,6 +61,8 @@
 				{ href: '/admin/reminders', label: 'Reminders', icon: Bell },
 				{ href: '/admin/sms-inbox', label: 'SMS Inbox', icon: MessageSquare },
 				{ href: '/admin/devices', label: 'Devices & Kiosks', icon: TabletSmartphone },
+				{ href: '/admin/server-status', label: 'Server Status', icon: Server },
+				{ href: '/admin/audit', label: 'Audit Log', icon: ClipboardList },
 				{ href: '/admin/settings', label: 'PHC Settings', icon: Settings }
 			]
 		},

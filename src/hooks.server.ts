@@ -6,9 +6,38 @@ import { auth } from '$lib/server/auth';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { db } from '$lib/server/db';
 import { startSmsWorker } from '$lib/server/sms/worker';
+import { DATABASE_URL } from '$app/env/private';
 
 if (!building) {
 	startSmsWorker();
+
+	// mDNS broadcasting — only on local master server (SQLite/libsql mode)
+	// This advertises the server as "clinicflow-server.local" on the clinic Wi-Fi
+	// so tablets can find it automatically without knowing the IP address.
+	const isLocalServer =
+		DATABASE_URL.startsWith('file:') ||
+		DATABASE_URL.startsWith('libsql:') ||
+		DATABASE_URL.endsWith('.db');
+
+	if (isLocalServer) {
+		import('bonjour-service').then(({ Bonjour }) => {
+			const bonjour = new Bonjour();
+			const port = Number(process.env.PORT ?? 3000);
+
+			bonjour.publish({
+				name: 'ClinicFlow Master Server',
+				type: 'http',
+				port,
+				txt: { version: '1', app: 'clinicflow' }
+			});
+
+			console.log(`[mDNS] Broadcasting as "clinicflow-server.local" on port ${port}`);
+
+			// Graceful shutdown
+			process.on('SIGTERM', () => bonjour.destroy());
+			process.on('SIGINT', () => bonjour.destroy());
+		}).catch((e) => console.warn('[mDNS] bonjour-service unavailable:', e.message));
+	}
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
