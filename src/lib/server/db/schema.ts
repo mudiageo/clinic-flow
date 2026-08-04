@@ -101,6 +101,7 @@ export const staff = pgTable('staff', {
 		.references(() => phcs.id),
 	active: boolean('active').notNull().default(true),
 	preferences: text('preferences'), // JSON serialized preferences
+	pin: varchar('pin', { length: 255 }), // argon2-hashed 4-digit PIN for kiosk login
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 });
 
@@ -669,6 +670,36 @@ export const restockRequestsRelations = relations(restockRequests, ({ one }) => 
 
 export const familiesRelations = relations(families, ({ many }) => ({
 	patients: many(patients)
+}));
+
+// ─────────────────────────────────────────────────────────────
+// AUDIT LOG
+// ─────────────────────────────────────────────────────────────
+
+export const auditLog = pgTable(
+	'audit_log',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		phcId: uuid('phc_id')
+			.notNull()
+			.references(() => phcs.id, { onDelete: 'cascade' }),
+		staffId: uuid('staff_id').references(() => staff.id, { onDelete: 'set null' }),
+		action: varchar('action', { length: 100 }).notNull(), // e.g. 'patient.update', 'queue.call'
+		entityType: varchar('entity_type', { length: 50 }), // e.g. 'patient', 'encounter'
+		entityId: uuid('entity_id'),
+		metadata: text('metadata'), // JSON blob with before/after or extra context
+		ip: varchar('ip', { length: 45 }), // client IP (IPv6-safe)
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(table) => ({
+		phcIdx: index('audit_log_phc_idx').on(table.phcId),
+		createdAtIdx: index('audit_log_created_at_idx').on(table.createdAt)
+	})
+);
+
+export const auditLogRelations = relations(auditLog, ({ one }) => ({
+	phc: one(phcs, { fields: [auditLog.phcId], references: [phcs.id] }),
+	staff: one(staff, { fields: [auditLog.staffId], references: [staff.id] })
 }));
 
 // Better Auth tables integration

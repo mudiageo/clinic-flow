@@ -94,6 +94,7 @@
 	"dependencies": {
 		"@google/genai": "^2.11.0",
 		"@kevwpl/svelte-o-phone": "^0.0.10",
+		"@libsql/client": "^0.17.4",
 		"@mlc-ai/web-llm": "^0.2.84",
 		"libphonenumber-js": "^1.13.8",
 		"qr-scanner": "^1.4.2",
