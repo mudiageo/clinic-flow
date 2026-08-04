@@ -67,6 +67,7 @@ jobs:
           releaseBody: 'Automated cross-platform build.'
           releaseDraft: true
           prerelease: false
+          uploadPlainBinary: true
           args: ${{ matrix.args }}
 
   build-android:
@@ -120,30 +121,3 @@ jobs:
           tauriScript: "vp exec tauri"
           args: "--apk --split-per-abi --debug"
           mobile: "android"
-
-      - name: Read Tauri version
-        id: tauri_version
-        run: |
-          echo "version=$(grep -o '"version": "[^"]*"' src-tauri/tauri.conf.json | cut -d '"' -f 4)" >> $GITHUB_ENV
-
-      - name: Rename APK
-        run: |
-          mkdir -p apk_output
-          # With --split-per-abi and --debug, APKs will be located in ABI-specific folders inside build/outputs/apk/
-          find src-tauri/gen/android/app/build/outputs/apk -name "*.apk" -not -name "*unaligned*" -exec cp {} apk_output/ \; || true
-          
-          # Rename them uniquely
-          cd apk_output
-          for file in *.apk; do
-            mv "$file" "ClinicFlow_${{ env.version }}_$file"
-          done
-          
-      - name: Upload Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: app-v${{ env.version }}
-          name: 'App v${{ env.version }}'
-          draft: true
-          files: apk_output/*.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
