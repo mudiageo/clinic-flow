@@ -570,6 +570,23 @@ export const syncOperations = pgTable(
 );
 
 // ─────────────────────────────────────────────────────────────
+// CLOUD UPLINK CONFIG (local master server → cloud sync)
+// ─────────────────────────────────────────────────────────────
+
+export const uplinkConfig = pgTable('uplink_config', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	phcId: uuid('phc_id').notNull().references(() => phcs.id, { onDelete: 'cascade' }).unique(),
+	cloudUrl: varchar('cloud_url', { length: 255 }).notNull(), // e.g. https://cloud.clinicflow.org
+	uplinkKey: varchar('uplink_key', { length: 512 }).notNull(), // encrypted API key for cloud auth
+	superAdminEmail: varchar('super_admin_email', { length: 255 }), // mirrored superadmin email
+	superAdminPasswordHash: varchar('super_admin_password_hash', { length: 512 }), // argon2 hash for offline login
+	lastSyncAt: timestamp('last_sync_at', { withTimezone: true }),
+	syncEnabled: boolean('sync_enabled').notNull().default(true),
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+});
+
+// ─────────────────────────────────────────────────────────────
 // RELATIONS
 // ─────────────────────────────────────────────────────────────
 

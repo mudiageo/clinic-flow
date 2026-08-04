@@ -362,6 +362,23 @@ export const auditLog = sqliteTable('audit_log', {
 }));
 
 // ─────────────────────────────────────────────────────────────
+// CLOUD UPLINK CONFIG
+// ─────────────────────────────────────────────────────────────
+
+export const uplinkConfig = sqliteTable('uplink_config', {
+	id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+	phcId: text('phc_id').notNull().references(() => phcs.id, { onDelete: 'cascade' }).unique(),
+	cloudUrl: text('cloud_url').notNull(),
+	uplinkKey: text('uplink_key').notNull(),
+	superAdminEmail: text('super_admin_email'),
+	superAdminPasswordHash: text('super_admin_password_hash'),
+	lastSyncAt: integer('last_sync_at', { mode: 'timestamp' }),
+	syncEnabled: integer('sync_enabled', { mode: 'boolean' }).notNull().default(true),
+	createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+	updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date())
+});
+
+// ─────────────────────────────────────────────────────────────
 // RELATIONS (same as pg schema)
 // ─────────────────────────────────────────────────────────────
 

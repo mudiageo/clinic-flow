@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { getServerStatus, generatePairingToken } from '$lib/remote/server-status.remote';
 	import { getDevices } from '$lib/remote/devices.remote';
-	import { getSyncConflicts } from '$lib/remote/setup.remote';
+	import { getUplinkConfig, saveUplinkConfig, testUplinkConnection, removeUplinkConfig } from '$lib/remote/cloud-uplink.remote';
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
+	import { Input } from '$lib/components/ui/input';
+	import { Label } from '$lib/components/ui/label';
 	import { Separator } from '$lib/components/ui/separator';
 	import {
 		Server,
@@ -20,7 +22,10 @@
 		CheckCircle2,
 		HardDrive,
 		Activity,
-		Timer
+		Timer,
+		Link2,
+		Unlink,
+		Loader2
 	} from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { onMount, onDestroy } from 'svelte';
@@ -28,6 +33,8 @@
 	// Remote data
 	let status = $state<Awaited<ReturnType<typeof getServerStatus>>>(null);
 	let devices = $state<Awaited<ReturnType<typeof getDevices>>>([]);
+	let uplinkCfg = $state<Awaited<ReturnType<typeof getUplinkConfig>>>(null);
+	let uplinkConnected = $state<boolean | null>(null);
 	let pairingToken = $state<{ token: string; expiresAt: number } | null>(null);
 	let showQr = $state(false);
 	let qrDataUrl = $state('');
@@ -35,6 +42,13 @@
 	let countdownInterval: ReturnType<typeof setInterval>;
 	let refreshInterval: ReturnType<typeof setInterval>;
 	let isGenerating = $state(false);
+
+	// Cloud uplink form
+	let showUplinkForm = $state(false);
+	let uplinkKeyInput = $state('');
+	let saPasswordInput = $state('');
+	let isSavingUplink = $state(false);
+	let isTestingUplink = $state(false);
 
 	// Format uptime nicely
 	function formatUptime(seconds: number) {
@@ -47,7 +61,53 @@
 	}
 
 	async function refresh() {
-		[status, devices] = await Promise.all([getServerStatus(), getDevices()]);
+		[status, devices, uplinkCfg] = await Promise.all([
+			getServerStatus(),
+			getDevices(),
+			getUplinkConfig()
+		]);
+	}
+
+	async function handleTestUplink() {
+		isTestingUplink = true;
+		try {
+			const result = await testUplinkConnection();
+			uplinkConnected = result.connected;
+			if (result.connected) toast.success('Cloud connection successful!');
+			else toast.error(`Connection failed: ${result.reason ?? 'Unknown error'}`);
+		} finally {
+			isTestingUplink = false;
+		}
+	}
+
+	async function handleSaveUplink() {
+		if (!uplinkKeyInput || !saPasswordInput) {
+			toast.error('Please fill in both fields.');
+			return;
+		}
+		isSavingUplink = true;
+		try {
+			const result = await saveUplinkConfig({
+				uplinkKeyBase64: uplinkKeyInput,
+				superAdminPassword: saPasswordInput
+			});
+			toast.success(`Connected to ${result.cloudUrl}. SuperAdmin credentials mirrored for offline access.`);
+			uplinkKeyInput = '';
+			saPasswordInput = '';
+			showUplinkForm = false;
+			await refresh();
+		} catch (e: any) {
+			toast.error(e.message ?? 'Failed to save uplink config.');
+		} finally {
+			isSavingUplink = false;
+		}
+	}
+
+	async function handleRemoveUplink() {
+		await removeUplinkConfig(null);
+		uplinkCfg = null;
+		uplinkConnected = null;
+		toast.info('Cloud uplink removed.');
 	}
 
 	async function handleGeneratePairingCode() {
@@ -242,17 +302,84 @@
 					<CloudUpload class="size-5 text-primary" />
 					<CardTitle class="text-base">Cloud Uplink</CardTitle>
 				</div>
-				<CardDescription>Configure the connection to the central ClinicFlow cloud for syncing when internet is available.</CardDescription>
+				<CardDescription>Sync this server's data to the central ClinicFlow cloud when internet is available.</CardDescription>
 			</CardHeader>
-			<CardContent>
-				<div class="flex items-center gap-3 p-3 rounded-lg bg-muted/40 border border-border/50">
-					<HardDrive class="size-5 text-muted-foreground shrink-0" />
-					<div class="flex-1">
-						<p class="text-sm font-medium">Not configured</p>
-						<p class="text-xs text-muted-foreground">Paste your Cloud Uplink Key to enable sync.</p>
+			<CardContent class="space-y-4">
+				{#if uplinkCfg?.isConfigured}
+					<!-- Connected state -->
+					<div class="space-y-3">
+						<div class="flex items-center gap-3 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+							<CheckCircle2 class="size-5 text-emerald-500 shrink-0" />
+							<div class="flex-1 min-w-0">
+								<p class="text-sm font-semibold">Uplink Configured</p>
+								<p class="text-xs text-muted-foreground font-mono truncate">{uplinkCfg.cloudUrl}</p>
+							</div>
+							{#if uplinkConnected === true}
+								<Badge class="bg-emerald-500/10 text-emerald-600 border-emerald-500/30">Online</Badge>
+							{:else if uplinkConnected === false}
+								<Badge variant="destructive">Offline</Badge>
+							{/if}
+						</div>
+						<div class="flex items-center gap-2 p-3 rounded-lg bg-muted/30 border border-border/50 text-sm">
+							<ShieldCheck class="size-4 text-primary shrink-0" />
+							<div>
+								<p class="font-medium">SuperAdmin Mirrored</p>
+								<p class="text-xs text-muted-foreground">{uplinkCfg.superAdminEmail} can log in offline.</p>
+							</div>
+						</div>
+						<div class="flex gap-2">
+							<Button variant="outline" size="sm" class="flex-1 gap-2" onclick={handleTestUplink} disabled={isTestingUplink}>
+								{#if isTestingUplink}<Loader2 class="size-4 animate-spin" />{:else}<Link2 class="size-4" />{/if}
+								Test Connection
+							</Button>
+							<Button variant="outline" size="sm" class="gap-2 text-destructive hover:text-destructive" onclick={handleRemoveUplink}>
+								<Unlink class="size-4" />
+								Remove
+							</Button>
+						</div>
 					</div>
-					<Button variant="outline" size="sm">Configure</Button>
-				</div>
+				{:else if showUplinkForm}
+					<!-- Config form -->
+					<div class="space-y-4 p-4 rounded-xl bg-muted/30 border border-border/50">
+						<div class="space-y-2">
+							<Label for="uplink-key">Cloud Uplink Key</Label>
+							<Input
+								id="uplink-key"
+								bind:value={uplinkKeyInput}
+								placeholder="Paste your base64 uplink key from the cloud dashboard"
+								class="font-mono text-xs"
+							/>
+							<p class="text-xs text-muted-foreground">Generate this key in your ClinicFlow Cloud Admin → PHC Management → Generate Uplink Key.</p>
+						</div>
+						<div class="space-y-2">
+							<Label for="sa-password">SuperAdmin Password</Label>
+							<Input
+								id="sa-password"
+								type="password"
+								bind:value={saPasswordInput}
+								placeholder="Enter the cloud SuperAdmin password"
+							/>
+							<p class="text-xs text-muted-foreground">Used once to create an offline login hash. Never stored in plaintext.</p>
+						</div>
+						<div class="flex gap-2">
+							<Button variant="ghost" class="flex-1" onclick={() => showUplinkForm = false}>Cancel</Button>
+							<Button class="flex-1 gap-2" onclick={handleSaveUplink} disabled={isSavingUplink}>
+								{#if isSavingUplink}<Loader2 class="size-4 animate-spin" />{:else}<CloudUpload class="size-4" />{/if}
+								Connect to Cloud
+							</Button>
+						</div>
+					</div>
+				{:else}
+					<!-- Not configured -->
+					<div class="flex items-center gap-3 p-3 rounded-lg bg-muted/40 border border-border/50">
+						<HardDrive class="size-5 text-muted-foreground shrink-0" />
+						<div class="flex-1">
+							<p class="text-sm font-medium">Not configured</p>
+							<p class="text-xs text-muted-foreground">Connect to the cloud to enable sync and SuperAdmin offline access.</p>
+						</div>
+						<Button variant="outline" size="sm" onclick={() => showUplinkForm = true}>Configure</Button>
+					</div>
+				{/if}
 			</CardContent>
 		</Card>
 	{/if}
