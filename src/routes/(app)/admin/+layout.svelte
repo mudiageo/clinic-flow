@@ -22,7 +22,8 @@
 		Sun,
 		Moon,
 		Monitor,
-		MessageSquare
+		MessageSquare,
+		TabletSmartphone
 	} from '@lucide/svelte';
 	import type { NavGroup } from '$lib/components/app-sidebar.svelte';
 
@@ -57,6 +58,7 @@
 				{ href: '/admin/triage', label: 'Triage Rules', icon: SlidersHorizontal },
 				{ href: '/admin/reminders', label: 'Reminders', icon: Bell },
 				{ href: '/admin/sms-inbox', label: 'SMS Inbox', icon: MessageSquare },
+				{ href: '/admin/devices', label: 'Devices & Kiosks', icon: TabletSmartphone },
 				{ href: '/admin/settings', label: 'PHC Settings', icon: Settings }
 			]
 		},

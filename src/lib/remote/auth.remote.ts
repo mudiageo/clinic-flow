@@ -61,6 +61,25 @@ export const getCurrentSession = query(async () => {
 	};
 });
 
+export const getStaffForLogin = query(async () => {
+	const staffList = await db.query.staff.findMany({
+		where: (s, { eq }) => eq(s.active, true),
+		columns: {
+			id: true,
+			fullName: true,
+			role: true
+		},
+		with: {
+			user: {
+				columns: {
+					email: true
+				}
+			}
+		}
+	});
+	return staffList;
+});
+
 export const getUserProfile = query(async () => {
 	const event = getRequestEvent();
 	if (!event.locals.user || !event.locals.staffId) return null;

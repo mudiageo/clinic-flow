@@ -43,6 +43,20 @@ export const userRoleEnum = pgEnum('user_role', [
 	'admin',
 	'superadmin'
 ]);
+
+export const deviceRoleEnum = pgEnum('device_role', [
+	'kiosk',
+	'triage',
+	'doctor_tablet',
+	'pharmacy_terminal'
+]);
+
+export const deviceStatusEnum = pgEnum('device_status', [
+	'pending',
+	'approved',
+	'revoked'
+]);
+
 export const reminderTypeEnum = pgEnum('reminder_type', ['immunization', 'antenatal', 'follow_up']);
 export const reminderStatusEnum = pgEnum('reminder_status', [
 	'scheduled',
@@ -221,7 +235,25 @@ export const familyRelationships = pgTable(
 );
 
 // ─────────────────────────────────────────────────────────────
-// VITALS & ENCOUNTERS
+// DEVICES & HARDWARE
+// ─────────────────────────────────────────────────────────────
+
+export const devices = pgTable('devices', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	phcId: uuid('phc_id')
+		.notNull()
+		.references(() => phcs.id, { onDelete: 'cascade' }),
+	name: varchar('name', { length: 120 }).notNull(), // e.g. "Triage Tablet 1"
+	macAddress: varchar('mac_address', { length: 50 }),
+	role: deviceRoleEnum('role').notNull().default('kiosk'),
+	status: deviceStatusEnum('status').notNull().default('pending'),
+	lastSyncAt: timestamp('last_sync_at', { withTimezone: true }),
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+});
+
+// ─────────────────────────────────────────────────────────────
+// ENCOUNTERS & CLINICAL
 // ─────────────────────────────────────────────────────────────
 
 export const encounters = pgTable(
