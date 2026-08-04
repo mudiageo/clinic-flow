@@ -7,7 +7,10 @@
 	import { slide, fade } from 'svelte/transition';
 	import { toast } from 'svelte-sonner';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
+	import { onMount } from 'svelte';
 	import { checkServerStatus } from '$lib/remote/setup.remote';
+	import { validatePairingToken } from '$lib/remote/server-status.remote';
 	import { getServerUrl } from '$lib/utils/server';
 
 	let connectionMode = $state<'select' | 'local' | 'scanning' | 'master_setup'>('select');
@@ -60,6 +63,33 @@
 		localStorage.setItem('clinicflow_is_master', 'true');
 		goto('/onboarding');
 	}
+
+	onMount(async () => {
+		const token = page.url.searchParams.get('token');
+		if (token) {
+			isConnecting = true;
+			try {
+				// The tablet is loading this page directly from the master server's IP
+				// So we use the current window origin as the server URL
+				const serverOrigin = window.location.origin;
+				
+				// Generate a generic device name based on user agent or random ID
+				const deviceName = `Tablet-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+				
+				await validatePairingToken({ token, deviceName, role: 'kiosk' });
+				
+				localStorage.setItem('clinicflow_server_url', serverOrigin);
+				toast.success('Device paired successfully! Waiting for admin approval.');
+				goto('/login');
+			} catch (e: any) {
+				toast.error(e.message ?? 'Invalid or expired pairing token.');
+				// Clear token from URL so they can try again manually
+				goto('/connect', { replaceState: true });
+			} finally {
+				isConnecting = false;
+			}
+		}
+	});
 </script>
 
 <svelte:head>

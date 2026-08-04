@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { signInAction, getStaffForLogin } from '$lib/remote/auth.remote';
+	import { signInWithPin, getStaffForLogin } from '$lib/remote/auth.remote';
 	import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
@@ -9,7 +9,7 @@
 	import { db } from '$lib/local-db/db';
 	import { fade, slide } from 'svelte/transition';
 
-	const allIssues = $derived(signInAction.fields.allIssues() ?? []);
+	const allIssues = $derived(signInWithPin.fields.allIssues() ?? []);
 
 	type Staff = { id: string; fullName: string; role: string; user: { email: string } };
 	let staffMembers = $state<Staff[]>([]);
@@ -167,9 +167,9 @@
 						</div>
 
 						<!-- Hidden Form for actual submission -->
-						<form id="login-form" {...signInAction} class="hidden">
-							<input type="hidden" name="email" value={selectedStaff.user.email} />
-							<input type="hidden" name="password" value={pin} />
+						<form id="login-form" {...signInWithPin} class="hidden">
+							<input type="hidden" name="staffId" value={selectedStaff.id} />
+							<input type="hidden" name="pin" value={pin} />
 						</form>
 					</div>
 				{/if}

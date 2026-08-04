@@ -268,3 +268,64 @@ export const registerAction = form(
 		}
 	}
 );
+
+// ─────────────────────────────────────────────────────────────
+// OFFLINE KIOSK LOGIN (PIN-BASED)
+// ─────────────────────────────────────────────────────────────
+
+import { verify } from '@node-rs/argon2';
+import { randomBytes, randomUUID } from 'node:crypto';
+
+export const signInWithPin = form(
+	v.object({
+		staffId: v.string(),
+		pin: v.string()
+	}),
+	async (data, issue) => {
+		const event = getRequestEvent();
+		
+		// 1. Get staff member and their PIN hash
+		const staffMember = await db.query.staff.findFirst({
+			where: eq(staff.id, data.staffId),
+			with: { user: true } // Need authUserId
+		});
+
+		if (!staffMember || !staffMember.pin) {
+			return invalid(issue('pin', 'Invalid PIN or PIN not set for this user'));
+		}
+
+		// 2. Verify PIN using Argon2
+		const isValid = await verify(staffMember.pin, data.pin);
+		if (!isValid) {
+			return invalid(issue('pin', 'Incorrect PIN. Please try again.'));
+		}
+
+		// 3. Create BetterAuth Session manually in the database
+		const sessionToken = randomBytes(32).toString('hex');
+		const sessionId = randomUUID();
+		const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30); // 30 days for kiosks
+
+		// BetterAuth creates the 'session' table automatically
+		await db.execute(sql`
+			INSERT INTO "session" (id, expires_at, token, created_at, updated_at, ip_address, user_agent, user_id)
+			VALUES (${sessionId}, ${expiresAt}, ${sessionToken}, NOW(), NOW(), ${event.getClientAddress()}, ${event.request.headers.get('user-agent')}, ${staffMember.authUserId})
+		`);
+
+		// 4. Set the BetterAuth session cookie
+		const secure = event.url.protocol === 'https:';
+		event.cookies.set('better-auth.session_token', sessionToken, {
+			path: '/',
+			httpOnly: true,
+			sameSite: 'lax',
+			secure,
+			expires: expiresAt
+		});
+
+		// 5. Redirect based on role
+		const role = staffMember.role ?? 'nurse';
+		if (role === 'admin') redirect(302, '/admin');
+		if (role === 'doctor') redirect(302, '/doctor');
+		if (role === 'pharmacy') redirect(302, '/pharmacy');
+		redirect(302, '/nurse');
+	}
+);
