@@ -3,13 +3,14 @@
 	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import { Cloud, Server, QrCode, ArrowRight, Loader2, Link2 } from '@lucide/svelte';
+	import { Cloud, Server, QrCode, ArrowRight, Loader2, Link2, HardDrive, Database, Wifi, ShieldCheck } from '@lucide/svelte';
 	import { slide, fade } from 'svelte/transition';
 	import { toast } from 'svelte-sonner';
 	import { goto } from '$app/navigation';
 	import { checkServerStatus } from '$lib/remote/setup.remote';
+	import { getServerUrl } from '$lib/utils/server';
 
-	let connectionMode = $state<'select' | 'local' | 'scanning'>('select');
+	let connectionMode = $state<'select' | 'local' | 'scanning' | 'master_setup'>('select');
 	let localIp = $state('');
 	let isConnecting = $state(false);
 
@@ -17,13 +18,8 @@
 		isConnecting = true;
 		
 		try {
-			// Save the server URL locally so all future requests use it
 			localStorage.setItem('clinicflow_server_url', url);
 
-			// Actually call the remote function on the server to check its status!
-			// (Note: in a real PWA/Tauri setup where the server is remote, we'd ensure
-			// the SvelteKit fetch is directed to the `clinicflow_server_url`. SvelteKit 
-			// remote functions can be configured to use a custom fetch origin if needed).
 			const status = await checkServerStatus();
 
 			if (!status.isConfigured) {
@@ -43,7 +39,12 @@
 	}
 
 	function handleConnectCloud() {
-		connectToServer('https://api.clinicflow.com');
+		const url = getServerUrl();
+		if (!url) {
+			toast.error('Cloud server URL is not configured.');
+			return;
+		}
+		connectToServer(url);
 	}
 
 	function handleConnectLocal() {
@@ -55,6 +56,10 @@
 		connectToServer(url);
 	}
 
+	function handleInitMasterServer() {
+		localStorage.setItem('clinicflow_is_master', 'true');
+		goto('/onboarding');
+	}
 </script>
 
 <svelte:head>
@@ -156,6 +161,59 @@
 				</div>
 			{/if}
 		</Card>
+
+		{#if connectionMode === 'select'}
+			<div class="mt-8 pt-8 border-t border-border/50 text-center relative">
+				<span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-50 dark:bg-slate-950 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-widest">Admin Setup</span>
+				<Button variant="ghost" class="text-muted-foreground hover:text-foreground" onclick={() => connectionMode = 'master_setup'}>
+					<HardDrive class="size-4 mr-2" />
+					Initialize as Master Server
+				</Button>
+			</div>
+		{/if}
+
+		{#if connectionMode === 'master_setup'}
+			<div class="mt-6 p-6 bg-card rounded-2xl shadow-xl border border-primary/20" in:slide={{ duration: 400 }}>
+				<div class="flex flex-col items-center text-center space-y-4">
+					<div class="p-4 bg-primary/10 rounded-2xl text-primary">
+						<HardDrive class="size-8" />
+					</div>
+					<div>
+						<h3 class="text-2xl font-bold">Master Server Setup</h3>
+						<p class="text-muted-foreground mt-2">Configure this computer as the central offline sync hub for your clinic.</p>
+					</div>
+					
+					<div class="w-full space-y-4 text-left my-4">
+						<div class="flex gap-4">
+							<Database class="size-6 text-primary shrink-0" />
+							<div>
+								<h4 class="font-semibold">Local Offline Database</h4>
+								<p class="text-sm text-muted-foreground">Creates a fast database directly on this computer's hard drive.</p>
+							</div>
+						</div>
+						<div class="flex gap-4">
+							<Wifi class="size-6 text-primary shrink-0" />
+							<div>
+								<h4 class="font-semibold">Automatic Network Broadcasting</h4>
+								<p class="text-sm text-muted-foreground">Tablets on the same Wi-Fi will find this server automatically via mDNS.</p>
+							</div>
+						</div>
+						<div class="flex gap-4">
+							<ShieldCheck class="size-6 text-primary shrink-0" />
+							<div>
+								<h4 class="font-semibold">Secure Device Pairing</h4>
+								<p class="text-sm text-muted-foreground">Generates a one-time QR code for tablets to scan and authenticate.</p>
+							</div>
+						</div>
+					</div>
+
+					<div class="flex w-full gap-4 pt-4">
+						<Button variant="ghost" class="flex-1" onclick={() => connectionMode = 'select'}>Cancel</Button>
+						<Button class="flex-1" onclick={handleInitMasterServer}>Start Setup Wizard</Button>
+					</div>
+				</div>
+			</div>
+		{/if}
 
 		<!-- Loader Overlay -->
 		{#if isConnecting && connectionMode === 'select'}

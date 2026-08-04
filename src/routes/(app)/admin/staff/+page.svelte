@@ -17,11 +17,19 @@
 	import { Switch } from '$lib/components/ui/switch';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
+	import { Input } from '$lib/components/ui/input';
+	import * as Dialog from '$lib/components/ui/dialog';
 	import { updateStaffStatus } from '$lib/remote/admin.remote';
+	import { setStaffPin } from '$lib/remote/staff.remote';
 	import { toast } from 'svelte-sonner';
-	import { UserCog, Plus, ShieldCheck } from '@lucide/svelte';
+	import { UserCog, Plus, ShieldCheck, KeyRound, Loader2 } from '@lucide/svelte';
 
 	let { data } = $props<{ data: { staffList: any[] } }>();
+
+	let pinDialogOpen = $state(false);
+	let selectedStaffId = $state<string | null>(null);
+	let pinInput = $state('');
+	let isSettingPin = $state(false);
 
 	async function toggleStatus(staffId: string, currentStatus: boolean) {
 		const result = await updateStaffStatus({ staffId, active: !currentStatus });
@@ -31,6 +39,46 @@
 			if (staff) staff.active = !currentStatus;
 		} else {
 			toast.error('Failed to update status');
+		}
+	}
+
+	function openPinDialog(staffId: string) {
+		selectedStaffId = staffId;
+		pinInput = '';
+		pinDialogOpen = true;
+	}
+
+	async function savePin() {
+		if (!selectedStaffId) return;
+		if (!/^\d{4}$/.test(pinInput)) {
+			toast.error('PIN must be exactly 4 digits');
+			return;
+		}
+		
+		isSettingPin = true;
+		try {
+			const result = await setStaffPin({ staffId: selectedStaffId, pin: pinInput });
+			if (result?.success) {
+				toast.success('PIN set successfully');
+				pinDialogOpen = false;
+			} else {
+				toast.error('Failed to set PIN');
+			}
+		} catch (error) {
+			toast.error('Error setting PIN');
+		} finally {
+			isSettingPin = false;
+		}
+	}
+	
+	async function revokePin(staffId: string) {
+		try {
+			const result = await setStaffPin({ staffId, pin: '0000' });
+			if (result?.success) {
+				toast.success('PIN revoked successfully');
+			}
+		} catch (error) {
+			toast.error('Error revoking PIN');
 		}
 	}
 </script>
@@ -100,7 +148,14 @@
 									onCheckedChange={() => toggleStatus(staff.id, staff.active)}
 								/>
 							</TableCell>
-							<TableCell class="text-right px-6">
+							<TableCell class="text-right px-6 flex justify-end gap-2">
+								<Button variant="outline" size="sm" onclick={() => openPinDialog(staff.id)}>
+									<KeyRound class="size-4 mr-2" />
+									Set PIN
+								</Button>
+								<Button variant="ghost" size="sm" onclick={() => revokePin(staff.id)} class="text-destructive hover:text-destructive hover:bg-destructive/10">
+									Revoke PIN
+								</Button>
 								<Button variant="ghost" size="sm" href={`/admin/staff/${staff.id}`}>
 									View Profile
 								</Button>
@@ -112,3 +167,34 @@
 		</Table>
 	</Card>
 </div>
+
+<Dialog.Root bind:open={pinDialogOpen}>
+	<Dialog.Content class="sm:max-w-md">
+		<Dialog.Header>
+			<Dialog.Title>Set Staff PIN</Dialog.Title>
+			<Dialog.Description>
+				Enter a 4-digit PIN for this staff member. They can use this to quickly log in on shared devices.
+			</Dialog.Description>
+		</Dialog.Header>
+		<div class="flex flex-col items-center justify-center space-y-6 py-6">
+			<Input 
+				type="password" 
+				inputmode="numeric" 
+				maxlength={4}
+				bind:value={pinInput} 
+				class="text-center text-4xl tracking-[1em] h-20 w-64 font-mono font-bold"
+				placeholder="••••"
+			/>
+		</div>
+		<Dialog.Footer>
+			<Button variant="outline" onclick={() => pinDialogOpen = false}>Cancel</Button>
+			<Button onclick={savePin} disabled={isSettingPin || pinInput.length !== 4}>
+				{#if isSettingPin}
+					<Loader2 class="size-4 mr-2 animate-spin" /> Saving...
+				{:else}
+					Save PIN
+				{/if}
+			</Button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
