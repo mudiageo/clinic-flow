@@ -45,27 +45,6 @@
 		}, 500);
 	}
 
-	async function confirmCheckIn() {
-		if (!selectedPatient) return;
-		
-		isCheckingIn = true;
-		try {
-			const res = await selfCheckIn({ patientId: selectedPatient.id });
-			if (res?.success) {
-				checkedInTicket = res.ticketNumber;
-				
-				// Auto reset after 10 seconds
-				setTimeout(() => {
-					resetKiosk();
-				}, 10000);
-			}
-		} catch (e) {
-			console.error(e);
-		} finally {
-			isCheckingIn = false;
-		}
-	}
-	
 	function resetKiosk() {
 		searchQuery = '';
 		searchResults = [];
@@ -145,18 +124,40 @@
 					</div>
 				</Card>
 				
-				<Button 
-					size="lg" 
-					class="w-full h-24 text-3xl font-bold rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-xl shadow-primary/20"
-					onclick={confirmCheckIn}
-					disabled={isCheckingIn}
+				<form
+					class="w-full"
+					{...selfCheckIn.enhance(async (form) => {
+						isCheckingIn = true;
+						try {
+							if (await form.submit()) {
+								if (selfCheckIn.result?.success) {
+									checkedInTicket = selfCheckIn.result.ticketNumber;
+									setTimeout(() => {
+										resetKiosk();
+									}, 10000);
+								}
+							}
+						} catch (e) {
+							console.error(e);
+						} finally {
+							isCheckingIn = false;
+						}
+					})}
 				>
-					{#if isCheckingIn}
-						<Loader2 class="size-8 mr-4 animate-spin" /> Checking in...
-					{:else}
-						Yes, Check Me In
-					{/if}
-				</Button>
+					<input {...selfCheckIn.fields.patientId.as('hidden', selectedPatient.id)} />
+					<Button 
+						type="submit"
+						size="lg" 
+						class="w-full h-24 text-3xl font-bold rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-xl shadow-primary/20"
+						disabled={isCheckingIn}
+					>
+						{#if isCheckingIn}
+							<Loader2 class="size-8 mr-4 animate-spin" /> Checking in...
+						{:else}
+							Yes, Check Me In
+						{/if}
+					</Button>
+				</form>
 			</div>
 			
 		{:else}

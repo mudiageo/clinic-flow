@@ -80,35 +80,9 @@
 		}
 	}
 
-	async function handleSaveUplink() {
-		if (!uplinkKeyInput || !saPasswordInput) {
-			toast.error('Please fill in both fields.');
-			return;
-		}
-		isSavingUplink = true;
-		try {
-			const result = await saveUplinkConfig({
-				uplinkKeyBase64: uplinkKeyInput,
-				superAdminPassword: saPasswordInput
-			});
-			toast.success(`Connected to ${result.cloudUrl}. SuperAdmin credentials mirrored for offline access.`);
-			uplinkKeyInput = '';
-			saPasswordInput = '';
-			showUplinkForm = false;
-			await refresh();
-		} catch (e: any) {
-			toast.error(e.message ?? 'Failed to save uplink config.');
-		} finally {
-			isSavingUplink = false;
-		}
-	}
+	// Form handlers are now managed by enhance actions directly in the markup for saveUplinkConfig and removeUplinkConfig
 
-	async function handleRemoveUplink() {
-		await removeUplinkConfig(null);
-		uplinkCfg = null;
-		uplinkConnected = null;
-		toast.info('Cloud uplink removed.');
-	}
+
 
 	async function handleGeneratePairingCode() {
 		isGenerating = true;
@@ -332,20 +306,44 @@
 								{#if isTestingUplink}<Loader2 class="size-4 animate-spin" />{:else}<Link2 class="size-4" />{/if}
 								Test Connection
 							</Button>
-							<Button variant="outline" size="sm" class="gap-2 text-destructive hover:text-destructive" onclick={handleRemoveUplink}>
-								<Unlink class="size-4" />
-								Remove
-							</Button>
+							<form {...removeUplinkConfig.enhance(async (form) => {
+								await form.submit();
+								uplinkCfg = null;
+								uplinkConnected = null;
+								toast.info('Cloud uplink removed.');
+							})}>
+								<Button type="submit" variant="outline" size="sm" class="gap-2 text-destructive hover:text-destructive w-full">
+									<Unlink class="size-4" />
+									Remove
+								</Button>
+							</form>
 						</div>
 					</div>
 				{:else if showUplinkForm}
 					<!-- Config form -->
-					<div class="space-y-4 p-4 rounded-xl bg-muted/30 border border-border/50">
+					<form 
+						class="space-y-4 p-4 rounded-xl bg-muted/30 border border-border/50"
+						{...saveUplinkConfig.enhance(async (form) => {
+							isSavingUplink = true;
+							try {
+								if (await form.submit()) {
+									if (saveUplinkConfig.result) {
+										toast.success(`Connected to ${saveUplinkConfig.result.cloudUrl}. SuperAdmin credentials mirrored for offline access.`);
+										showUplinkForm = false;
+										await refresh();
+									}
+								}
+							} catch (e: any) {
+								toast.error(e.message ?? 'Failed to save uplink config.');
+							} finally {
+								isSavingUplink = false;
+							}
+						})}
+					>
 						<div class="space-y-2">
 							<Label for="uplink-key">Cloud Uplink Key</Label>
 							<Input
-								id="uplink-key"
-								bind:value={uplinkKeyInput}
+								{...saveUplinkConfig.fields.uplinkKeyBase64.as('text')}
 								placeholder="Paste your base64 uplink key from the cloud dashboard"
 								class="font-mono text-xs"
 							/>
@@ -354,21 +352,19 @@
 						<div class="space-y-2">
 							<Label for="sa-password">SuperAdmin Password</Label>
 							<Input
-								id="sa-password"
-								type="password"
-								bind:value={saPasswordInput}
+								{...saveUplinkConfig.fields.superAdminPassword.as('password')}
 								placeholder="Enter the cloud SuperAdmin password"
 							/>
 							<p class="text-xs text-muted-foreground">Used once to create an offline login hash. Never stored in plaintext.</p>
 						</div>
 						<div class="flex gap-2">
 							<Button variant="ghost" class="flex-1" onclick={() => showUplinkForm = false}>Cancel</Button>
-							<Button class="flex-1 gap-2" onclick={handleSaveUplink} disabled={isSavingUplink}>
+							<Button type="submit" class="flex-1 gap-2" disabled={isSavingUplink}>
 								{#if isSavingUplink}<Loader2 class="size-4 animate-spin" />{:else}<CloudUpload class="size-4" />{/if}
 								Connect to Cloud
 							</Button>
 						</div>
-					</div>
+					</form>
 				{:else}
 					<!-- Not configured -->
 					<div class="flex items-center gap-3 p-3 rounded-lg bg-muted/40 border border-border/50">

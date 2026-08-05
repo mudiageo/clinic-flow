@@ -1,4 +1,4 @@
-import { query, form } from '$app/server';
+import { query, form, command } from '$app/server';
 import { getRequestEvent } from '$app/server';
 import * as v from 'valibot';
 import { randomBytes } from 'node:crypto';
@@ -51,7 +51,7 @@ export const generatePairingToken = query(async () => {
 });
 
 /** Validate a pairing token when a tablet scans the QR code */
-export const validatePairingToken = form(
+export const validatePairingToken = command(
 	v.object({
 		token: v.string(),
 		deviceName: v.pipe(v.string(), v.minLength(2)),

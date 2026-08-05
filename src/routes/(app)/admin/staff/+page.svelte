@@ -48,39 +48,9 @@
 		pinDialogOpen = true;
 	}
 
-	async function savePin() {
-		if (!selectedStaffId) return;
-		if (!/^\d{4}$/.test(pinInput)) {
-			toast.error('PIN must be exactly 4 digits');
-			return;
-		}
-		
-		isSettingPin = true;
-		try {
-			const result = await setStaffPin({ staffId: selectedStaffId, pin: pinInput });
-			if (result?.success) {
-				toast.success('PIN set successfully');
-				pinDialogOpen = false;
-			} else {
-				toast.error('Failed to set PIN');
-			}
-		} catch (error) {
-			toast.error('Error setting PIN');
-		} finally {
-			isSettingPin = false;
-		}
-	}
+	// savePin and revokePin are now handled by enhance forms in the markup
 	
-	async function revokePin(staffId: string) {
-		try {
-			const result = await setStaffPin({ staffId, pin: '0000' });
-			if (result?.success) {
-				toast.success('PIN revoked successfully');
-			}
-		} catch (error) {
-			toast.error('Error revoking PIN');
-		}
-	}
+
 </script>
 
 <svelte:head>
@@ -153,9 +123,21 @@
 									<KeyRound class="size-4 mr-2" />
 									Set PIN
 								</Button>
-								<Button variant="ghost" size="sm" onclick={() => revokePin(staff.id)} class="text-destructive hover:text-destructive hover:bg-destructive/10">
-									Revoke PIN
-								</Button>
+								<form {...setStaffPin.enhance(async (form) => {
+									try {
+										if (await form.submit()) {
+											if (setStaffPin.result?.success) toast.success('PIN revoked successfully');
+										}
+									} catch (error) {
+										toast.error('Error revoking PIN');
+									}
+								})}>
+									<input {...setStaffPin.fields.staffId.as('hidden', staff.id)} />
+									<input {...setStaffPin.fields.pin.as('hidden', '0000')} />
+									<Button type="submit" variant="ghost" size="sm" class="text-destructive hover:text-destructive hover:bg-destructive/10">
+										Revoke PIN
+									</Button>
+								</form>
 								<Button variant="ghost" size="sm" href={`/admin/staff/${staff.id}`}>
 									View Profile
 								</Button>
@@ -176,25 +158,51 @@
 				Enter a 4-digit PIN for this staff member. They can use this to quickly log in on shared devices.
 			</Dialog.Description>
 		</Dialog.Header>
-		<div class="flex flex-col items-center justify-center space-y-6 py-6">
-			<Input 
-				type="password" 
-				inputmode="numeric" 
-				maxlength={4}
-				bind:value={pinInput} 
-				class="text-center text-4xl tracking-[1em] h-20 w-64 font-mono font-bold"
-				placeholder="••••"
-			/>
-		</div>
-		<Dialog.Footer>
-			<Button variant="outline" onclick={() => pinDialogOpen = false}>Cancel</Button>
-			<Button onclick={savePin} disabled={isSettingPin || pinInput.length !== 4}>
-				{#if isSettingPin}
-					<Loader2 class="size-4 mr-2 animate-spin" /> Saving...
-				{:else}
-					Save PIN
-				{/if}
-			</Button>
-		</Dialog.Footer>
+		<form
+			{...setStaffPin.enhance(async (form) => {
+				if (!selectedStaffId) return;
+				if (!/^\d{4}$/.test(pinInput)) {
+					toast.error('PIN must be exactly 4 digits');
+					return;
+				}
+				isSettingPin = true;
+				try {
+					if (await form.submit()) {
+						if (setStaffPin.result?.success) {
+							toast.success('PIN set successfully');
+							pinDialogOpen = false;
+						} else {
+							toast.error('Failed to set PIN');
+						}
+					}
+				} catch (error) {
+					toast.error('Error setting PIN');
+				} finally {
+					isSettingPin = false;
+				}
+			})}
+		>
+			<input {...setStaffPin.fields.staffId.as('hidden', selectedStaffId ?? '')} />
+			<div class="flex flex-col items-center justify-center space-y-6 py-6">
+				<Input 
+					{...setStaffPin.fields.pin.as('password')}
+					inputmode="numeric" 
+					maxlength={4}
+					bind:value={pinInput} 
+					class="text-center text-4xl tracking-[1em] h-20 w-64 font-mono font-bold"
+					placeholder="••••"
+				/>
+			</div>
+			<Dialog.Footer>
+				<Button type="button" variant="outline" onclick={() => pinDialogOpen = false}>Cancel</Button>
+				<Button type="submit" disabled={isSettingPin || pinInput.length !== 4}>
+					{#if isSettingPin}
+						<Loader2 class="size-4 mr-2 animate-spin" /> Saving...
+					{:else}
+						Save PIN
+					{/if}
+				</Button>
+			</Dialog.Footer>
+		</form>
 	</Dialog.Content>
 </Dialog.Root>
