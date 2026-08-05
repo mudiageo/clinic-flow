@@ -44,12 +44,29 @@ self.addEventListener('fetch', (event) => {
 	const url = new URL(event.request.url);
 	if (!url.pathname.startsWith('/_app/remote/')) return; // leave workbox routes alone
 
-	const newUrl = new URL(event.request.url);
-	newUrl.host = dev ? 'localhost:5174' : productionHost;
-	newUrl.protocol = productionSecure ? 'https:' : 'http:';
-
 	async function respond() {
 		try {
+			let targetHost = dev ? 'localhost:5174' : productionHost;
+			let targetSecure = dev ? false : productionSecure;
+
+			// Try to read dynamic URL from cache storage (set by client)
+			try {
+				const cache = await caches.open('clinicflow-config');
+				const res = await cache.match('/server-url');
+				if (res) {
+					const customUrl = await res.text();
+					const parsed = new URL(customUrl);
+					targetHost = parsed.host;
+					targetSecure = parsed.protocol === 'https:';
+				}
+			} catch (e) {
+				console.error('Failed to read custom server URL from cache', e);
+			}
+
+			const newUrl = new URL(event.request.url);
+			newUrl.host = targetHost;
+			newUrl.protocol = targetSecure ? 'https:' : 'http:';
+
 			const req = event.request.clone();
 			const headers = new Headers(req.headers);
 			headers.set('X-SvelteKit-Remote', 'true');

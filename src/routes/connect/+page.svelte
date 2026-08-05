@@ -23,6 +23,10 @@
 		
 		try {
 			localStorage.setItem('clinicflow_server_url', url);
+			if ('caches' in window) {
+				const cache = await caches.open('clinicflow-config');
+				await cache.put('/server-url', new Response(url));
+			}
 
 			const status = await checkServerStatus();
 
