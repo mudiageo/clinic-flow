@@ -62,24 +62,39 @@ export const getCurrentSession = query(async () => {
 	};
 });
 
-export const getStaffForLogin = query(async () => {
-	const staffList = await db.query.staff.findMany({
-		where: (s, { eq }) => eq(s.active, true),
-		columns: {
-			id: true,
-			fullName: true,
-			role: true
-		},
-		with: {
-			user: {
-				columns: {
-					email: true
+export const getStaffForLogin = query(
+	v.object({
+		phcId: v.optional(v.string())
+	}),
+	async (data) => {
+		const isLocalServer = process.env.DATABASE_URL?.startsWith('file:') || process.env.DATABASE_URL?.startsWith('libsql:');
+		
+		if (!isLocalServer && !data.phcId) {
+			// On cloud, we MUST have a phcId to prevent cross-tenant data bleed
+			return [];
+		}
+
+		const staffList = await db.query.staff.findMany({
+			where: (s, { eq, and }) => 
+				data.phcId 
+					? and(eq(s.active, true), eq(s.phcId, data.phcId))
+					: eq(s.active, true),
+			columns: {
+				id: true,
+				fullName: true,
+				role: true
+			},
+			with: {
+				user: {
+					columns: {
+						email: true
+					}
 				}
 			}
-		}
-	});
-	return staffList;
-});
+		});
+		return staffList;
+	}
+);
 
 export const getUserProfile = query(async () => {
 	const event = getRequestEvent();

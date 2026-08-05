@@ -28,6 +28,7 @@ if (!building) {
 				name: 'ClinicFlow Master Server',
 				type: 'http',
 				port,
+				host: 'clinicflow.local',
 				txt: { version: '1', app: 'clinicflow' }
 			});
 

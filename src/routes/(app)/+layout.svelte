@@ -6,6 +6,9 @@
 	import { ModeWatcher } from 'mode-watcher';
 	import { setContext, onMount, onDestroy } from 'svelte';
 
+	import { goto } from '$app/navigation';
+	import { browser } from '$app/environment';
+
 	let { children } = $props();
 
 	let sessionContext = $state<any>(null);
@@ -20,6 +23,10 @@
 	const sessionData = await getCurrentSession();
 	sessionContext = sessionData;
 
+	if (browser && !sessionData?.user) {
+		goto('/login');
+	}
+
 	onMount(() => {
 		// 5. Fetch remote settings
 		settingsStore.fetchFromServer();
@@ -33,8 +40,6 @@
 
 <ModeWatcher />
 
-{#if !sessionData?.user}
-	<meta http-equiv="refresh" content="0;url=/login" />
-{:else}
+{#if sessionData?.user}
 	{@render children()}
 {/if}

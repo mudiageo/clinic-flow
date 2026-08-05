@@ -19,15 +19,9 @@
 
 	onMount(async () => {
 		try {
-			await db.delete();
-			console.log('Local DB cleared on logout/login');
-		} catch (e) {
-			console.error('Failed to clear local DB:', e);
-		}
-
-		try {
 			// Fetch the list of allowed staff members for this device/clinic
-			const res = await getStaffForLogin();
+			const phcId = localStorage.getItem('clinicflow_phc_id') || undefined;
+			const res = await getStaffForLogin({ phcId });
 			if (res) {
 				staffMembers = res as unknown as Staff[];
 			}

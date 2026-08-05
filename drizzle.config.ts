@@ -11,6 +11,7 @@ export default defineConfig(
 				// Local master server — SQLite via libsql
 				dialect: 'turso',
 				schema: './src/lib/server/db/schema.sqlite.ts',
+				out: './drizzle/sqlite',
 				dbCredentials: { url },
 				verbose: true,
 				strict: true
@@ -19,6 +20,7 @@ export default defineConfig(
 				// Cloud deployment — PostgreSQL
 				dialect: 'postgresql',
 				schema: './src/lib/server/db/schema.ts',
+				out: './drizzle/postgres',
 				dbCredentials: { url },
 				verbose: true,
 				strict: true

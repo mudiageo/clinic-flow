@@ -80,6 +80,6 @@ export const validatePairingToken = command(
 
 		pairingTokens.delete(data.token);
 
-		return { deviceId: device.id, status: 'pending' };
+		return { deviceId: device.id, status: 'pending', phcId: entry.phcId };
 	}
 );
