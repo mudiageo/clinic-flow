@@ -13,9 +13,9 @@ import { DATABASE_URL } from '$app/env/private';
  *   2. A clinic's offline Windows PC master server (SQLite via libsql)
  */
 const isLibSql =
-	DATABASE_URL.startsWith('file:') ||
-	DATABASE_URL.startsWith('libsql:') ||
-	DATABASE_URL.endsWith('.db');
+	DATABASE_URL?.startsWith('file:') ||
+	DATABASE_URL?.startsWith('libsql:') ||
+	DATABASE_URL?.endsWith('.db');
 
 async function createDb() {
 	if (isLibSql) {

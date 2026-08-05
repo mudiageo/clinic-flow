@@ -8,6 +8,7 @@ import { APIError } from 'better-auth/api';
 import { sql } from 'drizzle-orm';
 import { createPhc } from '$lib/server/db/queries/phcs';
 import { createStaff, updateStaffProfile, updateStaffPreferences } from '$lib/server/db/queries/staff';
+import { DATABASE_URL } from '$app/env/private';
 
 export const signInAction = form(
 	v.object({
@@ -67,7 +68,7 @@ export const getStaffForLogin = query(
 		phcId: v.optional(v.string())
 	}),
 	async (data) => {
-		const isLocalServer = process.env.DATABASE_URL?.startsWith('file:') || process.env.DATABASE_URL?.startsWith('libsql:');
+		const isLocalServer = DATABASE_URL?.startsWith('file:') || DATABASE_URL?.startsWith('libsql:');
 		
 		if (!isLocalServer && !data.phcId) {
 			// On cloud, we MUST have a phcId to prevent cross-tenant data bleed
