@@ -116,6 +116,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 		pathname.startsWith('/api/') ||
 		pathname.startsWith('/demo') ||
 		pathname.startsWith('/_app') ||
+		pathname.startsWith('/welcome') ||
+		pathname.startsWith('/connect') ||
+		pathname.startsWith('/onboarding') ||
 		pathname === '/favicon.ico';
 
 	if (!isPublic) {
