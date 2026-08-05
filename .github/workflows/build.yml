@@ -36,19 +36,19 @@ jobs:
             rust_target: ''
             is_android: false
           - platform: 'ubuntu-22.04'
-            args: '--apk --debug --target aarch64'
+            args: '--apk --split-per-abi --debug --target aarch64'
             rust_target: 'aarch64-linux-android'
             is_android: true
           - platform: 'ubuntu-22.04'
-            args: '--apk --debug --target armv7'
+            args: '--apk --split-per-abi --debug --target armv7'
             rust_target: 'armv7-linux-androideabi'
             is_android: true
           - platform: 'ubuntu-22.04'
-            args: '--apk --debug --target x86_64'
+            args: '--apk --split-per-abi --debug --target x86_64'
             rust_target: 'x86_64-linux-android'
             is_android: true
           - platform: 'ubuntu-22.04'
-            args: '--apk --debug --target i686'
+            args: '--apk --split-per-abi --debug --target i686'
             rust_target: 'i686-linux-android'
             is_android: true
     runs-on: ${{ matrix.platform }}
