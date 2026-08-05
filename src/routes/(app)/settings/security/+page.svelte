@@ -12,6 +12,7 @@
 	import { KeyRound, ShieldAlert, MonitorSmartphone, LogOut } from '@lucide/svelte';
 	import { updatePassword as updatePasswordAction, getActiveSessions, revokeSessionRemote } from '$lib/remote/auth.remote';
 	import { Skeleton } from '$lib/components/ui/skeleton';
+	import { toast } from 'svelte-sonner';
 
 	let isSaving = $state(false);
 	
@@ -24,36 +25,19 @@
 		newPassword.match(/[A-Z]/) && newPassword.match(/[0-9]/) ? 100 : 75
 	);
 
-	async function updatePassword() {
+	async function updatePassword(form: any) {
 		if (newPassword !== confirmPassword) {
 			toast.error('New passwords do not match');
-			return;
+			return false;
 		}
 		if (newPassword.length < 8) {
 			toast.error('Password must be at least 8 characters');
-			return;
+			return false;
 		}
-		isSaving = true;
-		const result = await updatePasswordAction.submit({ newPassword, currentPassword });
-		if (result?.success) {
-			toast.success('Password updated successfully');
-			currentPassword = '';
-			newPassword = '';
-			confirmPassword = '';
-		} else {
-			toast.error(updatePasswordAction.fields.allIssues()?.[0]?.message || 'Failed to update password');
-		}
-		isSaving = false;
+		return true;
 	}
 
-	async function revokeSession(id: string) {
-		const result = await revokeSessionRemote.submit({ sessionToken: id });
-		if (result?.success) {
-			toast.success('Session revoked');
-		} else {
-			toast.error('Failed to revoke session');
-		}
-	}
+
 </script>
 
 <div class="space-y-6">
@@ -67,49 +51,70 @@
 			<CardTitle>Change Password</CardTitle>
 			<CardDescription>Ensure your account is using a long, random password to stay secure.</CardDescription>
 		</CardHeader>
-		<CardContent class="space-y-6">
-			<div class="space-y-2">
-				<Label for="current-password">Current Password</Label>
-				<div class="relative max-w-sm">
-					<KeyRound class="absolute left-3 top-3.5 size-4 text-muted-foreground" />
-					<Input id="current-password" type="password" bind:value={currentPassword} class="pl-9 h-11" />
-				</div>
-			</div>
-
-			<div class="space-y-4">
+		<form 
+			{...updatePasswordAction.enhance(async (form) => {
+				if (!await updatePassword(form)) return;
+				isSaving = true;
+				try {
+					if (await form.submit()) {
+						if (updatePasswordAction.result?.success) {
+							toast.success('Password updated successfully');
+							currentPassword = '';
+							newPassword = '';
+							confirmPassword = '';
+						}
+					}
+				} catch (e: any) {
+					toast.error(e.message || 'Failed to update password');
+				} finally {
+					isSaving = false;
+				}
+			})}
+		>
+			<CardContent class="space-y-6">
 				<div class="space-y-2">
-					<Label for="new-password">New Password</Label>
+					<Label for="current-password">Current Password</Label>
 					<div class="relative max-w-sm">
-						<ShieldAlert class="absolute left-3 top-3.5 size-4 text-muted-foreground" />
-						<Input id="new-password" type="password" bind:value={newPassword} class="pl-9 h-11" />
+						<KeyRound class="absolute left-3 top-3.5 size-4 text-muted-foreground" />
+						<Input {...updatePasswordAction.fields.currentPassword.as('password', currentPassword)} class="pl-9 h-11" />
 					</div>
-					{#if newPassword.length > 0}
-						<div class="max-w-sm mt-2 flex gap-1 h-1.5">
-							<div class="h-full flex-1 rounded-full {passwordStrength >= 25 ? (passwordStrength === 25 ? 'bg-destructive' : 'bg-primary') : 'bg-muted'}"></div>
-							<div class="h-full flex-1 rounded-full {passwordStrength >= 75 ? (passwordStrength === 75 ? 'bg-amber-500' : 'bg-primary') : 'bg-muted'}"></div>
-							<div class="h-full flex-1 rounded-full {passwordStrength === 100 ? 'bg-primary' : 'bg-muted'}"></div>
+				</div>
+
+				<div class="space-y-4">
+					<div class="space-y-2">
+						<Label for="new-password">New Password</Label>
+						<div class="relative max-w-sm">
+							<ShieldAlert class="absolute left-3 top-3.5 size-4 text-muted-foreground" />
+							<Input {...updatePasswordAction.fields.newPassword.as('password', newPassword)} class="pl-9 h-11" />
 						</div>
-					{/if}
-				</div>
+						{#if newPassword.length > 0}
+							<div class="max-w-sm mt-2 flex gap-1 h-1.5">
+								<div class="h-full flex-1 rounded-full {passwordStrength >= 25 ? (passwordStrength === 25 ? 'bg-destructive' : 'bg-primary') : 'bg-muted'}"></div>
+								<div class="h-full flex-1 rounded-full {passwordStrength >= 75 ? (passwordStrength === 75 ? 'bg-amber-500' : 'bg-primary') : 'bg-muted'}"></div>
+								<div class="h-full flex-1 rounded-full {passwordStrength === 100 ? 'bg-primary' : 'bg-muted'}"></div>
+							</div>
+						{/if}
+					</div>
 
-				<div class="space-y-2">
-					<Label for="confirm-password">Confirm Password</Label>
-					<div class="relative max-w-sm">
-						<ShieldAlert class="absolute left-3 top-3.5 size-4 text-muted-foreground" />
-						<Input id="confirm-password" type="password" bind:value={confirmPassword} class="pl-9 h-11" />
+					<div class="space-y-2">
+						<Label for="confirm-password">Confirm Password</Label>
+						<div class="relative max-w-sm">
+							<ShieldAlert class="absolute left-3 top-3.5 size-4 text-muted-foreground" />
+							<Input id="confirm-password" type="password" bind:value={confirmPassword} class="pl-9 h-11" />
+						</div>
 					</div>
 				</div>
-			</div>
-			
-			<Button onclick={updatePassword} disabled={isSaving || !currentPassword || !newPassword || !confirmPassword} class="h-11">
-				{#if isSaving}
-					<div class="size-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2"></div>
-					Updating...
-				{:else}
-					Update Password
-				{/if}
-			</Button>
-		</CardContent>
+				
+				<Button type="submit" disabled={isSaving || !currentPassword || !newPassword || !confirmPassword} class="h-11">
+					{#if isSaving}
+						<div class="size-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2"></div>
+						Updating...
+					{:else}
+						Update Password
+					{/if}
+				</Button>
+			</CardContent>
+		</form>
 	</Card>
 
 	<Card>
@@ -137,10 +142,23 @@
 								</div>
 							</div>
 							<div class="flex items-center gap-2">
-								<Button variant="outline" size="sm" class="text-destructive hover:bg-destructive/10 hover:text-destructive" onclick={() => revokeSession(session.token)}>
-									<LogOut class="size-3.5 mr-1.5" />
-									Revoke
-								</Button>
+								<form {...revokeSessionRemote.enhance(async (form) => {
+									try {
+										if (await form.submit()) {
+											if (revokeSessionRemote.result?.success) {
+												toast.success('Session revoked');
+											}
+										}
+									} catch (e) {
+										toast.error('Failed to revoke session');
+									}
+								})}>
+									<input {...revokeSessionRemote.fields.sessionToken.as('hidden', session.token)} />
+									<Button type="submit" variant="outline" size="sm" class="text-destructive hover:bg-destructive/10 hover:text-destructive">
+										<LogOut class="size-3.5 mr-1.5" />
+										Revoke
+									</Button>
+								</form>
 							</div>
 						</div>
 					{/each}

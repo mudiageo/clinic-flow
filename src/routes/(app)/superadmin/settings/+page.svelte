@@ -252,7 +252,7 @@
 							isSavingPrefs = true;
 							try {
 								if (await form.submit()) {
-									if (updateAppSettings.result?.success) {
+									if (updateAppSettings.result) {
 										toast.success('Platform preferences saved');
 									}
 								}
