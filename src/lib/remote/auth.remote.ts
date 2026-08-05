@@ -4,9 +4,10 @@ import { auth } from '$lib/server/auth';
 import { invalid, redirect, isRedirect } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { db } from '$lib/server/db';
-import { phcs, staff } from '$lib/server/db/schema';
 import { APIError } from 'better-auth/api';
-import { eq, sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
+import { createPhc } from '$lib/server/db/queries/phcs';
+import { createStaff, updateStaffProfile, updateStaffPreferences } from '$lib/server/db/queries/staff';
 
 export const signInAction = form(
 	v.object({
@@ -110,9 +111,7 @@ export const updateProfile = form(
 		const event = getRequestEvent();
 		if (!event.locals.user || !event.locals.staffId) return invalid('Unauthorized');
 		
-		await db.update(staff)
-			.set({ fullName: data.name })
-			.where(eq(staff.id, event.locals.staffId));
+		await updateStaffProfile(event.locals.staffId, { fullName: data.name });
 			
 		// Also update Better Auth user
 		// We use direct DB since better auth user update is admin API
@@ -152,7 +151,7 @@ export const getUserPreferences = query(async () => {
 	const event = getRequestEvent();
 	if (!event.locals.staffId) return null;
 	const staffMember = await db.query.staff.findFirst({
-		where: eq(staff.id, event.locals.staffId)
+		where: (s, { eq }) => eq(s.id, event.locals.staffId)
 	});
 	if (staffMember?.preferences) {
 		return JSON.parse(staffMember.preferences);
@@ -177,9 +176,7 @@ export const updatePreferences = form(
 	async (data) => {
 		const event = getRequestEvent();
 		if (!event.locals.staffId) return invalid('Unauthorized');
-		await db.update(staff)
-			.set({ preferences: JSON.stringify(data) })
-			.where(eq(staff.id, event.locals.staffId));
+		await updateStaffPreferences(event.locals.staffId, data);
 		return { success: true };
 	}
 );
@@ -228,14 +225,11 @@ export const registerAction = form(
 	async (data, issue) => {
 		try {
 			// 1. Create PHC
-			const [newPhc] = await db
-				.insert(phcs)
-				.values({
-					name: data.phcName,
-					state: data.state,
-					lga: data.lga
-				})
-				.returning();
+			const [newPhc] = await createPhc({
+				name: data.phcName,
+				state: data.state,
+				lga: data.lga
+			});
 
 			// 2. Register User via Better Auth
 			const res = await auth.api.signUpEmail({
@@ -251,7 +245,7 @@ export const registerAction = form(
 			}
 
 			// 3. Create Admin Staff Record
-			await db.insert(staff).values({
+			await createStaff({
 				authUserId: res.user.id,
 				fullName: data.adminName,
 				phcId: newPhc.id,
@@ -286,7 +280,7 @@ export const signInWithPin = form(
 		
 		// 1. Get staff member and their PIN hash
 		const staffMember = await db.query.staff.findFirst({
-			where: eq(staff.id, data.staffId),
+			where: (s, { eq }) => eq(s.id, data.staffId),
 			with: { user: true } // Need authUserId
 		});
 

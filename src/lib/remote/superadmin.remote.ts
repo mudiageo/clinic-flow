@@ -1,83 +1,20 @@
 import { query } from '$app/server';
 import * as v from 'valibot';
-import { db } from '$lib/server/db';
-import { phcs, staff, patients } from '$lib/server/db/schema';
-import { count, eq, sql } from 'drizzle-orm';
+import { requireSuperadmin } from '$lib/server/rbac';
+import { getPhcListWithCounts, getPhcFullDetails } from '$lib/server/db/queries/phcs';
+import { getAllStaffUsers } from '$lib/server/db/queries/staff';
 
 export const getPhcList = query(async () => {
-	// In a real app we'd verify the user is a superadmin here.
-	// For demo purposes, this returns all PHCs.
-	const allPhcs = await db.select().from(phcs);
-	const results = [];
-
-	for (const phc of allPhcs) {
-		const staffCount = await db
-			.select({ value: count() })
-			.from(staff)
-			.where(eq(staff.phcId, phc.id));
-		const patientCount = await db
-			.select({ value: count() })
-			.from(patients)
-			.where(eq(patients.phcId, phc.id));
-
-		results.push({
-			id: phc.id,
-			name: phc.name,
-			state: phc.state,
-			lga: phc.lga,
-			createdAt: phc.createdAt,
-			staffCount: staffCount[0].value,
-			patientCount: patientCount[0].value
-		});
-	}
-
-	return results;
+	requireSuperadmin();
+	return await getPhcListWithCounts();
 });
 
 export const getPhcDetails = query(v.string(), async (id: string) => {
-	const [phc] = await db.select().from(phcs).where(eq(phcs.id, id));
-	if (!phc) return null;
-
-	const staffCount = await db
-		.select({ value: count() })
-		.from(staff)
-		.where(eq(staff.phcId, id));
-	
-	const patientCount = await db
-		.select({ value: count() })
-		.from(patients)
-		.where(eq(patients.phcId, id));
-		
-	const phcStaff = await db
-		.select({
-			id: staff.id,
-			name: staff.fullName,
-			role: staff.role,
-			active: staff.active
-		})
-		.from(staff)
-		.where(eq(staff.phcId, id));
-
-	return {
-		...phc,
-		staffCount: staffCount[0].value,
-		patientCount: patientCount[0].value,
-		staff: phcStaff
-	};
+	requireSuperadmin();
+	return await getPhcFullDetails(id);
 });
 
 export const getAllUsers = query(async () => {
-	const allStaff = await db
-		.select({
-			id: staff.id,
-			name: staff.fullName,
-			email: sql`'staff@clinic.local'`.as('email'),
-			role: staff.role,
-			active: staff.active,
-			lastLogin: staff.createdAt,
-			phcName: phcs.name
-		})
-		.from(staff)
-		.leftJoin(phcs, eq(staff.phcId, phcs.id));
-	return allStaff;
+	requireSuperadmin();
+	return await getAllStaffUsers();
 });

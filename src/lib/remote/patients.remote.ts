@@ -1,10 +1,14 @@
-import { query, form, command } from '$app/server';
+import { query, command } from '$app/server';
 import { getRequestEvent } from '$app/server';
 import { redirect } from '@sveltejs/kit';
 import * as v from 'valibot';
-import { db } from '$lib/server/db';
-import { patients, families } from '$lib/server/db/schema';
-import { eq, or, ilike, and } from 'drizzle-orm';
+import {
+	searchPatientsList,
+	getPatientByClinicIdRecord,
+	getFamiliesList,
+	createPatientRecord,
+	createFamilyRecord
+} from '$lib/server/db/queries/patients';
 
 function requireSession() {
 	const event = getRequestEvent();
@@ -19,40 +23,18 @@ export const getPatients = query(
 	async (args) => {
 		requireSession();
 		const search = args?.search?.trim();
-		if (search) {
-			const pattern = `%${search}%`;
-			return db
-				.select()
-				.from(patients)
-				.where(
-					and(
-						eq(patients.deleted, false),
-						or(
-							ilike(patients.fullName, pattern),
-							ilike(patients.clinicId, pattern),
-							ilike(patients.phone, pattern)
-						)
-					)
-				)
-				.limit(50);
-		}
-		return db.select().from(patients).where(eq(patients.deleted, false)).limit(100);
+		return await searchPatientsList(search);
 	}
 );
 
 export const getPatientByClinicId = query(v.string(), async (clinicId) => {
 	requireSession();
-	const results = await db
-		.select()
-		.from(patients)
-		.where(and(eq(patients.clinicId, clinicId), eq(patients.deleted, false)))
-		.limit(1);
-	return results[0] ?? null;
+	return await getPatientByClinicIdRecord(clinicId);
 });
 
 export const getFamilies = query(async () => {
 	requireSession();
-	return db.select().from(families).orderBy(families.householdName);
+	return await getFamiliesList();
 });
 
 // ── Commands ─────────────────────────────────────────────────
@@ -76,34 +58,13 @@ const createPatientSchema = v.object({
 
 export const createPatient = command(createPatientSchema, async (data) => {
 	requireSession();
-	const [patient] = await db
-		.insert(patients)
-		.values({
-			...(data.id ? { id: data.id } : {}),
-			clinicId: data.clinicId,
-			phcId: data.phcId,
-			familyId: data.familyId ?? null,
-			fullName: data.fullName,
-			phone: data.phone ?? null,
-			dob: data.dob ? new Date(data.dob) : null,
-			estimatedAge: data.estimatedAge ?? null,
-			sex: data.sex,
-			address: data.address ?? null,
-			community: data.community ?? null,
-			nextOfKinName: data.nextOfKinName ?? null,
-			nextOfKinPhone: data.nextOfKinPhone ?? null,
-			isPregnant: data.isPregnant ?? false,
-			updatedAt: new Date()
-		})
-		.returning();
-	return patient;
+	return await createPatientRecord(data);
 });
 
 export const createFamily = command(
 	v.object({ householdName: v.string(), community: v.optional(v.string()) }),
 	async (data) => {
 		requireSession();
-		const [family] = await db.insert(families).values(data).returning();
-		return family;
+		return await createFamilyRecord(data);
 	}
 );

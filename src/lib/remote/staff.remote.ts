@@ -1,19 +1,15 @@
 import { query, form } from '$app/server';
-import { db } from '$lib/server/db';
-import { staff } from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
+
 import * as v from 'valibot';
 import { getRequestEvent } from '$app/server';
 import { hashPassword } from 'better-auth/crypto';
 
+import { getStaffByPhc, updateStaffPin } from '$lib/server/db/queries/staff';
+
 export const getAllStaff = query(async () => {
 	const event = getRequestEvent();
 	if (!event.locals.phcId) return [];
-	return await db.query.staff.findMany({
-		where: eq(staff.phcId, event.locals.phcId),
-		columns: { id: true, fullName: true, role: true, active: true },
-		with: { user: { columns: { email: true, createdAt: true } } }
-	});
+	return await getStaffByPhc(event.locals.phcId);
 });
 
 export const setStaffPin = form(
@@ -27,10 +23,7 @@ export const setStaffPin = form(
 		
 		const hashedPin = await hashPassword(data.pin);
 		
-		await db.update(staff)
-			// @ts-ignore
-			.set({ pin: hashedPin })
-			.where(eq(staff.id, data.staffId));
+		await updateStaffPin(data.staffId, hashedPin);
 		
 		return { success: true };
 	}

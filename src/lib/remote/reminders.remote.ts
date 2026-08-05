@@ -2,9 +2,7 @@ import { query, command } from '$app/server';
 import { getRequestEvent } from '$app/server';
 import { redirect } from '@sveltejs/kit';
 import * as v from 'valibot';
-import { db } from '$lib/server/db';
-import { reminders } from '$lib/server/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { getRemindersByPhc, createReminderRecord } from '$lib/server/db/queries/reminders';
 
 function requireSession() {
 	const event = getRequestEvent();
@@ -16,7 +14,7 @@ function requireSession() {
 
 export const getReminders = query(v.string(), async (phcId) => {
 	requireSession();
-	return db.select().from(reminders).where(eq(reminders.phcId, phcId)).orderBy(reminders.dueDate);
+	return await getRemindersByPhc(phcId);
 });
 
 // ── Commands ─────────────────────────────────────────────────
@@ -32,18 +30,6 @@ export const createReminder = command(
 	}),
 	async (data) => {
 		requireSession();
-		const [reminder] = await db
-			.insert(reminders)
-			.values({
-				patientId: data.patientId,
-				phcId: data.phcId,
-				type: data.type,
-				label: data.label,
-				dueDate: new Date(data.dueDate),
-				recipientPhone: data.recipientPhone,
-				status: 'scheduled'
-			})
-			.returning();
-		return reminder;
+		return await createReminderRecord(data);
 	}
 );

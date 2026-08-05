@@ -3,8 +3,12 @@ import { getRequestEvent } from '$app/server';
 import { redirect } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { db } from '$lib/server/db';
-import { labRequests } from '$lib/server/db/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import {
+	getLabRequestsByPhc,
+	getLabRequestsByPatient,
+	createLabRequestRecord,
+	updateLabResultRecord
+} from '$lib/server/db/queries/lab';
 
 function requireSession() {
 	const event = getRequestEvent();
@@ -16,21 +20,12 @@ function requireSession() {
 
 export const getLabRequests = query(v.string(), async (phcId) => {
 	requireSession();
-	return db
-		.select()
-		.from(labRequests)
-		.where(eq(labRequests.phcId, phcId))
-		.orderBy(desc(labRequests.createdAt))
-		.limit(100);
+	return await getLabRequestsByPhc(phcId);
 });
 
 export const getPatientLabRequests = query(v.string(), async (patientId) => {
 	requireSession();
-	return db
-		.select()
-		.from(labRequests)
-		.where(eq(labRequests.patientId, patientId))
-		.orderBy(desc(labRequests.createdAt));
+	return await getLabRequestsByPatient(patientId);
 });
 
 // ── Commands ─────────────────────────────────────────────────
@@ -47,26 +42,20 @@ export const createLabRequest = command(
 	}),
 	async (data) => {
 		const { user } = requireSession();
-		const { staff } = await import('$lib/server/db/schema');
-		const { eq: eqFn } = await import('drizzle-orm');
 		const staffRecord = await db.query.staff.findFirst({
-			where: eqFn(staff.authUserId, user.id)
+			where: (s, { eq }) => eq(s.authUserId, user.id)
 		});
 
-		const [labReq] = await db
-			.insert(labRequests)
-			.values({
-				encounterId: data.encounterId,
-				patientId: data.patientId,
-				phcId: data.phcId,
-				requestedByStaffId: staffRecord?.id ?? '', // We assume staff exists for valid sessions
-				testType: data.testType,
-				urgency: data.urgency,
-				notes: data.notes ?? null,
-				status: data.status
-			})
-			.returning();
-		return labReq;
+		return await createLabRequestRecord({
+			encounterId: data.encounterId,
+			patientId: data.patientId,
+			phcId: data.phcId,
+			requestedByStaffId: staffRecord?.id ?? '',
+			testType: data.testType,
+			urgency: data.urgency,
+			notes: data.notes ?? null,
+			status: data.status
+		});
 	}
 );
 
@@ -78,23 +67,15 @@ export const updateLabResult = command(
 	}),
 	async (data) => {
 		const { user } = requireSession();
-		const { staff } = await import('$lib/server/db/schema');
-		const { eq: eqFn } = await import('drizzle-orm');
 		const staffRecord = await db.query.staff.findFirst({
-			where: eqFn(staff.authUserId, user.id)
+			where: (s, { eq }) => eq(s.authUserId, user.id)
 		});
 
-		const [updated] = await db
-			.update(labRequests)
-			.set({
-				result: data.result,
-				status: data.status,
-				resultEnteredByStaffId: staffRecord?.id ?? null,
-				resultEnteredAt: new Date(),
-				updatedAt: new Date()
-			})
-			.where(eq(labRequests.id, data.requestId))
-			.returning();
-		return updated;
+		return await updateLabResultRecord({
+			requestId: data.requestId,
+			result: data.result,
+			status: data.status,
+			staffId: staffRecord?.id ?? null
+		});
 	}
 );

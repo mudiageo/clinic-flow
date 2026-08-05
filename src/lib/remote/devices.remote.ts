@@ -1,9 +1,8 @@
 import { query, form, getRequestEvent } from '$app/server';
 import { db } from '$lib/server/db';
-import { devices } from '$lib/server/db/schema';
-import { eq, desc } from 'drizzle-orm';
 import * as v from 'valibot';
 import { invalid } from '@sveltejs/kit';
+import { updateDevice as updateDeviceDAL, deleteDevice as deleteDeviceDAL } from '$lib/server/db/queries/devices';
 
 // Fetch all devices for the current PHC
 export const getDevices = query(async () => {
@@ -11,8 +10,8 @@ export const getDevices = query(async () => {
 	if (!event.locals.phcId) return [];
 
 	return await db.query.devices.findMany({
-		where: eq(devices.phcId, event.locals.phcId),
-		orderBy: [desc(devices.createdAt)]
+		where: (d, { eq }) => eq(d.phcId, event.locals.phcId!),
+		orderBy: (d, { desc }) => [desc(d.createdAt)]
 	});
 });
 
@@ -31,9 +30,7 @@ export const updateDevice = form(
 		if (data.status) updateData.status = data.status;
 		if (data.role) updateData.role = data.role;
 
-		await db.update(devices)
-			.set(updateData)
-			.where(eq(devices.id, data.deviceId));
+		await updateDeviceDAL(data.deviceId, updateData);
 			
 		return { success: true };
 	}
@@ -48,7 +45,7 @@ export const removeDevice = form(
 		const event = getRequestEvent();
 		if (!event.locals.phcId) return invalid(issue('Unauthorized'));
 
-		await db.delete(devices).where(eq(devices.id, data.deviceId));
+		await deleteDeviceDAL(data.deviceId);
 		return { success: true };
 	}
 );

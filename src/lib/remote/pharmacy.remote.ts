@@ -3,8 +3,11 @@ import { getRequestEvent } from '$app/server';
 import { redirect } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { db } from '$lib/server/db';
-import { pharmacyInventory, prescriptions, restockRequests } from '$lib/server/db/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import {
+	getPharmacyInventory,
+	dispenseMedicationInDb,
+	createRestockRequestInDb
+} from '$lib/server/db/queries/pharmacy';
 
 function requireSession() {
 	const event = getRequestEvent();
@@ -16,11 +19,7 @@ function requireSession() {
 
 export const getInventory = query(v.string(), async (phcId) => {
 	requireSession();
-	return db
-		.select()
-		.from(pharmacyInventory)
-		.where(eq(pharmacyInventory.phcId, phcId))
-		.orderBy(pharmacyInventory.itemName);
+	return await getPharmacyInventory(phcId);
 });
 
 // ── Commands ─────────────────────────────────────────────────
@@ -36,37 +35,18 @@ export const dispenseMedication = command(
 	async (data) => {
 		const { user } = requireSession();
 
-		const { staff } = await import('$lib/server/db/schema');
-		const { eq: eqFn } = await import('drizzle-orm');
 		const staffRecord = await db.query.staff.findFirst({
-			where: eqFn(staff.authUserId, user.id)
+			where: (s, { eq }) => eq(s.authUserId, user.id)
 		});
 
-		// 1. Insert prescription record
-		const [prescription] = await db
-			.insert(prescriptions)
-			.values({
-				encounterId: data.encounterId,
-				patientId: data.patientId,
-				inventoryItemId: data.inventoryItemId,
-				quantity: data.quantity,
-				dosageInstructions: data.dosageInstructions ?? null,
-				dispensed: true,
-				dispensedAt: new Date(),
-				dispensedByStaffId: staffRecord?.id ?? null
-			})
-			.returning();
-
-		// 2. Delta-decrement stock to avoid naive LWW overwrites
-		await db
-			.update(pharmacyInventory)
-			.set({
-				currentStock: sql`${pharmacyInventory.currentStock} - ${data.quantity}`,
-				updatedAt: new Date()
-			})
-			.where(eq(pharmacyInventory.id, data.inventoryItemId));
-
-		return prescription;
+		return await dispenseMedicationInDb({
+			encounterId: data.encounterId,
+			patientId: data.patientId,
+			inventoryItemId: data.inventoryItemId,
+			quantity: data.quantity,
+			dosageInstructions: data.dosageInstructions ?? null,
+			staffId: staffRecord?.id ?? null
+		});
 	}
 );
 
@@ -79,23 +59,15 @@ export const requestRestock = command(
 	async (data) => {
 		const { user } = requireSession();
 
-		const { staff } = await import('$lib/server/db/schema');
-		const { eq: eqFn } = await import('drizzle-orm');
 		const staffRecord = await db.query.staff.findFirst({
-			where: eqFn(staff.authUserId, user.id)
+			where: (s, { eq }) => eq(s.authUserId, user.id)
 		});
 
-		const [request] = await db
-			.insert(restockRequests)
-			.values({
-				inventoryItemId: data.inventoryItemId,
-				phcId: data.phcId,
-				requestedByStaffId: staffRecord?.id ?? null,
-				quantityRequested: data.quantityRequested,
-				status: 'pending'
-			})
-			.returning();
-
-		return request;
+		return await createRestockRequestInDb({
+			inventoryItemId: data.inventoryItemId,
+			phcId: data.phcId,
+			requestedByStaffId: staffRecord?.id ?? null,
+			quantityRequested: data.quantityRequested
+		});
 	}
 );

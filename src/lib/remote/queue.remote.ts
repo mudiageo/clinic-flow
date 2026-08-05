@@ -2,9 +2,13 @@ import { query, command } from '$app/server';
 import { getRequestEvent } from '$app/server';
 import { redirect } from '@sveltejs/kit';
 import * as v from 'valibot';
-import { db } from '$lib/server/db';
-import { queueTickets, patients } from '$lib/server/db/schema';
-import { eq, and, asc, sql } from 'drizzle-orm';
+import {
+	getWaitingQueueByPhc,
+	getTodayQueueByPhc,
+	issueQueueTicket,
+	callQueueTicket,
+	completeQueueTicket
+} from '$lib/server/db/queries/queue';
 
 function requireSession() {
 	const event = getRequestEvent();
@@ -16,28 +20,12 @@ function requireSession() {
 
 export const getQueue = query(v.string(), async (phcId) => {
 	requireSession();
-	return db
-		.select({
-			ticket: queueTickets,
-			patient: patients
-		})
-		.from(queueTickets)
-		.leftJoin(patients, eq(queueTickets.patientId, patients.id))
-		.where(and(eq(queueTickets.phcId, phcId), eq(queueTickets.status, 'waiting')))
-		.orderBy(asc(queueTickets.createdAt));
+	return await getWaitingQueueByPhc(phcId);
 });
 
 export const getTodayQueue = query(v.string(), async (phcId) => {
 	requireSession();
-	const todayStart = new Date();
-	todayStart.setHours(0, 0, 0, 0);
-
-	return db
-		.select({ ticket: queueTickets, patient: patients })
-		.from(queueTickets)
-		.leftJoin(patients, eq(queueTickets.patientId, patients.id))
-		.where(and(eq(queueTickets.phcId, phcId), sql`${queueTickets.createdAt} >= ${todayStart}`))
-		.orderBy(asc(queueTickets.ticketNumber));
+	return await getTodayQueueByPhc(phcId);
 });
 
 // ── Commands ─────────────────────────────────────────────────
@@ -52,49 +40,16 @@ export const issueTicket = command(
 	}),
 	async (data) => {
 		requireSession();
-		// Count today's tickets for sequential numbering
-		const todayStart = new Date();
-		todayStart.setHours(0, 0, 0, 0);
-		const existing = await db
-			.select()
-			.from(queueTickets)
-			.where(
-				and(eq(queueTickets.phcId, data.phcId), sql`${queueTickets.createdAt} >= ${todayStart}`)
-			);
-		const ticketNumber = existing.length + 1;
-
-		const [ticket] = await db
-			.insert(queueTickets)
-			.values({
-				patientId: data.patientId,
-				phcId: data.phcId,
-				encounterId: data.encounterId ?? null,
-				ticketNumber,
-				triageLevel: data.triageLevel,
-				triageReason: data.triageReason ?? null,
-				status: 'waiting'
-			})
-			.returning();
-		return ticket;
+		return await issueQueueTicket(data);
 	}
 );
 
 export const callPatient = command(v.string(), async (ticketId) => {
 	requireSession();
-	const [updated] = await db
-		.update(queueTickets)
-		.set({ status: 'called', calledAt: new Date(), updatedAt: new Date() })
-		.where(eq(queueTickets.id, ticketId))
-		.returning();
-	return updated;
+	return await callQueueTicket(ticketId);
 });
 
 export const completeTicket = command(v.string(), async (ticketId) => {
 	requireSession();
-	const [updated] = await db
-		.update(queueTickets)
-		.set({ status: 'done', completedAt: new Date(), updatedAt: new Date() })
-		.where(eq(queueTickets.id, ticketId))
-		.returning();
-	return updated;
+	return await completeQueueTicket(ticketId);
 });

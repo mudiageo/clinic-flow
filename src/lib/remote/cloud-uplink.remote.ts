@@ -1,10 +1,9 @@
 import { query, form } from '$app/server';
 import { getRequestEvent } from '$app/server';
 import { db } from '$lib/server/db';
-import { uplinkConfig, staff } from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
 import * as v from 'valibot';
 import { hashPassword } from 'better-auth/crypto';
+import { upsertUplinkConfig, deleteUplinkConfig } from '$lib/server/db/queries/uplink';
 
 // ─────────────────────────────────────────────────────────────
 // GET UPLINK CONFIG
@@ -75,29 +74,13 @@ export const saveUplinkConfig = form(
 		// 3. Hash the SuperAdmin password for offline login
 		const passwordHash = await hashPassword(superAdminPassword);
 
-		// 4. Upsert the uplink config
-		await db
-			.insert(uplinkConfig)
-			.values({
-				phcId: event.locals.phcId,
-				cloudUrl: decoded.cloudUrl,
-				uplinkKey: decoded.apiKey,
-				superAdminEmail: decoded.superAdminEmail,
-				superAdminPasswordHash: passwordHash,
-				syncEnabled: true,
-				updatedAt: new Date()
-			})
-			.onConflictDoUpdate({
-				target: uplinkConfig.phcId,
-				set: {
-					cloudUrl: decoded.cloudUrl,
-					uplinkKey: decoded.apiKey,
-					superAdminEmail: decoded.superAdminEmail,
-					superAdminPasswordHash: passwordHash,
-					syncEnabled: true,
-					updatedAt: new Date()
-				}
-			});
+		// 4. Upsert the uplink config via DAL
+		await upsertUplinkConfig(event.locals.phcId, {
+			cloudUrl: decoded.cloudUrl,
+			apiKey: decoded.apiKey,
+			superAdminEmail: decoded.superAdminEmail,
+			superAdminPasswordHash: passwordHash
+		});
 
 		return {
 			success: true,
@@ -139,6 +122,6 @@ export const testUplinkConnection = query(async () => {
 export const removeUplinkConfig = form(v.null_(), async () => {
 	const event = getRequestEvent();
 	if (!event.locals.phcId) throw new Error('Unauthorized');
-	await db.delete(uplinkConfig).where(eq(uplinkConfig.phcId, event.locals.phcId));
+	await deleteUplinkConfig(event.locals.phcId);
 	return { success: true };
 });

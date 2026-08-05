@@ -1,10 +1,8 @@
 import { query, form } from '$app/server';
 import { getRequestEvent } from '$app/server';
-import { db } from '$lib/server/db';
-import { devices } from '$lib/server/db/schema';
-import { eq, count } from 'drizzle-orm';
 import * as v from 'valibot';
 import { randomBytes } from 'node:crypto';
+import { getDeviceCountsByPhc, registerPendingDevice } from '$lib/server/db/queries/devices';
 
 // ─────────────────────────────────────────────────────────────
 // SERVER STATUS
@@ -17,24 +15,14 @@ export const getServerStatus = query(async () => {
 	const uptimeSeconds = process.uptime();
 	const memoryMb = Math.round(process.memoryUsage().rss / 1024 / 1024);
 
-	const [activeDevices] = await db
-		.select({ count: count() })
-		.from(devices)
-		.where(eq(devices.phcId, event.locals.phcId))
-		.where(eq(devices.status, 'approved'));
-
-	const [pendingDevices] = await db
-		.select({ count: count() })
-		.from(devices)
-		.where(eq(devices.phcId, event.locals.phcId))
-		.where(eq(devices.status, 'pending'));
+	const counts = await getDeviceCountsByPhc(event.locals.phcId);
 
 	return {
 		uptimeSeconds,
 		memoryMb,
 		nodeVersion: process.version,
-		activeDevices: Number(activeDevices?.count ?? 0),
-		pendingDevices: Number(pendingDevices?.count ?? 0),
+		activeDevices: counts.activeCount,
+		pendingDevices: counts.pendingCount,
 		isMasterServer: process.env.DATABASE_URL?.startsWith('file:') || process.env.DATABASE_URL?.startsWith('libsql:') || false
 	};
 });
@@ -43,7 +31,6 @@ export const getServerStatus = query(async () => {
 // DEVICE PAIRING TOKEN
 // ─────────────────────────────────────────────────────────────
 
-// In-memory store for pairing tokens (valid for 5 minutes each)
 const pairingTokens = new Map<string, { phcId: string; expiresAt: number }>();
 
 /** Generate a new secure pairing token for tablet onboarding */
@@ -58,7 +45,6 @@ export const generatePairingToken = query(async () => {
 
 	pairingTokens.set(token, { phcId: event.locals.phcId, expiresAt });
 
-	// Auto-clean expired tokens
 	setTimeout(() => pairingTokens.delete(token), 5 * 60 * 1000);
 
 	return { token, expiresAt };
@@ -86,18 +72,12 @@ export const validatePairingToken = form(
 			throw new Error('Invalid or expired pairing token');
 		}
 
-		// Register the device as pending
-		const [device] = await db
-			.insert(devices)
-			.values({
-				phcId: entry.phcId,
-				name: data.deviceName,
-				role: data.role ?? 'kiosk',
-				status: 'pending'
-			})
-			.returning();
+		const device = await registerPendingDevice({
+			phcId: entry.phcId,
+			name: data.deviceName,
+			role: data.role ?? 'kiosk'
+		});
 
-		// Consume the token so it can't be reused
 		pairingTokens.delete(data.token);
 
 		return { deviceId: device.id, status: 'pending' };

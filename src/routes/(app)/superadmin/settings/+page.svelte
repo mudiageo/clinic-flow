@@ -21,20 +21,24 @@
 		KeyRound,
 		Globe
 	} from '@lucide/svelte';
+	import { updateProfile, updatePassword } from '$lib/remote/auth.remote';
+	import { updateAppSettings } from '$lib/remote/settings.remote';
+
+	let { data } = $props();
 
 	// Profile State
-	let fullName = $state('Super Admin');
-	let emailAddress = $state('admin@clinicflow.org');
+	let fullName = $state(data.profile?.name ?? 'Super Admin');
+	let emailAddress = $state(data.profile?.email ?? 'admin@clinicflow.org');
 	let currentPassword = $state('');
 	let newPassword = $state('');
 	let confirmPassword = $state('');
 
 	// Preferences State
-	let betaUpdates = $state(false);
-	let telemetryEnabled = $state(true);
-	let strictAuditMode = $state(true);
-	let emailAlerts = $state(true);
-	let autoBackup = $state(true);
+	let betaUpdates = $state(data.appSettings.betaUpdates);
+	let telemetryEnabled = $state(data.appSettings.telemetryEnabled);
+	let strictAuditMode = $state(data.appSettings.strictAuditMode);
+	let emailAlerts = $state(data.appSettings.emailAlerts);
+	let autoBackup = $state(data.appSettings.autoBackup);
 
 	let isSavingProfile = $state(false);
 	let isSavingSecurity = $state(false);
@@ -43,10 +47,14 @@
 	async function handleSaveProfile(e: Event) {
 		e.preventDefault();
 		isSavingProfile = true;
-		setTimeout(() => {
+		try {
+			await updateProfile.submit({ name: fullName });
 			toast.success('Profile updated successfully');
+		} catch (e: any) {
+			toast.error(e.message || 'Failed to update profile');
+		} finally {
 			isSavingProfile = false;
-		}, 1000);
+		}
 	}
 
 	async function handleUpdatePassword(e: Event) {
@@ -60,21 +68,38 @@
 			return;
 		}
 		isSavingSecurity = true;
-		setTimeout(() => {
+		try {
+			await updatePassword.submit({ 
+				currentPassword, 
+				newPassword 
+			});
 			toast.success('Password updated successfully');
 			currentPassword = '';
 			newPassword = '';
 			confirmPassword = '';
+		} catch (e: any) {
+			toast.error(e.message || 'Failed to update password');
+		} finally {
 			isSavingSecurity = false;
-		}, 1000);
+		}
 	}
 
 	async function handleSavePreferences() {
 		isSavingPrefs = true;
-		setTimeout(() => {
+		try {
+			await updateAppSettings.submit({
+				betaUpdates,
+				telemetryEnabled,
+				strictAuditMode,
+				emailAlerts,
+				autoBackup
+			});
 			toast.success('Platform preferences saved');
+		} catch (e: any) {
+			toast.error(e.message || 'Failed to save preferences');
+		} finally {
 			isSavingPrefs = false;
-		}, 800);
+		}
 	}
 </script>
 
@@ -120,7 +145,7 @@
 						</div>
 						<div class="space-y-2">
 							<Label for="email">Email Address</Label>
-							<Input id="email" type="email" bind:value={emailAddress} placeholder="jane@example.com" required />
+							<Input id="email" type="email" bind:value={emailAddress} disabled required />
 						</div>
 					</CardContent>
 					<CardFooter class="bg-muted/10 border-t flex justify-end p-4">

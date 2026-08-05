@@ -1,12 +1,11 @@
-import { query } from '$app/server';
+import { query, command } from '$app/server';
 import { getRequestEvent } from '$app/server';
 import { db } from '$lib/server/db';
-import { staff } from '$lib/server/db/schema';
-import { and, eq } from 'drizzle-orm';
 import { requirePermission } from '$lib/server/permissions';
 import * as v from 'valibot';
-import { command } from '$app/server';
-import { phcs, permissions } from '$lib/server/db/schema';
+import { createStaff, updateStaffStatusById } from '$lib/server/db/queries/staff';
+import { grantPermissionsBulk } from '$lib/server/db/queries/permissions';
+import { updatePhcSettingsById } from '$lib/server/db/queries/phcs';
 
 export const getStaffMember = query(v.string(), async (staffId) => {
 	const event = getRequestEvent();
@@ -14,7 +13,7 @@ export const getStaffMember = query(v.string(), async (staffId) => {
 	await requirePermission(event.locals.staffId, 'manage:staff');
 
 	return await db.query.staff.findFirst({
-		where: and(eq(staff.id, staffId), eq(staff.phcId, event.locals.phcId))
+		where: (s, { and, eq }) => and(eq(s.id, staffId), eq(s.phcId, event.locals.phcId!))
 	});
 });
 
@@ -24,7 +23,7 @@ export const getPhcStaffList = query(async () => {
 	await requirePermission(event.locals.staffId, 'manage:staff');
 
 	return await db.query.staff.findMany({
-		where: eq(staff.phcId, event.locals.phcId),
+		where: (s, { eq }) => eq(s.phcId, event.locals.phcId!),
 		orderBy: (staff, { desc }) => [desc(staff.createdAt)]
 	});
 });
@@ -40,29 +39,25 @@ export const inviteStaff = command(
 		if (!event.locals.staffId || !event.locals.phcId) throw new Error('Unauthorized');
 		await requirePermission(event.locals.staffId, 'manage:staff');
 		
-		// Insert placeholder staff
-		const [newStaff] = await db.insert(staff).values({
-			authUserId: 'pending-' + crypto.randomUUID(), // placeholder until they register
-			fullName: data.email, // placeholder
+		const [newStaff] = await createStaff({
+			authUserId: 'pending-' + crypto.randomUUID(),
+			fullName: data.email,
 			role: data.role,
 			phcId: event.locals.phcId,
-			active: false // treated as invited/inactive until registered
-		}).returning();
+			active: false
+		});
 
-		// Insert permissions if provided
 		if (data.permissions.length > 0) {
-			await db.insert(permissions).values(
+			await grantPermissionsBulk(
 				data.permissions.map((p) => ({
 					staffId: newStaff.id,
 					phcId: event.locals.phcId!,
 					permission: p,
-					grantedBy: event.locals.staffId
+					grantedBy: event.locals.staffId!
 				}))
 			);
 		}
 
-		// Generate invite token logic goes here (stub for now)
-		// email sending stub
 		return { success: true, staffId: newStaff.id };
 	}
 );
@@ -77,7 +72,7 @@ export const updateStaffStatus = command(
 		if (!event.locals.staffId || !event.locals.phcId) throw new Error('Unauthorized');
 		await requirePermission(event.locals.staffId, 'manage:staff');
 
-		await db.update(staff).set({ active }).where(and(eq(staff.id, staffId), eq(staff.phcId, event.locals.phcId)));
+		await updateStaffStatusById(staffId, event.locals.phcId, active);
 		return { success: true };
 	}
 );
@@ -88,7 +83,7 @@ export const getPhcSettings = query(async () => {
 	await requirePermission(event.locals.staffId, 'manage:phc');
 
 	return await db.query.phcs.findFirst({
-		where: eq(phcs.id, event.locals.phcId)
+		where: (p, { eq }) => eq(p.id, event.locals.phcId!)
 	});
 });
 
@@ -114,7 +109,7 @@ export const updatePhcSettings = command(
 		if (!event.locals.staffId || !event.locals.phcId) throw new Error('Unauthorized');
 		await requirePermission(event.locals.staffId, 'manage:phc');
 
-		await db.update(phcs).set(data).where(eq(phcs.id, event.locals.phcId));
+		await updatePhcSettingsById(event.locals.phcId, data);
 		return { success: true };
 	}
 );
@@ -125,7 +120,7 @@ export const getStaffPermissionAuditLog = query(v.string(), async (staffId) => {
 	await requirePermission(event.locals.staffId, 'manage:staff');
 
 	return await db.query.permissions.findMany({
-		where: and(eq(permissions.staffId, staffId), eq(permissions.phcId, event.locals.phcId)),
+		where: (p, { and, eq }) => and(eq(p.staffId, staffId), eq(p.phcId, event.locals.phcId!)),
 		orderBy: (permissions, { desc }) => [desc(permissions.grantedAt)],
 		with: {
 			grantedByStaff: true
@@ -138,9 +133,8 @@ export const getSmsInbox = query(async () => {
 	if (!event.locals.staffId || !event.locals.phcId) throw new Error('Unauthorized');
 	await requirePermission(event.locals.staffId, 'manage:phc');
 
-	// Return recent SMS
 	return await db.query.smsInbox.findMany({
-		where: (t, { eq }) => eq(t.phcId, event.locals.phcId),
+		where: (t, { eq }) => eq(t.phcId, event.locals.phcId!),
 		orderBy: (t, { desc }) => [desc(t.createdAt)],
 		limit: 100
 	});

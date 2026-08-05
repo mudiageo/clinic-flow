@@ -46,11 +46,11 @@
 					</li>
 				</ul>
 				<Button
-					href="/api/download?os=windows"
+					href="/api/download?os=windows&arch=x64"
 					class="w-full h-12 text-base font-bold bg-blue-600 hover:bg-blue-700 text-white btn-press"
 				>
 					<Download class="mr-2 size-5" />
-					Download .msi Installer
+					Download .exe (64-bit)
 				</Button>
 			</CardContent>
 		</Card>
@@ -75,13 +75,23 @@
 						<ShieldCheck class="size-4" /> Sideloading must be enabled
 					</li>
 				</ul>
-				<Button
-					href="/api/download?os=android"
-					class="w-full h-12 text-base font-bold bg-emerald-600 hover:bg-emerald-700 text-white btn-press"
-				>
-					<Download class="mr-2 size-5" />
-					Download .apk File
-				</Button>
+				<div class="flex flex-col gap-2">
+					<Button
+						href="/api/download?os=android&arch=aarch64"
+						class="w-full h-10 text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white btn-press"
+					>
+						<Download class="mr-2 size-4" />
+						Download APK (ARM64)
+					</Button>
+					<Button
+						href="/api/download?os=android&arch=armv7"
+						variant="outline"
+						class="w-full h-10 text-sm font-bold text-emerald-600 border-emerald-200 hover:bg-emerald-50 btn-press"
+					>
+						<Download class="mr-2 size-4" />
+						Download APK (ARM32)
+					</Button>
+				</div>
 			</CardContent>
 		</Card>
 		<!-- macOS -->
@@ -104,13 +114,23 @@
 						<ShieldCheck class="size-4" /> Auto-updates enabled
 					</li>
 				</ul>
-				<Button
-					href="/api/download?os=macos"
-					class="w-full h-12 text-base font-bold bg-slate-600 hover:bg-slate-700 text-white btn-press"
-				>
-					<Download class="mr-2 size-5" />
-					Download .dmg Installer
-				</Button>
+				<div class="flex flex-col gap-2">
+					<Button
+						href="/api/download?os=macos&arch=aarch64"
+						class="w-full h-10 text-sm font-bold bg-slate-600 hover:bg-slate-700 text-white btn-press"
+					>
+						<Download class="mr-2 size-4" />
+						Apple Silicon (M1/M2/M3)
+					</Button>
+					<Button
+						href="/api/download?os=macos&arch=x64"
+						variant="outline"
+						class="w-full h-10 text-sm font-bold text-slate-600 border-slate-200 hover:bg-slate-50 btn-press"
+					>
+						<Download class="mr-2 size-4" />
+						Intel Mac
+					</Button>
+				</div>
 			</CardContent>
 		</Card>
 
@@ -134,13 +154,23 @@
 						<ShieldCheck class="size-4" /> dpkg installation required
 					</li>
 				</ul>
-				<Button
-					href="/api/download?os=linux"
-					class="w-full h-12 text-base font-bold bg-orange-600 hover:bg-orange-700 text-white btn-press"
-				>
-					<Download class="mr-2 size-5" />
-					Download .deb Installer
-				</Button>
+				<div class="flex flex-col gap-2">
+					<Button
+						href="/api/download?os=linux&arch=x64"
+						class="w-full h-10 text-sm font-bold bg-orange-600 hover:bg-orange-700 text-white btn-press"
+					>
+						<Download class="mr-2 size-4" />
+						Download .deb (AMD64)
+					</Button>
+					<Button
+						href="/api/download?os=linux&arch=aarch64"
+						variant="outline"
+						class="w-full h-10 text-sm font-bold text-orange-600 border-orange-200 hover:bg-orange-50 btn-press"
+					>
+						<Download class="mr-2 size-4" />
+						Download .deb (ARM64)
+					</Button>
+				</div>
 			</CardContent>
 		</Card>
 	</div>
