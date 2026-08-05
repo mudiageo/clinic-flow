@@ -16,6 +16,15 @@
 	let selectedStaff = $state<Staff | null>(null);
 	let pin = $state('');
 	let isLoadingStaff = $state(true);
+	let connectionError = $state(false);
+
+	let prevIssueCount = $state(0);
+	$effect(() => {
+		if (allIssues.length > prevIssueCount) {
+			pin = ''; // Reset PIN on new error
+		}
+		prevIssueCount = allIssues.length;
+	});
 
 	onMount(async () => {
 		try {
@@ -27,6 +36,7 @@
 			}
 		} catch (e) {
 			console.error('Failed to fetch staff list:', e);
+			connectionError = true;
 		} finally {
 			isLoadingStaff = false;
 		}
@@ -102,9 +112,16 @@
 
 								{#if staffMembers.length === 0}
 									<div class="col-span-full py-12 text-center text-muted-foreground">
-										<p>No staff accounts found.</p>
-										<p class="text-sm mt-1">Please register the PHC first.</p>
-										<Button href="/onboarding" variant="link" class="mt-4">Register PHC</Button>
+										{#if connectionError}
+											<AlertCircle class="size-10 text-destructive mx-auto mb-4 opacity-50" />
+											<p class="font-bold text-foreground">Cannot reach the Master Server</p>
+											<p class="text-sm mt-1">Please check your Wi-Fi or router connection.</p>
+											<Button variant="outline" class="mt-4" onclick={() => window.location.reload()}>Retry Connection</Button>
+										{:else}
+											<p>No staff accounts found.</p>
+											<p class="text-sm mt-1">Please register the PHC first.</p>
+											<Button href="/onboarding" variant="link" class="mt-4">Register PHC</Button>
+										{/if}
 									</div>
 								{/if}
 							</div>
