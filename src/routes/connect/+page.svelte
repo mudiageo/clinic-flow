@@ -13,8 +13,9 @@
 	import { validatePairingToken } from '$lib/remote/server-status.remote';
 	import { getServerUrl } from '$lib/utils/server';
 
-	let connectionMode = $state<'select' | 'local' | 'scanning' | 'master_setup'>('select');
+	let connectionMode = $state<'select' | 'local' | 'cloud' | 'scanning' | 'master_setup'>('select');
 	let localIp = $state('');
+	let cloudUrl = $state('');
 	let isConnecting = $state(false);
 
 	async function connectToServer(url: string) {
@@ -41,12 +42,12 @@
 		}
 	}
 
-	function handleConnectCloud() {
-		const url = getServerUrl();
-		if (!url) {
-			toast.error('Cloud server URL is not configured.');
+	function handleConnectCloudUrl() {
+		if (!cloudUrl) {
+			toast.error('Please enter a valid Cloud URL');
 			return;
 		}
+		const url = cloudUrl.startsWith('http') ? cloudUrl : `https://${cloudUrl}`;
 		connectToServer(url);
 	}
 
@@ -113,7 +114,11 @@
 					
 					<button 
 						class="w-full flex items-start gap-4 p-5 rounded-xl border border-border/60 bg-card hover:bg-muted/50 hover:border-primary/50 transition-all text-left group"
-						onclick={handleConnectCloud}
+						onclick={() => {
+							const defaultUrl = getServerUrl();
+							cloudUrl = defaultUrl || '';
+							connectionMode = 'cloud';
+						}}
 					>
 						<div class="p-3 bg-blue-500/10 text-blue-500 rounded-lg group-hover:scale-110 transition-transform">
 							<Cloud class="size-6" />
@@ -180,6 +185,40 @@
 							class="w-full h-14 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 mt-4"
 							disabled={isConnecting}
 							onclick={handleConnectLocal}
+						>
+							{#if isConnecting}
+								<Loader2 class="size-5 mr-2 animate-spin" /> Connecting...
+							{:else}
+								Connect <ArrowRight class="size-5 ml-2" />
+							{/if}
+						</Button>
+					</div>
+				</div>
+			{:else if connectionMode === 'cloud'}
+				<div class="p-6" in:slide={{ duration: 300 }}>
+					<button 
+						class="text-sm text-muted-foreground hover:text-foreground mb-6 flex items-center transition-colors"
+						onclick={() => connectionMode = 'select'}
+					>
+						← Back to options
+					</button>
+
+					<div class="space-y-6">
+						<div class="space-y-3">
+							<Label class="text-base">Cloud Server URL</Label>
+							<Input 
+								bind:value={cloudUrl} 
+								placeholder="e.g. https://clinic.clinicflow.org" 
+								class="h-14 text-lg font-mono"
+								onkeydown={(e) => e.key === 'Enter' && handleConnectCloudUrl()}
+							/>
+							<p class="text-sm text-muted-foreground">Enter the full URL address of your managed ClinicFlow cloud server.</p>
+						</div>
+
+						<Button 
+							class="w-full h-14 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 mt-4"
+							disabled={isConnecting}
+							onclick={handleConnectCloudUrl}
 						>
 							{#if isConnecting}
 								<Loader2 class="size-5 mr-2 animate-spin" /> Connecting...

@@ -27,11 +27,12 @@
 	let dbProgress = $state(0);
 	
 	function nextStep() {
-		if (currentStep === 3) {
-			// Simulate DB init
-			simulateDbInit();
+		if (currentStep < totalSteps) {
+			currentStep++;
+			if (currentStep === 3) {
+				simulateDbInit();
+			}
 		}
-		if (currentStep < totalSteps) currentStep++;
 	}
 
 	function prevStep() {
