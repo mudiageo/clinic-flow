@@ -13,6 +13,7 @@ import {
 	primaryKey
 } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
+import { user } from './auth.schema';
 
 // ─────────────────────────────────────────────────────────────
 // ENUMS
@@ -604,6 +605,7 @@ export const patientsRelations = relations(patients, ({ one, many }) => ({
 
 export const staffRelations = relations(staff, ({ many, one }) => ({
 	phc: one(phcs, { fields: [staff.phcId], references: [phcs.id] }),
+	user: one(user, { fields: [staff.authUserId], references: [user.id] }),
 	permissions: many(permissions, { relationName: 'grantedPermissions' }),
 	appointments: many(appointments, { relationName: 'assignedStaff' })
 }));
