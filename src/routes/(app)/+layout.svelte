@@ -20,7 +20,14 @@
 	});
 
 	// Check auth session
-	const sessionData = await getCurrentSession();
+	let sessionData;
+	try {
+		sessionData = await getCurrentSession();
+	} catch (error) {
+		console.error('Failed to fetch session (offline):', error);
+		if (browser) goto('/login');
+	}
+	
 	sessionContext = sessionData;
 
 	if (browser && !sessionData?.user) {
