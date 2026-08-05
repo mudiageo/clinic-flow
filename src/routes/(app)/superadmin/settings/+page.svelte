@@ -44,62 +44,23 @@
 	let isSavingSecurity = $state(false);
 	let isSavingPrefs = $state(false);
 
-	async function handleSaveProfile(e: Event) {
-		e.preventDefault();
-		isSavingProfile = true;
-		try {
-			await updateProfile.submit({ name: fullName });
-			toast.success('Profile updated successfully');
-		} catch (e: any) {
-			toast.error(e.message || 'Failed to update profile');
-		} finally {
-			isSavingProfile = false;
-		}
-	}
-
-	async function handleUpdatePassword(e: Event) {
-		e.preventDefault();
+	async function handleUpdatePassword(form: any) {
 		if (newPassword !== confirmPassword) {
 			toast.error('New passwords do not match');
-			return;
+			return false;
 		}
 		if (newPassword.length < 8) {
 			toast.error('Password must be at least 8 characters');
-			return;
+			return false;
 		}
-		isSavingSecurity = true;
-		try {
-			await updatePassword.submit({ 
-				currentPassword, 
-				newPassword 
-			});
-			toast.success('Password updated successfully');
-			currentPassword = '';
-			newPassword = '';
-			confirmPassword = '';
-		} catch (e: any) {
-			toast.error(e.message || 'Failed to update password');
-		} finally {
-			isSavingSecurity = false;
-		}
+		return true;
 	}
 
+
 	async function handleSavePreferences() {
-		isSavingPrefs = true;
-		try {
-			await updateAppSettings.submit({
-				betaUpdates,
-				telemetryEnabled,
-				strictAuditMode,
-				emailAlerts,
-				autoBackup
-			});
-			toast.success('Platform preferences saved');
-		} catch (e: any) {
-			toast.error(e.message || 'Failed to save preferences');
-		} finally {
-			isSavingPrefs = false;
-		}
+		// Trigger hidden form submit when switches change
+		const form = document.getElementById('preferences-form') as HTMLFormElement;
+		if (form) form.requestSubmit();
 	}
 </script>
 
@@ -137,11 +98,26 @@
 					</CardTitle>
 					<CardDescription>Update your personal details and contact information.</CardDescription>
 				</CardHeader>
-				<form onsubmit={handleSaveProfile}>
+				<form 
+					{...updateProfile.enhance(async (form) => {
+						isSavingProfile = true;
+						try {
+							if (await form.submit()) {
+								if (updateProfile.result?.success) {
+									toast.success('Profile updated successfully');
+								}
+							}
+						} catch (e: any) {
+							toast.error(e.message || 'Failed to update profile');
+						} finally {
+							isSavingProfile = false;
+						}
+					})}
+				>
 					<CardContent class="space-y-4">
 						<div class="space-y-2">
 							<Label for="fullName">Full Name</Label>
-							<Input id="fullName" bind:value={fullName} placeholder="Jane Doe" required />
+							<Input {...updateProfile.fields.name.as('text', fullName)} required />
 						</div>
 						<div class="space-y-2">
 							<Label for="email">Email Address</Label>
@@ -173,15 +149,34 @@
 					</CardTitle>
 					<CardDescription>Ensure your master account is using a long, random password to stay secure.</CardDescription>
 				</CardHeader>
-				<form onsubmit={handleUpdatePassword}>
+				<form 
+					{...updatePassword.enhance(async (form) => {
+						if (!await handleUpdatePassword(form)) return;
+						isSavingSecurity = true;
+						try {
+							if (await form.submit()) {
+								if (updatePassword.result?.success) {
+									toast.success('Password updated successfully');
+									currentPassword = '';
+									newPassword = '';
+									confirmPassword = '';
+								}
+							}
+						} catch (e: any) {
+							toast.error(e.message || 'Failed to update password');
+						} finally {
+							isSavingSecurity = false;
+						}
+					})}
+				>
 					<CardContent class="space-y-4">
 						<div class="space-y-2">
 							<Label for="currentPassword">Current Password</Label>
-							<Input id="currentPassword" type="password" bind:value={currentPassword} required />
+							<Input {...updatePassword.fields.currentPassword.as('password', currentPassword)} required />
 						</div>
 						<div class="space-y-2">
 							<Label for="newPassword">New Password</Label>
-							<Input id="newPassword" type="password" bind:value={newPassword} required />
+							<Input {...updatePassword.fields.newPassword.as('password', newPassword)} required />
 						</div>
 						<div class="space-y-2">
 							<Label for="confirmPassword">Confirm New Password</Label>
@@ -249,6 +244,31 @@
 						</div>
 						<Switch bind:checked={autoBackup} onCheckedChange={handleSavePreferences} />
 					</div>
+
+					<form 
+						id="preferences-form"
+						class="hidden"
+						{...updateAppSettings.enhance(async (form) => {
+							isSavingPrefs = true;
+							try {
+								if (await form.submit()) {
+									if (updateAppSettings.result?.success) {
+										toast.success('Platform preferences saved');
+									}
+								}
+							} catch (e: any) {
+								toast.error(e.message || 'Failed to save preferences');
+							} finally {
+								isSavingPrefs = false;
+							}
+						})}
+					>
+						<input {...updateAppSettings.fields.betaUpdates.as('checkbox', betaUpdates)} />
+						<input {...updateAppSettings.fields.telemetryEnabled.as('checkbox', telemetryEnabled)} />
+						<input {...updateAppSettings.fields.strictAuditMode.as('checkbox', strictAuditMode)} />
+						<input {...updateAppSettings.fields.emailAlerts.as('checkbox', emailAlerts)} />
+						<input {...updateAppSettings.fields.autoBackup.as('checkbox', autoBackup)} />
+					</form>
 				</CardContent>
 			</Card>
 		</TabsContent>
