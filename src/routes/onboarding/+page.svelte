@@ -68,7 +68,7 @@
 	async function finishSetup() {
 		try {
 			toast.loading('Registering clinic...', { id: 'register' });
-			await registerPhc({
+			const res = await registerPhc({
 				phcName,
 				state: phcState,
 				lga: phcLga,
@@ -76,6 +76,15 @@
 				email: adminEmail,
 				password: adminPassword
 			});
+
+			// CRITICAL FIX: Ensure the Master Server's own UI knows its routing destination!
+			const serverOrigin = window.location.origin;
+			localStorage.setItem('clinicflow_server_url', serverOrigin);
+			if ('caches' in window) {
+				const cache = await caches.open('clinicflow-config');
+				await cache.put('/server-url', new Response(serverOrigin));
+			}
+
 			toast.success('Setup Complete! Welcome to ClinicFlow.', { id: 'register' });
 			localStorage.setItem('clinicflow_onboarding_complete', 'true');
 			goto('/login?registered=true');
