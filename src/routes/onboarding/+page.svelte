@@ -25,6 +25,7 @@
 	let adminName = $state('');
 	let adminEmail = $state('');
 	let adminPassword = $state('');
+	let adminPin = $state('');
 	let includeSeedData = $state(false);
 
 	// DB Init state
@@ -41,6 +42,7 @@
 			if (!adminName.trim()) return toast.error('Admin Name is required');
 			if (!adminEmail.trim() || !adminEmail.includes('@')) return toast.error('Valid Email is required');
 			if (!adminPassword.trim() || adminPassword.length < 8) return toast.error('Password must be at least 8 characters');
+			if (!adminPin.trim() || adminPin.length !== 4 || !/^\d{4}$/.test(adminPin)) return toast.error('Admin PIN must be exactly 4 digits');
 		}
 
 		if (currentStep < totalSteps) {
@@ -88,7 +90,8 @@
 				lga: phcLga,
 				adminName,
 				email: adminEmail,
-				password: adminPassword
+				password: adminPassword,
+				pin: adminPin
 			});
 
 			// CRITICAL FIX: Ensure the Master Server's own UI knows its routing destination!
@@ -233,6 +236,10 @@
 					<div class="space-y-2">
 						<Label>Admin Password</Label>
 						<Input type="password" bind:value={adminPassword} placeholder="Enter a secure password (min 8 chars)" class="h-12 text-lg" />
+					</div>
+					<div class="space-y-2">
+						<Label>Kiosk PIN (4 digits)</Label>
+						<Input type="text" inputmode="numeric" maxlength="4" bind:value={adminPin} placeholder="e.g. 1234" class="h-12 text-lg text-center tracking-[1em]" />
 					</div>
 					<p class="text-sm text-muted-foreground mt-4">
 						This account will have Superadmin access to manage the clinic and sync conflicts.

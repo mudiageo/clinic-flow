@@ -236,9 +236,11 @@ export const registerAction = form(
 		lga: v.pipe(v.string(), v.nonEmpty('LGA is required')),
 		adminName: v.pipe(v.string(), v.nonEmpty('Admin Name is required')),
 		email: v.pipe(v.string(), v.email('Invalid email')),
-		password: v.pipe(v.string(), v.minLength(8, 'Password must be at least 8 characters'))
+		password: v.pipe(v.string(), v.minLength(8, 'Password must be at least 8 characters')),
+		pin: v.pipe(v.string(), v.minLength(4, 'PIN required'))
 	}),
 	async (data, issue) => {
+		const { hashPassword } = await import('better-auth/crypto');
 		try {
 			// 1. Create PHC
 			const [newPhc] = await createPhc({
@@ -261,12 +263,14 @@ export const registerAction = form(
 			}
 
 			// 3. Create Admin Staff Record
+			const hashedPin = await hashPassword(data.pin);
 			await createStaff({
 				authUserId: res.user.id,
 				fullName: data.adminName,
 				phcId: newPhc.id,
 				role: 'admin',
-				active: true // Instant access for Demo Day
+				active: true,
+				pin: hashedPin
 			});
 
 			redirect(302, '/login?registered=true');
@@ -286,9 +290,11 @@ export const registerPhc = command(
 		lga: v.pipe(v.string(), v.nonEmpty('LGA is required')),
 		adminName: v.pipe(v.string(), v.nonEmpty('Admin Name is required')),
 		email: v.pipe(v.string(), v.email('Invalid email')),
-		password: v.pipe(v.string(), v.minLength(8, 'Password must be at least 8 characters'))
+		password: v.pipe(v.string(), v.minLength(8, 'Password must be at least 8 characters')),
+		pin: v.pipe(v.string(), v.minLength(4, 'PIN required'))
 	}),
 	async (data) => {
+		const { hashPassword } = await import('better-auth/crypto');
 		// 1. Create PHC
 		const [newPhc] = await createPhc({
 			name: data.phcName,
@@ -310,12 +316,14 @@ export const registerPhc = command(
 		}
 
 		// 3. Create Admin Staff Record
+		const hashedPin = await hashPassword(data.pin);
 		await createStaff({
 			authUserId: res.user.id,
 			fullName: data.adminName,
 			phcId: newPhc.id,
 			role: 'admin',
-			active: true
+			active: true,
+			pin: hashedPin
 		});
 
 		return { success: true, phcId: newPhc.id };

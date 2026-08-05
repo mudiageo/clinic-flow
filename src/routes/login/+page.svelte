@@ -115,7 +115,17 @@
 		}
 	}
 
+	function handleKeydown(event: KeyboardEvent) {
+		if (!selectedStaff) return;
+		if (event.key >= '0' && event.key <= '9') {
+			handlePinDigit(event.key);
+		} else if (event.key === 'Backspace') {
+			handlePinBackspace();
+		}
+	}
 </script>
+
+<svelte:window onkeydown={handleKeydown} />
 
 <svelte:head>
 	<title>Kiosk Login — ClinicFlow</title>
@@ -146,7 +156,7 @@
 				
 				{:else if !selectedStaff}
 					<!-- Staff Grid View -->
-					<div class="p-6 h-[400px] flex flex-col" in:fade={{ duration: 200 }}>
+					<div class="p-6 min-h-[400px] flex flex-col" in:fade={{ duration: 200 }}>
 						<div class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
 							<div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
 								{#each staffMembers as staff}
@@ -184,7 +194,7 @@
 				
 				{:else}
 					<!-- PIN Entry View -->
-					<div class="p-6 h-[400px] flex flex-col" in:slide={{ duration: 300 }}>
+					<div class="p-6 min-h-[400px] flex flex-col" in:slide={{ duration: 300 }}>
 						<div class="flex items-center gap-4 mb-8">
 							<Button variant="ghost" size="icon" class="rounded-full hover:bg-muted" onclick={() => { selectedStaff = null; pin = ''; }}>
 								<ArrowLeft class="size-5" />
