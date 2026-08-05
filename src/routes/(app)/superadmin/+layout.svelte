@@ -29,7 +29,7 @@
 
 	const session = getContext<{ user: any; role: string | null }>('session');
 	const user = session?.user;
-	const role = session?.role ?? 'superadmin';
+	const role = session?.role ?? null;
 
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
@@ -97,6 +97,7 @@
 	);
 </script>
 
+{#if role === 'superadmin'}
 <Sidebar.Provider>
 	<AppSidebar
 		{navGroups}
@@ -169,3 +170,4 @@
 </Sidebar.Provider>
 
 <BottomNav items={bottomNavItems} />
+{/if}

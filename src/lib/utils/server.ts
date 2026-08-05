@@ -1,4 +1,4 @@
-import { env } from '$env/static/public';
+import { BACKEND_HOST, BACKEND_INSECURE } from '$app/env/public';
 
 /**
  * Returns the ClinicFlow backend server base URL.
@@ -10,9 +10,9 @@ import { env } from '$env/static/public';
  *     is served directly by the SvelteKit backend.
  */
 export function getServerUrl(): string {
-	if (env.BACKEND_HOST) {
-		const protocol = env.BACKEND_INSECURE === 'true' ? 'http' : 'https';
-		return `${protocol}://${env.BACKEND_HOST}`;
+	if (BACKEND_HOST) {
+		const protocol = BACKEND_INSECURE === 'true' ? 'http' : 'https';
+		return `${protocol}://${BACKEND_HOST}`;
 	}
 	// PWA / Web: the SvelteKit frontend IS the backend
 	if (typeof window !== 'undefined') {

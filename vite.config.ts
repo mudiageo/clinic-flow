@@ -65,7 +65,8 @@ export default defineConfig({
 					config.include.push('../drizzle.config.ts');
 				}
 			}
-		})
+		}),
+
 	],
 	test: {
 		expect: { requireAssertions: true },

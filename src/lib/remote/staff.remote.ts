@@ -4,7 +4,7 @@ import { staff } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import * as v from 'valibot';
 import { getRequestEvent } from '$app/server';
-import { hash } from '@node-rs/argon2';
+import { hashPassword } from 'better-auth/crypto';
 
 export const getAllStaff = query(async () => {
 	const event = getRequestEvent();
@@ -25,7 +25,7 @@ export const setStaffPin = form(
 		const event = getRequestEvent();
 		if (!event.locals.phcId) throw new Error('Unauthorized');
 		
-		const hashedPin = await hash(data.pin, { memoryCost: 19456, timeCost: 2, outputLen: 32, parallelism: 1 });
+		const hashedPin = await hashPassword(data.pin);
 		
 		await db.update(staff)
 			// @ts-ignore

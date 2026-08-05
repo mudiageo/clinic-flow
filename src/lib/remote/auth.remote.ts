@@ -273,7 +273,7 @@ export const registerAction = form(
 // OFFLINE KIOSK LOGIN (PIN-BASED)
 // ─────────────────────────────────────────────────────────────
 
-import { verify } from '@node-rs/argon2';
+import { verifyPassword } from 'better-auth/crypto';
 import { randomBytes, randomUUID } from 'node:crypto';
 
 export const signInWithPin = form(
@@ -295,7 +295,7 @@ export const signInWithPin = form(
 		}
 
 		// 2. Verify PIN using Argon2
-		const isValid = await verify(staffMember.pin, data.pin);
+		const isValid = await verifyPassword({ hash: staffMember.pin, password: data.pin });
 		if (!isValid) {
 			return invalid(issue('pin', 'Incorrect PIN. Please try again.'));
 		}

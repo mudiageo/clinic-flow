@@ -4,7 +4,7 @@ import { db } from '$lib/server/db';
 import { uplinkConfig, staff } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import * as v from 'valibot';
-import { hash } from '@node-rs/argon2';
+import { hashPassword } from 'better-auth/crypto';
 
 // ─────────────────────────────────────────────────────────────
 // GET UPLINK CONFIG
@@ -73,12 +73,7 @@ export const saveUplinkConfig = form(
 		}
 
 		// 3. Hash the SuperAdmin password for offline login
-		const passwordHash = await hash(superAdminPassword, {
-			memoryCost: 19456,
-			timeCost: 2,
-			outputLen: 32,
-			parallelism: 1
-		});
+		const passwordHash = await hashPassword(superAdminPassword);
 
 		// 4. Upsert the uplink config
 		await db
