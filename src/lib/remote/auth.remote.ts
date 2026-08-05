@@ -1,4 +1,4 @@
-import { form, query } from '$app/server';
+import { form, query, command } from '$app/server';
 import { getRequestEvent } from '$app/server';
 import { auth } from '$lib/server/auth';
 import { invalid, redirect, isRedirect } from '@sveltejs/kit';
@@ -260,6 +260,49 @@ export const registerAction = form(
 			}
 			return invalid(issue('email', error.message || 'Registration failed'));
 		}
+	}
+);
+
+export const registerPhc = command(
+	v.object({
+		phcName: v.pipe(v.string(), v.nonEmpty('PHC Name is required')),
+		state: v.pipe(v.string(), v.nonEmpty('State is required')),
+		lga: v.pipe(v.string(), v.nonEmpty('LGA is required')),
+		adminName: v.pipe(v.string(), v.nonEmpty('Admin Name is required')),
+		email: v.pipe(v.string(), v.email('Invalid email')),
+		password: v.pipe(v.string(), v.minLength(8, 'Password must be at least 8 characters'))
+	}),
+	async (data) => {
+		// 1. Create PHC
+		const [newPhc] = await createPhc({
+			name: data.phcName,
+			state: data.state,
+			lga: data.lga
+		});
+
+		// 2. Register User via Better Auth
+		const res = await auth.api.signUpEmail({
+			body: {
+				email: data.email,
+				password: data.password,
+				name: data.adminName
+			}
+		});
+
+		if (!res?.user) {
+			throw new Error('Failed to create user account');
+		}
+
+		// 3. Create Admin Staff Record
+		await createStaff({
+			authUserId: res.user.id,
+			fullName: data.adminName,
+			phcId: newPhc.id,
+			role: 'admin',
+			active: true
+		});
+
+		return { success: true };
 	}
 );
 

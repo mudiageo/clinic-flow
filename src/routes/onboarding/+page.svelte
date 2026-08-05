@@ -12,15 +12,19 @@
 	import { toast } from 'svelte-sonner';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
+	import { registerPhc } from '$lib/remote/auth.remote';
+	import { initDatabase } from '$lib/remote/setup.remote';
 
 	let currentStep = $state(1);
 	let totalSteps = 7;
 
 	// Form states
 	let phcName = $state('');
-	let phcLocation = $state('');
+	let phcState = $state('');
+	let phcLga = $state('');
 	let adminName = $state('');
-	let adminPin = $state('');
+	let adminEmail = $state('');
+	let adminPassword = $state('');
 	let includeSeedData = $state(false);
 
 	// DB Init state
@@ -30,7 +34,7 @@
 		if (currentStep < totalSteps) {
 			currentStep++;
 			if (currentStep === 3) {
-				simulateDbInit();
+				runDbInit();
 			}
 		}
 	}
@@ -39,26 +43,46 @@
 		if (currentStep > 1) currentStep--;
 	}
 
-	function simulateDbInit() {
+	async function runDbInit() {
 		dbProgress = 0;
+		// Fake progress bar while waiting for the server
 		const interval = setInterval(() => {
-			dbProgress += Math.random() * 15;
-			if (dbProgress >= 100) {
-				dbProgress = 100;
-				clearInterval(interval);
-				setTimeout(() => {
-					toast.success('Database initialized successfully');
-					nextStep();
-				}, 600);
-			}
+			if (dbProgress < 90) dbProgress += Math.random() * 15;
 		}, 300);
+		
+		try {
+			await initDatabase();
+			dbProgress = 100;
+			clearInterval(interval);
+			setTimeout(() => {
+				toast.success('Database initialized successfully');
+				nextStep();
+			}, 600);
+		} catch (error) {
+			clearInterval(interval);
+			toast.error('Failed to initialize database');
+			console.error(error);
+		}
 	}
 
-	function finishSetup() {
-		// Mock finish
-		localStorage.setItem('clinicflow_onboarding_complete', 'true');
-		toast.success('Setup Complete! Welcome to ClinicFlow.');
-		goto('/login');
+	async function finishSetup() {
+		try {
+			toast.loading('Registering clinic...', { id: 'register' });
+			await registerPhc({
+				phcName,
+				state: phcState,
+				lga: phcLga,
+				adminName,
+				email: adminEmail,
+				password: adminPassword
+			});
+			toast.success('Setup Complete! Welcome to ClinicFlow.', { id: 'register' });
+			localStorage.setItem('clinicflow_onboarding_complete', 'true');
+			goto('/login?registered=true');
+		} catch (error: any) {
+			console.error(error);
+			toast.error(error.message || 'Registration failed', { id: 'register' });
+		}
 	}
 </script>
 
@@ -126,8 +150,12 @@
 						<Input bind:value={phcName} placeholder="e.g., General Hospital, Benin City" class="h-12 text-lg" />
 					</div>
 					<div class="space-y-2">
-						<Label>State / LGA</Label>
-						<Input bind:value={phcLocation} placeholder="e.g., Edo State / Oredo" class="h-12" />
+						<Label>State</Label>
+						<Input bind:value={phcState} placeholder="e.g., Edo State" class="h-12" />
+					</div>
+					<div class="space-y-2">
+						<Label>LGA (Local Government Area)</Label>
+						<Input bind:value={phcLga} placeholder="e.g., Oredo" class="h-12" />
 					</div>
 					
 					<label class="flex items-center gap-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 mt-6">
@@ -169,11 +197,15 @@
 						<Input bind:value={adminName} placeholder="e.g., Dr. Jane Doe" class="h-12 text-lg" />
 					</div>
 					<div class="space-y-2">
-						<Label>Master PIN code</Label>
-						<Input type="password" bind:value={adminPin} placeholder="Enter a 4-6 digit PIN" class="h-12 text-lg font-mono tracking-widest" />
+						<Label>Admin Email</Label>
+						<Input type="email" bind:value={adminEmail} placeholder="admin@clinic.com" class="h-12 text-lg" />
+					</div>
+					<div class="space-y-2">
+						<Label>Admin Password</Label>
+						<Input type="password" bind:value={adminPassword} placeholder="Enter a secure password (min 8 chars)" class="h-12 text-lg" />
 					</div>
 					<p class="text-sm text-muted-foreground mt-4">
-						This PIN will be required to access the Superadmin dashboard and manage sync conflicts.
+						This account will have Superadmin access to manage the clinic and sync conflicts.
 					</p>
 				</div>
 			
