@@ -318,7 +318,7 @@ export const registerPhc = command(
 			active: true
 		});
 
-		return { success: true };
+		return { success: true, phcId: newPhc.id };
 	}
 );
 

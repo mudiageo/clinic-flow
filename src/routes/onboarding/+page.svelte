@@ -64,7 +64,7 @@
 		}, 300);
 		
 		try {
-			await initDatabase();
+			await initDatabase({});
 			dbProgress = 100;
 			clearInterval(interval);
 			setTimeout(() => {
@@ -94,6 +94,9 @@
 			// CRITICAL FIX: Ensure the Master Server's own UI knows its routing destination!
 			const serverOrigin = window.location.origin;
 			localStorage.setItem('clinicflow_server_url', serverOrigin);
+			if (res && res.phcId) {
+				localStorage.setItem('clinicflow_phc_id', res.phcId);
+			}
 			if ('caches' in window) {
 				const cache = await caches.open('clinicflow-config');
 				await cache.put('/server-url', new Response(serverOrigin));
@@ -244,8 +247,11 @@
 						<p class="text-sm text-muted-foreground mb-6">
 							You can invite staff members now via link, or they can register on this device later.
 						</p>
-						<Button variant="outline" class="w-full h-11" onclick={() => toast.success('Invite link copied to clipboard!')}>
-							Copy Invite Link
+						<Button variant="outline" class="w-full h-11" onclick={() => {
+							navigator.clipboard.writeText(window.location.origin + '/connect');
+							toast.success('Pairing link copied to clipboard!');
+						}}>
+							Copy Pairing Link
 						</Button>
 					</div>
 					<p class="text-xs text-muted-foreground">You can also skip this and manage staff from the Admin Dashboard.</p>
