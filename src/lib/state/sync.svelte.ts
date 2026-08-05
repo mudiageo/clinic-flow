@@ -120,8 +120,16 @@ class SyncStore {
 							});
 						}
 					}
-				} catch (e) {
+				} catch (e: any) {
 					console.error('Push batch failed:', e);
+					if (e?.status === 401 || e?.message?.includes('401') || e?.message?.includes('UNAUTHORIZED')) {
+						toast.error('Session expired. Please log in again to continue syncing.');
+						this.isSyncing = false;
+						if (typeof window !== 'undefined') {
+							window.location.href = '/login';
+						}
+						return; // Abort sync entirely to protect data
+					}
 					toast.error('Sync failed. Will retry later.');
 					break; // Stop on first network error, retry next time
 				}
@@ -176,8 +184,14 @@ class SyncStore {
 			}
 
 			this.lastSyncedAt = Date.now();
-		} catch (e) {
+		} catch (e: any) {
 			console.error('Pull changes failed:', e);
+			if (e?.status === 401 || e?.message?.includes('401') || e?.message?.includes('UNAUTHORIZED')) {
+				toast.error('Session expired. Please log in again to continue syncing.');
+				if (typeof window !== 'undefined') {
+					window.location.href = '/login';
+				}
+			}
 		} finally {
 			this.isSyncing = false;
 		}

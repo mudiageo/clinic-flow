@@ -1,9 +1,18 @@
-import { query, command } from '$app/server';
+import { query, command, getRequestEvent } from '$app/server';
+import { error } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { db as serverDb } from '$lib/server/db';
 import { sql, eq, inArray, gt, and } from 'drizzle-orm';
 import * as schema from '$lib/server/db/schema';
 import { pharmacyInventory, syncOperations } from '$lib/server/db/schema';
+
+function requireAuth() {
+	const event = getRequestEvent();
+	if (!event?.locals.user) {
+		error(401, 'UNAUTHORIZED');
+	}
+	return event.locals;
+}
 
 const operationSchema = v.object({
 	localId: v.number(),
@@ -17,6 +26,7 @@ const operationSchema = v.object({
 });
 
 export const pushOperations = command(v.array(operationSchema), async (operations) => {
+	requireAuth();
 	const accepted: number[] = [];
 	const conflicts: unknown[] = [];
 
@@ -190,6 +200,7 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 export const pullChanges = query(
 	v.object({ phcId: v.string(), deviceId: v.string(), since: v.number() }),
 	async ({ phcId, deviceId, since }) => {
+		requireAuth();
 		// Only fetch changes made by OTHER devices for this PHC
 		const changes = await serverDb.query.syncOperations.findMany({
 			where: (t, { and, eq, gt, ne }) =>
