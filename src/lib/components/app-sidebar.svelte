@@ -198,7 +198,13 @@
 
 			<!-- Log out -->
 			<Sidebar.MenuItem>
-				<form {...signOutAction}>
+				<form {...signOutAction} onsubmit={(e) => {
+					localStorage.removeItem('clinicflow_offline_session');
+					if (typeof navigator !== 'undefined' && !navigator.onLine) {
+						e.preventDefault();
+						window.location.href = '/login';
+					}
+				}}>
 					<Sidebar.MenuButton
 						class="w-full text-destructive hover:bg-destructive/10 hover:text-destructive"
 					>

@@ -23,9 +23,21 @@
 	let sessionData;
 	try {
 		sessionData = await getCurrentSession();
+		if (browser && sessionData?.user) {
+			// Cache session for offline survival
+			localStorage.setItem('clinicflow_offline_session', JSON.stringify(sessionData));
+		}
 	} catch (error) {
 		console.error('Failed to fetch session (offline):', error);
-		if (browser) goto('/login');
+		if (browser) {
+			const cached = localStorage.getItem('clinicflow_offline_session');
+			if (cached) {
+				sessionData = JSON.parse(cached);
+				// We don't have access to toast here easily since it's layout script, but we can rely on UI to show offline
+			} else {
+				goto('/login');
+			}
+		}
 	}
 	
 	sessionContext = sessionData;

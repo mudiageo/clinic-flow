@@ -21,6 +21,18 @@ export interface LocalPatient {
 	deleted: boolean;
 }
 
+export interface LocalStaff {
+	id: string;
+	authUserId: string;
+	fullName: string;
+	role: string;
+	phcId: string;
+	active: boolean;
+	pin?: string;
+	syncStatus: 'synced' | 'pending' | 'conflict';
+	updatedAt: number;
+}
+
 export interface LocalFamily {
 	id: string;
 	householdName: string | null;
@@ -246,6 +258,7 @@ class ClinicFlowDB extends Dexie {
 	appointments!: Table<LocalAppointment, string>;
 	pregnancyRecords!: Table<LocalPregnancyRecord, string>;
 	families!: Table<LocalFamily, string>;
+	staff!: Table<LocalStaff, string>;
 	syncLog!: Table<SyncLogEntry, number>;
 
 	constructor() {
@@ -258,6 +271,7 @@ class ClinicFlowDB extends Dexie {
 			reminders: 'id, patientId, phcId, status, dueDate, syncStatus',
 			labRequests: 'id, patientId, encounterId, phcId, status, urgency, syncStatus',
 			triageRules: 'id, field, active, syncStatus',
+			staff: 'id, phcId, role, active',
 			syncLog: '++localId, entityType, entityId, operation, timestamp, synced'
 		});
 		this.version(2).stores({
