@@ -29,8 +29,20 @@
 
 	// DB Init state
 	let dbProgress = $state(0);
+	let dbInitFailed = $state(false);
 	
 	function nextStep() {
+		if (currentStep === 2) {
+			if (!phcName.trim()) return toast.error('Facility Name is required');
+			if (!phcState.trim()) return toast.error('State is required');
+			if (!phcLga.trim()) return toast.error('LGA is required');
+		}
+		if (currentStep === 4) {
+			if (!adminName.trim()) return toast.error('Admin Name is required');
+			if (!adminEmail.trim() || !adminEmail.includes('@')) return toast.error('Valid Email is required');
+			if (!adminPassword.trim() || adminPassword.length < 8) return toast.error('Password must be at least 8 characters');
+		}
+
 		if (currentStep < totalSteps) {
 			currentStep++;
 			if (currentStep === 3) {
@@ -45,6 +57,7 @@
 
 	async function runDbInit() {
 		dbProgress = 0;
+		dbInitFailed = false;
 		// Fake progress bar while waiting for the server
 		const interval = setInterval(() => {
 			if (dbProgress < 90) dbProgress += Math.random() * 15;
@@ -58,9 +71,10 @@
 				toast.success('Database initialized successfully');
 				nextStep();
 			}, 600);
-		} catch (error) {
+		} catch (error: any) {
 			clearInterval(interval);
-			toast.error('Failed to initialize database');
+			dbInitFailed = true;
+			toast.error(error.message || 'Failed to initialize database');
 			console.error(error);
 		}
 	}
@@ -180,7 +194,7 @@
 				<div in:fade={{ duration: 200 }} class="flex flex-col items-center justify-center h-full min-h-[300px] space-y-8 text-center">
 					<div class="relative">
 						<div class="size-24 rounded-full border-4 border-muted flex items-center justify-center">
-							<Database class="size-10 text-primary {dbProgress < 100 ? 'animate-pulse' : ''}" />
+							<Database class="size-10 {dbInitFailed ? 'text-destructive' : 'text-primary'} {dbProgress < 100 && !dbInitFailed ? 'animate-pulse' : ''}" />
 						</div>
 						{#if dbProgress >= 100}
 							<div class="absolute -bottom-2 -right-2 size-8 bg-emerald-500 rounded-full border-4 border-background flex items-center justify-center text-white" in:fade>
@@ -191,12 +205,16 @@
 					
 					<div class="w-full max-w-md space-y-2">
 						<div class="flex justify-between text-sm font-medium">
-							<span>{dbProgress >= 100 ? 'Initialization Complete' : 'Building Local Indices...'}</span>
+							<span>{dbInitFailed ? 'Initialization Failed' : dbProgress >= 100 ? 'Initialization Complete' : 'Building Local Indices...'}</span>
 							<span>{Math.round(dbProgress)}%</span>
 						</div>
-						<Progress value={dbProgress} class="h-2" />
+						<Progress value={dbProgress} class="h-2 {dbInitFailed ? 'bg-destructive/20' : ''}" />
 					</div>
-					<p class="text-sm text-muted-foreground">Please do not close the app during this process.</p>
+					{#if dbInitFailed}
+						<Button variant="outline" onclick={runDbInit}>Retry Initialization</Button>
+					{:else}
+						<p class="text-sm text-muted-foreground">Please do not close the app during this process.</p>
+					{/if}
 				</div>
 			
 			{:else if currentStep === 4}

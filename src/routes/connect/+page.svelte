@@ -135,6 +135,14 @@
 				goto('/login');
 			} catch (e: any) {
 				toast.error(e.message ?? 'Invalid or expired pairing token.');
+				// Clear the invalid URL from storage so it doesn't break future connections
+				localStorage.removeItem('clinicflow_server_url');
+				if ('caches' in window) {
+					try {
+						const cache = await caches.open('clinicflow-config');
+						await cache.delete('/server-url');
+					} catch (err) {}
+				}
 				// Clear token from URL so they can try again manually
 				goto('/connect', { replaceState: true });
 			} finally {
