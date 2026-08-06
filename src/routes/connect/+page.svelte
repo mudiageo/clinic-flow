@@ -93,6 +93,10 @@
 		} catch (e) {
 			addLog(`Raw fetch failed completely: ${(e as Error).message}`);
 		}
+
+		// 4. Finally, call the real remote function wrapper
+		addLog(`Now calling the actual connectToServer()...`);
+		await connectToServer(url);
 	}
 
 	async function connectToServer(url: string) {
