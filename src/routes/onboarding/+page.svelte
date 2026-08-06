@@ -252,16 +252,10 @@
 						<Users class="size-12 text-muted-foreground mx-auto mb-4" />
 						<h3 class="font-bold text-lg mb-2">Team Setup</h3>
 						<p class="text-sm text-muted-foreground mb-6">
-							You can invite staff members now via link, or they can register on this device later.
+							Once you complete setup and access the Admin Dashboard, you can generate secure Pairing Links to connect your tablets to this server.
 						</p>
-						<Button variant="outline" class="w-full h-11" onclick={() => {
-							navigator.clipboard.writeText(window.location.origin + '/connect');
-							toast.success('Pairing link copied to clipboard!');
-						}}>
-							Copy Pairing Link
-						</Button>
 					</div>
-					<p class="text-xs text-muted-foreground">You can also skip this and manage staff from the Admin Dashboard.</p>
+					<p class="text-xs text-muted-foreground">You can manage staff and devices later from the Admin Dashboard.</p>
 				</div>
 			
 			{:else if currentStep === 6}

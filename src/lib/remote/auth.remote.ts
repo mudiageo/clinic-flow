@@ -5,7 +5,7 @@ import { invalid, redirect, isRedirect } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { db } from '$lib/server/db';
 import { APIError } from 'better-auth/api';
-import { sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { createPhc } from '$lib/server/db/queries/phcs';
 import { createStaff, updateStaffProfile, updateStaffPreferences } from '$lib/server/db/queries/staff';
 import { DATABASE_URL } from '$app/env/private';
@@ -259,7 +259,7 @@ export const registerAction = form(
 			});
 
 			if (!res?.user) {
-				return invalid(issue('email', 'Failed to create user account'));
+				invalid(issue.email('Failed to create user account'));
 			}
 
 			// 3. Create Admin Staff Record
@@ -273,12 +273,12 @@ export const registerAction = form(
 				pin: hashedPin
 			});
 
-			redirect(302, '/login?registered=true');
+			return { success: true, phcId: newPhc.id };
 		} catch (error: any) {
 			if (isRedirect(error)) {
 				throw error;
 			}
-			return invalid(issue('email', error.message || 'Registration failed'));
+			invalid(issue.email(error.message || 'Registration failed'));
 		}
 	}
 );
@@ -352,13 +352,13 @@ export const signInWithPin = form(
 		});
 
 		if (!staffMember || !staffMember.pin) {
-			return invalid(issue('pin', 'Invalid PIN or PIN not set for this user'));
+			invalid(issue.pin('Invalid PIN or PIN not set for this user'));
 		}
 
 		// 2. Verify PIN using Argon2
 		const isValid = await verifyPassword({ hash: staffMember.pin, password: data.pin });
 		if (!isValid) {
-			return invalid(issue('pin', 'Incorrect PIN. Please try again.'));
+			invalid(issue.pin('Incorrect PIN. Please try again.'));
 		}
 
 		// 3. Create BetterAuth Session manually in the database

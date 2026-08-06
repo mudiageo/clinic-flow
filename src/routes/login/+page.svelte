@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { signInWithPin, getStaffForLogin } from '$lib/remote/auth.remote';
+	import { signInWithPin, getStaffForLogin, signInAction } from '$lib/remote/auth.remote';
 	import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
+	import { Label } from '$lib/components/ui/label';
 	import { Alert, AlertDescription, AlertTitle } from '$lib/components/ui/alert';
 	import { ShieldAlert, AlertCircle, ArrowLeft, Loader2, Delete, Fingerprint } from '@lucide/svelte';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { db } from '$lib/local-db/db';
 	import { fade, slide } from 'svelte/transition';
 
@@ -17,13 +18,15 @@
 	let pin = $state('');
 	let isLoadingStaff = $state(true);
 	let connectionError = $state(false);
+	
+	let loginMode = $state<'kiosk' | 'admin'>('kiosk');
 
-	let prevIssueCount = $state(0);
+	let wasSubmitting = $state(false);
 	$effect(() => {
-		if (allIssues.length > prevIssueCount) {
-			pin = ''; // Reset PIN on new error
+		if (wasSubmitting && !signInWithPin.submitting && allIssues.length > 0) {
+			pin = ''; // Reset PIN on failed submission
 		}
-		prevIssueCount = allIssues.length;
+		wasSubmitting = signInWithPin.submitting;
 	});
 
 	onMount(async () => {
@@ -60,16 +63,17 @@
 		}
 	});
 
-	function handlePinDigit(digit: string) {
+	async function handlePinDigit(digit: string) {
 		if (pin.length < 4) {
 			pin += digit;
 			
 			// Auto-submit when 4 digits are entered
 			if (pin.length === 4 && selectedStaff) {
+				await tick(); // Wait for DOM to update hidden input with the 4th digit
 				if (typeof navigator !== 'undefined' && !navigator.onLine) {
 					handleOfflineLogin();
 				} else {
-					// Submit the hidden form programmatically
+					// Submit the hidden form programmatically using native DOM
 					const form = document.getElementById('login-form') as HTMLFormElement;
 					if (form) form.requestSubmit();
 				}
@@ -142,13 +146,25 @@
 				<Fingerprint class="w-7 h-7" />
 			</div>
 			<h1 class="text-3xl font-extrabold text-foreground tracking-tight">ClinicFlow Login</h1>
-			<p class="text-muted-foreground mt-1.5 text-sm font-medium">Select your profile to unlock this terminal</p>
+			<p class="text-muted-foreground mt-1.5 text-sm font-medium">
+				{loginMode === 'kiosk' ? 'Select your profile to unlock this terminal' : 'Sign in to the Admin Dashboard'}
+			</p>
+		</div>
+
+		<div class="flex bg-muted/50 p-1 rounded-xl w-full max-w-sm mx-auto z-10">
+			<button class="flex-1 py-2 text-sm font-semibold rounded-lg transition-all {loginMode === 'kiosk' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}" onclick={() => loginMode = 'kiosk'}>
+				Tablet Kiosk
+			</button>
+			<button class="flex-1 py-2 text-sm font-semibold rounded-lg transition-all {loginMode === 'admin' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}" onclick={() => loginMode = 'admin'}>
+				Web Dashboard
+			</button>
 		</div>
 
 		<Card class="w-full bg-card/60 border-border/80 backdrop-blur-xl shadow-2xl overflow-hidden min-h-[400px]">
 			<CardContent class="p-0">
 				
-				{#if isLoadingStaff}
+				{#if loginMode === 'kiosk'}
+					{#if isLoadingStaff}
 					<div class="h-[400px] flex flex-col items-center justify-center text-muted-foreground gap-4">
 						<Loader2 class="size-8 animate-spin text-primary" />
 						<p class="font-medium animate-pulse">Loading staff profiles...</p>
@@ -241,18 +257,40 @@
 							</div>
 						</div>
 
-						<!-- Hidden Form for actual submission -->
 						<form id="login-form" {...signInWithPin} class="hidden" onsubmit={(e) => {
 							if (typeof navigator !== 'undefined' && !navigator.onLine) {
 								e.preventDefault();
 								handleOfflineLogin();
 							}
 						}}>
-							<input type="hidden" name="staffId" value={selectedStaff.id} />
-							<input type="hidden" name="pin" value={pin} />
+							<input {...signInWithPin.fields.staffId.as('hidden', selectedStaff?.id || '')} />
+							<input {...signInWithPin.fields.pin.as('hidden', pin)} />
 						</form>
 					</div>
-				{/if}
+					{/if}
+			{:else}
+				<!-- Admin Email/Password View -->
+				<div class="p-8 h-full flex flex-col justify-center" in:fade={{ duration: 200 }}>
+					<form {...signInAction} class="space-y-5">
+						<div class="space-y-2">
+							<Label>Email Address</Label>
+							<Input {...signInAction.fields.email.as('email')} placeholder="admin@clinic.com" class="h-12" required />
+						</div>
+						<div class="space-y-2">
+							<Label>Password</Label>
+							<Input {...signInAction.fields.password.as('password')} placeholder="••••••••" class="h-12" required />
+						</div>
+						{#if signInAction.fields.allIssues()}
+							<p class="text-sm text-destructive font-semibold">
+								{signInAction.fields.allIssues()?.[0]?.message}
+							</p>
+						{/if}
+						<Button type="submit" class="w-full h-12 mt-2 font-bold text-base">
+							Sign In
+						</Button>
+					</form>
+				</div>
+			{/if}
 			</CardContent>
 		</Card>
 
