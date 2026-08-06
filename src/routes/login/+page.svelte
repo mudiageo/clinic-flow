@@ -199,8 +199,7 @@
 											<Button variant="outline" class="mt-4" onclick={() => window.location.reload()}>Retry Connection</Button>
 										{:else}
 											<p>No staff accounts found.</p>
-											<p class="text-sm mt-1">Please register the PHC first.</p>
-											<Button href="/onboarding" variant="link" class="mt-4">Register PHC</Button>
+											<p class="text-sm mt-1">Please ask your administrator to connect this device or switch to the Web Dashboard to register.</p>
 										{/if}
 									</div>
 								{/if}
@@ -288,6 +287,13 @@
 						<Button type="submit" class="w-full h-12 mt-2 font-bold text-base">
 							Sign In
 						</Button>
+						
+						<div class="mt-6 text-center text-sm text-muted-foreground border-t pt-4">
+							Don't have an account? 
+							<a href="/onboarding" class="font-semibold text-primary hover:underline ml-1">
+								Register your Clinic
+							</a>
+						</div>
 					</form>
 				</div>
 			{/if}
