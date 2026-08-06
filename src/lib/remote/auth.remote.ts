@@ -102,7 +102,7 @@ export const getUserProfile = query(async () => {
 	if (!event.locals.user || !event.locals.staffId) return null;
 
 	const staffMember = await db.query.staff.findFirst({
-		where: eq(staff.id, event.locals.staffId),
+		where: (s, { eq }) => eq(s.id, event.locals.staffId),
 		with: {
 			phcs: true
 		}
