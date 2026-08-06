@@ -11,7 +11,9 @@ const isTauri = process.env.TAURI === '1';
 export default defineConfig({
 	plugins: [
 		tailwindcss(),
-/*		SvelteKitPWA({
+		SvelteKitPWA({
+			srcDir: './src',
+			filename: 'service-worker.ts',
 			strategies: 'injectManifest',
 			registerType: 'autoUpdate',
 			manifest: {
@@ -39,7 +41,7 @@ export default defineConfig({
 				maximumFileSizeToCacheInBytes: 10 * 1024 * 1024
 			}
 		}),
-*/		sveltekit({
+		sveltekit({
 			compilerOptions: {
 				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
 				runes: ({ filename }) =>

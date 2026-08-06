@@ -25,7 +25,6 @@
 		debugLog = [...debugLog, msg];
 	}
 
-	import { onMount } from 'svelte';
 	onMount(() => {
 		if ('serviceWorker' in navigator) {
 			navigator.serviceWorker.addEventListener('message', (event) => {
