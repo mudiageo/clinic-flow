@@ -61,11 +61,11 @@
 			style="animation-delay: 300ms;"
 		>
 			<Button
-				href="/register"
+				href="/welcome"
 				size="lg"
 				class="h-14 px-8 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/95 shadow-xl shadow-primary/20 rounded-full btn-press w-full sm:w-auto"
 			>
-				Register Your PHC
+				Get Started
 				<Building2 class="ml-2 size-5" />
 			</Button>
 			<Button

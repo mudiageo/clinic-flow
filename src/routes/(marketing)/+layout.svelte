@@ -32,10 +32,10 @@
 					Sign In
 				</Button>
 				<Button
-					href="/register"
+					href="/welcome"
 					class="bg-primary text-primary-foreground hover:bg-primary/90 btn-press rounded-full px-6 font-bold shadow-md shadow-primary/20"
 				>
-					Register PHC
+					Get Started
 				</Button>
 			</div>
 		</div>
