@@ -18,6 +18,83 @@
 	let cloudUrl = $state('');
 	let isConnecting = $state(false);
 
+	let debugLog = $state<string[]>([]);
+	let debugHtml = $state<string>('');
+
+	function addLog(msg: string) {
+		debugLog = [...debugLog, msg];
+	}
+
+	import { onMount } from 'svelte';
+	onMount(() => {
+		if ('serviceWorker' in navigator) {
+			navigator.serviceWorker.addEventListener('message', (event) => {
+				if (event.data && event.data.type === 'DEBUG_LOG') {
+					addLog(`[SW] ${event.data.msg}`);
+				}
+			});
+		}
+	});
+
+	async function debugConnection(url: string) {
+		debugLog = [];
+		debugHtml = '';
+		addLog(`Starting debug connection to: ${url}`);
+		
+		// 1. Check SW status
+		if ('serviceWorker' in navigator) {
+			addLog(`SW supported. Controller: ${navigator.serviceWorker.controller ? 'Active' : 'NULL'}`);
+			try {
+				const regs = await navigator.serviceWorker.getRegistrations();
+				addLog(`SW Registrations: ${regs.length}`);
+				regs.forEach(r => addLog(`- Scope: ${r.scope}, Active: ${!!r.active}`));
+			} catch(e) {
+				addLog(`Failed to get registrations: ${e}`);
+			}
+		} else {
+			addLog(`SW NOT supported in this environment`);
+		}
+
+		// 2. Check Cache
+		if ('caches' in window) {
+			try {
+				const cache = await caches.open('clinicflow-config');
+				await cache.put('/server-url', new Response(url));
+				
+				const res = await cache.match('/server-url');
+				const text = await res?.text();
+				addLog(`Cache /server-url value: ${text}`);
+			} catch (e) {
+				addLog(`Cache error: ${(e as Error).message}`);
+			}
+		}
+
+		// 3. Raw fetch to trigger SW
+		addLog(`Making raw fetch to /_app/remote/setup.remote/checkServerStatus`);
+		try {
+			const res = await fetch('/_app/remote/setup.remote/checkServerStatus', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: '[]' // devalue format for empty args
+			});
+			addLog(`Raw fetch response status: ${res.status} ${res.statusText}`);
+			addLog(`Raw fetch response url: ${res.url}`);
+			const text = await res.text();
+			addLog(`Raw fetch response body length: ${text.length}`);
+			
+			if (text.startsWith('<!doctype html>')) {
+				addLog(`WARNING: Received HTML instead of JSON! Rendering below...`);
+				debugHtml = text;
+			} else {
+				addLog(`Response is not HTML. First 50 chars: ${text.substring(0, 50)}`);
+			}
+		} catch (e) {
+			addLog(`Raw fetch failed completely: ${(e as Error).message}`);
+		}
+	}
+
 	async function connectToServer(url: string) {
 		isConnecting = true;
 		
@@ -59,7 +136,8 @@
 			return;
 		}
 		const url = cloudUrl.startsWith('http') ? cloudUrl : `https://${cloudUrl}`;
-		connectToServer(url);
+		// Call debug connection instead of actual connection temporarily for testing
+		debugConnection(url);
 	}
 
 	function handleConnectLocal() {
@@ -277,6 +355,22 @@
 					</button>
 
 					<div class="space-y-6">
+						{#if debugLog.length > 0}
+							<div class="rounded bg-slate-900 p-4 text-xs text-green-400 font-mono text-left overflow-auto max-h-64 break-words">
+								<h3 class="text-white font-bold mb-2">Debug Log:</h3>
+								{#each debugLog as log}
+									<div class="whitespace-pre-wrap">{log}</div>
+								{/each}
+							</div>
+						{/if}
+						{#if debugHtml}
+							<div class="rounded bg-white border p-4 text-xs text-black text-left overflow-auto h-64">
+								<h3 class="font-bold mb-2 text-black">Received HTML content:</h3>
+								<!-- Use iframe to render the raw HTML safely -->
+								<iframe title="Debug HTML" srcdoc={debugHtml} class="w-full h-full border-none bg-gray-50"></iframe>
+							</div>
+						{/if}
+
 						<div class="space-y-3">
 							<Label class="text-base">Cloud Server URL</Label>
 							<Input 

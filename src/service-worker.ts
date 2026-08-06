@@ -40,12 +40,22 @@ registerRoute(
 const productionHost = BACKEND_HOST || 'localhost:5174';
 const productionSecure = BACKEND_INSECURE !== 'true' && !dev;
 
+async function debugBroadcast(msg: string) {
+	try {
+		const clientsList = await self.clients.matchAll({ includeUncontrolled: true });
+		for (const client of clientsList) {
+			client.postMessage({ type: 'DEBUG_LOG', msg });
+		}
+	} catch(e) {}
+}
+
 self.addEventListener('fetch', (event) => {
 	const url = new URL(event.request.url);
 	if (!url.pathname.startsWith('/_app/remote/')) return; // leave workbox routes alone
 
-	async function respond() {
-		try {
+	event.respondWith(
+		(async () => {
+			debugBroadcast(`[fetch] Intercepted request for ${url.pathname}`);
 			let targetHost = dev ? 'localhost:5174' : productionHost;
 			let targetSecure = dev ? false : productionSecure;
 
@@ -55,12 +65,16 @@ self.addEventListener('fetch', (event) => {
 				const res = await cache.match('/server-url');
 				if (res) {
 					const customUrl = await res.text();
+					debugBroadcast(`[fetch] Found cache customUrl: ${customUrl}`);
 					const parsed = new URL(customUrl);
 					targetHost = parsed.host;
 					targetSecure = parsed.protocol === 'https:';
+				} else {
+					debugBroadcast(`[fetch] No customUrl in cache, using default.`);
 				}
 			} catch (e) {
 				console.error('Failed to read custom server URL from cache', e);
+				debugBroadcast(`[fetch] Cache read error: ${(e as Error).message}`);
 			}
 
 			const newUrl = new URL(event.request.url);
@@ -84,23 +98,30 @@ self.addEventListener('fetch', (event) => {
 			if (req.method !== 'GET' && req.method !== 'HEAD') {
 				const bodyBuffer = await req.arrayBuffer();
 				init.body = bodyBuffer.byteLength > 0 ? bodyBuffer : null;
+				debugBroadcast(`[fetch] Request body size: ${bodyBuffer.byteLength}`);
 			}
 
-			const response = await fetch(newUrl.toString(), init);
-			if (!response.ok) {
+			debugBroadcast(`[fetch] Forwarding to: ${newUrl.toString()} (method: ${init.method})`);
+			try {
+				const response = await fetch(newUrl.toString(), init);
+				debugBroadcast(`[fetch] Response status: ${response.status} ${response.statusText}`);
+				
+				if (!response.ok) {
+					debugBroadcast(`[fetch] Error response!`);
+					return new Response(
+						JSON.stringify({ type: 'error', status: response.status, error: response.statusText }),
+						{ status: response.status, headers: { 'Content-Type': 'application/json' } }
+					);
+				}
+				return response;
+			} catch(fetchError) {
+				debugBroadcast(`[fetch] Network error during fetch: ${(fetchError as Error).message}`);
 				return new Response(
-					JSON.stringify({ type: 'error', status: response.status, error: response.statusText }),
-					{ status: response.status, headers: { 'Content-Type': 'application/json' } }
+					JSON.stringify({ type: 'error', status: 503, error: (fetchError as Error).message }),
+					{ status: 503, headers: { 'Content-Type': 'application/json' } }
 				);
 			}
-			return response;
-		} catch {
-			return new Response(
-				JSON.stringify({ type: 'error', status: 503, error: 'Backend server unreachable' }),
-				{ status: 503, headers: { 'Content-Type': 'application/json' } }
-			);
-		}
-	}
 
-	event.respondWith(respond());
+		})()
+	);
 });
