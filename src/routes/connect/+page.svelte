@@ -39,7 +39,8 @@
 			}
 		} catch (error) {
 			console.error(error);
-			toast.error('Failed to connect to the server. Please check the address and try again.');
+			const errStr = error instanceof Error ? error.message : (typeof error === 'object' ? JSON.stringify(error) : String(error));
+			toast.error(`Connection Error: ${errStr}`, { duration: 10000 });
 			localStorage.removeItem('clinicflow_server_url');
 			if ('caches' in window) {
 				try {
