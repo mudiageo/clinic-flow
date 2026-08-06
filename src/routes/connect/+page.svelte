@@ -36,10 +36,11 @@
 		}
 	});
 
-	async function debugConnection(url: string) {
+	async function connectToServer(url: string) {
 		debugLog = [];
 		debugHtml = '';
-		addLog(`Starting debug connection to: ${url}`);
+		addLog(`Starting actual connection to: ${url}`);
+		isConnecting = true;
 		
 		// 1. Check SW status
 		if ('serviceWorker' in navigator) {
@@ -49,66 +50,57 @@
 				addLog(`SW Registrations: ${regs.length}`);
 				regs.forEach(r => addLog(`- Scope: ${r.scope}, Active: ${!!r.active}`));
 			} catch(e) {
-				addLog(`Failed to get registrations: ${e}`);
+				addLog(`Failed to get SW registrations: ${e}`);
 			}
 		} else {
 			addLog(`SW NOT supported in this environment`);
 		}
 
-		// 2. Check Cache
-		if ('caches' in window) {
-			try {
-				const cache = await caches.open('clinicflow-config');
-				await cache.put('/server-url', new Response(url));
-				
-				const res = await cache.match('/server-url');
-				const text = await res?.text();
-				addLog(`Cache /server-url value: ${text}`);
-			} catch (e) {
-				addLog(`Cache error: ${(e as Error).message}`);
-			}
-		}
-
-		// 3. Raw fetch to trigger SW
-		addLog(`Making raw fetch to /_app/remote/setup.remote/checkServerStatus`);
-		try {
-			const res = await fetch('/_app/remote/setup.remote/checkServerStatus', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: '[]' // devalue format for empty args
-			});
-			addLog(`Raw fetch response status: ${res.status} ${res.statusText}`);
-			addLog(`Raw fetch response url: ${res.url}`);
-			const text = await res.text();
-			addLog(`Raw fetch response body length: ${text.length}`);
-			
-			if (text.startsWith('<!doctype html>')) {
-				addLog(`WARNING: Received HTML instead of JSON! Rendering below...`);
-				debugHtml = text;
-			} else {
-				addLog(`Response is not HTML. First 50 chars: ${text.substring(0, 50)}`);
-			}
-		} catch (e) {
-			addLog(`Raw fetch failed completely: ${(e as Error).message}`);
-		}
-
-		// 4. Finally, call the real remote function wrapper
-		addLog(`Now calling the actual connectToServer()...`);
-		await connectToServer(url);
-	}
-
-	async function connectToServer(url: string) {
-		isConnecting = true;
+		const originalFetch = window.fetch;
 		
 		try {
 			localStorage.setItem('clinicflow_server_url', url);
 			if ('caches' in window) {
 				const cache = await caches.open('clinicflow-config');
 				await cache.put('/server-url', new Response(url));
+				
+				const res = await cache.match('/server-url');
+				const text = await res?.text();
+				addLog(`Cache /server-url value: ${text}`);
 			}
 
+			// 2. Temporarily intercept fetch to spy on the request/response
+			window.fetch = async function(...args) {
+				const requestUrl = args[0] instanceof Request ? args[0].url : args[0].toString();
+				
+				// Only spy on the remote function calls
+				if (requestUrl.includes('/_app/remote/')) {
+					addLog(`[Local Fetch] SvelteKit is requesting: ${requestUrl}`);
+					addLog(`[Local Fetch] Method: ${(args[1] as any)?.method || 'GET'}`);
+					
+					try {
+						const response = await originalFetch.apply(this, args);
+						addLog(`[Local Fetch] Response Status: ${response.status} ${response.statusText}`);
+						
+						const clone = response.clone();
+						const text = await clone.text();
+						
+						if (text.trim().toLowerCase().startsWith('<!doctype html>')) {
+							addLog(`[Local Fetch] WARNING: Received HTML instead of JSON! Rendering below...`);
+							debugHtml = text;
+						} else {
+							addLog(`[Local Fetch] Response length: ${text.length} bytes (not HTML)`);
+						}
+						return response;
+					} catch (e) {
+						addLog(`[Local Fetch] Network error: ${(e as Error).message}`);
+						throw e;
+					}
+				}
+				return originalFetch.apply(this, args);
+			};
+
+			addLog(`Calling checkServerStatus() remote function...`);
 			const status = await checkServerStatus();
 
 			if (!status.isConfigured) {
@@ -122,6 +114,9 @@
 			console.error(error);
 			const errStr = error instanceof Error ? error.message : (typeof error === 'object' ? JSON.stringify(error) : String(error));
 			toast.error(`Connection Error: ${errStr}`, { duration: 10000 });
+			
+			addLog(`[Error] checkServerStatus threw: ${errStr}`);
+
 			localStorage.removeItem('clinicflow_server_url');
 			if ('caches' in window) {
 				try {
@@ -130,6 +125,7 @@
 				} catch (e) {}
 			}
 		} finally {
+			window.fetch = originalFetch;
 			isConnecting = false;
 		}
 	}
@@ -140,8 +136,7 @@
 			return;
 		}
 		const url = cloudUrl.startsWith('http') ? cloudUrl : `https://${cloudUrl}`;
-		// Call debug connection instead of actual connection temporarily for testing
-		debugConnection(url);
+		connectToServer(url);
 	}
 
 	function handleConnectLocal() {
