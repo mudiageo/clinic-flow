@@ -12,8 +12,6 @@ export default defineConfig({
 	plugins: [
 		tailwindcss(),
 		SvelteKitPWA({
-			srcDir: './src',
-			filename: 'service-worker.ts',
 			strategies: 'injectManifest',
 			registerType: 'autoUpdate',
 			manifest: {
