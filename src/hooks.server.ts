@@ -51,6 +51,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 		'http://localhost:1420',
 		'tauri://localhost',
 		'https://tauri.localhost',
+		'http://tauri.localhost',
+		'asset://localhost',
 		'http://localhost',
 		...customOrigins
 	];
