@@ -18,88 +18,12 @@
 	let cloudUrl = $state('');
 	let isConnecting = $state(false);
 
-	let debugLog = $state<string[]>([]);
-	let debugHtml = $state<string>('');
-
-	function addLog(msg: string) {
-		debugLog = [...debugLog, msg];
-	}
-
-	onMount(() => {
-		if ('serviceWorker' in navigator) {
-			navigator.serviceWorker.addEventListener('message', (event) => {
-				if (event.data && event.data.type === 'DEBUG_LOG') {
-					addLog(`[SW] ${event.data.msg}`);
-				}
-			});
-		}
-	});
-
 	async function connectToServer(url: string) {
-		debugLog = [];
-		debugHtml = '';
-		addLog(`Starting actual connection to: ${url}`);
 		isConnecting = true;
-		
-		// 1. Check SW status
-		if ('serviceWorker' in navigator) {
-			addLog(`SW supported. Controller: ${navigator.serviceWorker.controller ? 'Active' : 'NULL'}`);
-			try {
-				const regs = await navigator.serviceWorker.getRegistrations();
-				addLog(`SW Registrations: ${regs.length}`);
-				regs.forEach(r => addLog(`- Scope: ${r.scope}, Active: ${!!r.active}`));
-			} catch(e) {
-				addLog(`Failed to get SW registrations: ${e}`);
-			}
-		} else {
-			addLog(`SW NOT supported in this environment`);
-		}
-
-		const originalFetch = window.fetch;
 		
 		try {
 			localStorage.setItem('clinicflow_server_url', url);
-			if ('caches' in window) {
-				const cache = await caches.open('clinicflow-config');
-				await cache.put('/server-url', new Response(url));
-				
-				const res = await cache.match('/server-url');
-				const text = await res?.text();
-				addLog(`Cache /server-url value: ${text}`);
-			}
 
-			// 2. Temporarily intercept fetch to spy on the request/response
-			window.fetch = async function(...args) {
-				const requestUrl = args[0] instanceof Request ? args[0].url : args[0].toString();
-				
-				// Only spy on the remote function calls
-				if (requestUrl.includes('/_app/remote/')) {
-					addLog(`[Local Fetch] SvelteKit is requesting: ${requestUrl}`);
-					addLog(`[Local Fetch] Method: ${(args[1] as any)?.method || 'GET'}`);
-					
-					try {
-						const response = await originalFetch.apply(this, args);
-						addLog(`[Local Fetch] Response Status: ${response.status} ${response.statusText}`);
-						
-						const clone = response.clone();
-						const text = await clone.text();
-						
-						if (text.trim().toLowerCase().startsWith('<!doctype html>')) {
-							addLog(`[Local Fetch] WARNING: Received HTML instead of JSON! Rendering below...`);
-							debugHtml = text;
-						} else {
-							addLog(`[Local Fetch] Response length: ${text.length} bytes (not HTML)`);
-						}
-						return response;
-					} catch (e) {
-						addLog(`[Local Fetch] Network error: ${(e as Error).message}`);
-						throw e;
-					}
-				}
-				return originalFetch.apply(this, args);
-			};
-
-			addLog(`Calling checkServerStatus() remote function...`);
 			const status = await checkServerStatus();
 
 			if (!status.isConfigured) {
@@ -114,17 +38,8 @@
 			const errStr = error instanceof Error ? error.message : (typeof error === 'object' ? JSON.stringify(error) : String(error));
 			toast.error(`Connection Error: ${errStr}`, { duration: 10000 });
 			
-			addLog(`[Error] checkServerStatus threw: ${errStr}`);
-
 			localStorage.removeItem('clinicflow_server_url');
-			if ('caches' in window) {
-				try {
-					const cache = await caches.open('clinicflow-config');
-					await cache.delete('/server-url');
-				} catch (e) {}
-			}
 		} finally {
-			window.fetch = originalFetch;
 			isConnecting = false;
 		}
 	}
@@ -353,21 +268,6 @@
 					</button>
 
 					<div class="space-y-6">
-						{#if debugLog.length > 0}
-							<div class="rounded bg-slate-900 p-4 text-xs text-green-400 font-mono text-left overflow-auto max-h-64 break-words">
-								<h3 class="text-white font-bold mb-2">Debug Log:</h3>
-								{#each debugLog as log}
-									<div class="whitespace-pre-wrap">{log}</div>
-								{/each}
-							</div>
-						{/if}
-						{#if debugHtml}
-							<div class="rounded bg-white border p-4 text-xs text-black text-left overflow-auto h-64">
-								<h3 class="font-bold mb-2 text-black">Received HTML content:</h3>
-								<!-- Use iframe to render the raw HTML safely -->
-								<iframe title="Debug HTML" srcdoc={debugHtml} class="w-full h-full border-none bg-gray-50"></iframe>
-							</div>
-						{/if}
 
 						<div class="space-y-3">
 							<Label class="text-base">Cloud Server URL</Label>
