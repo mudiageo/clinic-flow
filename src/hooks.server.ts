@@ -60,8 +60,17 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const origin = event.request.headers.get('origin');
 	const isRemotePath = event.url.pathname.startsWith('/_app/remote/');
 	const isRemoteCall = event.request.headers.has('X-SvelteKit-Remote');
-	const isAllowedOrigin = origin !== null && allAllowedOrigins.includes(origin);
 	const isGetRequest = event.request.method === 'GET' || event.request.method === 'HEAD';
+	
+	// Permissive check to handle Tauri's dynamic ports (e.g. http://tauri.localhost:1430)
+	const isAllowedOrigin = origin !== null && (
+		allAllowedOrigins.includes(origin) ||
+		origin.includes('tauri.localhost') ||
+		origin.includes('localhost') ||
+		origin.startsWith('tauri://') ||
+		origin.startsWith('asset://') ||
+		allAllowedOrigins.includes('*')
+	);
 
 	// CORS preflight for the custom header
 	if (event.request.method === 'OPTIONS') {

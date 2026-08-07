@@ -21,6 +21,32 @@
 
 			// Global Fetch Interceptor for Tauri Remote Functions
 			(function() {
+				// Helper to show errors on screen since Tauri has no visible console
+				function showDebugOverlay(title, details) {
+					var div = document.createElement('div');
+					div.style.position = 'fixed';
+					div.style.bottom = '10px';
+					div.style.left = '10px';
+					div.style.right = '10px';
+					div.style.backgroundColor = '#450a0a'; // dark red
+					div.style.color = '#fecaca'; // light red
+					div.style.padding = '15px';
+					div.style.borderRadius = '8px';
+					div.style.zIndex = '999999';
+					div.style.fontSize = '12px';
+					div.style.fontFamily = 'monospace';
+					div.style.overflow = 'auto';
+					div.style.maxHeight = '50vh';
+					div.style.border = '2px solid #ef4444';
+					
+					var html = '<h3 style="margin-top:0;font-weight:bold;color:white;">' + title + '</h3>';
+					html += '<pre style="white-space:pre-wrap;margin:0;">' + details + '</pre>';
+					html += '<button onclick="this.parentElement.remove()" style="margin-top:10px;padding:5px 10px;background:#ef4444;color:white;border:none;border-radius:4px;cursor:pointer;">Dismiss</button>';
+					
+					div.innerHTML = html;
+					document.body.appendChild(div);
+				}
+
 				const originalFetch = window.fetch;
 				window.fetch = async function(...args) {
 					let reqUrl = typeof args[0] === 'string' ? args[0] : (args[0] instanceof URL ? args[0].toString() : (args[0] instanceof Request ? args[0].url : ''));
@@ -28,12 +54,15 @@
 					if (reqUrl && reqUrl.includes('/_app/remote/')) {
 						const customUrlStr = localStorage.getItem('clinicflow_server_url');
 						if (customUrlStr) {
+							let debugStr = "Original URL: " + reqUrl + "\n";
 							try {
 								const customUrl = new URL(customUrlStr);
 								const parsedReqUrl = new URL(reqUrl, window.location.origin);
 								parsedReqUrl.protocol = customUrl.protocol;
 								parsedReqUrl.host = customUrl.host;
 								parsedReqUrl.port = customUrl.port;
+								
+								debugStr += "Target URL: " + parsedReqUrl.toString() + "\n";
 								
 								if (typeof args[0] === 'string' || args[0] instanceof URL) {
 									args[0] = parsedReqUrl.toString();
@@ -50,8 +79,23 @@
 								const newHeaders = {};
 								headers.forEach((val, key) => { newHeaders[key] = val; });
 								args[1].headers = newHeaders;
+								
+								debugStr += "Headers: " + JSON.stringify(newHeaders) + "\n";
+								debugStr += "Method: " + (args[1].method || 'GET') + "\n";
+								debugStr += "Origin (window.location): " + window.location.origin + "\n";
+
+								const response = await originalFetch.apply(this, args);
+								if (!response.ok) {
+									debugStr += "Response Status: " + response.status + " " + response.statusText + "\n";
+									// Don't show overlay for normal app errors unless it's a massive failure,
+									// but we can log it here if needed.
+								}
+								return response;
 							} catch (e) {
+								debugStr += "\nERROR: " + e.message + "\n" + e.stack;
+								showDebugOverlay("Fetch Interceptor Failed", debugStr);
 								console.error("ClinicFlow Fetch Interceptor Error:", e);
+								throw e;
 							}
 						}
 					}
