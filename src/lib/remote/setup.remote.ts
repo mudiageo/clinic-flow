@@ -1,6 +1,7 @@
 import { query, form, command } from '$app/server';
 import { db } from '$lib/server/db';
 import * as v from 'valibot';
+import { DATABASE_URL } from '$app/env/private';
 
 export const checkServerStatus = query(async () => {
 	// Check if there are any PHCs registered in the database
@@ -14,8 +15,8 @@ export const checkServerStatus = query(async () => {
 export const initDatabase = command(
 	v.object({}),
 	async () => {
-		const isLocalServer = process.env.DATABASE_URL?.startsWith('file:') || process.env.DATABASE_URL?.startsWith('libsql:');
-		const isLocalPostgres = process.env.DATABASE_URL?.includes('localhost');
+		const isLocalServer = DATABASE_URL?.startsWith('file:') || DATABASE_URL?.startsWith('libsql:');
+		const isLocalPostgres = DATABASE_URL?.includes('localhost');
 		
 		if (isLocalServer) {
 			console.log('Running local migrations for SQLite/libsql...');

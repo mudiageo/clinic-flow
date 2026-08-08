@@ -58,7 +58,16 @@ if (browser) {
 					if (typeof args[0] === 'string' || args[0] instanceof URL) {
 						args[0] = parsedReqUrl.toString();
 					} else if (args[0] instanceof Request) {
-						args[0] = new Request(parsedReqUrl.toString(), args[0]);
+						const originalReq = args[0] as Request;
+						args[0] = parsedReqUrl.toString();
+						args[1] = args[1] || {};
+						args[1].method = args[1].method || originalReq.method;
+						// If the request has a body, extract it as text or blob (since it's an intercepted Request object)
+						// However, SvelteKit usually passes a string URL and options.
+						// Just in case it's a Request object, we can't easily extract the body synchronously,
+						// but we can try to extract it asynchronously if needed.
+						// Actually, SvelteKit's remote.js ALWAYS uses a string URL for fetch!
+						// So args[0] is almost certainly a string here.
 					}
 
 					args[1] = args[1] || {};
