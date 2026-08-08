@@ -90,6 +90,17 @@ if (browser) {
 					debugStr += 'Headers: ' + JSON.stringify(newHeaders) + '\n';
 					debugStr += 'Method: ' + (args[1].method || 'GET') + '\n';
 					debugStr += 'Origin (window.location): ' + window.location.origin + '\n';
+					
+					if (args[1].body) {
+						debugStr += 'Body Type: ' + args[1].body.constructor.name + '\n';
+						if (typeof args[1].body === 'string') {
+							debugStr += 'Body (string): ' + args[1].body.substring(0, 100) + '\n';
+						} else if (args[1].body instanceof FormData) {
+							debugStr += 'Body (FormData keys): ' + Array.from(args[1].body.keys()).join(', ') + '\n';
+						}
+					} else {
+						debugStr += 'Body: undefined\n';
+					}
 
 					// If we are in Tauri, intercept and use the Rust-native HTTP client!
 					// This completely bypasses the browser's CORS and Origin restrictions.
