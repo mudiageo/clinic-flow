@@ -113,6 +113,7 @@ if (browser) {
 
 							if (!response.ok) {
 								debugStr += 'Response Status: ' + response.status + ' ' + response.statusText + '\n';
+								showDebugOverlay('Tauri HTTP Fetch Failed (Non-200)', debugStr);
 							}
 							// Return the native Tauri response
 							return response as unknown as Response;
