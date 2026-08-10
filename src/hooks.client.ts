@@ -102,27 +102,7 @@ if (browser) {
 						debugStr += 'Body: undefined\n';
 					}
 
-					// If we are in Tauri, intercept and use the Rust-native HTTP client!
-					// This completely bypasses the browser's CORS and Origin restrictions.
-					if ('__TAURI_INTERNALS__' in window) {
-						try {
-							debugStr += 'Using Tauri Rust HTTP Plugin...\n';
-							// Dynamically import so we don't break the web build
-							const { fetch: tauriFetch } = await import('@tauri-apps/plugin-http');
-							const response = await tauriFetch(args[0], args[1]);
 
-							if (!response.ok) {
-								debugStr += 'Response Status: ' + response.status + ' ' + response.statusText + '\n';
-								showDebugOverlay('Tauri HTTP Fetch Failed (Non-200)', debugStr);
-							}
-							// Return the native Tauri response
-							return response as unknown as Response;
-						} catch (tauriError) {
-							debugStr += '\nTauri Fetch Error: ' + String(tauriError) + '\n';
-							showDebugOverlay('Tauri HTTP Fetch Failed', debugStr);
-							throw tauriError;
-						}
-					}
 
 					// Fallback to standard web fetch (won't work for cross-origin remoteFunctions but fine for local)
 					const response = await originalFetch.apply(this, args);
