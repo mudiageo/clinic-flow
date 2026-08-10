@@ -1,3 +1,27 @@
+function handleMiddlewareField(init: any, headers: Headers) {
+  if (init?.request?.headers) {
+    if (!(init.request.headers instanceof Headers)) {
+      throw new Error("request.headers must be an instance of Headers");
+    }
+    const keys: string[] = [];
+    for (const [key, value] of init.request.headers) {
+      headers.set("x-middleware-request-" + key, value);
+      keys.push(key);
+    }
+    headers.set("x-middleware-override-headers", keys.join(","));
+  }
+}
+
+function next(init?: any) {
+  const headers = new Headers(init?.headers ?? {});
+  headers.set("x-middleware-next", "1");
+  handleMiddlewareField(init, headers);
+  return new Response(null, {
+    ...init,
+    headers
+  });
+}
+
 export default async function middleware(request: Request) {
   const origin = request.headers.get('origin');
   const url = new URL(request.url);
@@ -18,26 +42,24 @@ export default async function middleware(request: Request) {
     origin &&
     (origin.includes('tauri.localhost') || origin.startsWith('tauri://') || origin.includes('localhost'))
   ) {
-    const overrideKey = 'origin';
-    const overrideValue = url.origin;
+    console.log(`[Middleware] Match! Rewriting origin to ${url.origin}`);
 
-    console.log(`[Middleware] Match! Rewriting ${overrideKey} to ${overrideValue}`);
-
-    return new Response(null, {
-      headers: {
-        'x-middleware-rewrite': url.pathname + url.search,
-        [`x-middleware-request-${overrideKey}`]: overrideValue,
-        'x-middleware-override-headers': overrideKey
-      }
+    // Clone the request headers
+    const requestHeaders = new Headers(request.headers);
+    
+    // Modify the origin header to be the URL origin
+    requestHeaders.set('origin', url.origin);
+    
+    // Continue the middleware chain with modified headers
+    return next({
+      request: {
+        headers: requestHeaders,
+      },
     });
   }
 
   console.log(`[Middleware] No match. Passing through.`);
-
-  // If not a Tauri remote request, continue without modifications
-  return new Response(null, {
-    headers: {
-      'x-middleware-next': '1'
-    }
-  });
+  
+  // If not your remote client, continue without modifications
+  return next();
 }
