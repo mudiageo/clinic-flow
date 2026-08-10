@@ -77,34 +77,37 @@ if (browser) {
 						args[1].headers || (args[0] instanceof Request ? args[0].headers : {})
 					);
 					headers.set('X-SvelteKit-Remote', 'true');
-
-					// Try to inject Origin (Note: Browser fetch ignores this, but Tauri fetch respects it)
 					headers.set('Origin', customUrl.origin);
+					args[1].headers = headers;
 
-					const newHeaders: Record<string, string> = {};
-					headers.forEach((val, key) => {
-						newHeaders[key] = val;
-					});
-					args[1].headers = newHeaders;
-
-					debugStr += 'Headers: ' + JSON.stringify(newHeaders) + '\n';
 					debugStr += 'Method: ' + (args[1].method || 'GET') + '\n';
-					debugStr += 'Origin (window.location): ' + window.location.origin + '\n';
 					
 					if (args[1].body) {
 						debugStr += 'Body Type: ' + args[1].body.constructor.name + '\n';
-						if (typeof args[1].body === 'string') {
-							debugStr += 'Body (string): ' + args[1].body.substring(0, 100) + '\n';
-						} else if (args[1].body instanceof FormData) {
-							debugStr += 'Body (FormData keys): ' + Array.from(args[1].body.keys()).join(', ') + '\n';
-						}
 					} else {
 						debugStr += 'Body: undefined\n';
 					}
 
+					if ('__TAURI_INTERNALS__' in window) {
+						try {
+							debugStr += 'Using Tauri Rust HTTP Plugin...\n';
+							const { fetch: tauriFetch } = await import('@tauri-apps/plugin-http');
+							
+							const response = await tauriFetch(args[0], args[1]);
 
+							if (!response.ok) {
+								debugStr += 'Response Status: ' + response.status + ' ' + response.statusText + '\n';
+								showDebugOverlay('Tauri HTTP Fetch Failed (Non-200)', debugStr);
+							}
+							return response as unknown as Response;
+						} catch (tauriError) {
+							debugStr += '\nTauri Fetch Error: ' + String(tauriError) + '\n';
+							showDebugOverlay('Tauri HTTP Fetch Failed', debugStr);
+							throw tauriError;
+						}
+					}
 
-					// Fallback to standard web fetch (won't work for cross-origin remoteFunctions but fine for local)
+					// Fallback to standard web fetch
 					const response = await originalFetch.apply(this, args);
 					if (!response.ok) {
 						debugStr += 'Response Status: ' + response.status + ' ' + response.statusText + '\n';
