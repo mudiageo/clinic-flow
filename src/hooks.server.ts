@@ -72,6 +72,29 @@ export const handle: Handle = async ({ event, resolve }) => {
 		allAllowedOrigins.includes('*')
 	);
 
+	// Bypass SvelteKit's hardcoded remote CSRF protection for Tauri
+	if (isRemotePath && origin && !isGetRequest && isAllowedOrigin) {
+		const newHeaders = new Headers(event.request.headers);
+		newHeaders.set('origin', event.url.origin);
+		// Replace the event.request with a new one that has the modified Origin header
+		// We use duplex: 'half' to support streaming bodies in Node.js fetch if necessary
+		event = new Proxy(event, {
+			get(target, prop, receiver) {
+				if (prop === 'request') {
+					if (!(target as any)._customRequest) {
+						(target as any)._customRequest = new Request(target.request.clone(), {
+							headers: newHeaders,
+							// @ts-ignore
+							duplex: 'half'
+						});
+					}
+					return (target as any)._customRequest;
+				}
+				return Reflect.get(target, prop, receiver);
+			}
+		});
+	}
+
 	// CORS preflight for the custom header
 	if (event.request.method === 'OPTIONS') {
 		const requestHeaders =
