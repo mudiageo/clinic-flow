@@ -1,9 +1,16 @@
-export default function middleware(request: Request) {
+export default async function middleware(request: Request) {
   const origin = request.headers.get('origin');
   const url = new URL(request.url);
 
   console.log(`[Middleware] Incoming Request: ${request.method} ${request.url}`);
   console.log(`[Middleware] Origin: ${origin}`);
+
+  try {
+    const bodyText = await request.clone().text();
+    console.log(`[Middleware] Body Length: ${bodyText.length}, Preview: ${bodyText.substring(0, 100)}`);
+  } catch (e) {
+    console.log(`[Middleware] Body could not be read or is empty.`);
+  }
 
   // Check if the request is for remote functions AND the origin is from our Tauri app
   if (
