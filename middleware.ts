@@ -13,7 +13,7 @@ export default function middleware(request: Request) {
 
     return new Response(null, {
       headers: {
-        'x-middleware-next': '1',
+        'x-middleware-rewrite': url.toString(),
         [`x-middleware-request-${overrideKey}`]: overrideValue,
         'x-middleware-override-headers': overrideKey
       }
