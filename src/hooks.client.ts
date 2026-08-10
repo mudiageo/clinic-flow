@@ -55,27 +55,29 @@ if (browser) {
 
 					debugStr += 'Target URL: ' + parsedReqUrl.toString() + '\n';
 
+					let originalHeaders = args[1]?.headers || {};
 					if (typeof args[0] === 'string' || args[0] instanceof URL) {
 						args[0] = parsedReqUrl.toString();
 					} else if (args[0] instanceof Request) {
 						const originalReq = args[0] as Request;
+						originalHeaders = originalReq.headers;
 						args[0] = parsedReqUrl.toString();
 						args[1] = args[1] || {};
 						args[1].method = args[1].method || originalReq.method;
-						// If the request has a body, extract it as text or blob (since it's an intercepted Request object)
-						// However, SvelteKit usually passes a string URL and options.
-						// Just in case it's a Request object, we can't easily extract the body synchronously,
-						// but we can try to extract it asynchronously if needed.
-						// Actually, SvelteKit's remote.js ALWAYS uses a string URL for fetch!
-						// So args[0] is almost certainly a string here.
+						if (!args[1].body && originalReq.body) {
+							// If originalReq has a body, we MUST extract it!
+							// arrayBuffer() is universally supported and safe.
+							const buffer = await originalReq.arrayBuffer();
+							if (buffer.byteLength > 0) {
+								args[1].body = buffer;
+							}
+						}
 					}
 
 					args[1] = args[1] || {};
 					args[1].credentials = 'include';
 
-					const headers = new Headers(
-						args[1].headers || (args[0] instanceof Request ? args[0].headers : {})
-					);
+					const headers = new Headers(originalHeaders);
 					headers.set('X-SvelteKit-Remote', 'true');
 					headers.set('Origin', customUrl.origin);
 					args[1].headers = headers;
