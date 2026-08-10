@@ -25,7 +25,7 @@ export default async function middleware(request: Request) {
 
     return new Response(null, {
       headers: {
-        'x-middleware-rewrite': url.toString(),
+        'x-middleware-rewrite': url.pathname + url.search,
         [`x-middleware-request-${overrideKey}`]: overrideValue,
         'x-middleware-override-headers': overrideKey
       }
