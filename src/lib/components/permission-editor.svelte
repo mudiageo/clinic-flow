@@ -72,8 +72,9 @@
 	</div>
 
 	<div class="divide-y rounded-md border">
-		{#each ALL_PERMISSIONS as perm}
+		{#each ALL_PERMISSIONS as perm (perm.key)}
 			{@const status = getStatus(perm.key)}
+			{const actionForm = (status.active ? revokePermissionAction : grantPermissionAction).for(perm.key)}
 			<div class="flex items-center justify-between p-4">
 				<div class="flex flex-col gap-1">
 					<Label class="text-base font-semibold">{perm.label}</Label>
@@ -92,7 +93,7 @@
 				</div>
 
 				<form
-					{...(status.active ? revokePermissionAction : grantPermissionAction).enhance(() => {})}
+					{...actionForm.enhance(() => {})}
 					class="flex items-center"
 				>
 					<input type="hidden" name="staffId" value={staffId} />

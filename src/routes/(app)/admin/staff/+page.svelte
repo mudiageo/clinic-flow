@@ -98,7 +98,7 @@
 						</TableCell>
 					</TableRow>
 				{:else}
-					{#each data.staffList as staff}
+					{#each data.staffList as staff (staff.id)}
 						<TableRow class="hover:bg-muted/40 transition-colors">
 							<TableCell class="font-semibold px-6">
 								{staff.fullName}
@@ -123,17 +123,18 @@
 									<KeyRound class="size-4 mr-2" />
 									Set PIN
 								</Button>
-								<form {...setStaffPin.enhance(async (form) => {
+								{const revokePin = setStaffPin.for(staff.id)}
+								<form {...revokePin.enhance(async (form) => {
 									try {
 										if (await form.submit()) {
-											if (setStaffPin.result?.success) toast.success('PIN revoked successfully');
+											if (revokePin.result?.success) toast.success('PIN revoked successfully');
 										}
 									} catch (error) {
 										toast.error('Error revoking PIN');
 									}
 								})}>
-									<input {...setStaffPin.fields.staffId.as('hidden', staff.id)} />
-									<input {...setStaffPin.fields.pin.as('hidden', '0000')} />
+									<input {...revokePin.fields.staffId.as('hidden', staff.id)} />
+									<input {...revokePin.fields.pin.as('hidden', '0000')} />
 									<Button type="submit" variant="ghost" size="sm" class="text-destructive hover:text-destructive hover:bg-destructive/10">
 										Revoke PIN
 									</Button>
