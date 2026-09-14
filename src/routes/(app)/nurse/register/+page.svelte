@@ -69,7 +69,8 @@
 		address: '',
 		community: '',
 		nextOfKinName: '',
-		nextOfKinPhone: ''
+		nextOfKinPhone: '',
+		hasConsent: false
 	});
 
 	let isSubmitting = $state(false);
@@ -90,6 +91,10 @@
 	}
 
 	async function handleSubmit() {
+		if (!form.hasConsent) {
+			toast.error('Patient must consent to electronic records and SMS.');
+			return;
+		}
 		if (!form.name) {
 			toast.error('Full name is required');
 			return;
@@ -424,6 +429,18 @@
 										</div>
 									</div>
 								</div>
+								
+								<div class="p-4 border rounded-xl bg-amber-500/5 border-amber-500/20 mt-6 shadow-sm">
+									<label class="flex items-start gap-3 cursor-pointer">
+										<input type="checkbox" bind:checked={form.hasConsent} class="mt-1 accent-amber-600 size-5 shrink-0" />
+										<div class="space-y-1">
+											<p class="font-semibold text-amber-900 dark:text-amber-200">Patient Consent & Data Privacy (NDPR)</p>
+											<p class="text-xs text-amber-700/80 dark:text-amber-300/80 leading-relaxed">
+												I confirm that the patient has been informed of and explicitly consented to the digital storage of their medical records and agrees to receive health-related SMS notifications.
+											</p>
+										</div>
+									</label>
+								</div>
 							</div>
 						{/if}
 					</div>
@@ -479,10 +496,12 @@
 									dob: '',
 									sex: 'female',
 									isPregnant: false,
+									isNhis: false,
 									address: '',
 									community: '',
 									nextOfKinName: '',
-									nextOfKinPhone: ''
+									nextOfKinPhone: '',
+									hasConsent: false
 								};
 							}}>Register Another Patient</Button
 						>
