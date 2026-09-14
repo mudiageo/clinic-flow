@@ -1,6 +1,6 @@
 <script lang="ts">
 	import SupportArticle from '$lib/components/ui/support-article.svelte';
-	import { ArrowRight, BookOpen, Stethoscope, Pills, Users } from '@lucide/svelte';
+	import { ArrowRight, BookOpen, Stethoscope, Pill, Users } from '@lucide/svelte';
 </script>
 
 <svelte:head>
@@ -28,7 +28,7 @@
 		</a>
 		<a href="/support/pharmacy" class="group relative rounded-lg border p-6 hover:bg-muted transition-colors">
 			<div class="mb-3 rounded-full bg-primary/10 w-fit p-2.5 text-primary">
-				<Pills class="size-5" />
+				<Pill class="size-5" />
 			</div>
 			<h3 class="font-semibold mb-2">Pharmacy Guides</h3>
 			<p class="text-sm text-muted-foreground">Manage inventory, handle restock requests, and dispense medication.</p>
