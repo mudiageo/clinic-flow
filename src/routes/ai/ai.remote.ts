@@ -110,9 +110,12 @@ export const generateSoapNote = command(
 	v.object({ 
 		vitals: v.any(), 
 		transcript: v.string(),
-		patient: v.any()
+		patient: v.any(),
+		prescriptions: v.array(v.any()),
+		labs: v.any(),
+		history: v.array(v.any())
 	}),
-	async ({ vitals, transcript, patient }) => {
+	async ({ vitals, transcript, patient, prescriptions, labs, history }) => {
 		const event = getRequestEvent();
 		if (!event.locals.staffId) throw new Error('Unauthorized');
 		
@@ -134,8 +137,16 @@ export const generateSoapNote = command(
 			genotype: patient.genotype
 		};
 
+		// Strip PII from history encounters too (e.g., recordedBy staff names if any exist, just send clinical notes)
+		const cleanHistory = history.map(h => ({
+			visitDate: h.visitDate,
+			chiefComplaint: h.chiefComplaint,
+			doctorNotes: h.doctorNotes,
+			triageLevel: h.triageLevel
+		}));
+
 		const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-		const prompt = AI_PROMPTS.soapNote.buildPrompt(vitals, transcript, deidentifiedProfile);
+		const prompt = AI_PROMPTS.soapNote.buildPrompt(vitals, transcript, deidentifiedProfile, cleanHistory, prescriptions, labs);
 
 		try {
 			// Using gemini-2.5-pro for high clinical reasoning

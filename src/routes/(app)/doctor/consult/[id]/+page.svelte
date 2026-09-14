@@ -158,6 +158,8 @@
 		}
 	}
 
+	const pastEncounters = $derived(patient ? encounterStore.forPatient(patient.id).filter(e => e.id !== ticket?.encounterId) : []);
+
 	let soapLoading = $state(false);
 	async function runSoapGenerator() {
 		if (!chiefComplaint || chiefComplaint.length < 5) {
@@ -168,7 +170,10 @@
 			const res = await generateSoapNote({
 				vitals,
 				transcript: chiefComplaint + '\n' + doctorNotes,
-				patient
+				patient,
+				history: pastEncounters,
+				prescriptions,
+				labs: testType ? { type: testType, urgency, notes: labNotes } : null
 			});
 			
 			const formattedNote = 
@@ -448,17 +453,26 @@ P: ${res.plan}`;
 					<!-- Recent Encounters -->
 					<div>
 						<h4 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-							History (Demo)
+							Past Encounters
 						</h4>
 						<div class="space-y-2">
-							<div class="p-3 border rounded-lg bg-card text-sm space-y-1">
-								<div class="font-medium text-foreground">Malaria Follow-up</div>
-								<div class="text-xs text-muted-foreground">Oct 10, 2023 • Dr. Okafor</div>
-							</div>
-							<div class="p-3 border rounded-lg bg-card text-sm space-y-1 opacity-70">
-								<div class="font-medium text-foreground">Routine Checkup</div>
-								<div class="text-xs text-muted-foreground">Sep 01, 2023 • Dr. Okafor</div>
-							</div>
+							{#if pastEncounters.length > 0}
+								{#each pastEncounters.slice(0, 3) as enc}
+									<div class="p-3 border rounded-lg bg-card text-sm space-y-1">
+										<div class="font-medium text-foreground line-clamp-1">{enc.chiefComplaint || 'Consultation'}</div>
+										<div class="text-xs text-muted-foreground">
+											{new Date(enc.visitDate).toLocaleDateString()}
+											{#if enc.triageLevel}
+												• <span class="uppercase text-[10px]">{enc.triageLevel}</span>
+											{/if}
+										</div>
+									</div>
+								{/each}
+							{:else}
+								<div class="p-3 border rounded-lg bg-card text-sm text-muted-foreground italic text-center">
+									No past encounters found.
+								</div>
+							{/if}
 						</div>
 					</div>
 				</div>
