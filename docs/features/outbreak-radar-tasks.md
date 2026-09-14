@@ -28,17 +28,17 @@
 
 ## Phase 3: Admin Dashboard Widget
 
-- [ ] Add Outbreak Radar card to `src/routes/(app)/admin/+page.svelte`
-  - [ ] Show rule-based alerts from `outbreakEngine.alerts` (always visible, labelled "Threshold Alert")
-  - [ ] Show pre-alert summary count (rising trends not yet at threshold)
-  - [ ] "Run AI Analysis" button (lazy, not auto-triggered)
-  - [ ] Loading skeleton with spinner during analysis
-  - [ ] Disease severity cards (Critical / Warning / Watch) with weekly trend sparkline
-  - [ ] `<AiDisclaimer>` above all AI content
-  - [ ] AI confidence badge (High / Medium / Low)
-  - [ ] Stock impact summary ("X drugs may run low next week")
-  - [ ] "View Full Outbreak Radar" link → `/admin/outbreak-radar`
-  - [ ] "Copy LGA Summary" button (copies `lgaSummary` to clipboard)
+- [x] Add Outbreak Radar card to `src/routes/(app)/admin/+page.svelte`
+  - [x] Show rule-based alerts from `outbreakEngine.alerts` (always visible, labelled "Threshold Alert")
+  - [x] Show pre-alert summary count (rising trends not yet at threshold)
+  - [x] "Run AI Analysis" button (lazy, not auto-triggered)
+  - [x] Loading skeleton with spinner during analysis
+  - [x] Disease severity cards (Critical / Warning / Watch) with weekly trend sparkline
+  - [x] `<AiDisclaimer>` above all AI content
+  - [x] AI confidence badge (High / Medium / Low)
+  - [x] Stock impact summary ("X drugs may run low next week")
+  - [x] "View Full Outbreak Radar" link → `/admin/outbreak-radar`
+  - [x] "Copy LGA Summary" button (copies `lgaSummary` to clipboard)
 
 ## Phase 4: Full Outbreak Radar Page
 

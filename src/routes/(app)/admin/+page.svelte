@@ -30,6 +30,7 @@
 
 	import { onMount } from 'svelte';
 	import { getPhcStaffList } from '$lib/remote/admin.remote';
+	import { toast } from 'svelte-sonner';
 
 	let staffList = $state<any[]>([]);
 
@@ -105,22 +106,155 @@
 		</div>
 	</div>
 
-	<!-- Outbreak Alerts -->
-	{#if settingsStore.current.outbreakDetectionEnabled && outbreakEngine.alerts.length > 0}
-		<div class="space-y-3">
-			{#each outbreakEngine.alerts as outbreak}
-				<Alert variant="destructive" class="border-destructive/30 bg-destructive/10 text-destructive animate-in slide-in-from-top-4">
-					<Siren class="size-4" />
-					<AlertTitle class="font-bold tracking-wide">POSSIBLE EPIDEMIOLOGICAL OUTBREAK DETECTED</AlertTitle>
-					<AlertDescription class="font-medium mt-1">
-						{outbreak.disease} × {outbreak.count} cases detected in {outbreak.community} community within the last 7 days.
-						<div class="mt-2 text-xs opacity-80">
-							Last case flagged: {new Date(outbreak.lastEncounterDate).toLocaleString()}
+	<!-- AI Outbreak Radar Widget -->
+	{#if settingsStore.current.outbreakDetectionEnabled}
+		<Card class="border-purple-200/40 shadow-sm overflow-hidden bg-gradient-to-br from-card to-purple-50/30 dark:to-purple-950/10">
+			<div class="h-1.5 w-full bg-gradient-to-r from-purple-500 to-indigo-500"></div>
+			<CardHeader class="pb-3 border-b border-border/40 bg-card/50">
+				<div class="flex items-start justify-between">
+					<div class="flex items-center gap-3">
+						<div class="p-2 rounded-lg bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
+							<Activity class="size-5" />
 						</div>
-					</AlertDescription>
-				</Alert>
-			{/each}
-		</div>
+						<div>
+							<CardTitle class="flex items-center gap-2 text-lg">
+								Outbreak Radar
+								<Badge variant="secondary" class="bg-purple-100 text-purple-700 hover:bg-purple-100 dark:bg-purple-900/50 dark:text-purple-300">Beta</Badge>
+							</CardTitle>
+							<CardDescription>Multi-signal epidemiological forecasting & early warning</CardDescription>
+						</div>
+					</div>
+					<div class="flex items-center gap-2">
+						{#if !outbreakEngine.aiAnalysis && !outbreakEngine.isAnalysing}
+							<button 
+								class="text-xs font-semibold px-3 py-1.5 rounded-md bg-purple-600 hover:bg-purple-700 text-white transition-colors flex items-center gap-1.5 shadow-sm"
+								onclick={() => outbreakEngine.runAiAnalysis()}
+							>
+								<Activity class="size-3.5" />
+								Run AI Analysis
+							</button>
+						{/if}
+						<a href="/admin/outbreak-radar" class="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5 rounded hover:bg-muted">
+							Full Report &rarr;
+						</a>
+					</div>
+				</div>
+			</CardHeader>
+
+			<CardContent class="p-0">
+				<!-- Rule-based strict alerts ALWAYS shown -->
+				{#if outbreakEngine.alerts.length > 0}
+					<div class="p-4 bg-destructive/5 border-b border-destructive/10">
+						<div class="flex items-center gap-2 text-destructive mb-2">
+							<AlertTriangle class="size-4" />
+							<span class="text-sm font-bold uppercase tracking-wider">Threshold Alerts (Rule-based)</span>
+						</div>
+						<div class="grid gap-2">
+							{#each outbreakEngine.alerts as alert}
+								<div class="text-sm font-medium text-destructive/90 flex items-center justify-between bg-destructive/10 px-3 py-2 rounded-md">
+									<span>{alert.disease} in {alert.community} ({alert.count} cases in 7 days)</span>
+									<span class="text-xs opacity-70 flex items-center gap-1">
+										<Siren class="size-3" /> Exceeds NPHCDA threshold
+									</span>
+								</div>
+							{/each}
+						</div>
+					</div>
+				{/if}
+
+				<!-- AI Analysis State -->
+				<div class="p-5">
+					{#if outbreakEngine.isAnalysing}
+						<div class="flex flex-col items-center justify-center py-6 space-y-3 text-muted-foreground">
+							<div class="size-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+							<p class="text-sm font-medium animate-pulse">Aggregating vitals, labs, and encounters for Gemini 2.5 Pro...</p>
+						</div>
+					{:else if outbreakEngine.aiAnalysis}
+						{@const ai = outbreakEngine.aiAnalysis}
+						
+						<div class="space-y-4">
+							<div class="flex items-start justify-between">
+								<div class="flex items-center gap-2">
+									<Badge variant="outline" class="border-purple-200 text-purple-700 dark:border-purple-800 dark:text-purple-300 gap-1 text-xs">
+										<CheckCircle2 class="size-3" />
+										AI Confidence: {ai.confidence}
+									</Badge>
+									<span class="text-xs text-muted-foreground">Analysed {new Date(ai.generatedAt).toLocaleTimeString()}</span>
+								</div>
+								
+								<button 
+									class="text-xs text-purple-600 hover:text-purple-700 font-medium underline-offset-4 hover:underline"
+									onclick={() => {
+										navigator.clipboard.writeText(ai.lgaSummary);
+										toast.success('LGA summary copied to clipboard');
+									}}
+								>
+									Copy LGA SMS Summary
+								</button>
+							</div>
+
+							<!-- Pre-alerts / Outbreaks -->
+							{#if ai.outbreaks?.length > 0 || ai.preAlerts?.length > 0}
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+									{#each ai.outbreaks || [] as outbreak}
+										<div class="rounded-lg border bg-card p-3 space-y-2 shadow-sm border-l-4 {outbreak.severity === 'critical' ? 'border-l-destructive' : 'border-l-amber-500'}">
+											<div class="flex justify-between items-start">
+												<div>
+													<h4 class="font-bold text-sm flex items-center gap-1.5">
+														{outbreak.disease}
+														{#if outbreak.severity === 'critical'}
+															<Badge variant="destructive" class="h-4 text-[10px] px-1">Critical</Badge>
+														{/if}
+													</h4>
+													<p class="text-[11px] text-muted-foreground">{outbreak.affectedCommunities.join(', ')}</p>
+												</div>
+												<Badge variant="outline" class="text-[10px] capitalize bg-muted/50">{outbreak.status}</Badge>
+											</div>
+											<p class="text-xs text-muted-foreground leading-snug">{outbreak.summary}</p>
+											
+											<div class="flex items-center justify-between pt-1 border-t border-border/50">
+												<span class="text-[10px] text-muted-foreground">Forecast next week:</span>
+												<span class="text-xs font-bold">{outbreak.forecastNextWeek} cases</span>
+											</div>
+										</div>
+									{/each}
+
+									{#each ai.preAlerts || [] as preAlert}
+										<div class="rounded-lg border bg-card p-3 space-y-2 shadow-sm border-l-4 border-l-blue-400">
+											<div class="flex justify-between items-start">
+												<div>
+													<h4 class="font-bold text-sm flex items-center gap-1.5">{preAlert.disease}</h4>
+													<p class="text-[11px] text-muted-foreground">{preAlert.affectedCommunities.join(', ')}</p>
+												</div>
+												<Badge variant="secondary" class="h-4 text-[10px] px-1 bg-blue-100 text-blue-700">Pre-Alert</Badge>
+											</div>
+											<p class="text-xs text-muted-foreground leading-snug">{preAlert.summary}</p>
+										</div>
+									{/each}
+								</div>
+							{:else}
+								<div class="flex items-center gap-2 text-sm text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 p-3 rounded-lg border border-emerald-100 dark:border-emerald-900/30">
+									<CheckCircle2 class="size-4" />
+									<span>No active outbreaks or rising pre-alerts detected in the last 30 days.</span>
+								</div>
+							{/if}
+							
+							{#if ai.stockImpactForecast?.some(s => s.willRunOut)}
+								<div class="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 p-2 rounded-md border border-amber-100">
+									<AlertTriangle class="size-3.5 shrink-0" />
+									<span><strong>Stock Warning:</strong> Projected demand exceeds current stock for {ai.stockImpactForecast.filter(s => s.willRunOut).map(s => s.drug).join(', ')}.</span>
+								</div>
+							{/if}
+						</div>
+					{:else}
+						<div class="text-center py-4 space-y-1">
+							<p class="text-sm font-medium text-foreground">AI Intelligence is idle</p>
+							<p class="text-xs text-muted-foreground">Run analysis to cross-reference vitals, lab results, and seasonal baselines.</p>
+						</div>
+					{/if}
+				</div>
+			</CardContent>
+		</Card>
 	{/if}
 
 	<!-- Key Metrics row -->
