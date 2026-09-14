@@ -92,6 +92,7 @@ export const updatePhcSettings = command(
 		name: v.string(),
 		state: v.string(),
 		lga: v.string(),
+		lgaDsoPhone: v.optional(v.string()),
 		termiiApiKey: v.nullable(v.string()),
 		syncPollInterval: v.number(),
 		maternalHealthEnabled: v.boolean(),

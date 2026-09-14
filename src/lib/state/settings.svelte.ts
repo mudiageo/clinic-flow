@@ -12,6 +12,7 @@ export type PhcSettings = {
 	familyHealthEnabled: boolean;
 	realTimeNotificationsEnabled: boolean;
 	nhisTrackingEnabled: boolean;
+	lgaDsoPhone?: string;
 };
 
 const DEFAULT_SETTINGS: PhcSettings = {

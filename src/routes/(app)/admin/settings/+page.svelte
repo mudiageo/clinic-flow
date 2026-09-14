@@ -32,7 +32,8 @@
 	let phcLga = $state('');
 	let termiiApiKey = $state('');
 	let syncPollInterval = $state(15);
-	
+	let lgaDsoPhone = $state('');
+
 	let maternalHealthEnabled = $state(true);
 	let immunizationEnabled = $state(true);
 	let aiVoiceEnabled = $state(true);
@@ -51,6 +52,7 @@
 			phcName = data.settings.name || '';
 			phcState = data.settings.state || '';
 			phcLga = data.settings.lga || '';
+			lgaDsoPhone = data.settings.lgaDsoPhone || '';
 			termiiApiKey = data.settings.termiiApiKey || '';
 			syncPollInterval = data.settings.syncPollInterval || 15;
 			
@@ -74,6 +76,7 @@
 				name: phcName,
 				state: phcState,
 				lga: phcLga,
+				lgaDsoPhone,
 				termiiApiKey,
 				syncPollInterval: Number(syncPollInterval),
 				maternalHealthEnabled,
@@ -91,6 +94,8 @@
 				
 				// Update local reactive store
 				settingsStore.updateLocal({
+					name: phcName,
+					lgaDsoPhone,
 					maternalHealthEnabled,
 					immunizationEnabled,
 					aiVoiceEnabled,
@@ -179,6 +184,11 @@
 						<Label for="lga">LGA (Local Government Area)</Label>
 						<Input id="lga" bind:value={phcLga} required />
 					</div>
+				</div>
+				<div class="space-y-2 pt-2 border-t border-border">
+					<Label for="lgaDsoPhone">LGA Disease Surveillance Officer (DSO) Phone</Label>
+					<Input id="lgaDsoPhone" bind:value={lgaDsoPhone} placeholder="e.g. 08012345678" />
+					<p class="text-xs text-muted-foreground mt-1">Used for escalating Outbreak Radar reports via SMS.</p>
 				</div>
 			</CardContent>
 		</Card>

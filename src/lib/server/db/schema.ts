@@ -125,6 +125,7 @@ export const phcs = pgTable('phcs', {
 	realTimeNotificationsEnabled: boolean('real_time_notifications_enabled').notNull().default(true),
 	nhisTrackingEnabled: boolean('nhis_tracking_enabled').notNull().default(true),
 	aiAutoTriageEscalation: boolean('ai_auto_triage_escalation').notNull().default(false),
+	lgaDsoPhone: varchar('lga_dso_phone', { length: 20 }),
 
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 });

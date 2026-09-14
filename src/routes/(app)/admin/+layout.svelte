@@ -40,6 +40,7 @@
 			label: 'Overview',
 			items: [
 				{ href: '/admin', label: 'Dashboard', icon: BarChart3 },
+				{ href: '/admin/outbreak-radar', label: 'Outbreak Radar', icon: Activity },
 				{ href: '/admin/reports', label: 'Reports', icon: FileText }
 			]
 		},

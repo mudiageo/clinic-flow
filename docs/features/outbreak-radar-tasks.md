@@ -42,27 +42,27 @@
 
 ## Phase 4: Full Outbreak Radar Page
 
-- [ ] Create `src/routes/(app)/admin/outbreak-radar/+page.svelte`
-  - [ ] Disease outbreak cards (severity + trend + forecast + at-risk groups)
-  - [ ] Pre-alert section (early warning, lower urgency styling)
-  - [ ] Community × Disease spread matrix table
-  - [ ] Per-disease 5-week trend sparklines with seasonal baseline overlay
-  - [ ] AI intervention suggestions list with priority badges and "Mark Implemented" button
-  - [ ] Stock impact forecast table (drug / projected demand / current stock / will run out)
-  - [ ] IDSR report preview section with "Copy as Text" and "Print" buttons
-  - [ ] LGA DSO SMS panel — compose and send via Termii
-  - [ ] `<AiDisclaimer>` prominently displayed
-  - [ ] Dismissed alerts section with reason log
-  - [ ] Feedback outcomes section (post-intervention case trend)
+- [x] Create `src/routes/(app)/admin/outbreak-radar/+page.svelte`
+  - [x] Disease outbreak cards (severity + trend + forecast + at-risk groups)
+  - [x] Pre-alert section (early warning, lower urgency styling)
+  - [x] Community × Disease spread matrix table
+  - [x] Per-disease 5-week trend sparklines with seasonal baseline overlay
+  - [x] AI intervention suggestions list with priority badges and "Mark Implemented" button
+  - [x] Stock impact forecast table (drug / projected demand / current stock / will run out)
+  - [x] IDSR report preview section with "Copy as Text" and "Print" buttons
+  - [x] LGA DSO SMS panel — compose and send via Termii
+  - [x] `<AiDisclaimer>` prominently displayed
+  - [x] Dismissed alerts section with reason log
+  - [x] Feedback outcomes section (post-intervention case trend)
 
 ## Phase 5: PHC Settings for LGA DSO
 
-- [ ] Add `lgaDsoPhone` field to PHC settings page (`src/routes/(app)/admin/settings/+page.svelte`)
-- [ ] Add `lgaDsoPhone` to `phcs` DB schema and local settings store
+- [x] Add `lgaDsoPhone` field to PHC settings page (`src/routes/(app)/admin/settings/+page.svelte`)
+- [x] Add `lgaDsoPhone` to `phcs` DB schema and local settings store
 
 ## Phase 6: Navigation
 
-- [ ] Add "Outbreak Radar" link to Admin sidebar nav group
+- [x] Add "Outbreak Radar" link to Admin sidebar nav group
 
 ## Phase 7: Support Documentation
 
