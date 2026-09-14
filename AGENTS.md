@@ -52,3 +52,13 @@ Do not use `date-fns` for formatting dates. Always use the native `Intl` API, pr
 
 **CRITICAL:** Do NOT use `+page.server.ts` or `+layout.server.ts` for server-side logic and data fetching. We use a Client-Server architecture utilizing SvelteKit's experimental **remote functions** (`import { query, form } from '$app/server'`). 
 All server-side queries and mutations MUST be defined in `$lib/remote/*.remote.ts` files, and imported directly into `+page.svelte` components. If you need data, write a `query` remote function. If you need mutations, write a `form` remote function.
+
+### 7. Feature Implementation Protocol
+**CRITICAL:** Before implementing ANY new feature, the agent MUST follow this exact workflow:
+1. **Define Permissions:** Explicitly outline the roles and permissions required for the feature. Note that **Superadmins** have global authority to enable/restrict/lock features platform-wide, while local **Admins** can only toggle features for their specific PHC (if not locked by a Superadmin).
+2. **Generate Two Documents:** Create TWO separate markdown files in the `docs/features/` directory before writing any code:
+   - `<feature-name>-plan.md`: A detailed architectural and implementation plan, including files to modify and logic to write.
+   - `<feature-name>-tasks.md`: A strict checklist (`[ ]`) of tasks.
+3. **Track Progress:** Update the `<feature-name>-tasks.md` file with `[x]` as you progress through the implementation.
+4. **Update User-Facing Docs:** Once the code is working, you MUST create or update user-facing documentation (e.g., in-app `Walkthrough` components, tooltips, and guides/articles on the marketing/support website) explaining how to use the feature with clear examples.
+5. **Mark as Accomplished:** When the feature and its documentation are 100% complete, return to the main feature tracker (e.g., `docs/AI-Features-Implementation-Plan.md`) and update its main checkbox to `[x]` to indicate full accomplishment.

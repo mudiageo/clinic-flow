@@ -21,9 +21,10 @@
 	import SyncIndicator from '$lib/components/SyncIndicator.svelte';
 	import { signOutAction } from '$lib/remote/auth.remote';
 	import { notificationStore } from '$lib/state/notifications.svelte';
-	import { HeartPulse, LogOut, UserCircle, Bell } from '@lucide/svelte';
+	import { HeartPulse, LogOut, UserCircle, Bell, HelpCircle } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
 	import * as Popover from '$lib/components/ui/popover';
+	import GlobalHelpDrawer from '$lib/components/global-help-drawer.svelte';
 	import { Badge } from '$lib/components/ui/badge';
 	import { ScrollArea } from '$lib/components/ui/scroll-area';
 	import { Button } from '$lib/components/ui/button';
@@ -39,6 +40,8 @@
 	};
 
 	let { navGroups, role, phcName, userName, userInitials }: Props = $props();
+
+	let helpDrawerOpen = $state(false);
 
 	onMount(() => {
 		notificationStore.setRole(role);
@@ -196,6 +199,18 @@
 				</Sidebar.MenuButton>
 			</Sidebar.MenuItem>
 
+			<!-- Help & Support -->
+			<Sidebar.MenuItem>
+				<Sidebar.MenuButton onclick={() => (helpDrawerOpen = true)}>
+					{#snippet child({ props })}
+						<button {...props}>
+							<HelpCircle />
+							<span>Help & Support</span>
+						</button>
+					{/snippet}
+				</Sidebar.MenuButton>
+			</Sidebar.MenuItem>
+
 			<!-- Log out -->
 			<Sidebar.MenuItem>
 				<form {...signOutAction} onsubmit={(e) => {
@@ -222,3 +237,5 @@
 
 	<Sidebar.Rail />
 </Sidebar.Root>
+
+<GlobalHelpDrawer bind:open={helpDrawerOpen} />
