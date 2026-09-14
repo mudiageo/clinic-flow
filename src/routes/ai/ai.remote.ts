@@ -105,3 +105,39 @@ export const getRxBrainAnalysis = command(
 		}
 	}
 );
+
+export const generateSoapNote = command(
+	v.object({ 
+		vitals: v.any(), 
+		transcript: v.string() 
+	}),
+	async ({ vitals, transcript }) => {
+		const event = getRequestEvent();
+		if (!event.locals.staffId) throw new Error('Unauthorized');
+		
+		// Enforce write permissions because this dictates official medical records
+		await requirePermission(event.locals.staffId, 'write:medical_records');
+
+		if (!GEMINI_API_KEY) {
+			throw new Error('GEMINI_API_KEY is not set.');
+		}
+
+		const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+		const prompt = AI_PROMPTS.soapNote.buildPrompt(vitals, transcript);
+
+		try {
+			// Using gemini-2.5-pro for high clinical reasoning
+			const response = await ai.models.generateContent({
+				model: 'gemini-2.5-pro', 
+				contents: prompt
+			});
+
+			let text = response.text || '{}';
+			text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+
+			return JSON.parse(text);
+		} catch (err: any) {
+			throw new Error(`SOAP Note generation failed: ${err.message}`);
+		}
+	}
+);

@@ -33,6 +33,13 @@
 		<li><strong>Take Action:</strong> Use the "Copy to Lab" or "Insert to Notes" buttons to move the AI's suggestions into your actual workflow. <em>Note: The AI never modifies the patient's record automatically. You are entirely in control.</em></li>
 	</ol>
 
+	<h2>AI Voice Dictation & SOAP Note Generation</h2>
+	<p>ClinicFlow provides two AI tools directly within the <strong>Clinical Notes</strong> tab to speed up your documentation:</p>
+	<ul>
+		<li><strong>Voice Dictation:</strong> Press and hold the "Hold to Dictate" button to speak your notes (supports English and Nigerian Pidgin). The AI will structure your voice input into a clean transcript.</li>
+		<li><strong>Generate SOAP Note 🪄:</strong> Click this button above your text area. The AI will read your raw notes, the patient's vitals, and automatically format them into a standard Subjective, Objective, Assessment, and Plan format. <em>Important: The AI is restricted from hallucinating physical exam findings. If you did not dictate an exam, you must manually fill in the "Objective" section.</em></li>
+	</ul>
+
 	<h2>🚨 Red Flags & Emergency Protocols</h2>
 	<p>Dr. Assist is programmed to prioritize patient safety. If the AI detects symptoms indicative of a medical emergency (e.g., severe hemorrhage, signs of shock, cardiac events), it will abort generating a standard diagnosis and instead flash a <strong>Critical Red Flag</strong> warning advising immediate escalation to a secondary or tertiary facility.</p>
 	

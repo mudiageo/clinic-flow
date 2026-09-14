@@ -34,7 +34,7 @@
 
 	import { toast } from 'svelte-sonner';
 	import { aiService } from '$lib/services/ai/ai.service';
-	import { getClinicalDecisionSupport } from '../../../../../routes/ai/ai.remote';
+	import { getClinicalDecisionSupport, generateSoapNote } from '../../../../../routes/ai/ai.remote';
 	import AiDisclaimer from '$lib/components/ui/ai-disclaimer.svelte';
 	import {
 		Stethoscope,
@@ -155,6 +155,37 @@
 			toast.error(e.message);
 		} finally {
 			dssLoading = false;
+		}
+	}
+
+	let soapLoading = $state(false);
+	async function runSoapGenerator() {
+		if (!chiefComplaint || chiefComplaint.length < 5) {
+			return toast.error('Please enter a Chief Complaint first.');
+		}
+		soapLoading = true;
+		try {
+			const res = await generateSoapNote({
+				vitals,
+				transcript: chiefComplaint + '\n' + doctorNotes
+			});
+			
+			const formattedNote = 
+`[AI-Drafted SOAP Note]
+S: ${res.subjective}
+O: ${res.objective}
+A: ${res.assessment}
+P: ${res.plan}`;
+			
+			doctorNotes = doctorNotes 
+				? doctorNotes + '\n\n' + formattedNote 
+				: formattedNote;
+			
+			toast.success('SOAP note drafted. Please review and edit.');
+		} catch (e: any) {
+			toast.error(e.message);
+		} finally {
+			soapLoading = false;
 		}
 	}
 
@@ -514,9 +545,26 @@
 								/>
 							</div>
 							<div class="space-y-2">
-								<Label class="font-semibold flex items-center gap-1.5"
-									><FileSpreadsheet class="size-4" /> Doctor Notes</Label
-								>
+								<div class="flex items-center justify-between">
+									<Label class="font-semibold flex items-center gap-1.5">
+										<FileSpreadsheet class="size-4" /> Doctor Notes
+									</Label>
+									{#if settingsStore.current.aiVoiceEnabled && hasAcceptedAiTerms}
+										<Button 
+											variant="outline" 
+											size="sm" 
+											class="h-7 text-xs border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100" 
+											onclick={runSoapGenerator} 
+											disabled={soapLoading}
+										>
+											{#if soapLoading}
+												<Loader2 class="size-3 mr-1.5 animate-spin" /> Drafting...
+											{:else}
+												<Sparkles class="size-3 mr-1.5" /> Generate SOAP Note
+											{/if}
+										</Button>
+									{/if}
+								</div>
 								<Textarea
 									bind:value={doctorNotes}
 									class="min-h-[200px]"

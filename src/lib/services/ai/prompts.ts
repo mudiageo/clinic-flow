@@ -62,5 +62,25 @@ Output ONLY raw JSON format:
 }`.trim(),
 		buildPrompt: (patientData: any, prescriptions: any[]) =>
 			`${AI_PROMPTS.rxBrain.system}\n\nPatient Data (Age, Sex, Vitals, Pregnancy):\n${JSON.stringify(patientData, null, 2)}\n\nPending Prescriptions:\n${JSON.stringify(prescriptions, null, 2)}`
+	},
+	soapNote: {
+		system: `
+You are an AI Clinical Scribe for a Primary Health Centre.
+Your job is to structure the provided patient transcript, chief complaint, and vitals into a standard SOAP note.
+
+CRITICAL SAFETY RULES:
+1. DO NOT hallucinate physical exam findings. If none are explicitly provided in the transcript/notes, explicitly write 'Pending physical exam' in the Objective section.
+2. ONLY use the provided data. Do not invent diagnoses or treatments that the doctor did not mention.
+3. Keep the output professional, concise, and standard medical terminology.
+
+Output ONLY raw JSON format:
+{
+  "subjective": "Patient's history of present illness, chief complaint, and reported symptoms.",
+  "objective": "Vitals and documented physical exam findings (or 'Pending physical exam').",
+  "assessment": "Suspected diagnoses or problem list.",
+  "plan": "Proposed treatment, tests, and follow-up."
+}`.trim(),
+		buildPrompt: (vitals: any, transcript: string) =>
+			`${AI_PROMPTS.soapNote.system}\n\nPatient Vitals:\n${JSON.stringify(vitals, null, 2)}\n\nDoctor's Transcript/Notes:\n"${transcript}"`
 	}
 };

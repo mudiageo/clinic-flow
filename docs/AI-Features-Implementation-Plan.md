@@ -37,7 +37,7 @@ This document serves as the detailed blueprint for the AI builder agent to imple
 - `src/lib/services/ai/prompts.ts`: Add `smartPrescription` prompt.
 - `src/routes/(app)/doctor/consult/[id]/+page.svelte`: Add "AI Suggest Meds" button in "rx" tab.
 
-## [ ] 3. 📝 AI SOAP Note Generator
+## [x] 3. 📝 AI SOAP Note Generator
 **Objective**: Restructure raw notes into subjective, objective, assessment, and plan format.
 **Permissions**:
 - **Roles**: Doctors only (requires `view:medical_records` permission).

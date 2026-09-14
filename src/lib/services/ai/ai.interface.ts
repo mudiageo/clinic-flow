@@ -28,6 +28,13 @@ export interface RxBrainResult {
 	safeToDispense: boolean;
 }
 
+export interface SoapNoteResult {
+	subjective: string;
+	objective: string;
+	assessment: string;
+	plan: string;
+}
+
 export interface AIProvider {
 	name: string;
 	isAvailable(): Promise<boolean> | boolean;
