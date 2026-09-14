@@ -61,6 +61,17 @@
 					<TriageIcon class="size-3 mr-1" />
 					<span class="capitalize">{ticket.triageLevel}</span>
 				</Badge>
+				{#if ticket.aiRiskScore !== undefined && ticket.aiRiskScore !== null}
+					<div class="relative group">
+						<Badge variant="secondary" class="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-indigo-200 cursor-help transition-colors">
+							⚡ AI Risk: {ticket.aiRiskScore}/100
+						</Badge>
+						<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-2.5 bg-popover text-popover-foreground text-xs rounded-lg shadow-xl border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
+							<span class="font-semibold block mb-1 text-indigo-600">AI Rationale:</span>
+							<p class="leading-relaxed m-0">{ticket.aiRiskRationale || 'No rationale provided.'}</p>
+						</div>
+					</div>
+				{/if}
 			</div>
 
 			<div class="flex items-center gap-3 text-sm text-muted-foreground">

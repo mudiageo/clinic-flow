@@ -3,6 +3,7 @@
 	import { vitalsStore } from '$lib/state/vitals.svelte';
 	import { queueStore } from '$lib/state/queue.svelte';
 	import { triageRuleStore } from '$lib/state/triage-rules.svelte';
+	import { getPatientRiskScore } from '../../../../../routes/ai/ai.remote';
 	import QrScanner from '$lib/components/QrScanner.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
@@ -132,13 +133,17 @@
 				(t: any) => t.patientId === selectedPatient.id && t.status === 'waiting'
 			);
 
+			let savedTicketIds = [];
 			if (activeTickets.length > 0) {
 				for (const ticket of activeTickets) {
 					await queueStore.applyTriageFlag(ticket.id, triageResult.level, triageResult.reason);
+					savedTicketIds.push(ticket.id);
 				}
 			} else {
 				// Issue new ticket if none active
+				const newTicketId = crypto.randomUUID();
 				await queueStore.create({
+					id: newTicketId,
 					patientId: selectedPatient.id,
 					phcId: crypto.randomUUID(),
 					encounterId,
@@ -150,9 +155,38 @@
 					completedAt: null,
 					createdAt: Date.now()
 				});
+				savedTicketIds.push(newTicketId);
 			}
 
 			toast.success(`Vitals saved. Patient triaged as ${triageResult.level.toUpperCase()}`);
+
+			// Background AI Risk Stratification
+			// We fire and forget so we don't block the UI
+			const vitalsPayload = {
+				temperatureCelsius: temperature ?? null,
+				systolicBp: systolicBp ?? null,
+				diastolicBp: diastolicBp ?? null,
+				pulseBpm: pulse ?? null,
+				weightKg: weight ?? null,
+				spo2Percent: spo2 ?? null
+			};
+			const p = selectedPatient;
+			
+			getPatientRiskScore({
+				vitals: vitalsPayload,
+				patient: p,
+				chiefComplaint: p.reasonForVisit || triageResult.reason || 'Routine Checkup'
+			}).then(async (aiRes) => {
+				for (const tId of savedTicketIds) {
+					await queueStore.update(tId, {
+						aiRiskScore: aiRes.score,
+						aiRiskRationale: aiRes.rationale
+					});
+				}
+				toast.info(`AI updated risk score to ${aiRes.score}/100 for ${p.name}`);
+			}).catch(err => {
+				console.warn('AI Risk calculation failed (likely offline):', err);
+			});
 
 			// Reset state
 			selectedPatient = null;

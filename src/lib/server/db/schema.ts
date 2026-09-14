@@ -381,6 +381,8 @@ export const queueTickets = pgTable(
 		status: ticketStatusEnum('status').notNull().default('waiting'),
 		triageLevel: triageLevelEnum('triage_level').notNull().default('green'),
 		triageReason: text('triage_reason'),
+		aiRiskScore: integer('ai_risk_score'),
+		aiRiskRationale: text('ai_risk_rationale'),
 		calledAt: timestamp('called_at', { withTimezone: true }),
 		completedAt: timestamp('completed_at', { withTimezone: true }),
 		updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

@@ -46,7 +46,7 @@ This document serves as the detailed blueprint for the AI builder agent to imple
 - `src/lib/services/ai/prompts.ts`: Add `soapNote` prompt.
 - `src/routes/(app)/doctor/consult/[id]/+page.svelte`: Add "Generate SOAP Note" button.
 
-## [ ] 4. 🤖 Patient Risk Stratification
+## [x] 4. 🤖 Patient Risk Stratification
 **Objective**: Generate a 0-100 risk score and category badge for prioritized triaging.
 **Permissions**:
 - **Roles**: Nurses and Doctors (requires `view:patient_records`).

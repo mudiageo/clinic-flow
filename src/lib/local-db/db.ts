@@ -50,6 +50,8 @@ export interface LocalQueueTicket {
 	status: 'waiting' | 'called' | 'in_progress' | 'done' | 'no_show';
 	triageLevel: 'unassigned' | 'green' | 'amber' | 'red';
 	triageReason: string | null;
+	aiRiskScore?: number | null;
+	aiRiskRationale?: string | null;
 	calledAt?: number | null;
 	completedAt?: number | null;
 	createdAt: number;

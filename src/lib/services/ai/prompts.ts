@@ -84,5 +84,24 @@ Output ONLY raw JSON format:
 }`.trim(),
 		buildPrompt: (vitals: any, transcript: string, patientProfile: any, history: any[], prescriptions: any[], labs: any) =>
 			`${AI_PROMPTS.soapNote.system}\n\nDe-identified Patient Profile:\n${JSON.stringify(patientProfile, null, 2)}\n\nPast Medical History:\n${JSON.stringify(history, null, 2)}\n\nPatient Vitals:\n${JSON.stringify(vitals, null, 2)}\n\nDoctor's Transcript/Notes:\n"${transcript}"\n\nPending Prescriptions:\n${JSON.stringify(prescriptions, null, 2)}\n\nPending Lab Tests:\n${JSON.stringify(labs, null, 2)}`
+	},
+	riskStratification: {
+		system: `
+You are an AI Triage Assistant for a Primary Health Centre.
+Your job is to analyze a patient's vitals, basic profile, and chief complaint, and assign a clinical deterioration risk score from 0 to 100.
+
+CRITICAL SAFETY RULES:
+1. 0 = Completely healthy/stable. 100 = Imminent life-threatening emergency.
+2. A score of 80+ indicates a high likelihood of requiring emergency stabilization or referral.
+3. This score is ADVISORY. It supplements physical triage rules (e.g. Temperature > 39 = Red) but does not replace them.
+4. Provide a brief 1-sentence rationale for the score (e.g. "Elevated BP and severe headache in a pregnant patient indicates preeclampsia risk.")
+
+Output ONLY raw JSON format:
+{
+  "score": 0,
+  "rationale": "1-sentence explanation."
+}`.trim(),
+		buildPrompt: (vitals: any, profile: any, chiefComplaint: string) =>
+			`${AI_PROMPTS.riskStratification.system}\n\nDe-identified Patient Profile:\n${JSON.stringify(profile, null, 2)}\n\nPatient Vitals:\n${JSON.stringify(vitals, null, 2)}\n\nChief Complaint / Symptoms:\n"${chiefComplaint}"`
 	}
 };

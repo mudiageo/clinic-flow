@@ -164,3 +164,47 @@ export const generateSoapNote = command(
 		}
 	}
 );
+
+export const getPatientRiskScore = command(
+	v.object({ 
+		vitals: v.any(), 
+		patient: v.any(),
+		chiefComplaint: v.string()
+	}),
+	async ({ vitals, patient, chiefComplaint }) => {
+		const event = getRequestEvent();
+		if (!event.locals.staffId) throw new Error('Unauthorized');
+		
+		// Enforce read permissions
+		await requirePermission(event.locals.staffId, 'view:medical_records');
+
+		if (!GEMINI_API_KEY) {
+			throw new Error('GEMINI_API_KEY is not set.');
+		}
+
+		// PRIVACY / NDPR COMPLIANCE
+		const deidentifiedProfile = {
+			age: patient.dob ? new Date().getFullYear() - new Date(patient.dob).getFullYear() : patient.estimatedAge,
+			sex: patient.sex,
+			isPregnant: patient.isPregnant,
+			bloodGroup: patient.bloodGroup
+		};
+
+		const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+		const prompt = AI_PROMPTS.riskStratification.buildPrompt(vitals, deidentifiedProfile, chiefComplaint);
+
+		try {
+			const response = await ai.models.generateContent({
+				model: 'gemini-2.5-flash', 
+				contents: prompt
+			});
+
+			let text = response.text || '{}';
+			text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+
+			return JSON.parse(text);
+		} catch (err: any) {
+			throw new Error(`Risk Stratification failed: ${err.message}`);
+		}
+	}
+);
