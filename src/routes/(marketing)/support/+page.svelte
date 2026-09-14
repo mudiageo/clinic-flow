@@ -33,5 +33,12 @@
 			<h3 class="font-semibold mb-2">RxBrain (Smart Pharmacy)</h3>
 			<p class="text-sm text-muted-foreground">Learn how to use our AI pharmacy assistant to prevent dangerous drug interactions.</p>
 		</a>
+		<a href="/support/outbreak-radar" class="group relative rounded-lg border p-6 hover:bg-muted transition-colors border-purple-200 dark:border-purple-900 bg-purple-50/30 dark:bg-purple-900/10">
+			<div class="mb-3 rounded-full bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-400 w-fit p-2.5">
+				<Users class="size-5" />
+			</div>
+			<h3 class="font-semibold mb-2">Outbreak Radar</h3>
+			<p class="text-sm text-muted-foreground">Understand multi-signal epidemiology forecasting and automated IDSR reporting.</p>
+		</a>
 	</div>
 </SupportArticle>

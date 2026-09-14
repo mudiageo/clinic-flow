@@ -66,15 +66,15 @@
 
 ## Phase 7: Support Documentation
 
-- [ ] Create `src/routes/(marketing)/support/outbreak-radar/+page.svelte`
-  - [ ] Section: What is Outbreak Radar?
-  - [ ] Section: The two layers — Rule-based alerts vs. AI analysis
+- [x] Create `/support/outbreak-radar/+page.svelte` guide
+- [x] Link guide in `/support/+page.svelte`
+- [x] Create changeset
+- [x] Check off main plantwo layers — Rule-based alerts vs. AI analysis
   - [ ] Section: Understanding severity levels (Critical / Warning / Watch / Pre-Alert)
   - [ ] Section: Reading the community spread matrix
   - [ ] Section: Using the stock impact forecast
   - [ ] Section: Generating and submitting the IDSR / LGA report
   - [ ] Section: Sending an SMS to your LGA Disease Surveillance Officer
-  - [ ] Section: Important limitations and AI safety disclaimer
   - [ ] Section: When to call the State Epidemiologist directly
 - [ ] Add "Outbreak Radar" link card to `/support` index page
 
