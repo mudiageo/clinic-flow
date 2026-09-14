@@ -1,13 +1,76 @@
 name: 'Tauri Build Workflow'
+
 on:
-  push:
-    branches:
-      - release
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v0.2.0, v0.2.0-beta.1, v0.2.0-nightly.20260914)'
+        required: false
+        default: ''
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        default: 'false'
+      release_name:
+        description: 'Override release name'
+        required: false
+        default: ''
+  push:
+    tags:
+      - 'v*' # triggers on any version tag
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
+  # ── Determine release metadata ────────────────────────────────────
+  metadata:
+    name: Determine Release Metadata
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+      release_name: ${{ steps.meta.outputs.release_name }}
+      prerelease: ${{ steps.meta.outputs.prerelease }}
+      channel: ${{ steps.meta.outputs.channel }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute metadata
+        id: meta
+        run: |
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          INPUT_TAG="${{ inputs.tag }}"
+          TAG="${INPUT_TAG:-v$PKG_VERSION}"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+          # Detect channel from version string
+          if [[ "$TAG" == *"-nightly."* ]]; then
+            CHANNEL="nightly"
+            PRERELEASE="true"
+            NAME="${{ inputs.release_name || 'Nightly Build' }} ($TAG)"
+          elif [[ "$TAG" == *"-alpha."* ]]; then
+            CHANNEL="alpha"
+            PRERELEASE="true"
+            NAME="ClinicFlow $TAG (Alpha)"
+          elif [[ "$TAG" == *"-beta."* ]]; then
+            CHANNEL="beta"
+            PRERELEASE="true"
+            NAME="ClinicFlow $TAG (Beta)"
+          else
+            CHANNEL="stable"
+            PRERELEASE="${{ inputs.prerelease || 'false' }}"
+            NAME="ClinicFlow $TAG"
+          fi
+
+          echo "channel=$CHANNEL" >> $GITHUB_OUTPUT
+          echo "prerelease=$PRERELEASE" >> $GITHUB_OUTPUT
+          echo "release_name=$NAME" >> $GITHUB_OUTPUT
+
+  # ── Cross-platform Tauri builds ───────────────────────────────────
   build-app:
     name: Build (${{ matrix.platform }} ${{ matrix.rust_target || 'default' }})
+    needs: metadata
     permissions:
       contents: write
     strategy:
@@ -51,8 +114,9 @@ jobs:
             rust_target: 'i686-linux-android'
             is_android: true
     runs-on: ${{ matrix.platform }}
+
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
 
       - name: install dependencies (ubuntu desktop only)
         if: (matrix.platform == 'ubuntu-22.04' || matrix.platform == 'ubuntu-22.04-arm') && !matrix.is_android
@@ -84,20 +148,20 @@ jobs:
         with:
           node-version: lts/*
           cache: true
-          
+
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.rust_target }}
-          
+
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
-          
+
       - name: install dependencies
         run: vp install
-        
+
       - name: build and upload
         uses: tauri-apps/tauri-action@v1
         env:
@@ -107,11 +171,16 @@ jobs:
           ORIGIN: "http://localhost:5173"
           TAURI: "1"
         with:
-          tagName: app-v__VERSION__
-          releaseName: 'App v__VERSION__'
-          releaseBody: 'Automated cross-platform build.'
-          releaseDraft: true
-          prerelease: false
+          tagName: ${{ needs.metadata.outputs.tag }}
+          releaseName: ${{ needs.metadata.outputs.release_name }}
+          releaseBody: |
+            **Channel:** `${{ needs.metadata.outputs.channel }}`
+
+            See the full [CHANGELOG](https://github.com/mudiageo/clinic-flow/blob/main/CHANGELOG.md) for details.
+
+            > ⚠️ **Nightly/Alpha/Beta builds** are experimental and not recommended for production PHC use.
+          releaseDraft: ${{ needs.metadata.outputs.channel == 'stable' }}
+          prerelease: ${{ needs.metadata.outputs.prerelease }}
           uploadPlainBinary: true
           tauriScript: ${{ matrix.is_android && 'vp exec tauri' || '' }}
           mobile: ${{ matrix.is_android && 'android' || '' }}

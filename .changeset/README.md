@@ -1,0 +1,23 @@
+# Changesets
+
+Hello and welcome! This folder has been created by `@changesets/cli`, a build tool that works
+with multi-package repos, or single-package repos to help you version and publish your code.
+
+You can find the full documentation for it [in our website](https://github.com/changesets/changesets)
+
+We have a quick list of common questions to get you started engaging with this project in
+[our documentation](https://github.com/changesets/changesets/blob/main/docs/common-questions.md)
+
+## Adding a Changeset
+
+Run `pnpm changeset` and follow the prompts. This creates a markdown file in `.changeset/`
+describing your change. Commit this file with your PR.
+
+## Release Channels
+
+| Channel  | Branch              | Tag Suffix      | Example           |
+|----------|---------------------|-----------------|-------------------|
+| stable   | `main`              | (none)          | `v1.2.0`          |
+| beta     | `beta`              | `-beta.N`       | `v1.2.0-beta.3`   |
+| alpha    | `alpha`             | `-alpha.N`      | `v1.2.0-alpha.1`  |
+| nightly  | `nightly` (cron)    | `-nightly.DATE` | `v1.2.0-nightly.20260914` |
