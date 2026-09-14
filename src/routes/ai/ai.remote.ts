@@ -109,9 +109,10 @@ export const getRxBrainAnalysis = command(
 export const generateSoapNote = command(
 	v.object({ 
 		vitals: v.any(), 
-		transcript: v.string() 
+		transcript: v.string(),
+		patient: v.any()
 	}),
-	async ({ vitals, transcript }) => {
+	async ({ vitals, transcript, patient }) => {
 		const event = getRequestEvent();
 		if (!event.locals.staffId) throw new Error('Unauthorized');
 		
@@ -122,8 +123,19 @@ export const generateSoapNote = command(
 			throw new Error('GEMINI_API_KEY is not set.');
 		}
 
+		// PRIVACY / NDPR COMPLIANCE: 
+		// Strip all Personally Identifiable Information (PII) before sending to the LLM.
+		// We only send clinical context needed for the SOAP note.
+		const deidentifiedProfile = {
+			age: patient.dob ? new Date().getFullYear() - new Date(patient.dob).getFullYear() : patient.estimatedAge,
+			sex: patient.sex,
+			isPregnant: patient.isPregnant,
+			bloodGroup: patient.bloodGroup,
+			genotype: patient.genotype
+		};
+
 		const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-		const prompt = AI_PROMPTS.soapNote.buildPrompt(vitals, transcript);
+		const prompt = AI_PROMPTS.soapNote.buildPrompt(vitals, transcript, deidentifiedProfile);
 
 		try {
 			// Using gemini-2.5-pro for high clinical reasoning

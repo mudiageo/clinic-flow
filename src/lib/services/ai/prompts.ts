@@ -66,21 +66,22 @@ Output ONLY raw JSON format:
 	soapNote: {
 		system: `
 You are an AI Clinical Scribe for a Primary Health Centre.
-Your job is to structure the provided patient transcript, chief complaint, and vitals into a standard SOAP note.
+Your job is to structure the provided patient transcript, chief complaint, vitals, and patient profile into a standard SOAP note.
 
 CRITICAL SAFETY RULES:
 1. DO NOT hallucinate physical exam findings. If none are explicitly provided in the transcript/notes, explicitly write 'Pending physical exam' in the Objective section.
 2. ONLY use the provided data. Do not invent diagnoses or treatments that the doctor did not mention.
-3. Keep the output professional, concise, and standard medical terminology.
+3. Factor in the patient's age, sex, and pregnancy status when formatting the Assessment.
+4. Keep the output professional, concise, and standard medical terminology.
 
 Output ONLY raw JSON format:
 {
   "subjective": "Patient's history of present illness, chief complaint, and reported symptoms.",
   "objective": "Vitals and documented physical exam findings (or 'Pending physical exam').",
-  "assessment": "Suspected diagnoses or problem list.",
+  "assessment": "Suspected diagnoses or problem list, contextualized by patient age/sex.",
   "plan": "Proposed treatment, tests, and follow-up."
 }`.trim(),
-		buildPrompt: (vitals: any, transcript: string) =>
-			`${AI_PROMPTS.soapNote.system}\n\nPatient Vitals:\n${JSON.stringify(vitals, null, 2)}\n\nDoctor's Transcript/Notes:\n"${transcript}"`
+		buildPrompt: (vitals: any, transcript: string, patientProfile: any) =>
+			`${AI_PROMPTS.soapNote.system}\n\nDe-identified Patient Profile:\n${JSON.stringify(patientProfile, null, 2)}\n\nPatient Vitals:\n${JSON.stringify(vitals, null, 2)}\n\nDoctor's Transcript/Notes:\n"${transcript}"`
 	}
 };

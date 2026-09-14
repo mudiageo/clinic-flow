@@ -167,7 +167,8 @@
 		try {
 			const res = await generateSoapNote({
 				vitals,
-				transcript: chiefComplaint + '\n' + doctorNotes
+				transcript: chiefComplaint + '\n' + doctorNotes,
+				patient
 			});
 			
 			const formattedNote = 
