@@ -25,7 +25,7 @@
 
 	function handleContextMenu(event: MouseEvent) {
 		// Disable right-click menu in production kiosk mode
-		if (process.env.NODE_ENV === 'production') {
+		if (import.meta.env.PROD) {
 			event.preventDefault();
 		}
 	}

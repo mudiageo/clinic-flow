@@ -6,7 +6,7 @@ import { auth } from '$lib/server/auth';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { db } from '$lib/server/db';
 import { startSmsWorker } from '$lib/server/sms/worker';
-import { DATABASE_URL } from '$app/env/private';
+import { DATABASE_URL, PORT } from '$app/env/private';
 
 if (!building) {
 	startSmsWorker();
@@ -22,7 +22,7 @@ if (!building) {
 	if (isLocalServer) {
 		import('bonjour-service').then(({ Bonjour }) => {
 			const bonjour = new Bonjour();
-			const port = Number(process.env.PORT ?? 3000);
+			const port = Number(PORT);
 
 			bonjour.publish({
 				name: 'ClinicFlow Master Server',

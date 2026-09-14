@@ -2,17 +2,17 @@ import { command, getRequestEvent } from '$app/server';
 import { GoogleGenAI } from '@google/genai';
 import { AI_PROMPTS } from '../../lib/services/ai/prompts';
 import { requirePermission } from '$lib/server/permissions';
+import { GEMINI_API_KEY } from '$app/env/private';
 import * as v from 'valibot';
 
 export const structureIntake = command(
 	v.object({ transcript: v.string(), language: v.optional(v.string()) }),
 	async ({ transcript, language }) => {
-	const apiKey = process.env.GEMINI_API_KEY;
-	if (!apiKey) {
+	if (!GEMINI_API_KEY) {
 		throw new Error('GEMINI_API_KEY is not set. Please configure it to use AI Voice Intake.');
 	}
 
-	const ai = new GoogleGenAI({ apiKey });
+	const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
 	const prompt = AI_PROMPTS.voiceIntake.buildPrompt(transcript, language);
 
@@ -46,12 +46,11 @@ export const getClinicalDecisionSupport = command(
 		// Enforce permissions before allowing AI access to medical logic
 		await requirePermission(event.locals.staffId, 'view:medical_records');
 
-		const apiKey = process.env.GEMINI_API_KEY;
-		if (!apiKey) {
+		if (!GEMINI_API_KEY) {
 			throw new Error('GEMINI_API_KEY is not set.');
 		}
 
-		const ai = new GoogleGenAI({ apiKey });
+		const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 		const prompt = AI_PROMPTS.clinicalDSS.buildPrompt(vitals, chiefComplaint);
 
 		try {
@@ -83,12 +82,11 @@ export const getRxBrainAnalysis = command(
 		// Enforce permissions before allowing AI access to medical logic
 		await requirePermission(event.locals.staffId, 'view:medical_records');
 
-		const apiKey = process.env.GEMINI_API_KEY;
-		if (!apiKey) {
+		if (!GEMINI_API_KEY) {
 			throw new Error('GEMINI_API_KEY is not set.');
 		}
 
-		const ai = new GoogleGenAI({ apiKey });
+		const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 		const prompt = AI_PROMPTS.rxBrain.buildPrompt(patientData, prescriptions);
 
 		try {

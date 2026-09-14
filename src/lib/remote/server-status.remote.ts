@@ -3,6 +3,7 @@ import { getRequestEvent } from '$app/server';
 import * as v from 'valibot';
 import { randomBytes } from 'node:crypto';
 import { getDeviceCountsByPhc, registerPendingDevice } from '$lib/server/db/queries/devices';
+import { DATABASE_URL } from '$app/env/private';
 
 // ─────────────────────────────────────────────────────────────
 // SERVER STATUS
@@ -23,7 +24,7 @@ export const getServerStatus = query(async () => {
 		nodeVersion: process.version,
 		activeDevices: counts.activeCount,
 		pendingDevices: counts.pendingCount,
-		isMasterServer: process.env.DATABASE_URL?.startsWith('file:') || process.env.DATABASE_URL?.startsWith('libsql:') || false
+		isMasterServer: DATABASE_URL?.startsWith('file:') || DATABASE_URL?.startsWith('libsql:') || false
 	};
 });
 

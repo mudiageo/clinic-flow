@@ -41,8 +41,8 @@ async function processReminders() {
 			const provider = reminder.provider || 'termii';
 
 			if (provider === 'termii') {
-				const termiiApiKey = TERMII_API_KEY || process.env.TERMII_API_KEY;
-				const termiiSenderId = TERMII_SENDER_ID || process.env.TERMII_SENDER_ID || 'ClinicFlow';
+				const termiiApiKey = TERMII_API_KEY;
+				const termiiSenderId = TERMII_SENDER_ID || 'ClinicFlow';
 
 				if (!termiiApiKey) {
 					console.warn('[SMS Worker] TERMII_API_KEY not configured. Mocking SMS dispatch.');

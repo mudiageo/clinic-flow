@@ -41,6 +41,10 @@ export const variables = defineEnvVars({
 		static: true,
 		schema: v.optional(v.string())
 	},
+	PORT: {
+		description: 'The port the server runs on',
+		schema: v.optional(v.string(), '3000')
+	},
 	BACKEND_INSECURE: {
 		description: 'Set to "true" to disable HTTPS when forwarding to BACKEND_HOST',
 		public: true,
