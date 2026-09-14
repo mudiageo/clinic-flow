@@ -8,9 +8,15 @@ This document serves as the detailed blueprint for the AI builder agent to imple
 - **Superadmins** have global authority. They can enable, restrict, or force-lock any AI feature across the entire platform or for specific PHCs.
 - **Local Admins** can toggle these features on/off for their specific PHC and grant/revoke access for individual staff members, *provided a Superadmin has not locked the setting globally*.
 
+### 🏥 AI Safety in Healthcare Context (MANDATORY)
+**Because ClinicFlow operates in a clinical environment, the following AI safety rules apply to ALL features:**
+1. **Prominent Disclaimers:** Every AI-powered UI must permanently display the `<AiDisclaimer>` alert, clearly stating the feature is experimental and not a substitute for clinical judgment.
+2. **Human-in-the-Loop:** AI must *never* autonomously write to a patient's medical record, alter a triage score silently, or prescribe medication. It can only *suggest*; a qualified human (Nurse/Doctor) must explicitly click to approve and insert the data.
+3. **Risk Mitigation:** All AI prompt engineering must include strict boundaries (e.g., instructing the LLM to prioritize red-flag emergency referrals over attempting uncertain diagnoses).
+
 ---
 
-## [ ] 1. 🧠 Dr. Assist (AI Clinical Decision Support)
+## [x] 1. 🧠 Dr. Assist (AI Clinical Decision Support)
 **Objective**: Provide real-time differential diagnoses, test suggestions, and treatment plans based on Nigerian PHC context.
 **Permissions**: 
 - **Roles**: Doctors only (requires `view:medical_records` and `create:encounter` permissions).

@@ -5,6 +5,18 @@ export interface AIStructuredIntake {
 	detectedLanguage?: string;
 }
 
+export interface ClinicalDSSResult {
+	differentials: Array<{
+		condition: string;
+		probability: 'High' | 'Medium' | 'Low';
+		rationale: string;
+	}>;
+	suggestedTests: string[];
+	treatments: string[];
+	redFlags: string[];
+	disclaimer: string;
+}
+
 export interface AIProvider {
 	name: string;
 	isAvailable(): Promise<boolean> | boolean;

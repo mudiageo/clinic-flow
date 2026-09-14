@@ -34,6 +34,8 @@
 
 	import { toast } from 'svelte-sonner';
 	import { aiService } from '$lib/services/ai/ai.service';
+	import { getClinicalDecisionSupport } from '../../../../../routes/ai/ai.remote';
+	import AiDisclaimer from '$lib/components/ui/ai-disclaimer.svelte';
 	import {
 		Stethoscope,
 		Mic,
@@ -51,7 +53,10 @@
 		ChevronLeft,
 		FlaskConical,
 		Link,
-		Send
+		Send,
+		Sparkles,
+		AlertTriangle,
+		ShieldCheck
 	} from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -123,7 +128,40 @@
 	
 	let selectedLanguage = $state('English');
 
+	// Dr Assist (AI)
+	let dssLoading = $state(false);
+	let dssResult = $state<any>(null);
+	let hasAcceptedAiTerms = $state(false);
+	let showAiTermsModal = $state(false);
+
+	function acceptAiTerms() {
+		localStorage.setItem('clinicflow_ai_consent', 'true');
+		hasAcceptedAiTerms = true;
+		showAiTermsModal = false;
+	}
+
+	async function runDrAssist() {
+		if (!chiefComplaint || chiefComplaint.length < 10) {
+			return toast.error('Please enter a detailed Chief Complaint first.');
+		}
+		dssLoading = true;
+		try {
+			const res = await getClinicalDecisionSupport({
+				vitals,
+				chiefComplaint: chiefComplaint + '\n' + doctorNotes
+			});
+			dssResult = res;
+		} catch (e: any) {
+			toast.error(e.message);
+		} finally {
+			dssLoading = false;
+		}
+	}
+
 	onMount(() => {
+		// Check local storage for consent
+		hasAcceptedAiTerms = localStorage.getItem('clinicflow_ai_consent') === 'true';
+
 		// Just in case they navigate directly to an invalid ticket
 		if (!ticket) {
 			toast.error('Queue ticket not found');
@@ -420,6 +458,15 @@
 								class="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-2"
 								>Referral</TabsTrigger
 							>
+							<TabsTrigger
+								value="ai-assist"
+								class="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 rounded-none px-2 py-2"
+							>
+								<div class="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 font-semibold">
+									<Sparkles class="size-3.5" /> 
+									Dr. Assist
+								</div>
+							</TabsTrigger>
 						</TabsList>
 					</div>
 
@@ -591,6 +638,124 @@
 								<Button variant="outline" class="mt-2">Generate Referral Letter</Button>
 							</div>
 						</TabsContent>
+						<TabsContent value="ai-assist" class="m-0 space-y-4 animate-in fade-in-50 zoom-in-95">
+							<AiDisclaimer />
+							
+							{#if !hasAcceptedAiTerms}
+								<div class="p-8 border rounded-xl flex flex-col items-center justify-center text-center space-y-4 bg-muted/30 mt-6">
+									<ShieldCheck class="size-12 text-primary" />
+									<div>
+										<h3 class="font-bold text-lg">AI Clinical Decision Support</h3>
+										<p class="text-sm text-muted-foreground max-w-md mt-2">
+											Dr. Assist is an experimental AI tool designed to provide second opinions and differential diagnoses based on WHO guidelines.
+										</p>
+									</div>
+									<Button onclick={() => showAiTermsModal = true}>Review & Accept Terms to Enable</Button>
+								</div>
+							{:else}
+								<div class="flex items-center justify-between p-4 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/50 rounded-xl mb-6">
+									<div class="space-y-1">
+										<h4 class="font-semibold text-indigo-900 dark:text-indigo-200">Run Analysis</h4>
+										<p class="text-xs text-indigo-700/70 dark:text-indigo-300/70">Analyze current vitals and notes to generate clinical suggestions.</p>
+									</div>
+									<Button onclick={runDrAssist} disabled={dssLoading} class="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md">
+										{#if dssLoading}
+											<Loader2 class="size-4 mr-2 animate-spin" /> Analyzing...
+										{:else}
+											<Sparkles class="size-4 mr-2" /> Run AI Analysis
+										{/if}
+									</Button>
+								</div>
+								
+								{#if dssResult}
+									<div class="space-y-6 animate-in slide-in-from-bottom-2 fade-in duration-300">
+										{#if dssResult.redFlags && dssResult.redFlags.length > 0}
+											<div class="p-4 rounded-xl border border-red-500/30 bg-red-500/10 space-y-2 shadow-sm">
+												<h4 class="font-bold text-red-600 flex items-center gap-2">
+													<AlertTriangle class="size-5" /> CRITICAL RED FLAGS DETECTED
+												</h4>
+												<ul class="list-disc list-inside text-sm font-medium text-red-700/90 space-y-1 pl-1">
+													{#each dssResult.redFlags as flag}
+														<li>{flag}</li>
+													{/each}
+												</ul>
+											</div>
+										{/if}
+										
+										<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+											<Card class="shadow-sm">
+												<CardHeader class="pb-2 bg-muted/20 border-b">
+													<CardTitle class="text-sm font-semibold flex items-center gap-2">
+														<Activity class="size-4 text-indigo-500" /> Differentials
+													</CardTitle>
+												</CardHeader>
+												<CardContent class="space-y-4 pt-4">
+													{#each dssResult.differentials as diff}
+														<div class="space-y-1.5">
+															<div class="flex items-center justify-between">
+																<span class="font-medium text-sm">{diff.condition}</span>
+																<Badge variant={diff.probability === 'High' ? 'default' : 'outline'} class="text-[10px] uppercase {diff.probability === 'High' ? 'bg-indigo-600' : ''}">
+																	{diff.probability}
+																</Badge>
+															</div>
+															<p class="text-xs text-muted-foreground leading-relaxed">{diff.rationale}</p>
+														</div>
+														<Separator />
+													{/each}
+												</CardContent>
+											</Card>
+											
+											<div class="space-y-4">
+												<Card class="shadow-sm">
+													<CardHeader class="pb-2 bg-muted/20 border-b">
+														<CardTitle class="text-sm font-semibold flex justify-between items-center">
+															<div class="flex items-center gap-2">
+																<FlaskConical class="size-4 text-indigo-500" /> Suggested Tests
+															</div>
+															<Button variant="outline" size="sm" class="h-6 text-xs px-2" onclick={() => {
+																labNotes = dssResult.suggestedTests.join(', ');
+																toast.success('Tests copied to Lab Notes');
+															}}>Copy to Lab</Button>
+														</CardTitle>
+													</CardHeader>
+													<CardContent class="pt-4">
+														<ul class="list-disc list-inside text-sm text-muted-foreground space-y-1">
+															{#each dssResult.suggestedTests as test}
+																<li>{test}</li>
+															{/each}
+														</ul>
+													</CardContent>
+												</Card>
+												
+												<Card class="shadow-sm">
+													<CardHeader class="pb-2 bg-muted/20 border-b">
+														<CardTitle class="text-sm font-semibold flex justify-between items-center">
+															<div class="flex items-center gap-2">
+																<Pill class="size-4 text-indigo-500" /> Treatment Plan
+															</div>
+															<Button variant="outline" size="sm" class="h-6 text-xs px-2" onclick={() => {
+																const plan = '\n[AI Treatment Plan]:\n- ' + dssResult.treatments.join('\n- ');
+																doctorNotes += plan;
+																toast.success('Inserted into Doctor Notes');
+															}}>Insert to Notes</Button>
+														</CardTitle>
+													</CardHeader>
+													<CardContent class="pt-4">
+														<ul class="list-disc list-inside text-sm text-muted-foreground space-y-1">
+															{#each dssResult.treatments as tx}
+																<li>{tx}</li>
+															{/each}
+														</ul>
+													</CardContent>
+												</Card>
+											</div>
+										</div>
+										
+										<p class="text-xs text-center text-muted-foreground italic bg-muted/50 p-2 rounded-md">{dssResult.disclaimer}</p>
+									</div>
+								{/if}
+							{/if}
+						</TabsContent>
 					</div>
 					
 					{#if patient.isNhis}
@@ -643,10 +808,8 @@
 			</div>
 			<div class="space-y-2">
 				<Label>Urgency</Label>
-				<Select bind:value={referralUrgency}>
-					<SelectTrigger>
-						{referralUrgency}
-					</SelectTrigger>
+				<Select type="single" bind:value={referralUrgency}>
+					<SelectTrigger><SelectPrimitive.Value placeholder="Select Urgency" /></SelectTrigger>
 					<SelectContent>
 						<SelectItem value="routine">Routine</SelectItem>
 						<SelectItem value="urgent">Urgent</SelectItem>
@@ -659,6 +822,33 @@
 			<Button variant="outline" onclick={() => showReferralDialog = false}>Cancel</Button>
 			<Button onclick={generateReferral} disabled={!referralFacility || !referralReason}>
 				Generate PDF
+			</Button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
+
+<Dialog.Root bind:open={showAiTermsModal}>
+	<Dialog.Content class="sm:max-w-[425px]">
+		<Dialog.Header>
+			<Dialog.Title class="flex items-center gap-2 text-amber-600">
+				<AlertTriangle class="size-5" /> AI Safety & Liability
+			</Dialog.Title>
+		</Dialog.Header>
+		<div class="py-4 space-y-4 text-sm text-foreground">
+			<p>
+				You are enabling <strong>Dr. Assist</strong>, an experimental AI clinical decision support tool.
+			</p>
+			<ul class="list-disc list-inside space-y-2 text-muted-foreground">
+				<li>Dr. Assist is for <strong>informational purposes only</strong>.</li>
+				<li>It may hallucinate or provide incorrect medical advice.</li>
+				<li><strong>You are solely responsible</strong> for the final diagnosis and treatment plan.</li>
+				<li>Do not blindly prescribe medication without verifying clinical appropriateness.</li>
+			</ul>
+		</div>
+		<Dialog.Footer>
+			<Button variant="outline" onclick={() => showAiTermsModal = false}>Decline</Button>
+			<Button onclick={acceptAiTerms} class="bg-amber-600 hover:bg-amber-700 text-white font-medium">
+				I Understand & Accept
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
