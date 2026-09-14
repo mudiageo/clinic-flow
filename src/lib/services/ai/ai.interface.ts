@@ -17,6 +17,17 @@ export interface ClinicalDSSResult {
 	disclaimer: string;
 }
 
+export interface RxBrainResult {
+	interactions: Array<{
+		drugs: string[];
+		severity: 'High' | 'Moderate' | 'Minor';
+		description: string;
+	}>;
+	contraindications: string[];
+	dosageWarnings: string[];
+	safeToDispense: boolean;
+}
+
 export interface AIProvider {
 	name: string;
 	isAvailable(): Promise<boolean> | boolean;

@@ -27,11 +27,11 @@ This document serves as the detailed blueprint for the AI builder agent to imple
 - `src/lib/services/ai/ai.interface.ts`: Add `ClinicalDSSResult` interface.
 - `src/routes/(app)/doctor/consult/[id]/+page.svelte`: Add "AI Assist" Tab and results cards.
 
-## [ ] 2. 💊 RxBrain (AI Smart Prescription Assistant)
-**Objective**: Suggest first-line medications from *current* inventory with age/weight appropriate dosages.
-**Permissions**:
-- **Roles**: Doctors only (requires `prescribe:medication` permission).
-- **Control**: Admins can configure if the AI is allowed to suggest out-of-stock items or strict inventory-only.
+## [x] 2. 💊 RxBrain (Smart Pharmacy & Drug Interactions)
+**Permissions**: Visible to `pharmacist` role or users with `dispense:medication`.
+- **UI Integration**: Added an "RxBrain Check" button in the Pharmacy Dispense Queue, per patient.
+- **Safety First**: RxBrain is purely advisory, highlighting warnings but NEVER disabling the human pharmacist's "Dispense" override.
+- **Functionality**: Cross-references prescriptions with age, sex, vitals, and pregnancy status using `gemini-2.5-pro` bound to WHO formularies.
 **Files to Modify**:
 - `src/routes/ai/ai.remote.ts`: Add `getSmartPrescription` command.
 - `src/lib/services/ai/prompts.ts`: Add `smartPrescription` prompt.

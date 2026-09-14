@@ -70,3 +70,40 @@ export const getClinicalDecisionSupport = command(
 		}
 	}
 );
+
+export const getRxBrainAnalysis = command(
+	v.object({ 
+		patientData: v.any(),
+		prescriptions: v.array(v.any()) 
+	}),
+	async ({ patientData, prescriptions }) => {
+		const event = getRequestEvent();
+		if (!event.locals.staffId) throw new Error('Unauthorized');
+		
+		// Enforce permissions before allowing AI access to medical logic
+		await requirePermission(event.locals.staffId, 'view:medical_records');
+
+		const apiKey = process.env.GEMINI_API_KEY;
+		if (!apiKey) {
+			throw new Error('GEMINI_API_KEY is not set.');
+		}
+
+		const ai = new GoogleGenAI({ apiKey });
+		const prompt = AI_PROMPTS.rxBrain.buildPrompt(patientData, prescriptions);
+
+		try {
+			// Using gemini-2.5-pro for higher clinical reasoning capabilities (drug interactions)
+			const response = await ai.models.generateContent({
+				model: 'gemini-2.5-pro', 
+				contents: prompt
+			});
+
+			let text = response.text || '{}';
+			text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+
+			return JSON.parse(text);
+		} catch (err: any) {
+			throw new Error(`RxBrain failed: ${err.message}`);
+		}
+	}
+);
