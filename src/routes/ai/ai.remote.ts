@@ -220,3 +220,38 @@ export const getPatientRiskScore = command(
 		}
 	}
 );
+
+export const getEpidemiologyForecast = command(
+	v.object({
+		dataBundle: v.any() // De-identified aggregated signals from client
+	}),
+	async ({ dataBundle }) => {
+		const event = getRequestEvent();
+		if (!event.locals.staffId) throw new Error('Unauthorized');
+
+		// Enforce reporting permissions
+		await requirePermission(event.locals.staffId, 'view:reports');
+
+		if (!GEMINI_API_KEY) {
+			throw new Error('GEMINI_API_KEY is not set.');
+		}
+
+		// Use Gemini 2.5 Pro for deep epidemiological reasoning
+		const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+		const prompt = AI_PROMPTS.epidemiologyForecast.buildPrompt(dataBundle);
+
+		try {
+			const response = await ai.models.generateContent({
+				model: 'gemini-2.5-pro',
+				contents: prompt
+			});
+
+			let text = response.text || '{}';
+			text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+
+			return JSON.parse(text);
+		} catch (err: any) {
+			throw new Error(`Epidemiology Forecast failed: ${err.message}`);
+		}
+	}
+);
