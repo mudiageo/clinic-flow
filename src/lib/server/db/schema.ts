@@ -124,6 +124,7 @@ export const phcs = pgTable('phcs', {
 	familyHealthEnabled: boolean('family_health_enabled').notNull().default(true),
 	realTimeNotificationsEnabled: boolean('real_time_notifications_enabled').notNull().default(true),
 	nhisTrackingEnabled: boolean('nhis_tracking_enabled').notNull().default(true),
+	aiAutoTriageEscalation: boolean('ai_auto_triage_escalation').notNull().default(false),
 
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 });

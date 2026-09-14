@@ -1,5 +1,8 @@
 <script lang="ts">
 	import { getContext } from 'svelte';
+	import { toast } from 'svelte-sonner';
+	import { queueStore } from '$lib/state/queue.svelte';
+	import { patientStore } from '$lib/state/patients.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import { Separator } from '$lib/components/ui/separator';
 	import { Button } from '$lib/components/ui/button';
@@ -51,6 +54,25 @@
 			.join('')
 			.toUpperCase() ?? '??'
 	);
+
+	// Alert Watcher for Critical AI Scores
+	let alertedHighRiskTickets = new Set<string>();
+
+	$effect(() => {
+		const highRiskWaiting = queueStore.items.filter(
+			(t: any) => t.status === 'waiting' && (t.aiRiskScore ?? 0) >= 85
+		);
+		for (const ticket of highRiskWaiting) {
+			if (!alertedHighRiskTickets.has(ticket.id)) {
+				const p = patientStore.get(ticket.patientId);
+				const pName = p ? p.name : 'Unknown';
+				toast.error(`🚨 AI Alert: ${pName} is in the waiting room with a Critical Risk Score of ${ticket.aiRiskScore}/100!`, {
+					duration: 15000,
+				});
+				alertedHighRiskTickets.add(ticket.id);
+			}
+		}
+	});
 </script>
 
 <Sidebar.Provider>

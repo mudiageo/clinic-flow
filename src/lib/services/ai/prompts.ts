@@ -88,20 +88,21 @@ Output ONLY raw JSON format:
 	riskStratification: {
 		system: `
 You are an AI Triage Assistant for a Primary Health Centre.
-Your job is to analyze a patient's vitals, basic profile, and chief complaint, and assign a clinical deterioration risk score from 0 to 100.
+Your job is to analyze a patient's vitals, basic profile, chief complaint, and historical vitals trends to assign a clinical deterioration risk score from 0 to 100.
 
 CRITICAL SAFETY RULES:
 1. 0 = Completely healthy/stable. 100 = Imminent life-threatening emergency.
 2. A score of 80+ indicates a high likelihood of requiring emergency stabilization or referral.
 3. This score is ADVISORY. It supplements physical triage rules (e.g. Temperature > 39 = Red) but does not replace them.
-4. Provide a brief 1-sentence rationale for the score (e.g. "Elevated BP and severe headache in a pregnant patient indicates preeclampsia risk.")
+4. Carefully consider the "Past Vitals" to look for longitudinal trends. For example, a sudden spike in BP compared to last week is highly risky, whereas chronic stable high BP might carry a slightly lower acute risk.
+5. Provide a brief 1-sentence rationale for the score (e.g. "Sudden spike in BP compared to last visit and severe headache in a pregnant patient indicates preeclampsia risk.")
 
 Output ONLY raw JSON format:
 {
   "score": 0,
   "rationale": "1-sentence explanation."
 }`.trim(),
-		buildPrompt: (vitals: any, profile: any, chiefComplaint: string) =>
-			`${AI_PROMPTS.riskStratification.system}\n\nDe-identified Patient Profile:\n${JSON.stringify(profile, null, 2)}\n\nPatient Vitals:\n${JSON.stringify(vitals, null, 2)}\n\nChief Complaint / Symptoms:\n"${chiefComplaint}"`
+		buildPrompt: (vitals: any, profile: any, chiefComplaint: string, pastVitals: any[]) =>
+			`${AI_PROMPTS.riskStratification.system}\n\nDe-identified Patient Profile:\n${JSON.stringify(profile, null, 2)}\n\nHistorical Vitals Baseline:\n${JSON.stringify(pastVitals, null, 2)}\n\nCURRENT Vitals:\n${JSON.stringify(vitals, null, 2)}\n\nChief Complaint / Symptoms:\n"${chiefComplaint}"`
 	}
 };

@@ -169,9 +169,10 @@ export const getPatientRiskScore = command(
 	v.object({ 
 		vitals: v.any(), 
 		patient: v.any(),
-		chiefComplaint: v.string()
+		chiefComplaint: v.string(),
+		pastVitals: v.array(v.any())
 	}),
-	async ({ vitals, patient, chiefComplaint }) => {
+	async ({ vitals, patient, chiefComplaint, pastVitals }) => {
 		const event = getRequestEvent();
 		if (!event.locals.staffId) throw new Error('Unauthorized');
 		
@@ -190,8 +191,19 @@ export const getPatientRiskScore = command(
 			bloodGroup: patient.bloodGroup
 		};
 
+		// Strip PII from past vitals just in case
+		const cleanPastVitals = pastVitals.map(v => ({
+			temperatureCelsius: v.temperatureCelsius,
+			systolicBp: v.systolicBp,
+			diastolicBp: v.diastolicBp,
+			pulseBpm: v.pulseBpm,
+			weightKg: v.weightKg,
+			spo2Percent: v.spo2Percent,
+			recordedAt: v.recordedAt
+		}));
+
 		const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-		const prompt = AI_PROMPTS.riskStratification.buildPrompt(vitals, deidentifiedProfile, chiefComplaint);
+		const prompt = AI_PROMPTS.riskStratification.buildPrompt(vitals, deidentifiedProfile, chiefComplaint, cleanPastVitals);
 
 		try {
 			const response = await ai.models.generateContent({

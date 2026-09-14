@@ -4,6 +4,7 @@
 	import { queueStore } from '$lib/state/queue.svelte';
 	import { triageRuleStore } from '$lib/state/triage-rules.svelte';
 	import { getPatientRiskScore } from '../../../../../routes/ai/ai.remote';
+	import { settingsStore } from '$lib/state/settings.svelte';
 	import QrScanner from '$lib/components/QrScanner.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
@@ -172,18 +173,33 @@
 			};
 			const p = selectedPatient;
 			
+			// Fetch last 3 historical vitals for longitudinal trend analysis
+			const pastVitals = vitalsStore.items
+				.filter(v => v.patientId === p.id && v.encounterId !== encounterId)
+				.sort((a, b) => b.recordedAt - a.recordedAt)
+				.slice(0, 3);
+			
 			getPatientRiskScore({
 				vitals: vitalsPayload,
 				patient: p,
-				chiefComplaint: p.reasonForVisit || triageResult.reason || 'Routine Checkup'
+				chiefComplaint: p.reasonForVisit || triageResult.reason || 'Routine Checkup',
+				pastVitals
 			}).then(async (aiRes) => {
 				for (const tId of savedTicketIds) {
-					await queueStore.update(tId, {
+					const updatePayload: any = {
 						aiRiskScore: aiRes.score,
 						aiRiskRationale: aiRes.rationale
-					});
+					};
+
+					// Auto-escalation Logic (never downgrade, only upgrade)
+					if (aiRes.score >= 85 && settingsStore.current?.aiAutoTriageEscalation) {
+						updatePayload.triageLevel = 'red';
+						updatePayload.triageReason = (triageResult.reason || '') + ` | 🚨 AI Escalated: ${aiRes.rationale}`;
+					}
+
+					await queueStore.update(tId, updatePayload);
 				}
-				toast.info(`AI updated risk score to ${aiRes.score}/100 for ${p.name}`);
+				toast.info(`AI Risk Scored: ${aiRes.score}/100 for ${p.name}`);
 			}).catch(err => {
 				console.warn('AI Risk calculation failed (likely offline):', err);
 			});
