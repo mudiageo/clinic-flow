@@ -13,18 +13,18 @@
 
 ## Phase 2: Store Upgrade
 
-- [ ] Upgrade `src/lib/state/outbreaks.svelte.ts`
-  - [ ] Keep existing rule-based `alerts` getter intact
-  - [ ] Add `aiAnalysis: ForecastResult | null` state
-  - [ ] Add `isAnalysing: boolean` state
-  - [ ] Add `lastAnalysedAt: number | null` state
-  - [ ] Add `dismissedAlerts: Map<string, { reason: string; ts: number }>` state
-  - [ ] Add multi-signal aggregation helper (encounters + labs + prescriptions + vitals)
-  - [ ] Add seasonal baseline computation helper (same-week prior year)
-  - [ ] Add `async runAiAnalysis()` method
-  - [ ] Add `dismissAlert(id, reason)` method (writes to audit log)
-  - [ ] Add `markInterventionImplemented(interventionId, date)` method
-  - [ ] Add `interventionOutcomes: Record<string, { implementedAt: number; casesAfter?: number[] }>` state
+- [x] Upgrade `src/lib/state/outbreaks.svelte.ts`
+  - [x] Keep existing rule-based `alerts` getter intact
+  - [x] Add `aiAnalysis: ForecastResult | null` state
+  - [x] Add `isAnalysing: boolean` state
+  - [x] Add `lastAnalysedAt: number | null` state
+  - [x] Add `dismissedAlerts: Map<string, { reason: string; ts: number }>` state
+  - [x] Add multi-signal aggregation helper (encounters + labs + prescriptions + vitals)
+  - [x] Add seasonal baseline computation helper (same-week prior year)
+  - [x] Add `async runAiAnalysis()` method
+  - [x] Add `dismissAlert(id, reason)` method (writes to audit log)
+  - [x] Add `markInterventionImplemented(interventionId, date)` method
+  - [x] Add `interventionOutcomes: Record<string, { implementedAt: number; casesAfter?: number[] }>` state
 
 ## Phase 3: Admin Dashboard Widget
 
