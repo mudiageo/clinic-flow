@@ -67,8 +67,8 @@
 			{...registerAction.enhance(async (form) => {
 				isSubmitting = true;
 				try {
-					const result = await form.submit();
-					if (result?.success) {
+					const success = await form.submit();
+					if (success) {
 						currentStep = 3;
 					} else {
 					    toast.error('Registration failed.');

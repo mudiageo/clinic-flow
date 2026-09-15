@@ -239,7 +239,7 @@
 					</div>
 					<div class="space-y-2">
 						<Label>Kiosk PIN (4 digits)</Label>
-						<Input type="text" inputmode="numeric" maxlength="4" bind:value={adminPin} placeholder="e.g. 1234" class="h-12 text-lg text-center tracking-[1em]" />
+						<Input type="text" inputmode="numeric" maxlength={4} bind:value={adminPin} placeholder="e.g. 1234" class="h-12 text-lg text-center tracking-[1em]" />
 					</div>
 					<p class="text-sm text-muted-foreground mt-4">
 						This account will have Superadmin access to manage the clinic and sync conflicts.

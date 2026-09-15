@@ -2,7 +2,6 @@
 	import { getReleases } from '$lib/remote/releases.remote';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
-	import * as Accordion from '$lib/components/ui/accordion';
 	import {
 		Monitor,
 		Smartphone,
@@ -235,34 +234,36 @@
 				</div>
 
 				<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-					{#each [releases.latestBeta, releases.latestAlpha, releases.latestNightly].filter(Boolean) as r}
-						{@const icons = { beta: FlaskConical, alpha: Zap, nightly: Clock }}
-						{@const Icon = icons[r.channel]}
-						<div class="bg-card border rounded-2xl p-5 space-y-3">
-							<div class="flex items-center gap-2">
-								<Icon class="size-4 text-muted-foreground" />
-								<span class="font-semibold capitalize">{r.channel}</span>
-								<Badge class="{channelBadge(r.channel)} text-xs ml-auto">v{r.version}</Badge>
+					{#each [releases.latestBeta, releases.latestAlpha, releases.latestNightly] as r}
+						{#if r && (r.channel === 'beta' || r.channel === 'alpha' || r.channel === 'nightly')}
+							{@const icons = { beta: FlaskConical, alpha: Zap, nightly: Clock }}
+							{@const Icon = icons[r.channel]}
+							<div class="bg-card border rounded-2xl p-5 space-y-3">
+								<div class="flex items-center gap-2">
+									<Icon class="size-4 text-muted-foreground" />
+									<span class="font-semibold capitalize">{r.channel}</span>
+									<Badge class="{channelBadge(r.channel)} text-xs ml-auto">v{r.version}</Badge>
+								</div>
+								<p class="text-xs text-muted-foreground">{relativeDate(r.publishedAt)}</p>
+								<div class="space-y-1.5">
+									{#if r.downloads.windows?.x64}
+										<a href={r.downloads.windows.x64} class="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors">
+											<Download class="size-3" /> Windows .exe
+										</a>
+									{/if}
+									{#if r.downloads.linux?.amd64}
+										<a href={r.downloads.linux.amd64} class="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors">
+											<Download class="size-3" /> Linux .deb
+										</a>
+									{/if}
+									{#if r.downloads.android?.arm64}
+										<a href={r.downloads.android.arm64} class="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors">
+											<Download class="size-3" /> Android APK
+										</a>
+									{/if}
+								</div>
 							</div>
-							<p class="text-xs text-muted-foreground">{relativeDate(r.publishedAt)}</p>
-							<div class="space-y-1.5">
-								{#if r.downloads.windows?.x64}
-									<a href={r.downloads.windows.x64} class="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors">
-										<Download class="size-3" /> Windows .exe
-									</a>
-								{/if}
-								{#if r.downloads.linux?.amd64}
-									<a href={r.downloads.linux.amd64} class="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors">
-										<Download class="size-3" /> Linux .deb
-									</a>
-								{/if}
-								{#if r.downloads.android?.arm64}
-									<a href={r.downloads.android.arm64} class="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors">
-										<Download class="size-3" /> Android APK
-									</a>
-								{/if}
-							</div>
-						</div>
+						{/if}
 					{/each}
 				</div>
 			</section>
@@ -272,15 +273,15 @@
 		{#if releases.all.length > 1}
 			<section class="space-y-4">
 				<h2 class="text-2xl font-bold">Version History</h2>
-				<Accordion.Root type="single">
+				<div class="space-y-2">
 					{#each releases.all as r (r.id)}
-						<Accordion.Item value={r.tag} class="border rounded-xl px-4 mb-2">
-							<Accordion.Trigger class="w-full text-left py-4 flex items-center gap-3">
+						<div class="border rounded-xl px-4 py-4">
+							<div class="w-full text-left flex items-center gap-3 mb-2">
 								<span class="font-mono font-medium">{r.tag}</span>
 								<Badge class="{channelBadge(r.channel)} text-xs">{r.channel}</Badge>
 								<span class="text-xs text-muted-foreground ml-auto">{relativeDate(r.publishedAt)}</span>
-							</Accordion.Trigger>
-							<Accordion.Content class="pb-4 space-y-3">
+							</div>
+							<div class="space-y-3">
 								{#if r.body}
 									<div class="prose prose-sm max-w-none text-muted-foreground">
 										<pre class="whitespace-pre-wrap text-xs font-sans leading-relaxed">{r.body}</pre>
@@ -294,7 +295,7 @@
 									{/if}
 									{#if r.downloads.macos?.arm64}
 										<a href={r.downloads.macos.arm64} class="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/80 transition-colors border">
-											<Download class="size-3" /> macOS (Apple Silicon)
+											<Download class="size-3" /> macOS
 										</a>
 									{/if}
 									{#if r.downloads.linux?.amd64}
@@ -308,10 +309,10 @@
 										</a>
 									{/if}
 								</div>
-							</Accordion.Content>
-						</Accordion.Item>
+							</div>
+						</div>
 					{/each}
-				</Accordion.Root>
+				</div>
 			</section>
 		{/if}
 

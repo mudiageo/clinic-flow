@@ -21,12 +21,10 @@
 	
 	let loginMode = $state<'kiosk' | 'admin'>('kiosk');
 
-	let wasSubmitting = $state(false);
 	$effect(() => {
-		if (wasSubmitting && !signInWithPin.submitting && allIssues.length > 0) {
+		if (allIssues.length > 0 && pin.length === 4) {
 			pin = ''; // Reset PIN on failed submission
 		}
-		wasSubmitting = signInWithPin.submitting;
 	});
 
 	onMount(async () => {

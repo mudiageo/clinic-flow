@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Activity, AlertTriangle, Info, CheckCircle2, Siren, FileText, Send, Printer } from '@lucide/svelte';
+	import { Activity, AlertTriangle, Info, CheckCircle2, Siren, FileText, Send, Printer, Copy } from '@lucide/svelte';
 	import { Badge } from '$lib/components/ui/badge';
 </script>
 
