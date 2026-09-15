@@ -58,5 +58,10 @@ export async function revokePermission(data: {
 export async function grantPermissionsBulk(items: Array<{ staffId: string; phcId: string; permission: string; grantedBy: string }>) {
 	const table = getTable('permissions');
 	if (items.length === 0) return;
-	await database.insert(table).values(items);
+	await database.insert(table).values(items.map(i => ({ ...i, revoked: false })));
+}
+
+export async function resetStaffPermissions(staffId: string) {
+	const table = getTable('permissions');
+	await database.delete(table).where(eq(table.staffId, staffId));
 }

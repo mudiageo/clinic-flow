@@ -11,7 +11,7 @@ export const getStaffPermissions = query(v.string(), async (staffId) => {
 	await requirePermission('manage:permissions');
 
 	return await db.query.permissions.findMany({
-		where: (p, { and, eq }) => and(eq(p.staffId, staffId), eq(p.revoked, false)),
+		where: (p, { eq }) => eq(p.staffId, staffId),
 		orderBy: (p, { desc }) => [desc(p.grantedAt)]
 	});
 });
@@ -95,5 +95,21 @@ export const revokePermissionAction = form(
 			permission: data.permission,
 			grantedBy: event.locals.staffId
 		});
+	}
+);
+
+export const resetStaffPermissionsAction = form(
+	v.object({
+		staffId: v.string()
+	}),
+	async (data) => {
+		const event = getRequestEvent();
+		if (!event.locals.staffId) throw new Error('Unauthorized');
+
+		await requirePermission('manage:permissions');
+
+		const { resetStaffPermissions } = await import('$lib/server/db/queries/permissions');
+		await resetStaffPermissions(data.staffId);
+		return { success: true };
 	}
 );

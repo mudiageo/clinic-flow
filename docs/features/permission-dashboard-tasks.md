@@ -21,9 +21,9 @@
 - [ ] Update sidebar nav — Filter all nav links through `can()` helper
 
 ## Phase 5: Permission Editor UI
-- [ ] Build `/admin/permissions/+page.svelte`
-- [ ] Wire up grant/revoke/reset remotes
-- [ ] Add audit log entries per toggle
+- [x] Build `/admin/permissions/+page.svelte`
+- [x] Wire up grant/revoke/reset remotes
+- [x] Add audit log entries per toggle
 
 ## Phase 6: New Role-Specific Views
 - [ ] Build `/field` — CHEW Field Mode
