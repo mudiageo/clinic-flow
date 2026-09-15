@@ -31,7 +31,7 @@ export const getPhcStaffList = query(async () => {
 export const inviteStaff = command(
 	v.object({
 		email: v.pipe(v.string(), v.email()),
-		role: v.picklist(['receptionist', 'nurse', 'doctor', 'pharmacy', 'admin', 'superadmin']),
+		role: v.picklist(['receptionist', 'nurse', 'doctor', 'pharmacy', 'admin', 'superadmin', 'oic', 'cho', 'nurse_midwife', 'chew', 'jchew', 'eho']),
 		permissions: v.array(v.string())
 	}),
 	async (data) => {

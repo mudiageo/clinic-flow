@@ -7,3 +7,6 @@ allowBuilds:
   '@tailwindcss/oxide': true
 minimumReleaseAgeExclude:
   - vite@8.2.0
+  - '@changesets/apply-release-plan@8.1.1'
+  - '@changesets/cli@3.0.3'
+  - '@changesets/config@4.0.1'

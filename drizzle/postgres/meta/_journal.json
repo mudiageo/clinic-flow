@@ -57,6 +57,27 @@
       "when": 1785307815025,
       "tag": "0007_square_wolf_cub",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1789411841701,
+      "tag": "0008_add_lga_dso_phone",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1789418665382,
+      "tag": "0009_add_nphcda_roles",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789449472164,
+      "tag": "0010_add_queue_department",
+      "breakpoints": true
     }
   ]
 }

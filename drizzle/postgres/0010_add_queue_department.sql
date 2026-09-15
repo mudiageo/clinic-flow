@@ -1,0 +1,1 @@
+ALTER TABLE "queue_tickets" ADD COLUMN "department" varchar(50) DEFAULT 'general' NOT NULL;

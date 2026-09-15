@@ -1,15 +1,12 @@
-# Task 5: Outbreak Radar (Epidemiology Forecast) — Architecture Plan
+# Task 5: Outbreak Radar (Epidemiology Forecast) — Architecture Plan v2
 
 ## 1. Feature Overview
 
-Outbreak Radar is an AI-powered epidemiology intelligence panel on the Admin Dashboard. It upgrades the existing naive keyword `outbreakEngine` (which simply counts complaints containing "malaria" etc.) into a full AI-driven analysis system.
+Outbreak Radar is an AI-powered epidemiology intelligence panel on the Admin Dashboard. It upgrades the existing naive keyword `outbreakEngine` into a full multi-signal AI-driven analysis system with early warning, seasonal baselines, pharmacy impact forecasting, IDSR report generation, and LGA SMS escalation.
 
-It analyses the last 30 days of de-identified encounter data, identifies disease clusters, computes trend trajectories (rising / stable / falling), forecasts the next 7-day case load, and generates actionable intervention recommendations tailored to the NPHCDA/LGA reporting context.
-
-There are two tiers of the feature:
-
-- **Local Admin View:** Analyses data for their own PHC only. Cannot see other PHCs.
-- **Superadmin View:** Cross-PHC aggregate analysis across all registered facilities. Can compare PHCs and spot state-level threats (FUTURE — flagged in roadmap).
+Two tiers:
+- **Local Admin:** Analyses own PHC only
+- **Superadmin (Phase 2):** Cross-PHC aggregate view across all registered facilities
 
 ---
 
@@ -17,158 +14,233 @@ There are two tiers of the feature:
 
 | Role | Access | Scope |
 |---|---|---|
-| `superadmin` | Full access | Cross-PHC (phase 2) |
+| `superadmin` | Full access + Cross-PHC view | All PHCs |
 | `admin` | Full access | Own PHC only |
 | `doctor` | Read-only summary widget | Own PHC only |
 | `nurse` | None | — |
 | `receptionist` | None | — |
 
 Permission gate: `view:reports`
-
-Feature flag: `outbreakDetectionEnabled` (already exists on `phcs` schema — Superadmin can disable globally, local Admin cannot override a global lock).
+Feature flag: `outbreakDetectionEnabled` (already on `phcs` schema)
 
 ---
 
 ## 3. AI Safety & Clinical Mitigations (CRITICAL)
 
 ### Clinical Risks
-1. **False positive outbreak alert** — AI incorrectly flags routine seasonal fever as a Cholera cluster, causing unnecessary panic, incorrect resource allocation, and LGA escalation of a non-event.
-2. **False negative** — AI misses a real emerging outbreak because case counts are low but rising exponentially.
-3. **Hallucinated interventions** — AI recommends treatments or drugs that are not in the PHC formulary or are inappropriate for the local context.
+1. **False positive** — AI flags routine seasonal fever as a Cholera cluster, causing panic, incorrect resource allocation, and premature LGA escalation.
+2. **False negative** — AI misses an early exponential growth pattern because absolute case counts are still low.
+3. **Hallucinated interventions** — AI recommends drugs or treatments not in the PHC formulary.
+4. **Over-reliance** — Admin dismisses their own clinical judgment and blindly follows AI output.
 
-### Required Guardrails
-
-1. **The existing `outbreakEngine` threshold rules run FIRST.** AI analysis is a layer ON TOP — it never replaces the hard-coded 5-case/7-day community cluster rule. If the engine flags nothing, the AI still analyses trends but cannot override the engine's absence of an alert.
-2. **All AI outputs are clearly marked "AI-Assisted Analysis"** with a visible `<AiDisclaimer>` component.
-3. **AI never sends patient names, phone numbers, or clinic IDs** — only de-identified aggregate counts (e.g., `{ disease: "Malaria/Fever", community: "Agbarho", count: 38, weeklyTrend: [4,6,8,11,9] }`).
-4. **Intervention suggestions are labelled as suggestions**, not instructions. UI copy: *"Consider discussing with your LGA Disease Surveillance Officer"* — not *"Administer X"*.
-5. **AI confidence level** is requested and displayed (High / Medium / Low). Low-confidence outputs are greyed out with an additional warning.
-6. **Manual override / dismiss** — Admin can dismiss/snooze any alert. Dismissals are logged in the audit log with reason.
-7. **No automatic escalation** — the AI never sends alerts to the LGA automatically. The Admin must manually choose to export or share the report.
+### Guardrails
+1. The existing rule-based `outbreakEngine` (5 cases / 7 days threshold) **always runs first and independently**. The AI is a second layer — it can add nuance but never suppress a rule-based alert.
+2. All AI outputs carry a visible `<AiDisclaimer>` component and are labelled **"AI-Assisted Analysis — Not a Clinical Diagnosis"**.
+3. AI never receives patient names, IDs, phone numbers, or addresses — only de-identified aggregate counts and metadata.
+4. Intervention suggestions are framed as **"Consider…"** — never imperative commands.
+5. AI confidence level (High / Medium / Low) is displayed. Low-confidence outputs are greyed out with an additional caution badge.
+6. **No automatic LGA escalation** — Admin must explicitly choose to send the SMS or export the report.
+7. Dismissed alerts are logged in the audit log with reason. If a dismissed alert later crosses a higher threshold, the system surfaces a respectful re-notification.
+8. Stock impact forecast is clearly labelled as **an estimate** based on projected case load.
 
 ---
 
-## 4. Data Contract (What We Send to Gemini)
+## 4. Multi-Signal Data Contract (What We Send to Gemini)
 
-All data is pre-aggregated and de-identified before leaving the browser:
+All data is pre-aggregated and de-identified client-side before the remote function call.
 
-```json
-{
-  "phcName": "Agbarho PHC",
-  "lga": "Ughelli North",
-  "state": "Delta",
-  "analysisWindow": "2026-08-14 to 2026-09-14",
-  "totalEncounters": 412,
-  "diseaseGroups": [
-    {
-      "disease": "Malaria/Fever",
-      "totalCases": 38,
-      "weeklyBreakdown": [4, 6, 8, 11, 9],
-      "affectedCommunities": ["Agbarho", "Okuokoko"],
-      "ageGroups": { "under5": 12, "5to15": 8, "adult": 18 },
-      "pregnantCases": 3
-    }
-  ]
+```typescript
+interface OutbreakAnalysisInput {
+  phcName: string;        // "Agbarho PHC"
+  lga: string;            // "Ughelli North"
+  state: string;          // "Delta"
+  analysisWindow: string; // "2026-08-14 to 2026-09-14"
+  totalEncounters: number;
+
+  // Primary signal: complaint-based clusters
+  diseaseGroups: {
+    disease: string;
+    totalCases: number;
+    weeklyBreakdown: number[];   // 5 weeks, most recent last
+    samePeriodLastYear?: number; // seasonal baseline comparison
+    affectedCommunities: string[];
+    ageGroups: { under5: number; age5to15: number; adult: number; elderly: number };
+    pregnantCases: number;
+    communitySpreadSequence?: string[]; // communities in order of first case
+  }[];
+
+  // Secondary signal: lab results
+  labSignals: {
+    testType: string;            // "Malaria RDT", "Typhoid Widal"
+    positiveCount: number;
+    totalTested: number;
+    weeklyPositives: number[];   // 5 weeks
+  }[];
+
+  // Tertiary signal: prescription anomalies
+  rxSignals: {
+    drug: string;                // "Artemether-Lumefantrine"
+    weeklyDispensed: number[];   // 5 weeks
+    currentStockLevel: number;
+    lowStockThreshold: number;
+  }[];
+
+  // Quaternary signal: vitals cluster anomalies
+  vitalsSignals: {
+    anomalyType: string;         // "High Fever Cluster (≥38.5°C)"
+    weeklyCount: number[];
+    affectedCommunities: string[];
+  }[];
+
+  // Pharmacy stock for impact forecasting
+  currentStockLevels: {
+    drug: string;
+    currentStock: number;
+    unit: string;
+    lowStockThreshold: number;
+  }[];
 }
 ```
 
-**Explicitly excluded:** Patient names, IDs, phone numbers, addresses, staff names.
+---
+
+## 5. AI Output Contract
+
+```typescript
+interface ForecastResult {
+  confidence: 'high' | 'medium' | 'low';
+  generatedAt: string; // ISO timestamp
+
+  outbreaks: {
+    id: string;                                          // e.g. "malaria-agbarho"
+    disease: string;
+    status: 'rising' | 'stable' | 'falling';
+    severity: 'critical' | 'warning' | 'watch' | 'pre-alert';
+    weeklyCases: number[];
+    forecastNextWeek: number;
+    forecastConfidenceRange: [number, number];           // e.g. [10, 16]
+    affectedCommunities: string[];
+    spreadHypothesis?: string;                           // e.g. "Possible waterborne source"
+    atRiskGroups: string[];
+    summary: string;                                     // 2-3 sentence plain English
+  }[];
+
+  preAlerts: {                                           // Rising trends NOT yet at threshold
+    disease: string;
+    growthPattern: string;                               // e.g. "Doubling every 2 weeks"
+    currentCases: number;
+    projectedThresholdDate: string;                      // ISO date
+    affectedCommunities: string[];
+    summary: string;
+  }[];
+
+  interventions: {
+    priority: 'urgent' | 'routine';
+    linkedDisease: string;
+    action: string;
+    rationale: string;
+    estimatedStockNeeded?: string;                       // e.g. "26 ACT courses"
+    stockSufficient?: boolean;
+  }[];
+
+  stockImpactForecast: {
+    drug: string;
+    projectedDemandNextWeek: number;
+    currentStock: number;
+    willRunOut: boolean;
+    daysUntilStockout?: number;
+  }[];
+
+  idsr: {
+    weekNumber: number;
+    reportingPeriod: string;
+    notifiableDiseases: {
+      disease: string;
+      confirmedCases: number;
+      suspectedCases: number;
+      deaths: number;
+      action: string;                                    // "Investigate", "Continue surveillance"
+    }[];
+    narrativeSummary: string;                            // LGA-DSO ready paragraph
+  };
+
+  lgaSummary: string;                                   // Single paragraph for SMS / clipboard
+}
+```
 
 ---
 
-## 5. Architecture
-
-### 5a. Prompt (`src/lib/services/ai/prompts.ts`)
-New `epidemiologyForecast` schema:
-- System prompt: NPHCDA-aware, disease surveillance context for rural Nigerian PHCs
-- Instructs AI to output structured JSON: `{ outbreaks, forecast, interventions, confidence }`
-
-### 5b. Remote Function (`src/routes/ai/ai.remote.ts`)
-New `getEpidemiologyForecast` command:
-- Permission gate: `view:reports`
-- Reads 30-day data from `encounterStore` + `patientStore` on the client → aggregates it → sends de-identified bundle
-- Returns structured `ForecastResult`
-
-### 5c. Outbreak Store Upgrade (`src/lib/state/outbreaks.svelte.ts`)
-- Keep existing `outbreakEngine.alerts` (rule-based, always runs)
-- Add `aiAnalysis` state (`ForecastResult | null`)
-- Add `isAnalysing` boolean
-- Add `lastAnalysedAt` timestamp
-- Add `runAiAnalysis()` async method
-- Add `dismissAlert(id, reason)` method
-
-### 5d. Admin Dashboard Widget (`src/routes/(app)/admin/+page.svelte`)
-- New **Outbreak Radar card** with:
-  - Rule-based alerts from `outbreakEngine.alerts` (always visible, labelled "Threshold Alert")
-  - AI forecast section (lazy — only loads when Admin clicks "Run AI Analysis")
-  - Trend sparklines per disease group (last 5 weeks)
-  - Intervention suggestions with `<AiDisclaimer>`
-  - "Export Report" button → generates a plain-text LGA-ready summary
-
-### 5e. Dedicated Outbreak Radar Page (`src/routes/(app)/admin/outbreak-radar/+page.svelte`)
-- Full-page drill-down view
-- Disease-by-disease breakdown
-- Community heat map table (community × disease count matrix)
-- AI confidence indicator
-- Alert history / dismissed alerts log
-- Export to PDF / plain text
-
----
-
-## 6. Files to Create/Modify
+## 6. Architecture & Files
 
 | File | Action |
 |---|---|
-| `src/lib/services/ai/prompts.ts` | Add `epidemiologyForecast` schema |
+| `src/lib/services/ai/prompts.ts` | Add `epidemiologyForecast` prompt schema |
 | `src/routes/ai/ai.remote.ts` | Add `getEpidemiologyForecast` command |
-| `src/lib/state/outbreaks.svelte.ts` | Upgrade with AI state, `runAiAnalysis()`, dismiss |
+| `src/lib/state/outbreaks.svelte.ts` | Upgrade with AI state, multi-signal aggregation, dismiss, feedback |
 | `src/routes/(app)/admin/+page.svelte` | Add Outbreak Radar card widget |
-| `src/routes/(app)/admin/outbreak-radar/+page.svelte` | New full-page drill-down (create) |
-| `src/routes/(marketing)/support/outbreak-radar/+page.svelte` | New support article (create) |
+| `src/routes/(app)/admin/outbreak-radar/+page.svelte` | New full-page drill-down |
+| `src/routes/(marketing)/support/outbreak-radar/+page.svelte` | Support article |
 | `docs/AI-Features-Implementation-Plan.md` | Check off Task 5 |
-| `docs/features/outbreak-radar-tasks.md` | Track task progress |
-| `.changeset/*.md` | Add changeset before merging |
 
 ---
 
-## 7. AI Output Contract
+## 7. Enhancements Beyond Original Scope
 
-The AI returns strictly typed JSON:
+### 7a. Multi-Signal Intelligence
+- Lab results (positive RDT/Widal counts per week)
+- Prescription anomalies (unusual drug dispensing spikes)
+- Vitals clusters (fever clusters by community, even without complaint text)
+- Age/pregnancy distribution per disease group
 
-```json
-{
-  "confidence": "high" | "medium" | "low",
-  "outbreaks": [
-    {
-      "id": "malaria-agbarho",
-      "disease": "Malaria",
-      "status": "rising" | "stable" | "falling",
-      "severity": "critical" | "warning" | "watch",
-      "weeklyCases": [4, 6, 8, 11, 9],
-      "forecastNextWeek": 13,
-      "affectedCommunities": ["Agbarho"],
-      "atRiskGroups": ["Children under 5", "Pregnant women"],
-      "summary": "Malaria cases in Agbarho have risen 175% over 4 weeks..."
-    }
-  ],
-  "interventions": [
-    {
-      "priority": "urgent" | "routine",
-      "action": "Consider distributing insecticide-treated nets (ITNs) to households in Agbarho community.",
-      "rationale": "Rising malaria cases with 12/38 cases in children under 5 suggests environmental exposure."
-    }
-  ],
-  "lgaSummary": "One sentence suitable for LGA Disease Surveillance Officer report."
-}
-```
+### 7b. Seasonal Historical Baseline
+- `outbreakEngine` tracks rolling 52-week complaint data per disease group
+- "38 Malaria cases this week vs. 9 same week last year → 322% above baseline" is shown alongside AI analysis
+
+### 7c. Pre-Alert / Early Warning (Before Threshold)
+- Separate AI `preAlerts[]` output for rising trends not yet at threshold
+- Exponential growth pattern detection (doubling pattern detection)
+- Lower-urgency "Watch" UI tier — visible only to Admin, no panic-level styling
+
+### 7d. Stock Impact Forecasting
+- AI forecasts next-week drug demand per outbreak
+- Cross-references current pharmacy stock levels
+- Flags if projected demand exceeds current stock
+- "You will need ~26 ACT courses next week. You currently have 14 — consider restocking."
+
+### 7e. IDSR Report Generation
+- AI pre-populates Nigeria IDSR Week Report format (notifiable diseases table + narrative)
+- Admin reviews and confirms before sending/printing
+- Copy to clipboard or print as formatted text
+
+### 7f. LGA DSO SMS Escalation
+- "Send Alert to LGA DSO" button
+- Uses existing Termii SMS integration
+- Sends the `lgaSummary` text to a configurable LGA DSO phone number (set in PHC settings)
+- Logged in audit trail with timestamp
+
+### 7g. Feedback Loop
+- Admin can mark interventions as "Implemented" with a date
+- System tracks case counts for 2 weeks after intervention
+- If cases drop ≥30%, shows "Intervention appears effective"
+- If admin dismisses an alert that later escalates → respectful re-notification
+
+### 7h. Cross-PHC Superadmin View (Phase 2)
+- Superadmin sees aggregate disease burden across all PHCs in the LGA
+- Anonymous PHC benchmarking ("Your PHC: 38 cases. LGA median: 12 cases.")
+- Cross-PHC spread detection (same disease appearing in adjacent PHCs in sequence)
+- State-level IDSR aggregate generation
 
 ---
 
 ## 8. Support Documentation Plan
 
-- `/support/outbreak-radar` — "Understanding the Outbreak Radar" guide covering:
-  - What it does / what it does NOT do
-  - How to interpret severity levels
-  - How to export the LGA report
-  - Limitations and AI disclaimer
-  - When to contact the LGA Disease Surveillance Officer
+`/support/outbreak-radar` article covering:
+- What Outbreak Radar is and what it is NOT
+- Rule-based alerts vs. AI-assisted analysis — the two layers explained
+- Understanding severity levels (Critical / Warning / Watch / Pre-Alert)
+- How to read the community spread matrix
+- How to use the stock impact forecast
+- How to generate and send the IDSR / LGA report
+- How to escalate to your LGA DSO via SMS
+- Limitations and AI disclaimer
+- When to call the State Epidemiologist

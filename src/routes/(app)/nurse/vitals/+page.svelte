@@ -152,6 +152,7 @@
 					status: 'waiting',
 					triageLevel: triageResult.level,
 					triageReason: triageResult.reason,
+					department: 'general',
 					calledAt: null,
 					completedAt: null,
 					createdAt: Date.now()

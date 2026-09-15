@@ -11,6 +11,7 @@
 		CardDescription
 	} from '$lib/components/ui/card';
 	import { toast } from 'svelte-sonner';
+	import { Label } from '$lib/components/ui/label';
 	import {
 		Search,
 		User,
@@ -25,6 +26,7 @@
 	let searchQuery = $state('');
 	let selectedPatient = $state<any>(null);
 	let isAddingToQueue = $state(false);
+	let selectedDepartment = $state('general');
 
 	// Reactive search powered by Dexie via patientStore
 	const searchResults = $derived(searchQuery.length >= 2 ? patientStore.search(searchQuery) : []);
@@ -59,6 +61,7 @@
 				status: 'waiting',
 				triageLevel: 'unassigned', // Will be assessed at vitals
 				triageReason: null,
+				department: selectedDepartment,
 				calledAt: null,
 				completedAt: null,
 				createdAt: Date.now()
@@ -204,12 +207,25 @@
 						{/if}
 
 						<div class="pt-6 border-t border-border flex flex-col gap-3">
+							<div class="space-y-2">
+								<Label for="department">Select Clinic / Queue</Label>
+								<select
+									id="department"
+									bind:value={selectedDepartment}
+									class="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+								>
+									<option value="general">General Outpatient</option>
+									<option value="anc">Antenatal Care (ANC)</option>
+									<option value="epi">Immunization (EPI)</option>
+								</select>
+							</div>
+
 							<Button class="w-full h-11 btn-press" onclick={addToQueue} disabled={isAddingToQueue}>
 								{#if isAddingToQueue}
 									Queueing...
 								{:else}
 									<Clock class="size-4 mr-2" />
-									Add to Waiting Queue
+									Route Patient to Queue
 								{/if}
 							</Button>
 

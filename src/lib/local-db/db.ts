@@ -52,6 +52,7 @@ export interface LocalQueueTicket {
 	triageReason: string | null;
 	aiRiskScore?: number | null;
 	aiRiskRationale?: string | null;
+	department: string;
 	calledAt?: number | null;
 	completedAt?: number | null;
 	createdAt: number;

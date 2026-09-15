@@ -25,6 +25,7 @@
 		UserCheck,
 		Check
 	} from '@lucide/svelte';
+	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
 	import { NumberTicker } from '$lib/components/ui/number-ticker';
 
 	// Get reactive queue items
@@ -147,25 +148,47 @@
 
 	<!-- Queue List -->
 	<Card id="queue-list" class="overflow-hidden card-hover border-0 shadow-none bg-transparent">
-		<CardHeader class="px-0 pt-0 pb-4">
-			<CardTitle class="text-base font-semibold text-foreground">Active Queue</CardTitle>
-			<CardDescription>Real-time patient flow and triaging</CardDescription>
+		<CardHeader class="px-0 pt-0 pb-4 flex flex-row items-center justify-between">
+			<div>
+				<CardTitle class="text-base font-semibold text-foreground">Active Queue</CardTitle>
+				<CardDescription>Real-time patient flow and triaging</CardDescription>
+			</div>
 		</CardHeader>
-		<div class="space-y-4 animate-stagger">
-			{#if sortedQueue.length === 0}
-				<div
-					class="flex flex-col items-center justify-center py-16 text-muted-foreground border rounded-xl bg-card border-dashed"
-				>
-					<UserCheck class="size-10 text-muted-foreground/40 mb-3" />
-					<span class="text-lg font-medium text-foreground">No patients in the queue</span>
-					<p class="text-sm">Enjoy the calm!</p>
-				</div>
-			{:else}
-				{#each sortedQueue as ticket (ticket.id)}
-					<QueueTicketCard {ticket} />
-				{/each}
-			{/if}
-		</div>
+		
+		<Tabs value="general" class="w-full">
+			<TabsList class="mb-4 w-full justify-start overflow-x-auto bg-transparent h-12 p-0 space-x-2 border-b border-border rounded-none">
+				<TabsTrigger value="general" class="rounded-t-lg rounded-b-none data-[state=active]:bg-card data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary border-b-2 border-transparent px-4">
+					General Outpatient ({queueStore.generalQueue.length})
+				</TabsTrigger>
+				<TabsTrigger value="anc" class="rounded-t-lg rounded-b-none data-[state=active]:bg-card data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary border-b-2 border-transparent px-4">
+					Antenatal Care (ANC) ({queueStore.ancQueue.length})
+				</TabsTrigger>
+				<TabsTrigger value="epi" class="rounded-t-lg rounded-b-none data-[state=active]:bg-card data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary border-b-2 border-transparent px-4">
+					Immunization (EPI) ({queueStore.epiQueue.length})
+				</TabsTrigger>
+			</TabsList>
+
+			{#each ['general', 'anc', 'epi'] as dept}
+				<TabsContent value={dept}>
+					<div class="space-y-4 animate-stagger">
+						{@const queueItems = dept === 'general' ? queueStore.generalQueue : dept === 'anc' ? queueStore.ancQueue : queueStore.epiQueue}
+						{#if queueItems.length === 0}
+							<div
+								class="flex flex-col items-center justify-center py-16 text-muted-foreground border rounded-xl bg-card border-dashed"
+							>
+								<UserCheck class="size-10 text-muted-foreground/40 mb-3" />
+								<span class="text-lg font-medium text-foreground">No patients in this queue</span>
+								<p class="text-sm">Enjoy the calm!</p>
+							</div>
+						{:else}
+							{#each queueItems as ticket (ticket.id)}
+								<QueueTicketCard {ticket} />
+							{/each}
+						{/if}
+					</div>
+				</TabsContent>
+			{/each}
+		</Tabs>
 	</Card>
 
 </div>

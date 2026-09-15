@@ -10,7 +10,7 @@
 	import { ArrowLeft, Send } from '@lucide/svelte';
 
 	let email = $state('');
-	let role = $state<'receptionist' | 'nurse' | 'doctor' | 'pharmacy' | 'admin' | 'superadmin'>('nurse');
+	let role = $state<'receptionist' | 'nurse' | 'doctor' | 'pharmacy' | 'admin' | 'superadmin' | 'oic' | 'cho' | 'nurse_midwife' | 'chew' | 'jchew' | 'eho'>('nurse');
 	let loading = $state(false);
 
 	const availablePermissions = [
@@ -85,12 +85,16 @@
 						bind:value={role}
 						class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 					>
+						<option value="oic">OIC (Officer in Charge)</option>
+						<option value="cho">Community Health Officer (CHO)</option>
+						<option value="nurse_midwife">Nurse / Midwife</option>
+						<option value="chew">CHEW (Extension Worker)</option>
+						<option value="jchew">JCHEW (Junior Extension Worker)</option>
+						<option value="eho">EHO (Environmental Health)</option>
 						<option value="receptionist">Receptionist</option>
-						<option value="nurse">Nurse</option>
-						<option value="doctor">Doctor</option>
-						<option value="pharmacy">Pharmacy</option>
-						<option value="admin">Admin</option>
-						<option value="superadmin">Superadmin</option>
+						<option value="pharmacy">Pharmacy Technician</option>
+						<option value="doctor">Visiting Doctor</option>
+						<option value="admin">System Admin</option>
 					</select>
 				</div>
 

@@ -83,6 +83,14 @@
 	let doctorNotes = $state('');
 	let isNhisBillable = $state(false);
 
+	// Specialized Queues Workflows
+	let groupEducationCompleted = $state(false);
+	let routineSupplementsGiven = $state(false);
+	let tetanusToxoidGiven = $state(false);
+	let growthMonitoringCompleted = $state(false);
+	let nutritionalAssessment = $state('normal');
+	let vaccineAdministered = $state(false);
+
 	// Prescriptions state
 	let selectedMedId = $state('');
 	let quantity = $state<number>(1);
@@ -284,6 +292,20 @@ P: ${res.plan}`;
 	async function handleCompleteEncounter() {
 		if (!ticket || !patient) return;
 
+		let finalNotes = doctorNotes;
+
+		if (ticket.department === 'anc') {
+			finalNotes += `\n\n[ANC Clinical Checklist]
+- Group Education: ${groupEducationCompleted ? 'Yes' : 'No'}
+- Iron/Folic Acid Issued: ${routineSupplementsGiven ? 'Yes' : 'No'}
+- Tetanus Toxoid: ${tetanusToxoidGiven ? 'Yes' : 'No'}`;
+		} else if (ticket.department === 'epi') {
+			finalNotes += `\n\n[Immunization (EPI) Checklist]
+- Growth Monitoring: ${growthMonitoringCompleted ? 'Yes' : 'No'}
+- Vaccine Dosage: ${vaccineAdministered ? 'Yes' : 'No'}
+- Nutritional Assessment: ${nutritionalAssessment.toUpperCase()}`;
+		}
+
 		try {
 			// 1. Create Encounter if it doesn't exist, or we just create a new one for this consultation
 			let encounterId = ticket.encounterId;
@@ -292,7 +314,7 @@ P: ${res.plan}`;
 					patientId: patient.id,
 					phcId: ticket.phcId,
 					chiefComplaint,
-					doctorNotes,
+					doctorNotes: finalNotes,
 					isNhisBillable,
 					visitDate: Date.now()
 				} as any);
@@ -518,6 +540,57 @@ P: ${res.plan}`;
 
 					<div class="flex-1 overflow-y-auto p-6">
 						<TabsContent value="notes" class="m-0 space-y-6 animate-in fade-in-50 zoom-in-95">
+							{#if ticket?.department === 'anc'}
+								<div class="bg-indigo-50 border border-indigo-100 rounded-lg p-4 space-y-3 mb-6">
+									<h4 class="font-semibold text-indigo-900 flex items-center gap-2">
+										<Activity class="size-4" />
+										ANC Clinic Checklist
+									</h4>
+									<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+										<label class="flex items-center gap-2 text-sm text-indigo-800">
+											<input type="checkbox" bind:checked={groupEducationCompleted} class="rounded border-indigo-300 text-indigo-600 focus:ring-indigo-600" />
+											Group Education Attended
+										</label>
+										<label class="flex items-center gap-2 text-sm text-indigo-800">
+											<input type="checkbox" bind:checked={routineSupplementsGiven} class="rounded border-indigo-300 text-indigo-600 focus:ring-indigo-600" />
+											Iron / Folic Acid Issued
+										</label>
+										<label class="flex items-center gap-2 text-sm text-indigo-800">
+											<input type="checkbox" bind:checked={tetanusToxoidGiven} class="rounded border-indigo-300 text-indigo-600 focus:ring-indigo-600" />
+											Tetanus Toxoid Administered
+										</label>
+									</div>
+								</div>
+							{:else if ticket?.department === 'epi'}
+								<div class="bg-teal-50 border border-teal-100 rounded-lg p-4 space-y-3 mb-6">
+									<h4 class="font-semibold text-teal-900 flex items-center gap-2">
+										<CheckCircle2 class="size-4" />
+										Immunization (EPI) Checklist
+									</h4>
+									<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+										<label class="flex items-center gap-2 text-sm text-teal-800">
+											<input type="checkbox" bind:checked={growthMonitoringCompleted} class="rounded border-teal-300 text-teal-600 focus:ring-teal-600" />
+											Growth Monitoring Charted
+										</label>
+										<label class="flex items-center gap-2 text-sm text-teal-800">
+											<input type="checkbox" bind:checked={vaccineAdministered} class="rounded border-teal-300 text-teal-600 focus:ring-teal-600" />
+											Vaccine Dosage Administered
+										</label>
+										<div class="flex flex-col gap-1 col-span-1 md:col-span-2 mt-2">
+											<Label class="text-teal-800">Nutritional Assessment</Label>
+											<Select type="single" bind:value={nutritionalAssessment}>
+												<SelectTrigger class="bg-white border-teal-200"><SelectPrimitive.Value placeholder="Select Status" /></SelectTrigger>
+												<SelectContent>
+													<SelectItem value="normal">Normal</SelectItem>
+													<SelectItem value="mam">Moderate Acute Malnutrition (MAM)</SelectItem>
+													<SelectItem value="sam">Severe Acute Malnutrition (SAM)</SelectItem>
+												</SelectContent>
+											</Select>
+										</div>
+									</div>
+								</div>
+							{/if}
+
 							<div class="space-y-2">
 								<div class="flex items-center justify-between">
 									<Label class="font-semibold flex items-center gap-1.5"

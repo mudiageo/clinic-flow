@@ -112,7 +112,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		event.locals.phcId = staffRecord?.phcId ?? null;
 		event.locals.staffId = staffRecord?.id ?? null;
 		event.locals.role =
-			(staffRecord?.role as 'receptionist' | 'nurse' | 'doctor' | 'pharmacy' | 'admin') ??
+			(staffRecord?.role as 'receptionist' | 'nurse' | 'doctor' | 'pharmacy' | 'admin' | 'superadmin' | 'oic' | 'cho' | 'nurse_midwife' | 'chew' | 'jchew' | 'eho') ??
 			(session.session as any).role ??
 			null;
 	}

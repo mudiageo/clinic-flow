@@ -42,7 +42,13 @@ export const userRoleEnum = pgEnum('user_role', [
 	'doctor',
 	'pharmacy',
 	'admin',
-	'superadmin'
+	'superadmin',
+	'oic',
+	'cho',
+	'nurse_midwife',
+	'chew',
+	'jchew',
+	'eho'
 ]);
 
 export const deviceRoleEnum = pgEnum('device_role', [
@@ -385,6 +391,7 @@ export const queueTickets = pgTable(
 		triageReason: text('triage_reason'),
 		aiRiskScore: integer('ai_risk_score'),
 		aiRiskRationale: text('ai_risk_rationale'),
+		department: varchar('department', { length: 50 }).notNull().default('general'), // 'general', 'anc', 'epi', etc.
 		calledAt: timestamp('called_at', { withTimezone: true }),
 		completedAt: timestamp('completed_at', { withTimezone: true }),
 		updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

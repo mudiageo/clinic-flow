@@ -140,6 +140,7 @@
 				status: 'waiting',
 				triageLevel: 'green',
 				triageReason: 'New Registration',
+				department: 'general',
 				calledAt: null,
 				completedAt: null,
 				createdAt: Date.now()
