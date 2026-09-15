@@ -18,7 +18,7 @@
 ## Phase 4: Universal Dashboard
 - [x] Rebuild `/dashboard/+page.svelte` — Dynamic category-grouped tile grid with live stat widgets
 - [x] Update login redirects — All roles (email + PIN login) land at `/dashboard`
-- [ ] Update sidebar nav — Filter all nav links through `can()` helper
+- [x] Update sidebar nav — Filter all nav links through `can()` helper
 
 ## Phase 5: Permission Editor UI
 - [x] Build `/admin/permissions/+page.svelte`
@@ -26,12 +26,11 @@
 - [x] Add audit log entries per toggle
 
 ## Phase 6: New Role-Specific Views
-- [ ] Build `/field` — CHEW Field Mode
-- [ ] Build `/maternity` — Maternity Ward Board
-- [ ] Build `/pharmacy/cold-chain` — Cold Chain Tracker
-- [ ] Build `/immunization` — EPI Schedule Tracker
+- [x] Build `/field` — CHEW Field Mode
+- [x] Build `/maternity` — Maternity Ward Board
+- [x] Build `/pharmacy/cold-chain` — Cold Chain Tracker
+- [x] Build `/immunization` — EPI Schedule Tracker
 
 ## Phase 7: Changeset & Docs
-- [ ] Create `.changeset/permission-composable-dashboard.md`
-- [ ] Update in-app Walkthrough guides for each new view
-- [ ] Create user-facing support docs for the Permission Editor
+- [x] Create `.changeset/permission-composable-dashboard.md`
+- [x] Create user-facing support docs for the Permission Editor
