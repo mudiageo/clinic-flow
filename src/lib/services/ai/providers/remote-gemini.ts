@@ -1,5 +1,5 @@
 import type { AIProvider, AIStructuredIntake } from '../ai.interface';
-import { structureIntake } from '../../../../routes/ai/ai.remote';
+import { structureIntake } from '$lib/remote/ai.remote';
 
 export class RemoteGeminiProvider implements AIProvider {
 	name = 'Gemini (Cloud)';

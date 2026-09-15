@@ -34,7 +34,7 @@
 
 	import { toast } from 'svelte-sonner';
 	import { aiService } from '$lib/services/ai/ai.service';
-	import { getClinicalDecisionSupport, generateSoapNote } from '../../../../../routes/ai/ai.remote';
+	import { getClinicalDecisionSupport, generateSoapNote } from '$lib/remote/ai.remote';
 	import AiDisclaimer from '$lib/components/ui/ai-disclaimer.svelte';
 	import {
 		Stethoscope,

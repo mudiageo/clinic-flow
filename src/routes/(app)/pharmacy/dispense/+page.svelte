@@ -3,7 +3,7 @@
 	import { prescriptionStore } from '$lib/state/prescriptions.svelte';
 	import { patientStore } from '$lib/state/patients.svelte';
 	import { vitalsStore } from '$lib/state/vitals.svelte';
-	import { getRxBrainAnalysis } from '../../../../../routes/ai/ai.remote';
+	import { getRxBrainAnalysis } from '$lib/remote/ai.remote';
 	import AiDisclaimer from '$lib/components/ui/ai-disclaimer.svelte';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import {

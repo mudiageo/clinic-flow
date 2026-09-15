@@ -3,7 +3,7 @@
 	import { vitalsStore } from '$lib/state/vitals.svelte';
 	import { queueStore } from '$lib/state/queue.svelte';
 	import { triageRuleStore } from '$lib/state/triage-rules.svelte';
-	import { getPatientRiskScore } from '../../../../../routes/ai/ai.remote';
+	import { getPatientRiskScore } from '$lib/remote/ai.remote';
 	import { settingsStore } from '$lib/state/settings.svelte';
 	import QrScanner from '$lib/components/QrScanner.svelte';
 	import { Button } from '$lib/components/ui/button';

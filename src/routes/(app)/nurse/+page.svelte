@@ -170,8 +170,8 @@
 
 			{#each ['general', 'anc', 'epi'] as dept}
 				<TabsContent value={dept}>
+					{@const queueItems = dept === 'general' ? queueStore.generalQueue : dept === 'anc' ? queueStore.ancQueue : queueStore.epiQueue}
 					<div class="space-y-4 animate-stagger">
-						{@const queueItems = dept === 'general' ? queueStore.generalQueue : dept === 'anc' ? queueStore.ancQueue : queueStore.epiQueue}
 						{#if queueItems.length === 0}
 							<div
 								class="flex flex-col items-center justify-center py-16 text-muted-foreground border rounded-xl bg-card border-dashed"

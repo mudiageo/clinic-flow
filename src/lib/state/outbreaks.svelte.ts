@@ -3,7 +3,7 @@ import { patientStore } from './patients.svelte';
 import { pharmacyStore } from './pharmacy.svelte';
 import { vitalsStore } from './vitals.svelte';
 import { settingsStore } from './settings.svelte';
-import { getEpidemiologyForecast } from '../../routes/ai/ai.remote';
+import { getEpidemiologyForecast } from '$lib/remote/ai.remote';
 import { toast } from 'svelte-sonner';
 
 export type OutbreakAlert = {
