@@ -10,7 +10,7 @@ import { updatePhcSettingsById } from '$lib/server/db/queries/phcs';
 export const getStaffMember = query(v.string(), async (staffId) => {
 	const event = getRequestEvent();
 	if (!event.locals.staffId || !event.locals.phcId) throw new Error('Unauthorized');
-	await requirePermission(event.locals.staffId, 'manage:staff');
+	await requirePermission('manage:staff');
 
 	return await db.query.staff.findFirst({
 		where: (s, { and, eq }) => and(eq(s.id, staffId), eq(s.phcId, event.locals.phcId!))
@@ -20,7 +20,7 @@ export const getStaffMember = query(v.string(), async (staffId) => {
 export const getPhcStaffList = query(async () => {
 	const event = getRequestEvent();
 	if (!event.locals.staffId || !event.locals.phcId) throw new Error('Unauthorized');
-	await requirePermission(event.locals.staffId, 'manage:staff');
+	await requirePermission('manage:staff');
 
 	return await db.query.staff.findMany({
 		where: (s, { eq }) => eq(s.phcId, event.locals.phcId!),
@@ -37,7 +37,7 @@ export const inviteStaff = command(
 	async (data) => {
 		const event = getRequestEvent();
 		if (!event.locals.staffId || !event.locals.phcId) throw new Error('Unauthorized');
-		await requirePermission(event.locals.staffId, 'manage:staff');
+		await requirePermission('manage:staff');
 		
 		const [newStaff] = await createStaff({
 			authUserId: 'pending-' + crypto.randomUUID(),
@@ -70,7 +70,7 @@ export const updateStaffStatus = command(
 	async ({ staffId, active }) => {
 		const event = getRequestEvent();
 		if (!event.locals.staffId || !event.locals.phcId) throw new Error('Unauthorized');
-		await requirePermission(event.locals.staffId, 'manage:staff');
+		await requirePermission('manage:staff');
 
 		await updateStaffStatusById(staffId, event.locals.phcId, active);
 		return { success: true };
@@ -80,7 +80,7 @@ export const updateStaffStatus = command(
 export const getPhcSettings = query(async () => {
 	const event = getRequestEvent();
 	if (!event.locals.staffId || !event.locals.phcId) throw new Error('Unauthorized');
-	await requirePermission(event.locals.staffId, 'manage:phc');
+	await requirePermission('manage:phc');
 
 	return await db.query.phcs.findFirst({
 		where: (p, { eq }) => eq(p.id, event.locals.phcId!)
@@ -108,7 +108,7 @@ export const updatePhcSettings = command(
 	async (data) => {
 		const event = getRequestEvent();
 		if (!event.locals.staffId || !event.locals.phcId) throw new Error('Unauthorized');
-		await requirePermission(event.locals.staffId, 'manage:phc');
+		await requirePermission('manage:phc');
 
 		await updatePhcSettingsById(event.locals.phcId, data);
 		return { success: true };
@@ -118,7 +118,7 @@ export const updatePhcSettings = command(
 export const getStaffPermissionAuditLog = query(v.string(), async (staffId) => {
 	const event = getRequestEvent();
 	if (!event.locals.staffId || !event.locals.phcId) throw new Error('Unauthorized');
-	await requirePermission(event.locals.staffId, 'manage:staff');
+	await requirePermission('manage:staff');
 
 	return await db.query.permissions.findMany({
 		where: (p, { and, eq }) => and(eq(p.staffId, staffId), eq(p.phcId, event.locals.phcId!)),
@@ -132,7 +132,7 @@ export const getStaffPermissionAuditLog = query(v.string(), async (staffId) => {
 export const getSmsInbox = query(async () => {
 	const event = getRequestEvent();
 	if (!event.locals.staffId || !event.locals.phcId) throw new Error('Unauthorized');
-	await requirePermission(event.locals.staffId, 'manage:phc');
+	await requirePermission('manage:phc');
 
 	return await db.query.smsInbox.findMany({
 		where: (t, { eq }) => eq(t.phcId, event.locals.phcId!),

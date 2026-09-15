@@ -44,7 +44,7 @@ export const getClinicalDecisionSupport = command(
 		if (!event.locals.staffId) throw new Error('Unauthorized');
 		
 		// Enforce permissions before allowing AI access to medical logic
-		await requirePermission(event.locals.staffId, 'view:medical_records');
+		await requirePermission('view:patients');
 
 		if (!GEMINI_API_KEY) {
 			throw new Error('GEMINI_API_KEY is not set.');
@@ -80,7 +80,7 @@ export const getRxBrainAnalysis = command(
 		if (!event.locals.staffId) throw new Error('Unauthorized');
 		
 		// Enforce permissions before allowing AI access to medical logic
-		await requirePermission(event.locals.staffId, 'view:medical_records');
+		await requirePermission('view:patients');
 
 		if (!GEMINI_API_KEY) {
 			throw new Error('GEMINI_API_KEY is not set.');
@@ -120,7 +120,7 @@ export const generateSoapNote = command(
 		if (!event.locals.staffId) throw new Error('Unauthorized');
 		
 		// Enforce write permissions because this dictates official medical records
-		await requirePermission(event.locals.staffId, 'write:medical_records');
+		await requirePermission('manage:consultations');
 
 		if (!GEMINI_API_KEY) {
 			throw new Error('GEMINI_API_KEY is not set.');
@@ -177,7 +177,7 @@ export const getPatientRiskScore = command(
 		if (!event.locals.staffId) throw new Error('Unauthorized');
 		
 		// Enforce read permissions
-		await requirePermission(event.locals.staffId, 'view:medical_records');
+		await requirePermission('view:patients');
 
 		if (!GEMINI_API_KEY) {
 			throw new Error('GEMINI_API_KEY is not set.');
@@ -230,7 +230,7 @@ export const getEpidemiologyForecast = command(
 		if (!event.locals.staffId) throw new Error('Unauthorized');
 
 		// Enforce reporting permissions
-		await requirePermission(event.locals.staffId, 'view:reports');
+		await requirePermission('view:reports');
 
 		if (!GEMINI_API_KEY) {
 			throw new Error('GEMINI_API_KEY is not set.');

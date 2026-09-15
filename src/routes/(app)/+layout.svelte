@@ -2,6 +2,7 @@
 	import { getCurrentSession } from '$lib/remote/auth.remote';
 	import { syncStore } from '$lib/state/sync.svelte';
 	import { settingsStore } from '$lib/state/settings.svelte';
+	import { sessionStore } from '$lib/state/session.svelte';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { ModeWatcher } from 'mode-watcher';
 	import { setContext, onMount, onDestroy } from 'svelte';
@@ -11,16 +12,15 @@
 
 	let { children } = $props();
 
-	let sessionContext = $state<any>(null);
 	setContext('session', {
-		get user() { return sessionContext?.user; },
-		get role() { return sessionContext?.role; },
-		get phcId() { return sessionContext?.phcId; },
-		get session() { return sessionContext?.session; }
+		get user() { return sessionStore.user; },
+		get role() { return sessionStore.role; },
+		get phcId() { return sessionStore.phcId; },
+		get permissions() { return sessionStore.permissions; }
 	});
 
 	// Check auth session
-	let sessionData;
+	let sessionData: any;
 	try {
 		sessionData = await getCurrentSession();
 		if (browser && sessionData?.user) {
@@ -33,21 +33,21 @@
 			const cached = localStorage.getItem('clinicflow_offline_session');
 			if (cached) {
 				sessionData = JSON.parse(cached);
-				// We don't have access to toast here easily since it's layout script, but we can rely on UI to show offline
 			} else {
 				goto('/login');
 			}
 		}
 	}
-	
-	sessionContext = sessionData;
+
+	if (sessionData) {
+		sessionStore.init(sessionData);
+	}
 
 	if (browser && !sessionData?.user) {
 		goto('/login');
 	}
 
 	onMount(() => {
-		// 5. Fetch remote settings
 		settingsStore.fetchFromServer();
 	});
 

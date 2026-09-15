@@ -31,14 +31,8 @@ export const signInAction = form(
 			});
 
 			if (userRecord) {
-				const staffMember = await db.query.staff.findFirst({
-					where: (s, { eq }) => eq(s.authUserId, userRecord.id)
-				});
-				const role = staffMember?.role ?? 'nurse';
-				if (role === 'admin') redirect(302, '/admin');
-				if (role === 'doctor') redirect(302, '/doctor');
-				if (role === 'pharmacy') redirect(302, '/pharmacy');
-				redirect(302, '/nurse');
+				// All roles now land on /dashboard — the universal permission-composable page
+				redirect(302, '/dashboard');
 			}
 			redirect(302, '/login');
 		} catch (err: any) {
@@ -59,7 +53,8 @@ export const getCurrentSession = query(async () => {
 		user: event.locals.user ?? null,
 		session: event.locals.session ?? null,
 		phcId: event.locals.phcId ?? null,
-		role: event.locals.role ?? null
+		role: event.locals.role ?? null,
+		permissions: event.locals.permissions ?? []
 	};
 });
 
@@ -382,11 +377,7 @@ export const signInWithPin = form(
 			expires: expiresAt
 		});
 
-		// 5. Redirect based on role
-		const role = staffMember.role ?? 'nurse';
-		if (role === 'admin') redirect(302, '/admin');
-		if (role === 'doctor') redirect(302, '/doctor');
-		if (role === 'pharmacy') redirect(302, '/pharmacy');
-		redirect(302, '/nurse');
+		// 5. All roles land on /dashboard — the universal permission-composable page
+		redirect(302, '/dashboard');
 	}
 );

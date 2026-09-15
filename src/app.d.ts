@@ -8,6 +8,7 @@ declare global {
 			phcId?: string | null;
 			staffId?: string | null;
 			role?: 'receptionist' | 'nurse' | 'doctor' | 'pharmacy' | 'admin' | 'superadmin' | 'oic' | 'cho' | 'nurse_midwife' | 'chew' | 'jchew' | 'eho' | null;
+			permissions?: string[];
 		}
 	}
 }

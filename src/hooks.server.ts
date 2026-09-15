@@ -7,6 +7,8 @@ import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { db } from '$lib/server/db';
 import { startSmsWorker } from '$lib/server/sms/worker';
 import { DATABASE_URL, PORT } from '$app/env/private';
+import { ROLE_DEFAULTS } from '$lib/config/role-defaults';
+import { DASHBOARD_MODULES } from '$lib/config/dashboard-modules';
 
 if (!building) {
 	startSmsWorker();
@@ -115,6 +117,29 @@ export const handle: Handle = async ({ event, resolve }) => {
 			(staffRecord?.role as 'receptionist' | 'nurse' | 'doctor' | 'pharmacy' | 'admin' | 'superadmin' | 'oic' | 'cho' | 'nurse_midwife' | 'chew' | 'jchew' | 'eho') ??
 			(session.session as any).role ??
 			null;
+
+		// Calculate active permissions
+		let activePermissions: string[] = [];
+		if (event.locals.role) {
+			activePermissions = [...(ROLE_DEFAULTS[event.locals.role] || [])];
+		}
+		
+		if (staffRecord) {
+			const overrides = await db.query.permissions.findMany({
+				where: (p, { eq }) => eq(p.staffId, staffRecord.id)
+			});
+			
+			// Apply overrides (currently we only support granting, but if revoked=true existed we'd filter them out)
+			// Assuming the schema has a 'revoked' boolean flag
+			for (const override of overrides) {
+				if (override.revoked) {
+					activePermissions = activePermissions.filter(p => p !== override.permission);
+				} else if (!activePermissions.includes(override.permission)) {
+					activePermissions.push(override.permission);
+				}
+			}
+		}
+		event.locals.permissions = activePermissions;
 	}
 
 	const pathname = event.url.pathname;
@@ -140,25 +165,27 @@ export const handle: Handle = async ({ event, resolve }) => {
 		}
 
 		const role = event.locals.role;
+		const permissions = event.locals.permissions || [];
 
-		// Superadmin and Admin can access standard clinic routes
-		if (role !== 'admin' && role !== 'superadmin') {
-			if (pathname.startsWith('/nurse') && role !== 'nurse') {
-				redirect(302, '/login');
-			}
-			if (pathname.startsWith('/doctor') && role !== 'doctor') {
-				redirect(302, '/login');
-			}
-			if (pathname.startsWith('/pharmacy') && role !== 'pharmacy') {
-				redirect(302, '/login');
-			}
-			if (pathname.startsWith('/admin')) {
-				redirect(302, '/login');
-			}
-		}
-		
 		if (pathname.startsWith('/superadmin') && role !== 'superadmin') {
 			redirect(302, '/login');
+		}
+
+		// Use DASHBOARD_MODULES to enforce permissions dynamically
+		// We sort by length descending to match more specific paths first (e.g. /nurse/register before /nurse)
+		const sortedModules = [...DASHBOARD_MODULES].sort((a, b) => b.href.length - a.href.length);
+		
+		const matchedModule = sortedModules.find(m => pathname.startsWith(m.href));
+		if (matchedModule) {
+			if (!permissions.includes(matchedModule.permission) && role !== 'superadmin') {
+				// User does not have the required permission for this route
+				redirect(302, '/dashboard');
+			}
+		} else if (role !== 'superadmin' && role !== 'admin') {
+			// If it's not a known module, we can fallback to basic role logic for unmapped legacy paths
+			if (pathname.startsWith('/admin') && role !== 'oic') {
+				redirect(302, '/dashboard');
+			}
 		}
 	}
 

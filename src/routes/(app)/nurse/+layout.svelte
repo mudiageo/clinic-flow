@@ -9,6 +9,7 @@
 	import SyncIndicator from '$lib/components/SyncIndicator.svelte';
 	import { toggleMode, mode } from 'mode-watcher';
 	import { queueStore } from '$lib/state/queue.svelte';
+	import { sessionStore } from '$lib/state/session.svelte';
 	import {
 		ClipboardList,
 		UserPlus,
@@ -18,7 +19,11 @@
 		Settings,
 		Sun,
 		Moon,
-		Monitor
+		Monitor,
+		LayoutDashboard,
+		Baby,
+		Syringe,
+		MapPin
 	} from '@lucide/svelte';
 	import type { NavGroup } from '$lib/components/app-sidebar.svelte';
 
@@ -35,42 +40,38 @@
 
 	const navGroups: NavGroup[] = $derived([
 		{
-			label: 'Nurse Station',
+			label: 'Navigation',
 			items: [
-				{
-					href: '/nurse',
-					label: 'Queue Board',
-					icon: ClipboardList,
-					badge: waitingCount,
-					badgeVariant: waitingCount > 0 ? 'default' : undefined
-				},
-				{ href: '/nurse/register', label: 'Register Patient', icon: UserPlus },
-				{ href: '/nurse/vitals', label: 'Vitals & Triage', icon: Thermometer },
-				{ href: '/nurse/search', label: 'Search Patient', icon: Search }
+				{ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }
 			]
 		},
 		{
+			label: 'Nurse Station',
+			items: [
+				...(sessionStore.can('view:queue:general') ? [{ href: '/nurse', label: 'Queue Board', icon: ClipboardList, badge: waitingCount }] : []),
+				...(sessionStore.can('view:queue:anc') ? [{ href: '/nurse?tab=anc', label: 'ANC Queue', icon: Baby }] : []),
+				...(sessionStore.can('view:queue:epi') ? [{ href: '/nurse?tab=epi', label: 'Immunization Queue', icon: Syringe }] : []),
+				...(sessionStore.can('manage:patients') ? [{ href: '/nurse/register', label: 'Register Patient', icon: UserPlus }] : []),
+				...(sessionStore.can('manage:vitals') ? [{ href: '/nurse/vitals', label: 'Vitals & Triage', icon: Thermometer }] : []),
+				...(sessionStore.can('view:patients') ? [{ href: '/nurse/search', label: 'Search Patient', icon: Search }] : [])
+			].filter(Boolean)
+		},
+		...(sessionStore.can('use:field_mode') ? [{
+			label: 'Field Work',
+			items: [{ href: '/field', label: 'Field Outreach Mode', icon: MapPin }]
+		}] : []),
+		...(sessionStore.can('manage:reminders') ? [{
 			label: 'Reminders',
 			items: [{ href: '/nurse/reminders', label: 'SMS Reminders', icon: Bell }]
-		},
-		{
-			label: 'Account',
-			items: [{ href: '/nurse/settings', label: 'Settings', icon: Settings }]
-		}
+		}] : [])
 	]);
 
 	const bottomNavItems: BottomNavItem[] = $derived([
-		{
-			href: '/nurse',
-			label: 'Queue',
-			icon: ClipboardList,
-			badge: waitingCount,
-			badgeVariant: waitingCount > 0 ? 'default' : undefined
-		},
-		{ href: '/nurse/register', label: 'Register', icon: UserPlus },
-		{ href: '/nurse/vitals', label: 'Vitals', icon: Thermometer },
-		{ href: '/nurse/search', label: 'Search', icon: Search },
-		{ href: '/nurse/reminders', label: 'More', icon: Bell }
+		{ href: '/dashboard', label: 'Home', icon: LayoutDashboard },
+		...(sessionStore.can('view:queue:general') ? [{ href: '/nurse', label: 'Queue', icon: ClipboardList, badge: waitingCount }] : []),
+		...(sessionStore.can('manage:patients') ? [{ href: '/nurse/register', label: 'Register', icon: UserPlus }] : []),
+		...(sessionStore.can('manage:vitals') ? [{ href: '/nurse/vitals', label: 'Vitals', icon: Thermometer }] : []),
+		...(sessionStore.can('view:patients') ? [{ href: '/nurse/search', label: 'Search', icon: Search }] : [])
 	]);
 
 	const userInitials = $derived(

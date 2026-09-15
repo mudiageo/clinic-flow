@@ -8,7 +8,7 @@ import { grantPermission, revokePermission } from '$lib/server/db/queries/permis
 export const getStaffPermissions = query(v.string(), async (staffId) => {
 	const event = getRequestEvent();
 	if (!event.locals.staffId) throw new Error('Unauthorized');
-	await requirePermission(event.locals.staffId, 'manage:staff');
+	await requirePermission('manage:permissions');
 
 	return await db.query.permissions.findMany({
 		where: (p, { and, eq }) => and(eq(p.staffId, staffId), eq(p.revoked, false)),
@@ -20,7 +20,7 @@ export const getPhcPermissionsAudit = query(async () => {
 	const event = getRequestEvent();
 	if (!event.locals.staffId || !event.locals.phcId) throw new Error('Unauthorized');
 
-	await requirePermission(event.locals.staffId, 'manage:staff');
+	await requirePermission('view:audit');
 
 	return await db.query.permissions.findMany({
 		where: (p, { eq }) => eq(p.phcId, event.locals.phcId!),
@@ -40,7 +40,7 @@ export const getPlatformPermissionsAudit = query(async () => {
 	const event = getRequestEvent();
 	if (!event.locals.staffId) throw new Error('Unauthorized');
 
-	await requirePermission(event.locals.staffId, 'superadmin:all');
+	await requirePermission('view:audit');
 
 	return await db.query.permissions.findMany({
 		with: {
@@ -67,7 +67,7 @@ export const grantPermissionAction = form(
 		const event = getRequestEvent();
 		if (!event.locals.staffId || !event.locals.phcId) throw new Error('Unauthorized');
 
-		await requirePermission(event.locals.staffId, 'manage:staff');
+		await requirePermission('manage:permissions');
 
 		return await grantPermission({
 			staffId: data.staffId,
@@ -87,7 +87,7 @@ export const revokePermissionAction = form(
 		const event = getRequestEvent();
 		if (!event.locals.staffId || !event.locals.phcId) throw new Error('Unauthorized');
 
-		await requirePermission(event.locals.staffId, 'manage:staff');
+		await requirePermission('manage:permissions');
 
 		return await revokePermission({
 			staffId: data.staffId,
