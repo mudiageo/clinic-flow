@@ -176,7 +176,7 @@
 							</div>
 						{:else}
 							<div class="space-y-3 mt-2">
-								{#each queueStore.generalQueue.slice(0, 3) as ticket}
+								{#each queueStore.generalQueue.slice(0, 3) as ticket (ticket.id)}
 									<div class="flex items-center justify-between text-sm">
 										<div class="flex items-center gap-2">
 											<div class="size-2 rounded-full {ticket.triageLevel === 'red' ? 'bg-red-500 animate-pulse' : ticket.triageLevel === 'amber' ? 'bg-amber-500' : 'bg-emerald-500'}"></div>

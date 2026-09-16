@@ -105,13 +105,13 @@
 			if (mod.id === 'triage-board') badge = queueStore.generalQueue.length;
 			if (mod.id === 'anc-queue') badge = queueStore.ancQueue.length;
 			if (mod.id === 'epi-queue') badge = queueStore.epiQueue.length;
-			if (mod.id === 'reminders') badge = reminderStore.overdue?.length ?? 0;
+			if (mod.id === 'reminders') badge = reminderStore.pendingReminders?.length ?? 0;
 			if (mod.id === 'inventory') badge = pharmacyStore.items.filter((i: any) => i.quantity <= (i.reorderLevel ?? 5)).length;
 
 			groups[mod.category].items.push({
-				href: mod.path,
+				href: mod.href,
 				label: mod.label,
-				icon: ICONS[mod.icon] ?? Home,
+				icon: ICONS[mod.iconName] ?? Home,
 				badge
 			});
 		}
@@ -132,13 +132,13 @@
 			if (mod.id === 'triage-board') badge = queueStore.generalQueue.length;
 			if (mod.id === 'anc-queue') badge = queueStore.ancQueue.length;
 			if (mod.id === 'epi-queue') badge = queueStore.epiQueue.length;
-			if (mod.id === 'reminders') badge = reminderStore.overdue?.length ?? 0;
+			if (mod.id === 'reminders') badge = reminderStore.pendingReminders?.length ?? 0;
 			if (mod.id === 'inventory') badge = pharmacyStore.items.filter((i: any) => i.quantity <= (i.reorderLevel ?? 5)).length;
 			
 			items.push({
-				href: mod.path,
+				href: mod.href,
 				label: mod.label,
-				icon: ICONS[mod.icon] ?? Home,
+				icon: ICONS[mod.iconName] ?? Home,
 				badge,
 				badgeVariant: badge > 0 ? 'destructive' : 'default'
 			});
