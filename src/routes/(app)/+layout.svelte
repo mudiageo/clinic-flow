@@ -120,12 +120,15 @@
 	});
 
 	const ROLE_PRIORITY_MODULES: Record<string, string[]> = {
+		receptionist: ['register-patient', 'search-patient', 'appointments', 'triage-board'],
 		nurse: ['triage-board', 'vitals-station', 'register-patient', 'reminders'],
 		nurse_midwife: ['anc-clinics', 'maternity-ward', 'immunization', 'triage-board'],
 		doctor: ['doctor-queue', 'patient-records', 'lab-requests', 'appointments'],
 		pharmacy: ['dispense', 'inventory', 'restock', 'pharmacy-reports'],
 		chew: ['field-mode', 'outreach-log', 'triage-board', 'register-patient'],
 		jchew: ['field-mode', 'outreach-log', 'register-patient'],
+		cho: ['triage-board', 'outreach-log', 'reports', 'staff-management'],
+		eho: ['outbreak-radar', 'idsr-report', 'field-mode', 'reports'],
 		admin: ['reports', 'staff-management', 'phc-settings', 'appointments'],
 		oic: ['reports', 'staff-management', 'phc-settings', 'appointments'],
 		superadmin: ['global-phcs', 'system-health', 'global-billing', 'ota-releases']
