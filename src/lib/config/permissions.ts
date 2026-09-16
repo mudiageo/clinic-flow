@@ -59,7 +59,8 @@ export type PermissionKey =
 	| 'manage:triage_rules'
 	| 'manage:nhis'
 	| 'view:sms_inbox'
-	| 'view:sync_health';
+	// Global Platform
+	| 'manage:platform';
 
 export const PERMISSION_DESCRIPTIONS: Record<PermissionKey, { label: string; description: string; category: string }> = {
 	'manage:patients': { label: 'Manage Patients', description: 'Register, edit, view all patient records', category: 'Patient Management' },
@@ -111,5 +112,7 @@ export const PERMISSION_DESCRIPTIONS: Record<PermissionKey, { label: string; des
 	'manage:triage_rules': { label: 'Manage Triage Rules', description: 'Edit AI triage thresholds', category: 'Administration' },
 	'manage:nhis': { label: 'Manage NHIS', description: 'Manage NHIS claims & billing', category: 'Administration' },
 	'view:sms_inbox': { label: 'View SMS Inbox', description: 'View two-way SMS inbox', category: 'Administration' },
-	'view:sync_health': { label: 'View Sync Health', description: 'View server sync health & status', category: 'Administration' }
+	'view:sync_health': { label: 'View Sync Health', description: 'View server sync health & status', category: 'Administration' },
+	
+	'manage:platform': { label: 'Manage Platform', description: 'Global Superadmin platform configuration', category: 'Platform Management' }
 };

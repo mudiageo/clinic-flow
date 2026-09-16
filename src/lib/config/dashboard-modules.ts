@@ -62,5 +62,17 @@ export const DASHBOARD_MODULES: DashboardModule[] = [
 	{ id: 'nhis-claims', label: 'NHIS Claims', iconName: 'CreditCard', href: '/admin/nhis-claims', permission: 'manage:nhis', category: 'Administration' },
 	{ id: 'sms-inbox', label: 'SMS Inbox', iconName: 'MessageSquare', href: '/admin/sms-inbox', permission: 'view:sms_inbox', category: 'Administration' },
 	{ id: 'sync-health', label: 'Server Sync', iconName: 'Wifi', href: '/admin/sync-health', permission: 'view:sync_health', category: 'Administration' },
-	{ id: 'audit-log', label: 'Audit Log', iconName: 'FileSearch', href: '/admin/audit', permission: 'view:audit', category: 'Administration' }
+	{ id: 'audit-log', label: 'Audit Log', iconName: 'FileSearch', href: '/admin/audit', permission: 'view:audit', category: 'Administration' },
+
+	// Pharmacy Extra
+	{ id: 'pharmacy-reports', label: 'Pharmacy Analytics', iconName: 'BarChart3', href: '/pharmacy/reports', permission: 'view:reports', category: 'Pharmacy' },
+
+	// Platform Management (Global Superadmin Only)
+	{ id: 'global-phcs', label: 'Clinics & Tenants', iconName: 'Building2', href: '/superadmin/phcs', permission: 'manage:platform', category: 'Platform Management' },
+	{ id: 'global-users', label: 'Global Users', iconName: 'Users', href: '/superadmin/users', permission: 'manage:platform', category: 'Platform Management' },
+	{ id: 'global-billing', label: 'Platform Billing', iconName: 'CreditCard', href: '/superadmin/billing', permission: 'manage:platform', category: 'Platform Management' },
+	{ id: 'global-epidemiology', label: 'Global Epidemiology', iconName: 'Globe2', href: '/superadmin/epidemiology', permission: 'manage:platform', category: 'Platform Management' },
+	{ id: 'global-announcements', label: 'Announcements', iconName: 'Megaphone', href: '/superadmin/announcements', permission: 'manage:platform', category: 'Platform Management' },
+	{ id: 'ota-releases', label: 'OTA Releases', iconName: 'Rocket', href: '/superadmin/releases', permission: 'manage:platform', category: 'Platform Management' },
+	{ id: 'system-health', label: 'System Health', iconName: 'Server', href: '/superadmin/system', permission: 'manage:platform', category: 'Platform Management' }
 ];

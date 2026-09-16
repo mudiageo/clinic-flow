@@ -1,36 +1,19 @@
 # Permission-Composable Dashboard System — Tasks
 
-## Phase 1: Config Files (Backend)
-- [x] Create `$lib/config/permissions.ts` — Full permission registry
-- [x] Create `$lib/config/role-defaults.ts` — Default sets per role
-- [x] Create `$lib/config/dashboard-modules.ts` — Full module registry
+## Phase 1-7: Core Permissions & Routing
+- [x] Backend Configs, Store, Role Defaults
+- [x] Permission Editor UI
+- [x] Role-Specific Views (/field, /maternity, /pharmacy/cold-chain, /immunization)
+- [x] Initial Changeset & Docs
 
-## Phase 2: Server-side Permissions
-- [x] Update `auth.remote.ts` — Inject active permissions into session data on login (Done via `hooks.server.ts` globally for all endpoints)
-- [x] Update `hooks.server.ts` — Route guards check permissions (not just role) using DASHBOARD_MODULES mapping
-- [x] Add `grantPermission`, `revokePermission`, `resetToDefaults`, `getStaffPermissions` to `permissions.remote.ts`
-- [x] Refactored `requirePermission` across the app to use the new permission registry and server locals
+## Phase 8: Universal App Shell (Navigation Refactor)
+- [x] Move `<AppSidebar>` and `<BottomNav>` to `src/routes/(app)/+layout.svelte`
+- [x] Dynamically populate Sidebar/BottomNav using `DASHBOARD_MODULES` and `sessionStore.can()`
+- [x] Delete redundant nested layouts (e.g., `/nurse/+layout.svelte`, `/admin/+layout.svelte`)
 
-## Phase 3: Client Permission Store
-- [x] Create `$lib/state/session.svelte.ts` with `can(key)`, `canAny()`, `canAll()` reactive helpers
-- [x] Update `(app)/+layout.svelte` — Populate session store from page data, expose via context
-
-## Phase 4: Universal Dashboard
-- [x] Rebuild `/dashboard/+page.svelte` — Dynamic category-grouped tile grid with live stat widgets
-- [x] Update login redirects — All roles (email + PIN login) land at `/dashboard`
-- [x] Update sidebar nav — Filter all nav links through `can()` helper
-
-## Phase 5: Permission Editor UI
-- [x] Build `/admin/permissions/+page.svelte`
-- [x] Wire up grant/revoke/reset remotes
-- [x] Add audit log entries per toggle
-
-## Phase 6: New Role-Specific Views
-- [x] Build `/field` — CHEW Field Mode
-- [x] Build `/maternity` — Maternity Ward Board
-- [x] Build `/pharmacy/cold-chain` — Cold Chain Tracker
-- [x] Build `/immunization` — EPI Schedule Tracker
-
-## Phase 7: Changeset & Docs
-- [x] Create `.changeset/permission-composable-dashboard.md`
-- [x] Create user-facing support docs for the Permission Editor
+## Phase 9: Interactive Data Dashboard (The Missing UI)
+- [x] Add "Action Buttons" to tiles (e.g., "Book Now", "Send SMS", "Request Restock")
+- [x] Inject Live Queue Widget (table/list) directly into the dashboard for users with queue permissions
+- [x] Inject Admin Analytics Widgets (Charts, Total Patients, Completed Consultations) for OIC/Admins
+- [x] Inject Outbreak/System Alerts Widget directly on the dashboard
+- [x] Build proper empty states and skeleton loaders for the new dashboard widgets
