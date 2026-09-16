@@ -2,6 +2,7 @@
 	import { Card, CardContent } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
+	import { syncStore } from '$lib/state/sync.svelte';
 	import { 
 		UserPlus, 
 		Activity, 
@@ -9,17 +10,15 @@
 		MapPin, 
 		WifiOff,
 		CloudUpload,
-		Syringe
+		Syringe,
+		ShieldAlert
 	} from '@lucide/svelte';
-	
-	// Mock offline stats
-	let pendingSyncs = $state(0);
 	
 	const ACTIONS = [
 		{ label: 'Register Patient', icon: UserPlus, href: '/nurse/register', color: 'text-blue-600 bg-blue-50 border-blue-100' },
-		{ label: 'Log Household Visit', icon: Home, href: '#', color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
-		{ label: 'Record Vitals', icon: Activity, href: '/nurse/vitals', color: 'text-rose-600 bg-rose-50 border-rose-100' },
-		{ label: 'Immunization (EPI)', icon: Syringe, href: '/immunization', color: 'text-teal-600 bg-teal-50 border-teal-100' }
+		{ label: 'Household Visit', icon: Home, href: '/families', color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
+		{ label: 'Outreach Log', icon: MapPin, href: '/field/outreach', color: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
+		{ label: 'Record Vitals', icon: Activity, href: '/nurse/vitals', color: 'text-rose-600 bg-rose-50 border-rose-100' }
 	];
 </script>
 
@@ -46,10 +45,12 @@
 		<Button 
 			variant="outline" 
 			size="sm" 
-			class="h-10 rounded-xl {pendingSyncs > 0 ? 'border-amber-200 text-amber-700 bg-amber-50' : 'text-muted-foreground'}"
+			onclick={() => syncStore.flush()}
+			disabled={syncStore.isSyncing || syncStore.pendingCount === 0}
+			class="h-10 rounded-xl {syncStore.pendingCount > 0 ? 'border-amber-200 text-amber-700 bg-amber-50' : 'text-muted-foreground'}"
 		>
-			<CloudUpload class="size-4 mr-2" />
-			Sync ({pendingSyncs})
+			<CloudUpload class="size-4 mr-2 {syncStore.isSyncing ? 'animate-bounce' : ''}" />
+			Sync ({syncStore.pendingCount})
 		</Button>
 	</div>
 
@@ -83,4 +84,16 @@
 			</CardContent>
 		</Card>
 	</div>
+
+	<Card class="bg-red-50 border-red-200 mt-8">
+		<CardContent class="p-4 flex gap-3">
+			<ShieldAlert class="size-5 shrink-0 text-red-600 mt-0.5" />
+			<div>
+				<h4 class="text-sm font-semibold text-red-900">Critical Safety Protocol</h4>
+				<p class="text-xs mt-1 text-red-800 leading-relaxed">
+					If you detect any critical red flags in the field (e.g., severe acute malnutrition, prolonged fever, signs of Lassa), you MUST initiate an immediate physical referral to the PHC. Do not rely solely on offline AI triage for critical cases.
+				</p>
+			</div>
+		</CardContent>
+	</Card>
 </div>

@@ -49,7 +49,7 @@ export const DASHBOARD_MODULES: DashboardModule[] = [
 
 	// Analytics & Reporting
 	{ id: 'reports', label: 'HMIS Analytics', iconName: 'BarChart3', href: '/admin/reports', permission: 'view:reports', category: 'Analytics & Reporting' },
-	{ id: 'dhis2-export', label: 'Export to DHIS2', iconName: 'Download', href: '/admin/reports?export=dhis2', permission: 'export:dhis2', category: 'Analytics & Reporting' },
+	{ id: 'dhis2-export', label: 'Export to DHIS2', iconName: 'Download', href: '/admin/reports/dhis2', permission: 'export:dhis2', category: 'Analytics & Reporting' },
 	{ id: 'outbreak-radar', label: 'Outbreak Radar', iconName: 'Radar', href: '/admin/outbreak-radar', permission: 'view:outbreaks', category: 'Analytics & Reporting' },
 	{ id: 'idsr-report', label: 'IDSR Weekly Report', iconName: 'FileText', href: '/admin/outbreak-radar?tab=idsr', permission: 'view:idsr', category: 'Analytics & Reporting' },
 
