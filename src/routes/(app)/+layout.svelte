@@ -119,6 +119,18 @@
 		return Object.values(groups);
 	});
 
+	const ROLE_PRIORITY_MODULES: Record<string, string[]> = {
+		nurse: ['triage-board', 'vitals-station', 'register-patient', 'reminders'],
+		nurse_midwife: ['anc-clinics', 'maternity-ward', 'immunization', 'triage-board'],
+		doctor: ['doctor-queue', 'patient-records', 'lab-requests', 'appointments'],
+		pharmacy: ['dispense', 'inventory', 'restock', 'pharmacy-reports'],
+		chew: ['field-mode', 'outreach-log', 'triage-board', 'register-patient'],
+		jchew: ['field-mode', 'outreach-log', 'register-patient'],
+		admin: ['reports', 'staff-management', 'phc-settings', 'appointments'],
+		oic: ['reports', 'staff-management', 'phc-settings', 'appointments'],
+		superadmin: ['global-phcs', 'system-health', 'global-billing', 'ota-releases']
+	};
+
 	const bottomNavItems = $derived.by(() => {
 		const items: BottomNavItem[] = [];
 		items.push({
@@ -127,7 +139,21 @@
 			icon: LayoutDashboard
 		});
 		
-		for (const mod of visibleModules.slice(0, 4)) {
+		const role = sessionStore.role ?? 'staff';
+		const priorities = ROLE_PRIORITY_MODULES[role] ?? [];
+		
+		// 1. Extract priority modules the user actually has permission to see
+		let selectedMods = priorities
+			.map(id => visibleModules.find(m => m.id === id))
+			.filter(Boolean) as typeof visibleModules;
+			
+		// 2. Backfill with other visible modules if we don't have 4 yet
+		if (selectedMods.length < 4) {
+			const backfill = visibleModules.filter(m => !selectedMods.includes(m));
+			selectedMods = [...selectedMods, ...backfill].slice(0, 4);
+		}
+		
+		for (const mod of selectedMods) {
 			let badge = 0;
 			if (mod.id === 'triage-board') badge = queueStore.generalQueue.length;
 			if (mod.id === 'anc-queue') badge = queueStore.ancQueue.length;
