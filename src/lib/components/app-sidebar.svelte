@@ -79,7 +79,7 @@
 				<Sidebar.GroupLabel>{group.label}</Sidebar.GroupLabel>
 				<Sidebar.GroupContent>
 					<Sidebar.Menu>
-						{#each group.items as item (item.href)}
+						{#each group.items as item (item.label)}
 							<Sidebar.MenuItem>
 								<Sidebar.MenuButton
 									isActive={page.url.pathname === item.href}

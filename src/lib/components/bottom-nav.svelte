@@ -26,7 +26,7 @@
 <nav
 	class="md:hidden fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t border-border bg-background/80 backdrop-blur-lg pb-safe"
 >
-	{#each items.slice(0, 5) as item (item.href)}
+	{#each items.slice(0, 5) as item (item.label)}
 		{@const active = isActive(item.href)}
 		<a
 			href={item.href}
