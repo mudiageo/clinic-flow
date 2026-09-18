@@ -363,8 +363,8 @@ export const signInWithPin = form(
 
 		// BetterAuth creates the 'session' table automatically
 		await db.execute(sql`
-			INSERT INTO "session" (id, expires_at, token, created_at, updated_at, ip_address, user_agent, user_id)
-			VALUES (${sessionId}, ${expiresAt}, ${sessionToken}, NOW(), NOW(), ${event.getClientAddress()}, ${event.request.headers.get('user-agent')}, ${staffMember.authUserId})
+			INSERT INTO "session" (id, expires_at, token, created_at, updated_at, ip_address, user_agent, user_id, role)
+			VALUES (${sessionId}, ${expiresAt.toISOString()}, ${sessionToken}, NOW(), NOW(), ${event.getClientAddress()}, ${event.request.headers.get('user-agent')}, ${staffMember.authUserId}, ${staffMember.role})
 		`);
 
 		// 4. Set the BetterAuth session cookie

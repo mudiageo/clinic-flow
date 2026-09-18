@@ -3,9 +3,10 @@
 	import { encounterStore } from '$lib/state/encounters.svelte';
 	import { vitalsStore } from '$lib/state/vitals.svelte';
 	import { Button } from '$lib/components/ui/button';
+	import { Badge } from '$lib/components/ui/badge';
 	import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '$lib/components/ui/card';
 	import { toast } from 'svelte-sonner';
-	import { Download, FileJson, AlertTriangle } from 'lucide-svelte';
+	import { Download, FileJson, AlertTriangle } from '@lucide/svelte';
 
 	let isExporting = $state(false);
 	let previewData = $state<any>(null);
@@ -29,19 +30,23 @@
 			return acc;
 		}, {} as Record<string, number>);
 
+		const now = new Date();
+		const period = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}`; // YYYYMM format for DHIS2
+
 		const payload = {
-			orgUnit: 'CLINIC_FLOW_LOCAL_PHC',
-			period: new Date().toISOString().slice(0, 7), // YYYY-MM
+			dataSet: 'CLINIC_FLOW_DATASET_UID',
+			completeDate: now.toISOString().split('T')[0],
+			orgUnit: 'CLINIC_FLOW_LOCAL_PHC_UID',
+			period: period,
 			dataValues: [
-				{ dataElement: 'TOTAL_PATIENTS', value: totalPatients },
-				{ dataElement: 'TOTAL_ENCOUNTERS', value: totalEncounters },
-				{ dataElement: 'PATIENTS_MALE', value: genderSplit['M'] || 0 },
-				{ dataElement: 'PATIENTS_FEMALE', value: genderSplit['F'] || 0 },
-				{ dataElement: 'TRIAGE_RED', value: triageStats['red'] || 0 },
-				{ dataElement: 'TRIAGE_AMBER', value: triageStats['amber'] || 0 },
-				{ dataElement: 'TRIAGE_GREEN', value: triageStats['green'] || 0 }
-			],
-			timestamp: new Date().toISOString()
+				{ dataElement: 'TOTAL_PATIENTS_UID', value: totalPatients.toString() },
+				{ dataElement: 'TOTAL_ENCOUNTERS_UID', value: totalEncounters.toString() },
+				{ dataElement: 'PATIENTS_MALE_UID', value: (genderSplit['M'] || 0).toString() },
+				{ dataElement: 'PATIENTS_FEMALE_UID', value: (genderSplit['F'] || 0).toString() },
+				{ dataElement: 'TRIAGE_RED_UID', value: (triageStats['red'] || 0).toString() },
+				{ dataElement: 'TRIAGE_AMBER_UID', value: (triageStats['amber'] || 0).toString() },
+				{ dataElement: 'TRIAGE_GREEN_UID', value: (triageStats['green'] || 0).toString() }
+			]
 		};
 
 		previewData = payload;
@@ -57,13 +62,13 @@
 			
 			const a = document.createElement('a');
 			a.href = url;
-			a.download = `dhis2-export-${new Date().toISOString().slice(0, 10)}.json`;
+			a.download = `dhis2-dataValueSet-${previewData.period}.json`;
 			document.body.appendChild(a);
 			a.click();
 			document.body.removeChild(a);
 			URL.revokeObjectURL(url);
 			
-			toast.success('DHIS2 Payload downloaded successfully');
+			toast.success('DHIS2 dataValueSet downloaded successfully');
 		} catch (error: any) {
 			toast.error('Export failed: ' + error.message);
 		} finally {
@@ -76,13 +81,13 @@
 	<title>DHIS2 Export — ClinicFlow</title>
 </svelte:head>
 
-<div class="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+<div class="space-y-6 animate-in fade-in slide-in-from-bottom-4 pb-10">
 	<div>
 		<h1 class="text-2xl font-bold tracking-tight">DHIS2 Data Bridge</h1>
 		<p class="text-muted-foreground">Export aggregated clinical data to the National Health Management Information System.</p>
 	</div>
 
-	<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+	<div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
 		<Card>
 			<CardHeader>
 				<CardTitle class="flex items-center gap-2">
@@ -104,7 +109,7 @@
 
 				<div class="flex justify-between items-center pt-4 border-t">
 					<Button variant="outline" onclick={generatePayload}>Preview Data</Button>
-					<Button onclick={handleDownload} disabled={isExporting} class="bg-indigo-600 hover:bg-indigo-700">
+					<Button onclick={handleDownload} disabled={isExporting || !previewData} class="bg-indigo-600 hover:bg-indigo-700">
 						<Download class="size-4 mr-2" />
 						Download JSON
 					</Button>
@@ -113,12 +118,36 @@
 		</Card>
 
 		{#if previewData}
-			<Card class="bg-slate-950 text-slate-50 border-slate-800 overflow-hidden">
-				<CardHeader class="border-b border-slate-800 pb-3">
-					<CardTitle class="text-sm font-mono text-slate-300">Payload Preview</CardTitle>
+			<Card class="border-border shadow-sm overflow-hidden animate-fade-in">
+				<CardHeader class="bg-muted/30 pb-3 border-b border-border/50">
+					<CardTitle class="text-base flex items-center justify-between">
+						<span>dataValueSet Preview</span>
+						<Badge variant="outline" class="font-mono bg-background">Period: {previewData.period}</Badge>
+					</CardTitle>
 				</CardHeader>
 				<CardContent class="p-0">
-					<pre class="p-4 text-xs font-mono overflow-auto max-h-[300px] text-green-400">{JSON.stringify(previewData, null, 2)}</pre>
+					<div class="overflow-x-auto">
+						<table class="w-full text-sm text-left">
+							<thead class="text-xs text-muted-foreground uppercase bg-muted/20 border-b border-border/50">
+								<tr>
+									<th class="px-4 py-3 font-medium">Data Element UID</th>
+									<th class="px-4 py-3 font-medium text-right">Value</th>
+								</tr>
+							</thead>
+							<tbody class="divide-y divide-border/30">
+								{#each previewData.dataValues as item}
+									<tr class="hover:bg-muted/10 transition-colors">
+										<td class="px-4 py-3 font-mono text-xs text-primary">{item.dataElement}</td>
+										<td class="px-4 py-3 font-semibold text-right tabular-nums">{item.value}</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
+					<div class="bg-muted/10 p-3 border-t border-border/30 text-xs text-muted-foreground flex justify-between">
+						<span>OrgUnit: <span class="font-mono">{previewData.orgUnit}</span></span>
+						<span>DataSet: <span class="font-mono">{previewData.dataSet}</span></span>
+					</div>
 				</CardContent>
 			</Card>
 		{/if}

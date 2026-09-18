@@ -128,6 +128,23 @@
 		}, 1500);
 	}
 
+	import { seedDemoData } from '$lib/utils/seed';
+	
+	let isSeeding = $state(false);
+
+	async function runDemoSeed() {
+		isSeeding = true;
+		try {
+			toast.info('Seeding demo data...');
+			await seedDemoData();
+			toast.success('Demo data injected successfully! Syncing...');
+		} catch (e: any) {
+			toast.error('Failed to seed: ' + e.message);
+		} finally {
+			isSeeding = false;
+		}
+	}
+
 	async function resetDemoData() {
 		isResetting = true;
 		try {
@@ -341,7 +358,25 @@
 			</CardTitle>
 			<CardDescription>Irreversible actions that affect your local data.</CardDescription>
 		</CardHeader>
-		<CardContent>
+		<CardContent class="space-y-4">
+			<div class="flex items-center justify-between p-4 border border-indigo-200 rounded-lg bg-indigo-50/50">
+				<div>
+					<h4 class="font-bold text-indigo-900">Seed Demo Data</h4>
+					<p class="text-sm text-indigo-700/80 mt-1">
+						Injects realistic Nigerian dummy patients, a simulated Cholera outbreak, and active triage queues for hackathon pitch testing.
+					</p>
+				</div>
+				<Button variant="outline" class="border-indigo-200 text-indigo-700 hover:bg-indigo-100 shrink-0 ml-4" disabled={isSeeding} onclick={runDemoSeed}>
+					{#if isSeeding}
+						<RotateCcw class="size-4 mr-2 animate-spin" />
+						Seeding...
+					{:else}
+						<TestTube2 class="size-4 mr-2" />
+						Seed Data
+					{/if}
+				</Button>
+			</div>
+
 			<div class="flex items-center justify-between p-4 border border-destructive/20 rounded-lg bg-destructive/5">
 				<div>
 					<h4 class="font-bold text-foreground">Reset Local Database</h4>
