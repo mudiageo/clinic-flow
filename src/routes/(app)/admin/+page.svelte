@@ -26,7 +26,8 @@
 	import { SpotlightCard } from '$lib/components/ui/spotlight-card';
 	import { NumberTicker } from '$lib/components/ui/number-ticker';
 	import { Alert, AlertTitle, AlertDescription } from '$lib/components/ui/alert';
-	import { Users, ClipboardList, AlertTriangle, Activity, ShieldAlert, CheckCircle2, CloudSync, Wifi, WifiOff, Siren } from '@lucide/svelte';
+	import { Button } from '$lib/components/ui/button';
+	import { Users, ClipboardList, AlertTriangle, Activity, ShieldAlert, CheckCircle2, CloudSync, Wifi, WifiOff, Siren, CloudUpload, PackageX } from '@lucide/svelte';
 
 	import { onMount } from 'svelte';
 	import { getPhcStaffList } from '$lib/remote/admin.remote';
@@ -365,68 +366,58 @@
 		<Card class="card-hover">
 			<CardHeader class="pb-3">
 				<div class="flex items-center gap-2">
-					<ShieldAlert class="size-4 text-muted-foreground" />
-					<CardTitle class="text-base font-semibold">Triage Distribution</CardTitle>
+					<AlertTriangle class="size-4 text-muted-foreground" />
+					<CardTitle class="text-base font-semibold">System Alerts</CardTitle>
 				</div>
-				<CardDescription>Percentage breakdown of patients in waiting queue</CardDescription>
 			</CardHeader>
-			<CardContent class="space-y-5">
-				<!-- RED -->
-				<div class="space-y-2">
-					<div class="flex items-center justify-between text-sm">
-						<div class="flex items-center gap-2">
-							<span class="size-2.5 rounded-full bg-triage-red inline-block"></span>
-							<span class="text-triage-red font-semibold">RED — Immediate Priority</span>
+			<CardContent class="space-y-4">
+				{#if syncStore.pendingCount > 0}
+					<div class="flex items-center gap-4 rounded-lg border bg-amber-50/50 p-3">
+						<div class="rounded-full bg-amber-100 p-2 text-amber-600">
+							<CloudUpload class="size-4 animate-bounce" />
 						</div>
-						<span class="text-foreground font-bold tabular-nums"
-							>{triageStats.red} ({redPercent.toFixed(0)}%)</span
-						>
+						<div class="flex-1 space-y-1">
+							<p class="text-sm font-medium leading-none text-amber-900">
+								Pending Offline Sync
+							</p>
+							<p class="text-sm text-amber-700/80">
+								{syncStore.pendingCount} records waiting to sync.
+							</p>
+						</div>
+						<Button size="sm" variant="outline" class="h-8 border-amber-200 text-amber-700 hover:bg-amber-100" onclick={() => syncStore.flush()} disabled={syncStore.isSyncing}>
+							Sync Now
+						</Button>
 					</div>
-					<div class="relative h-2.5 w-full overflow-hidden rounded-full bg-muted">
-						<div
-							class="h-full rounded-full bg-triage-red transition-all duration-700 ease-out"
-							style="width: {redPercent}%"
-						></div>
-					</div>
-				</div>
+				{/if}
 
-				<!-- AMBER -->
-				<div class="space-y-2">
-					<div class="flex items-center justify-between text-sm">
-						<div class="flex items-center gap-2">
-							<span class="size-2.5 rounded-full bg-triage-amber inline-block"></span>
-							<span class="text-triage-amber font-semibold">AMBER — Warning Priority</span>
+				{#if lowStockItems.length > 0}
+					<div class="flex flex-col gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-3">
+						<div class="flex items-center gap-4">
+							<div class="rounded-full bg-destructive/10 p-2 text-destructive">
+								<PackageX class="size-4" />
+							</div>
+							<div class="flex-1 space-y-1">
+								<p class="text-sm font-medium leading-none text-destructive">
+									Low Stock Warning
+								</p>
+								<p class="text-sm text-destructive/80">
+									{lowStockItems.length} items are below threshold.
+								</p>
+							</div>
+							<Button size="sm" variant="outline" class="h-8 border-destructive/20 text-destructive hover:bg-destructive/10" onclick={() => window.location.href = '/pharmacy/restock'}>
+								Request Restock
+							</Button>
 						</div>
-						<span class="text-foreground font-bold tabular-nums"
-							>{triageStats.amber} ({amberPercent.toFixed(0)}%)</span
-						>
 					</div>
-					<div class="relative h-2.5 w-full overflow-hidden rounded-full bg-muted">
-						<div
-							class="h-full rounded-full bg-triage-amber transition-all duration-700 ease-out"
-							style="width: {amberPercent}%"
-						></div>
-					</div>
-				</div>
+				{/if}
 
-				<!-- GREEN -->
-				<div class="space-y-2">
-					<div class="flex items-center justify-between text-sm">
-						<div class="flex items-center gap-2">
-							<span class="size-2.5 rounded-full bg-triage-green inline-block"></span>
-							<span class="text-triage-green font-semibold">GREEN — Stable Priority</span>
-						</div>
-						<span class="text-foreground font-bold tabular-nums"
-							>{triageStats.green} ({greenPercent.toFixed(0)}%)</span
-						>
+				{#if syncStore.pendingCount === 0 && lowStockItems.length === 0}
+					<div class="flex flex-col items-center justify-center p-6 text-center text-muted-foreground border border-dashed rounded-lg">
+						<CheckCircle2 class="size-8 text-green-500 mb-2 opacity-80" />
+						<p class="text-sm font-medium text-green-600">All Systems Nominal</p>
+						<p class="text-xs mt-1">No alerts or pending syncs.</p>
 					</div>
-					<div class="relative h-2.5 w-full overflow-hidden rounded-full bg-muted">
-						<div
-							class="h-full rounded-full bg-triage-green transition-all duration-700 ease-out"
-							style="width: {greenPercent}%"
-						></div>
-					</div>
-				</div>
+				{/if}
 			</CardContent>
 		</Card>
 		</div>
@@ -512,11 +503,17 @@
 					{:else}
 						<div class="flex -space-x-3 overflow-hidden p-1">
 							{#each activeStaff as staff}
-								<Avatar class="border-2 border-background ring-2 ring-transparent">
-									<AvatarFallback class="bg-primary/10 text-primary font-medium text-xs">
-										{staff.fullName.substring(0,2).toUpperCase()}
-									</AvatarFallback>
-								</Avatar>
+								<div class="relative group">
+									<Avatar class="border-2 border-background ring-2 ring-transparent">
+										<AvatarFallback class="bg-primary/10 text-primary font-medium text-xs">
+											{staff.fullName.substring(0,2).toUpperCase()}
+										</AvatarFallback>
+									</Avatar>
+									<span class="absolute bottom-0 right-0 size-3 rounded-full border-2 border-background bg-green-500"></span>
+									<div class="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-foreground text-background text-xs px-2 py-1 rounded shadow pointer-events-none whitespace-nowrap z-50">
+										{staff.fullName}
+									</div>
+								</div>
 							{/each}
 						</div>
 					{/if}

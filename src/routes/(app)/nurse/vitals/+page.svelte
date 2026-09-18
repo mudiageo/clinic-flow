@@ -16,6 +16,7 @@
 		CardContent,
 		CardDescription
 	} from '$lib/components/ui/card';
+	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Stepper from '$lib/components/ui/stepper';
 	import { ShinyButton } from '$lib/components/ui/shiny-button';
 	import { toast } from 'svelte-sonner';
@@ -31,7 +32,8 @@
 		ArrowRight,
 		Search,
 		ShieldAlert,
-		Check
+		Check,
+		AlertTriangle
 	} from '@lucide/svelte';
 	import { fade } from 'svelte/transition';
 
@@ -39,6 +41,7 @@
 	let searchQuery = $state('');
 	let selectedPatient = $state<any>(null);
 	let currentStep = $state(1);
+	let showDuplicateWarning = $state(false);
 
 	// Vitals inputs
 	let temperature = $state<number | undefined>(undefined);
@@ -103,7 +106,20 @@
 		}
 	}
 
+	function preSaveVitals() {
+		if (!selectedPatient) return;
+		const activeTickets = queueStore.items.filter(
+			(t: any) => t.patientId === selectedPatient.id && t.status === 'waiting'
+		);
+		if (activeTickets.length > 0) {
+			showDuplicateWarning = true;
+		} else {
+			handleSaveVitals();
+		}
+	}
+
 	async function handleSaveVitals() {
+		showDuplicateWarning = false;
 		if (!selectedPatient) {
 			toast.error('Select a patient first');
 			return;
@@ -522,16 +538,35 @@
 			{:else}
 				<ShinyButton
 					class="bg-primary text-primary-foreground font-semibold px-6"
-					onclick={handleSaveVitals}
+					onclick={preSaveVitals}
 					disabled={isSubmitting || !selectedPatient}
 				>
 					{#if isSubmitting}
 						Saving...
 					{:else}
-						Save &amp; Queue Patient <Check class="size-4 ml-2" />
+						Save & Triag<ArrowRight class="size-4 ml-2" />
 					{/if}
 				</ShinyButton>
 			{/if}
 		</div>
 	</div>
 </div>
+
+<Dialog.Root bind:open={showDuplicateWarning}>
+	<Dialog.Content>
+		<Dialog.Header>
+			<Dialog.Title class="flex items-center gap-2 text-amber-600">
+				<AlertTriangle class="size-5" /> Patient Already in Queue
+			</Dialog.Title>
+			<Dialog.Description>
+				{selectedPatient?.name} already has an active ticket in the waiting queue. Proceeding will update their current triage level instead of creating a new ticket.
+			</Dialog.Description>
+		</Dialog.Header>
+		<Dialog.Footer>
+			<Button variant="outline" onclick={() => (showDuplicateWarning = false)}>Cancel</Button>
+			<Button class="bg-amber-600 hover:bg-amber-700 text-white" onclick={handleSaveVitals}>
+				Update Existing Ticket
+			</Button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>

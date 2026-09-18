@@ -27,6 +27,8 @@
 	} from '@lucide/svelte';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
 	import { NumberTicker } from '$lib/components/ui/number-ticker';
+	import { flip } from 'svelte/animate';
+	import { slide } from 'svelte/transition';
 
 	// Get reactive queue items
 	const sortedQueue = $derived(queueStore.sortedQueue);
@@ -182,7 +184,9 @@
 							</div>
 						{:else}
 							{#each queueItems as ticket (ticket.id)}
-								<QueueTicketCard {ticket} />
+								<div animate:flip={{ duration: 300 }} transition:slide|local>
+									<QueueTicketCard {ticket} />
+								</div>
 							{/each}
 						{/if}
 					</div>
