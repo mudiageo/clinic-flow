@@ -5,6 +5,43 @@ import { requirePermission } from '$lib/server/permissions';
 import { GEMINI_API_KEY } from '$app/env/private';
 import * as v from 'valibot';
 
+async function generateWithRetry(ai: GoogleGenAI, prompt: string, config?: any) {
+	// Fallback chain of models if one is exhausted or deprecated
+	const models = ['gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-2.0-flash'];
+	let lastErr: any;
+
+	for (const model of models) {
+		let retries = 3;
+		let delay = 1000;
+
+		while (retries > 0) {
+			try {
+				const response = await ai.models.generateContent({
+					model,
+					contents: prompt,
+					config
+				});
+				return response;
+			} catch (err: any) {
+				lastErr = err;
+				const isQuotaOrAuth = err?.status === 429 || err?.status === 404 || err?.status === 403 || err?.message?.includes('quota') || err?.message?.includes('available');
+				
+				// If it's a hard limit/deprecation, immediately try the next model
+				if (isQuotaOrAuth) {
+					break; 
+				}
+
+				// Otherwise (e.g., 503 Service Unavailable), do exponential backoff
+				retries--;
+				if (retries === 0) break;
+				await new Promise(r => setTimeout(r, delay));
+				delay *= 2;
+			}
+		}
+	}
+	throw lastErr;
+}
+
 export const structureIntake = command(
 	v.object({ transcript: v.string(), language: v.optional(v.string()) }),
 	async ({ transcript, language }) => {
@@ -13,14 +50,10 @@ export const structureIntake = command(
 	}
 
 	const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-
 	const prompt = AI_PROMPTS.voiceIntake.buildPrompt(transcript, language);
 
 	try {
-		const response = await ai.models.generateContent({
-			model: 'gemini-2.5-flash',
-			contents: prompt
-		});
+		const response = await generateWithRetry(ai, prompt);
 
 		let text = response.text || '{}';
 		text = text
@@ -43,26 +76,17 @@ export const getClinicalDecisionSupport = command(
 		const event = getRequestEvent();
 		if (!event.locals.staffId) throw new Error('Unauthorized');
 		
-		// Enforce permissions before allowing AI access to medical logic
 		await requirePermission('view:patients');
 
-		if (!GEMINI_API_KEY) {
-			throw new Error('GEMINI_API_KEY is not set.');
-		}
+		if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is not set.');
 
 		const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 		const prompt = AI_PROMPTS.clinicalDSS.buildPrompt(vitals, chiefComplaint);
 
 		try {
-			// Using gemini-2.5-pro for higher clinical reasoning capabilities
-			const response = await ai.models.generateContent({
-				model: 'gemini-2.5-pro', 
-				contents: prompt
-			});
-
+			const response = await generateWithRetry(ai, prompt);
 			let text = response.text || '{}';
 			text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-
 			return JSON.parse(text);
 		} catch (err: any) {
 			throw new Error(`Clinical DSS failed: ${err.message}`);
@@ -79,26 +103,16 @@ export const getRxBrainAnalysis = command(
 		const event = getRequestEvent();
 		if (!event.locals.staffId) throw new Error('Unauthorized');
 		
-		// Enforce permissions before allowing AI access to medical logic
 		await requirePermission('view:patients');
-
-		if (!GEMINI_API_KEY) {
-			throw new Error('GEMINI_API_KEY is not set.');
-		}
+		if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is not set.');
 
 		const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 		const prompt = AI_PROMPTS.rxBrain.buildPrompt(patientData, prescriptions);
 
 		try {
-			// Using gemini-2.5-pro for higher clinical reasoning capabilities (drug interactions)
-			const response = await ai.models.generateContent({
-				model: 'gemini-2.5-pro', 
-				contents: prompt
-			});
-
+			const response = await generateWithRetry(ai, prompt);
 			let text = response.text || '{}';
 			text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-
 			return JSON.parse(text);
 		} catch (err: any) {
 			throw new Error(`RxBrain failed: ${err.message}`);
@@ -119,16 +133,9 @@ export const generateSoapNote = command(
 		const event = getRequestEvent();
 		if (!event.locals.staffId) throw new Error('Unauthorized');
 		
-		// Enforce write permissions because this dictates official medical records
 		await requirePermission('manage:consultations');
+		if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is not set.');
 
-		if (!GEMINI_API_KEY) {
-			throw new Error('GEMINI_API_KEY is not set.');
-		}
-
-		// PRIVACY / NDPR COMPLIANCE: 
-		// Strip all Personally Identifiable Information (PII) before sending to the LLM.
-		// We only send clinical context needed for the SOAP note.
 		const deidentifiedProfile = {
 			age: patient.dob ? new Date().getFullYear() - new Date(patient.dob).getFullYear() : patient.estimatedAge,
 			sex: patient.sex,
@@ -137,7 +144,6 @@ export const generateSoapNote = command(
 			genotype: patient.genotype
 		};
 
-		// Strip PII from history encounters too (e.g., recordedBy staff names if any exist, just send clinical notes)
 		const cleanHistory = history.map(h => ({
 			visitDate: h.visitDate,
 			chiefComplaint: h.chiefComplaint,
@@ -149,15 +155,9 @@ export const generateSoapNote = command(
 		const prompt = AI_PROMPTS.soapNote.buildPrompt(vitals, transcript, deidentifiedProfile, cleanHistory, prescriptions, labs);
 
 		try {
-			// Using gemini-2.5-pro for high clinical reasoning
-			const response = await ai.models.generateContent({
-				model: 'gemini-2.5-pro', 
-				contents: prompt
-			});
-
+			const response = await generateWithRetry(ai, prompt);
 			let text = response.text || '{}';
 			text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-
 			return JSON.parse(text);
 		} catch (err: any) {
 			throw new Error(`SOAP Note generation failed: ${err.message}`);
@@ -176,14 +176,9 @@ export const getPatientRiskScore = command(
 		const event = getRequestEvent();
 		if (!event.locals.staffId) throw new Error('Unauthorized');
 		
-		// Enforce read permissions
 		await requirePermission('view:patients');
+		if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is not set.');
 
-		if (!GEMINI_API_KEY) {
-			throw new Error('GEMINI_API_KEY is not set.');
-		}
-
-		// PRIVACY / NDPR COMPLIANCE
 		const deidentifiedProfile = {
 			age: patient.dob ? new Date().getFullYear() - new Date(patient.dob).getFullYear() : patient.estimatedAge,
 			sex: patient.sex,
@@ -191,7 +186,6 @@ export const getPatientRiskScore = command(
 			bloodGroup: patient.bloodGroup
 		};
 
-		// Strip PII from past vitals just in case
 		const cleanPastVitals = pastVitals.map(v => ({
 			temperatureCelsius: v.temperatureCelsius,
 			systolicBp: v.systolicBp,
@@ -206,14 +200,9 @@ export const getPatientRiskScore = command(
 		const prompt = AI_PROMPTS.riskStratification.buildPrompt(vitals, deidentifiedProfile, chiefComplaint, cleanPastVitals);
 
 		try {
-			const response = await ai.models.generateContent({
-				model: 'gemini-2.5-flash', 
-				contents: prompt
-			});
-
+			const response = await generateWithRetry(ai, prompt);
 			let text = response.text || '{}';
 			text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-
 			return JSON.parse(text);
 		} catch (err: any) {
 			throw new Error(`Risk Stratification failed: ${err.message}`);
@@ -229,26 +218,16 @@ export const getEpidemiologyForecast = command(
 		const event = getRequestEvent();
 		if (!event.locals.staffId) throw new Error('Unauthorized');
 
-		// Enforce reporting permissions
-		await requirePermission('view:reports');
+		await requirePermission('view:patients');
+		if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is not set.');
 
-		if (!GEMINI_API_KEY) {
-			throw new Error('GEMINI_API_KEY is not set.');
-		}
-
-		// Use Gemini 2.5 Pro for deep epidemiological reasoning
 		const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 		const prompt = AI_PROMPTS.epidemiologyForecast.buildPrompt(dataBundle);
 
 		try {
-			const response = await ai.models.generateContent({
-				model: 'gemini-2.5-pro',
-				contents: prompt
-			});
-
+			const response = await generateWithRetry(ai, prompt, { responseMimeType: 'application/json' });
 			let text = response.text || '{}';
 			text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-
 			return JSON.parse(text);
 		} catch (err: any) {
 			throw new Error(`Epidemiology Forecast failed: ${err.message}`);

@@ -1,9 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { fade, slide, fly } from 'svelte/transition';
+	import { fade, slide, fly, scale } from 'svelte/transition';
 	import { 
 		HeartPulse, 
-		AlertTriangle, 
 		FileSignature, 
 		WifiOff, 
 		Activity, 
@@ -12,7 +11,9 @@
 		Database, 
 		ChevronRight, 
 		ChevronLeft,
-		Users
+		Users,
+		Clock,
+		Zap
 	} from '@lucide/svelte';
 
 	let currentSlide = $state(0);
@@ -44,69 +45,96 @@
 	<title>ClinicFlow Pitch Deck</title>
 </svelte:head>
 
-<div class="h-screen w-screen bg-slate-950 text-slate-50 overflow-hidden flex flex-col relative font-sans">
+<div class="h-screen w-screen overflow-hidden flex flex-col relative font-sans transition-colors duration-1000 ease-in-out
+	{currentSlide === 0 ? 'bg-slate-950 text-white' : ''}
+	{currentSlide === 1 ? 'bg-rose-950 text-rose-50' : ''}
+	{currentSlide === 2 ? 'bg-indigo-950 text-indigo-50' : ''}
+	{currentSlide === 3 ? 'bg-emerald-950 text-emerald-50' : ''}
+	{currentSlide === 4 ? 'bg-slate-900 text-white' : ''}
+">
+	
 	<!-- Progress Bar -->
-	<div class="absolute top-0 left-0 h-1 bg-indigo-600 transition-all duration-500 ease-out" style="width: {((currentSlide + 1) / totalSlides) * 100}%"></div>
+	<div class="absolute top-0 left-0 h-1.5 transition-all duration-500 ease-out z-50
+		{currentSlide === 0 ? 'bg-indigo-500' : ''}
+		{currentSlide === 1 ? 'bg-rose-500' : ''}
+		{currentSlide === 2 ? 'bg-indigo-400' : ''}
+		{currentSlide === 3 ? 'bg-emerald-400' : ''}
+		{currentSlide === 4 ? 'bg-cyan-500' : ''}
+	" style="width: {((currentSlide + 1) / totalSlides) * 100}%"></div>
+
+	<!-- Dynamic Background Textures -->
+	{#if currentSlide === 0}
+		<div class="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-500/40 via-slate-950 to-slate-950"></div>
+	{/if}
+	{#if currentSlide === 1}
+		<div class="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgc3Ryb2tlPSIjZmZmIiBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIG9wYWNpdHk9IjAuMSI+PHBhdGggZD0iTTAgNDBoNDBWMEgweiIvPjwvZz48L3N2Zz4=')]"></div>
+	{/if}
+	{#if currentSlide === 3}
+		<div class="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-500/30 via-emerald-950 to-emerald-950"></div>
+	{/if}
 
 	<!-- Slide Container -->
-	<div class="flex-1 flex items-center justify-center p-12 relative">
+	<div class="flex-1 flex items-center justify-center p-12 relative z-10">
 		
 		{#if currentSlide === 0}
 			<!-- SLIDE 1: TITLE -->
-			<div in:fly={{ y: 50, duration: 500, delay: 200 }} out:fade={{ duration: 200 }} class="text-center max-w-4xl absolute">
-				<div class="flex justify-center mb-8">
-					<div class="p-6 rounded-3xl bg-indigo-500/20 text-indigo-400 ring-1 ring-indigo-500/50">
-						<HeartPulse class="size-24" />
+			<div in:fly={{ y: 50, duration: 800, delay: 200 }} out:fade={{ duration: 300 }} class="text-center max-w-4xl absolute">
+				<div class="flex justify-center mb-10">
+					<div class="p-8 rounded-[2rem] bg-indigo-500/10 text-indigo-400 ring-1 ring-indigo-500/30 backdrop-blur-xl shadow-2xl shadow-indigo-500/20">
+						<HeartPulse class="size-28" />
 					</div>
 				</div>
-				<h1 class="text-7xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400 mb-6">
+				<h1 class="text-[5.5rem] font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-indigo-300 via-white to-cyan-300 mb-8 leading-none drop-shadow-sm">
 					ClinicFlow
 				</h1>
-				<p class="text-3xl text-slate-300 font-light leading-relaxed mb-8">
-					An offline-first, AI-powered safety net for Nigeria’s Primary Health Centres.
+				<p class="text-3xl text-slate-300 font-light leading-relaxed mb-10">
+					An offline-first, AI-powered workflow <br>and surveillance engine for Nigeria’s PHCs.
 				</p>
-				<div class="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-slate-800/50 border border-slate-700 text-slate-400 text-lg tracking-wide uppercase font-semibold">
+				<div class="inline-flex items-center gap-4 px-8 py-4 rounded-full bg-slate-800/80 border border-slate-700/50 text-slate-300 text-lg tracking-widest uppercase font-bold shadow-xl backdrop-blur-md">
 					<span>3MTT x IdentArk.io</span>
-					<span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
-					<span class="text-indigo-400">Build AI. Solve Local.</span>
+					<span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+					<span class="text-indigo-300">Build AI. Solve Local.</span>
 				</div>
 			</div>
 		{/if}
 
 		{#if currentSlide === 1}
 			<!-- SLIDE 2: THE PROBLEM -->
-			<div in:fly={{ x: 100, duration: 500, delay: 200 }} out:fade={{ duration: 200 }} class="w-full max-w-6xl absolute">
-				<h2 class="text-5xl font-bold mb-16 text-center">The Broken Backbone of Healthcare</h2>
+			<div in:fly={{ x: 100, duration: 600, delay: 200 }} out:fade={{ duration: 300 }} class="w-full max-w-6xl absolute">
+				<div class="flex items-center gap-4 mb-16 justify-center">
+					<div class="w-16 h-1 bg-rose-500 rounded-full"></div>
+					<h2 class="text-5xl font-black uppercase tracking-tight text-white">The Broken Backbone</h2>
+					<div class="w-16 h-1 bg-rose-500 rounded-full"></div>
+				</div>
 				
-				<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+				<div class="grid grid-cols-1 md:grid-cols-3 gap-10">
 					<!-- Stat 1 -->
-					<div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl relative overflow-hidden group">
-						<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Users class="size-32" /></div>
-						<div class="text-6xl font-black text-rose-500 mb-4">97%</div>
-						<h3 class="text-2xl font-bold mb-3">Staffing Crisis</h3>
-						<p class="text-slate-400 text-lg leading-relaxed">
-							Of PHCs fail to meet minimum staffing standards. There is a national deficit of 122,696 health workers, leaving junior staff overwhelmed.
+					<div class="bg-rose-900/40 border border-rose-500/20 p-10 rounded-3xl relative overflow-hidden backdrop-blur-sm shadow-xl">
+						<div class="absolute -top-6 -right-6 p-4 opacity-[0.03] transform rotate-12"><Users class="size-48" /></div>
+						<div class="text-7xl font-black text-rose-300 mb-6 drop-shadow-md">97%</div>
+						<h3 class="text-2xl font-bold mb-4 text-white">Staffing Deficit</h3>
+						<p class="text-rose-200/80 text-lg leading-relaxed">
+							Of PHCs fail to meet minimum staffing standards. Junior staff are profoundly overwhelmed by patient volume.
 						</p>
-						<p class="text-xs text-slate-600 mt-6 uppercase tracking-wider font-semibold">Source: Orodata Science</p>
 					</div>
 					
 					<!-- Stat 2 -->
-					<div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl relative overflow-hidden group">
-						<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><FileSignature class="size-32" /></div>
-						<div class="text-6xl font-black text-amber-500 mb-4">∞</div>
-						<h3 class="text-2xl font-bold mb-3">Documentation Burden</h3>
-						<p class="text-slate-400 text-lg leading-relaxed">
-							Doctors are trapped writing in redundant paper registers (ANC, TB, General). This drives burnout and steals critical time from patient care.
+					<div class="bg-rose-900/40 border border-rose-500/20 p-10 rounded-3xl relative overflow-hidden backdrop-blur-sm shadow-xl">
+						<div class="absolute -top-6 -right-6 p-4 opacity-[0.03] transform -rotate-12"><Clock class="size-48" /></div>
+						<div class="text-7xl font-black text-rose-300 mb-6 drop-shadow-md">70%</div>
+						<h3 class="text-2xl font-bold mb-4 text-white">Time Wasted</h3>
+						<p class="text-rose-200/80 text-lg leading-relaxed">
+							Clinicians spend the vast majority of their time writing in redundant, massive paper registers rather than treating patients.
 						</p>
 					</div>
 
 					<!-- Stat 3 -->
-					<div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl relative overflow-hidden group">
-						<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><WifiOff class="size-32" /></div>
-						<div class="text-6xl font-black text-indigo-500 mb-4">DHIS2</div>
-						<h3 class="text-2xl font-bold mb-3">The "Double-Entry" Trap</h3>
-						<p class="text-slate-400 text-lg leading-relaxed">
-							No power/internet forces a hybrid system: data is recorded on paper, then manually transcribed to DHIS2 weeks later, causing lag and errors.
+					<div class="bg-rose-900/40 border border-rose-500/20 p-10 rounded-3xl relative overflow-hidden backdrop-blur-sm shadow-xl">
+						<div class="absolute -top-6 -right-6 p-4 opacity-[0.03] transform rotate-6"><WifiOff class="size-48" /></div>
+						<div class="text-7xl font-black text-rose-300 mb-6 drop-shadow-md">Lags</div>
+						<h3 class="text-2xl font-bold mb-4 text-white">The "Double-Entry" Trap</h3>
+						<p class="text-rose-200/80 text-lg leading-relaxed">
+							No power/internet forces a hybrid system: paper first, then manual transcription to DHIS2 weeks later, causing dangerous blindspots.
 						</p>
 					</div>
 				</div>
@@ -115,34 +143,42 @@
 
 		{#if currentSlide === 2}
 			<!-- SLIDE 3: THE SOLUTION -->
-			<div in:fly={{ x: 100, duration: 500, delay: 200 }} out:fade={{ duration: 200 }} class="w-full max-w-6xl absolute">
+			<div in:scale={{ start: 0.9, duration: 600, delay: 200 }} out:fade={{ duration: 300 }} class="w-full max-w-6xl absolute">
 				<div class="text-center mb-16">
-					<h2 class="text-5xl font-bold mb-4">ClinicFlow: Build AI. Solve Local.</h2>
-					<p class="text-2xl text-slate-400 font-light">Replacing paperwork with intelligent safety nets.</p>
+					<h2 class="text-5xl font-black mb-6 text-white tracking-tight">AI-Powered Workflow Optimization</h2>
+					<p class="text-2xl text-indigo-300/80 font-light max-w-3xl mx-auto">Replacing administrative burden with intelligent, offline-capable automation.</p>
 				</div>
 				
-				<div class="space-y-6">
-					<div class="flex gap-6 items-center bg-slate-900 border border-slate-800 p-6 rounded-2xl">
-						<div class="p-4 bg-emerald-500/20 text-emerald-400 rounded-xl"><WifiOff class="size-10" /></div>
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+					<div class="flex gap-6 items-start bg-indigo-900/30 border border-indigo-500/20 p-8 rounded-3xl backdrop-blur-md shadow-2xl hover:bg-indigo-900/40 transition-colors">
+						<div class="p-4 bg-indigo-500/20 text-indigo-300 rounded-2xl shrink-0"><WifiOff class="size-8" /></div>
 						<div>
-							<h3 class="text-2xl font-bold mb-2">Offline-First Resilience</h3>
-							<p class="text-slate-300 text-lg">A Progressive Web App that runs 100% offline for rural CHEW outreach via local IndexedDB, auto-syncing when cellular data is restored.</p>
+							<h3 class="text-2xl font-bold mb-3 text-white">Resilient Architecture</h3>
+							<p class="text-indigo-200/80 text-lg leading-relaxed">A Progressive Web App that runs 100% offline via local IndexedDB. It automatically syncs when cellular data is restored, perfect for rural outreach.</p>
 						</div>
 					</div>
 
-					<div class="flex gap-6 items-center bg-slate-900 border border-slate-800 p-6 rounded-2xl">
-						<div class="p-4 bg-cyan-500/20 text-cyan-400 rounded-xl"><FileSignature class="size-10" /></div>
+					<div class="flex gap-6 items-start bg-indigo-900/30 border border-indigo-500/20 p-8 rounded-3xl backdrop-blur-md shadow-2xl hover:bg-indigo-900/40 transition-colors">
+						<div class="p-4 bg-cyan-500/20 text-cyan-300 rounded-2xl shrink-0"><FileSignature class="size-8" /></div>
 						<div>
-							<h3 class="text-2xl font-bold mb-2">Dr. Assist (AI Auto-Scribe)</h3>
-							<p class="text-slate-300 text-lg">Doctors type shorthand keywords (e.g., "fever 3 days"). The AI expands it into a fully formatted SOAP note and WHO-aligned differential diagnosis.</p>
+							<h3 class="text-2xl font-bold mb-3 text-white">AI Auto-Scribe</h3>
+							<p class="text-indigo-200/80 text-lg leading-relaxed">Doctors type quick shorthand (e.g., "fever 3 days"). The AI expands it into a fully formatted, professional SOAP note in milliseconds.</p>
 						</div>
 					</div>
 
-					<div class="flex gap-6 items-center bg-slate-900 border border-slate-800 p-6 rounded-2xl">
-						<div class="p-4 bg-rose-500/20 text-rose-400 rounded-xl"><ShieldCheck class="size-10" /></div>
+					<div class="flex gap-6 items-start bg-indigo-900/30 border border-indigo-500/20 p-8 rounded-3xl backdrop-blur-md shadow-2xl hover:bg-indigo-900/40 transition-colors">
+						<div class="p-4 bg-rose-500/20 text-rose-300 rounded-2xl shrink-0"><ShieldCheck class="size-8" /></div>
 						<div>
-							<h3 class="text-2xl font-bold mb-2">RxBrain (AI Safety Checker)</h3>
-							<p class="text-slate-300 text-lg">Prevents fatal drug interactions by cross-referencing prescriptions against the patient's age and pregnancy status before dispensing.</p>
+							<h3 class="text-2xl font-bold mb-3 text-white">RxBrain Safety Nets</h3>
+							<p class="text-indigo-200/80 text-lg leading-relaxed">Automatically cross-references prescriptions against patient demographics (age, pregnancy) to prevent critical dispensing errors.</p>
+						</div>
+					</div>
+
+					<div class="flex gap-6 items-start bg-indigo-900/30 border border-indigo-500/20 p-8 rounded-3xl backdrop-blur-md shadow-2xl hover:bg-indigo-900/40 transition-colors">
+						<div class="p-4 bg-emerald-500/20 text-emerald-300 rounded-2xl shrink-0"><Zap class="size-8" /></div>
+						<div>
+							<h3 class="text-2xl font-bold mb-3 text-white">Instant Data Triage</h3>
+							<p class="text-indigo-200/80 text-lg leading-relaxed">Smart queues prioritize patients in the waiting room based on vitals, ensuring critical cases aren't lost in the administrative chaos.</p>
 						</div>
 					</div>
 				</div>
@@ -151,24 +187,30 @@
 
 		{#if currentSlide === 3}
 			<!-- SLIDE 4: EPIDEMIOLOGY -->
-			<div in:fly={{ x: 100, duration: 500, delay: 200 }} out:fade={{ duration: 200 }} class="w-full max-w-6xl absolute">
-				<h2 class="text-5xl font-bold mb-16 text-center">From Local Care to National Surveillance</h2>
+			<div in:fly={{ y: -50, duration: 600, delay: 200 }} out:fade={{ duration: 300 }} class="w-full max-w-6xl absolute">
+				<h2 class="text-[3.5rem] font-black mb-16 text-center text-white tracking-tight">From Local Care to National Surveillance</h2>
 				
-				<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-					<div class="bg-slate-900 border border-slate-800 p-10 rounded-3xl flex flex-col justify-center">
-						<Radar class="size-16 text-indigo-400 mb-6" />
-						<h3 class="text-3xl font-bold mb-4">AI Outbreak Radar</h3>
-						<p class="text-slate-300 text-xl leading-relaxed">
-							Scans digitized chief complaints across all PHCs in real-time to detect disease clusters (e.g., Cholera) weeks before manual paper reports would catch them.
-						</p>
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+					<div class="bg-emerald-900/30 border border-emerald-500/30 p-12 rounded-[2.5rem] flex flex-col items-center text-center shadow-2xl backdrop-blur-md relative overflow-hidden">
+						<div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgc3Ryb2tlPSIjMTRiOGE2IiBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIG9wYWNpdHk9IjAuMSI+PHBhdGggZD0iTTAgNjBoNjBWMEgweiIvPjwvZz48L3N2Zz4=')] opacity-50"></div>
+						<div class="relative z-10">
+							<Radar class="size-20 text-emerald-300 mb-8 mx-auto" />
+							<h3 class="text-3xl font-bold mb-6 text-white">AI Outbreak Radar</h3>
+							<p class="text-emerald-100/90 text-xl leading-relaxed">
+								Continuously scans local digitized complaints to detect disease clusters (e.g., Cholera) weeks before manual paper reports hit the LGA level.
+							</p>
+						</div>
 					</div>
 
-					<div class="bg-slate-900 border border-slate-800 p-10 rounded-3xl flex flex-col justify-center">
-						<Database class="size-16 text-emerald-400 mb-6" />
-						<h3 class="text-3xl font-bold mb-4">One-Click DHIS2 Bridge</h3>
-						<p class="text-slate-300 text-xl leading-relaxed">
-							Aggregates local clinic data into a deterministic JSON payload. Fully compliant with the FMOH's mandate for Sex and Age Disaggregation. Zero AI hallucinations in national records.
-						</p>
+					<div class="bg-emerald-900/30 border border-emerald-500/30 p-12 rounded-[2.5rem] flex flex-col items-center text-center shadow-2xl backdrop-blur-md relative overflow-hidden">
+						<div class="absolute top-0 right-0 p-8 opacity-10"><Database class="size-64" /></div>
+						<div class="relative z-10">
+							<Database class="size-20 text-cyan-300 mb-8 mx-auto" />
+							<h3 class="text-3xl font-bold mb-6 text-white">Deterministic DHIS2 Bridge</h3>
+							<p class="text-emerald-100/90 text-xl leading-relaxed">
+								Aggregates clinic data into strict JSON payloads. Complies perfectly with FMOH mandates for age/sex disaggregation. Zero AI hallucinations in records.
+							</p>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -176,19 +218,19 @@
 
 		{#if currentSlide === 4}
 			<!-- SLIDE 5: IMPACT -->
-			<div in:fly={{ scale: 0.95, duration: 500, delay: 200 }} out:fade={{ duration: 200 }} class="text-center max-w-4xl absolute">
-				<div class="flex justify-center mb-10">
-					<div class="p-6 rounded-full bg-gradient-to-tr from-indigo-600 to-cyan-500 shadow-2xl shadow-indigo-500/30">
-						<Activity class="size-20 text-white" />
+			<div in:scale={{ start: 0.95, duration: 800, delay: 200 }} out:fade={{ duration: 300 }} class="text-center max-w-4xl absolute">
+				<div class="flex justify-center mb-12">
+					<div class="p-8 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-500 shadow-[0_0_60px_-15px_rgba(6,182,212,0.6)]">
+						<Activity class="size-24 text-white" />
 					</div>
 				</div>
-				<h2 class="text-6xl font-extrabold mb-8">Empowering the Frontline</h2>
-				<p class="text-2xl text-slate-300 font-light leading-relaxed mb-16">
-					We aren't just digitizing records.<br> 
-					We are distributing medical expertise to the communities that need it most, giving every rural clinic a senior consultant in their pocket.
+				<h2 class="text-7xl font-black mb-10 tracking-tighter text-white">Empowering the Frontline</h2>
+				<p class="text-3xl text-slate-300 font-light leading-relaxed mb-16 max-w-3xl mx-auto">
+					We aren't trying to replace doctors or teach medicine.<br> 
+					<span class="font-medium text-white">We are optimizing workflows and safeguarding data, giving health workers their time back to do what they do best: care for patients.</span>
 				</p>
-				<p class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">
-					Thank You. Questions?
+				<p class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 uppercase tracking-widest mt-8">
+					Thank You
 				</p>
 			</div>
 		{/if}
@@ -196,15 +238,15 @@
 	</div>
 
 	<!-- Controls -->
-	<div class="absolute bottom-8 left-0 right-0 flex justify-between items-center px-12 opacity-50 hover:opacity-100 transition-opacity">
-		<button onclick={prevSlide} disabled={currentSlide === 0} class="p-3 rounded-full hover:bg-slate-800 disabled:opacity-30 transition-colors border border-transparent hover:border-slate-700">
-			<ChevronLeft class="size-6" />
+	<div class="absolute bottom-8 left-0 right-0 flex justify-between items-center px-16 z-50">
+		<button onclick={prevSlide} disabled={currentSlide === 0} class="p-4 rounded-full bg-black/20 hover:bg-black/40 disabled:opacity-0 transition-all border border-white/10 backdrop-blur-md">
+			<ChevronLeft class="size-8 text-white/70" />
 		</button>
-		<div class="text-sm font-mono text-slate-500">
-			Slide {currentSlide + 1} / {totalSlides}
+		<div class="text-sm font-mono text-white/50 tracking-widest font-bold">
+			0{currentSlide + 1} / 0{totalSlides}
 		</div>
-		<button onclick={nextSlide} disabled={currentSlide === totalSlides - 1} class="p-3 rounded-full hover:bg-slate-800 disabled:opacity-30 transition-colors border border-transparent hover:border-slate-700">
-			<ChevronRight class="size-6" />
+		<button onclick={nextSlide} disabled={currentSlide === totalSlides - 1} class="p-4 rounded-full bg-black/20 hover:bg-black/40 disabled:opacity-0 transition-all border border-white/10 backdrop-blur-md">
+			<ChevronRight class="size-8 text-white/70" />
 		</button>
 	</div>
 </div>

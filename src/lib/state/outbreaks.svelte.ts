@@ -76,7 +76,11 @@ class OutbreakEngine {
 	}
 
 	// 1. Multi-signal Aggregation & Seasonal Baseline Builder
-	private buildAiDataBundle() {
+	get currentDataBundle() {
+		return this.buildAiDataBundle();
+	}
+
+	buildAiDataBundle() {
 		const now = Date.now();
 		const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
 		const oneYearAgoWindowStart = thirtyDaysAgo - 365 * 24 * 60 * 60 * 1000;
@@ -162,8 +166,8 @@ class OutbreakEngine {
 
 		return {
 			phcName: settingsStore.current?.name || 'Local PHC',
-			lga: 'Ughelli North',
-			state: 'Delta',
+			lga: settingsStore.current?.lga || 'Unknown LGA',
+			state: settingsStore.current?.state || 'Unknown State',
 			analysisWindow: `${new Date(thirtyDaysAgo).toISOString().split('T')[0]} to ${new Date(now).toISOString().split('T')[0]}`,
 			totalEncounters: recentEncounters.length,
 			diseaseGroups,
@@ -190,7 +194,7 @@ class OutbreakEngine {
 			const bundle = this.buildAiDataBundle();
 			
 			if (bundle.diseaseGroups.length === 0) {
-				toast.info('No disease data found in the last 30 days to analyse.');
+				toast.info(`Debug: encounters=${bundle.totalEncounters}, storeSize=${encounterStore.items.length}, patients=${patientStore.items.length}`);
 				this.isAnalysing = false;
 				return;
 			}
@@ -200,8 +204,9 @@ class OutbreakEngine {
 			this.lastAnalysedAt = Date.now();
 			toast.success('Epidemiology forecast complete.');
 		} catch (err: any) {
-			console.error(err);
-			toast.error(`Analysis failed: ${err.message}`);
+			console.error('Epidemiology Forecast Error:', err);
+			const msg = err?.message || (typeof err === 'string' ? err : JSON.stringify(err));
+			toast.error(`Analysis failed: ${msg}`);
 		} finally {
 			this.isAnalysing = false;
 		}

@@ -3,6 +3,9 @@ import { get } from 'svelte/store';
 import { untrack } from 'svelte';
 
 export type PhcSettings = {
+	name?: string;
+	state?: string;
+	lga?: string;
 	maternalHealthEnabled: boolean;
 	immunizationEnabled: boolean;
 	aiVoiceEnabled: boolean;
@@ -16,6 +19,9 @@ export type PhcSettings = {
 };
 
 const DEFAULT_SETTINGS: PhcSettings = {
+	name: 'Demo PHC',
+	state: 'Unknown',
+	lga: 'Unknown',
 	maternalHealthEnabled: true,
 	immunizationEnabled: true,
 	aiVoiceEnabled: true,
@@ -54,6 +60,9 @@ class SettingsStore {
 			const serverSettings = await getPhcSettings(phcId);
 			if (serverSettings) {
 				this.#settings = {
+					name: serverSettings.name,
+					state: serverSettings.state,
+					lga: serverSettings.lga,
 					maternalHealthEnabled: serverSettings.maternalHealthEnabled,
 					immunizationEnabled: serverSettings.immunizationEnabled,
 					aiVoiceEnabled: serverSettings.aiVoiceEnabled,
@@ -62,7 +71,8 @@ class SettingsStore {
 					referralsEnabled: serverSettings.referralsEnabled ?? true,
 					familyHealthEnabled: serverSettings.familyHealthEnabled ?? true,
 					realTimeNotificationsEnabled: serverSettings.realTimeNotificationsEnabled ?? true,
-					nhisTrackingEnabled: serverSettings.nhisTrackingEnabled ?? true
+					nhisTrackingEnabled: serverSettings.nhisTrackingEnabled ?? true,
+					lgaDsoPhone: serverSettings.lgaDsoPhone
 				};
 				localStorage.setItem('phcSettings', JSON.stringify(this.#settings));
 			}

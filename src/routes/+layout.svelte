@@ -34,7 +34,7 @@
 <svelte:window onkeydown={handleKeydown} oncontextmenu={handleContextMenu} />
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
-<Toaster richColors position="top-right" />
+<Toaster richColors closeButton position="top-right" />
 <PWAManager />
 <svelte:boundary>
 	{#snippet pending()}
