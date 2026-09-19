@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { MapPin, WifiOff, CloudUpload, ShieldAlert } from 'lucide-svelte';
+	import { MapPin, WifiOff, CloudUpload, ShieldAlert } from '@lucide/svelte';
 </script>
 
 <svelte:head>

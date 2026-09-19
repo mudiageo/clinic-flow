@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ArrowRight, Download, FileJson } from 'lucide-svelte';
+	import { ArrowRight, Download, FileJson } from '@lucide/svelte';
 </script>
 
 <svelte:head>
