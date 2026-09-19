@@ -45,7 +45,7 @@
 	<title>ClinicFlow Pitch Deck</title>
 </svelte:head>
 
-<div class="h-[100dvh] w-screen overflow-hidden flex flex-col relative font-sans transition-colors duration-1000 ease-in-out
+<div class="h-[100dvh] w-full overflow-hidden flex flex-col relative font-sans transition-colors duration-1000 ease-in-out
 	{currentSlide === 0 ? 'bg-slate-950 text-white' : ''}
 	{currentSlide === 1 ? 'bg-rose-950 text-rose-50' : ''}
 	{currentSlide === 2 ? 'bg-indigo-950 text-indigo-50' : ''}
@@ -74,7 +74,7 @@
 	{/if}
 
 	<!-- Slide Container -->
-	<div class="flex-1 flex items-center justify-center p-6 md:p-12 relative z-10 w-full h-full overflow-y-auto">
+	<div class="flex-1 flex items-center justify-center p-6 md:p-12 relative z-10 w-full h-full overflow-y-auto overflow-x-hidden break-words">
 		
 		{#if currentSlide === 0}
 			<!-- SLIDE 1: TITLE -->
