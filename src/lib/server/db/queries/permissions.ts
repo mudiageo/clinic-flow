@@ -32,7 +32,7 @@ export async function revokePermission(data: {
 	staffId: string;
 	phcId: string;
 	permission: string;
-	grantedBy: string;
+	revokedBy: string;
 }) {
 	const table = getTable('permissions');
 
@@ -47,7 +47,7 @@ export async function revokePermission(data: {
 			staffId: data.staffId,
 			phcId: data.phcId,
 			permission: data.permission,
-			grantedBy: data.grantedBy,
+			grantedBy: data.revokedBy,
 			revoked: true
 		})
 		.returning();

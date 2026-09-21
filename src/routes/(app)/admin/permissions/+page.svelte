@@ -113,14 +113,31 @@
 		const action = currentActive ? revokePermission : grantPermission;
 		
 		pendingToggles[permission] = true;
+		// 1. Save backup for potential rollback
+		const previousOverrides = rawOverrides;
+		
+		// 2. Optimistically update the UI instantly
+		rawOverrides = [
+			...rawOverrides,
+			{
+				permission,
+				revoked: currentActive, // if it was active, we are revoking it
+				grantedAt: new Date().toISOString()
+			}
+		];
+		
 		try {
+			// 3. Perform network mutation
 			const res = await action({ staffId: selectedStaffId, permission });
-			if (res) {
-				// Refresh overrides
-				rawOverrides = await getStaffPermissions(selectedStaffId);
+			if (!res || !res.success) {
+				rawOverrides = previousOverrides;
+				toast.error('Failed to update permission');
+			} else {
 				toast.success(`Permission ${currentActive ? 'revoked' : 'granted'}`);
 			}
 		} catch (err: any) {
+			// 4. Rollback on failure
+			rawOverrides = previousOverrides;
 			toast.error(err.message || 'Failed to update permission');
 		} finally {
 			pendingToggles[permission] = false;
@@ -132,11 +149,19 @@
 		if (!confirm('Are you sure you want to reset this staff member to their role defaults? All custom overrides will be lost.')) return;
 		
 		isResetting = true;
+		const previousOverrides = rawOverrides;
+		rawOverrides = []; // Optimistic UI clear
+		
 		try {
-			await resetStaffPermissions({ staffId: selectedStaffId });
-			rawOverrides = await getStaffPermissions(selectedStaffId);
-			toast.success('Permissions reset to role defaults');
+			const res = await resetStaffPermissions({ staffId: selectedStaffId });
+			if (!res || !res.success) {
+				rawOverrides = previousOverrides;
+				toast.error('Failed to reset permissions');
+			} else {
+				toast.success('Permissions reset to role defaults');
+			}
 		} catch (err: any) {
+			rawOverrides = previousOverrides; // Rollback
 			toast.error(err.message || 'Failed to reset permissions');
 		} finally {
 			isResetting = false;
