@@ -19,6 +19,7 @@ jobs:
       contents: write # to create GitHub releases and push version commits
       id-token: write # OpenID Connect token needed for provenance
       pull-requests: write # to open "Version Packages" PRs
+      actions: write # to trigger the Tauri build workflow via workflow_dispatch
 
     steps:
       - name: Checkout
