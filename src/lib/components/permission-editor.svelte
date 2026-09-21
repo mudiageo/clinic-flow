@@ -12,17 +12,14 @@
 		staffId,
 		role,
 		roleDefaults = [],
-		activePermissions = $bindable([])
+		activePermissions = $bindable([]),
+		auditLog = $bindable([])
 	}: {
 		staffId: string;
 		role: string;
 		roleDefaults: string[];
-		activePermissions: {
-			id: string;
-			permission: string;
-			revoked: boolean;
-			expiresAt: Date | null;
-		}[];
+		activePermissions: any[];
+		auditLog: any[];
 	} = $props();
 
 	const ALL_PERMISSIONS = [
@@ -55,8 +52,9 @@
 		pending[permission] = true;
 		
 		const previousPermissions = activePermissions;
+		const previousAuditLog = auditLog;
 		
-		// Optimistic UI Update
+		// 1. Optimistic UI Update: Permissions Array
 		activePermissions = [
 			...activePermissions.filter(p => p.permission !== permission),
 			{
@@ -66,17 +64,32 @@
 				expiresAt: null
 			}
 		];
+		
+		// 2. Optimistic UI Update: Audit Log
+		auditLog = [
+			{
+				permission,
+				revoked: currentActive,
+				grantedAt: new Date().toISOString(),
+				grantedByStaff: { fullName: 'You (Pending Sync)' }
+			},
+			...auditLog
+		];
 
 		try {
 			const res = await action({ staffId, permission });
 			if (!res || !res.success) {
 				activePermissions = previousPermissions;
+				auditLog = previousAuditLog;
 				toast.error('Failed to update permission');
 			} else {
 				toast.success(`Permission ${currentActive ? 'revoked' : 'granted'}`);
+				// Optionally, we could silently fetch the true audit log here to get the real DB IDs
+				// but the optimistic one perfectly satisfies the user's immediate visual feedback
 			}
 		} catch (e: any) {
 			activePermissions = previousPermissions;
+			auditLog = previousAuditLog;
 			toast.error(e.message || 'Failed to update permission');
 		} finally {
 			pending[permission] = false;

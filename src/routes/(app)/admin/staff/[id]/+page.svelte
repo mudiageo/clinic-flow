@@ -95,7 +95,8 @@
 							staffId={staffMember.id}
 							role={staffMember.role}
 							roleDefaults={getRoleDefaults(staffMember.role)}
-							activePermissions={permissions}
+							bind:activePermissions={permissions}
+							bind:auditLog={auditLog}
 						/>
 					</div>
 				</Tabs.Content>
