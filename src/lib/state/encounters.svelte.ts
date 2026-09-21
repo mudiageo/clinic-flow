@@ -9,6 +9,10 @@ class EncounterStore extends LocalCollection<LocalEncounter> {
 	get sortedItems() {
 		return [...this.items].sort((a, b) => b.visitDate - a.visitDate);
 	}
+
+	forPatient(patientId: string) {
+		return this.sortedItems.filter((e) => e.patientId === patientId);
+	}
 }
 
 export const encounterStore = new EncounterStore();

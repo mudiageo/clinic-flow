@@ -62,10 +62,10 @@
 	});
 	
 	// Calculate active permissions
-	const activePermissions = $derived(() => {
+	const activePermissions = $derived.by(() => {
 		if (!selectedStaff) return [];
 		
-		let perms = [...(ROLE_DEFAULTS[selectedStaff.role] || [])];
+		let perms = [...(ROLE_DEFAULTS[selectedStaff.role as keyof typeof ROLE_DEFAULTS] || [])];
 		
 		// Sort overrides oldest to newest so latest takes precedence
 		const sortedOverrides = [...rawOverrides].sort((a, b) => 
@@ -83,7 +83,7 @@
 	});
 	
 	// Group all available permissions by category
-	const groupedPermissions = $derived(() => {
+	const groupedPermissions = $derived.by(() => {
 		const groups: Record<string, { key: string; label: string; description: string }[]> = {};
 		for (const [key, details] of Object.entries(PERMISSION_DESCRIPTIONS)) {
 			if (!groups[details.category]) groups[details.category] = [];
@@ -100,7 +100,7 @@
 	
 	function getDiffStatus(perm: string) {
 		const isDefault = isRoleDefault(perm);
-		const isActive = activePermissions().includes(perm);
+		const isActive = activePermissions.includes(perm);
 		
 		if (isDefault && !isActive) return 'revoked'; // Default taken away (Red)
 		if (!isDefault && isActive) return 'added';   // Extra granted (Blue)
@@ -233,7 +233,7 @@
 							<CardTitle class="truncate">{selectedStaff.fullName}</CardTitle>
 							<div class="flex items-center gap-2 mt-1">
 								<Badge variant="outline" class="capitalize">{selectedStaff.role}</Badge>
-								<span class="text-xs text-muted-foreground">{activePermissions().length} permissions active</span>
+								<span class="text-xs text-muted-foreground">{activePermissions.length} permissions active</span>
 							</div>
 						</div>
 					</div>
@@ -272,7 +272,7 @@
 					{/if}
 					
 					<div class="space-y-8">
-						{#each Object.entries(groupedPermissions()) as [category, perms]}
+						{#each Object.entries(groupedPermissions) as [category, perms]}
 							<section class="space-y-4">
 								<h3 class="text-sm font-bold text-foreground/80 uppercase tracking-wider flex items-center gap-2">
 									{category}
@@ -281,7 +281,7 @@
 								
 								<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 									{#each perms as perm}
-										{@const isActive = activePermissions().includes(perm.key)}
+										{@const isActive = activePermissions.includes(perm.key)}
 										{@const diff = getDiffStatus(perm.key)}
 										{@const isPending = pendingToggles[perm.key]}
 										
