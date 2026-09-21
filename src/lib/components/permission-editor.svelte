@@ -2,13 +2,17 @@
 	import { Switch } from '$lib/components/ui/switch';
 	import { Label } from '$lib/components/ui/label';
 	import { Badge } from '$lib/components/ui/badge';
-	import { grantPermissionAction, revokePermissionAction } from '$lib/remote/permissions.remote';
+	import { invalidateAll } from '$app/navigation';
+	import { toast } from 'svelte-sonner';
+	import { grantPermission, revokePermission } from '$lib/remote/permissions.remote';
+	
+	let pending = $state<Record<string, boolean>>({});
 
 	let {
 		staffId,
 		role,
 		roleDefaults = [],
-		activePermissions = []
+		activePermissions = $bindable([])
 	}: {
 		staffId: string;
 		role: string;
@@ -46,6 +50,39 @@
 		{ key: 'manage:appointments', label: 'Manage Appointments', desc: 'Create/edit appointments' }
 	];
 
+	async function handleToggle(permission: string, currentActive: boolean) {
+		const action = currentActive ? revokePermission : grantPermission;
+		pending[permission] = true;
+		
+		const previousPermissions = activePermissions;
+		
+		// Optimistic UI Update
+		activePermissions = [
+			...activePermissions.filter(p => p.permission !== permission),
+			{
+				id: `optimistic-${Date.now()}`,
+				permission,
+				revoked: currentActive,
+				expiresAt: null
+			}
+		];
+
+		try {
+			const res = await action({ staffId, permission });
+			if (!res || !res.success) {
+				activePermissions = previousPermissions;
+				toast.error('Failed to update permission');
+			} else {
+				toast.success(`Permission ${currentActive ? 'revoked' : 'granted'}`);
+			}
+		} catch (e: any) {
+			activePermissions = previousPermissions;
+			toast.error(e.message || 'Failed to update permission');
+		} finally {
+			pending[permission] = false;
+		}
+	}
+
 	function getStatus(permKey: string) {
 		const isDefault = roleDefaults.includes(permKey);
 		const manualGrant = activePermissions.find((p) => p.permission === permKey);
@@ -74,7 +111,6 @@
 	<div class="divide-y rounded-md border">
 		{#each ALL_PERMISSIONS as perm (perm.key)}
 			{@const status = getStatus(perm.key)}
-			{const actionForm = (status.active ? revokePermissionAction : grantPermissionAction).for(perm.key)}
 			<div class="flex items-center justify-between p-4">
 				<div class="flex flex-col gap-1">
 					<Label class="text-base font-semibold">{perm.label}</Label>
@@ -92,17 +128,16 @@
 					</div>
 				</div>
 
-				<form
-					{...actionForm.enhance(() => {})}
-					class="flex items-center"
-				>
-					<input type="hidden" name="staffId" value={staffId} />
-					<input type="hidden" name="permission" value={perm.key} />
-
-					<button type="submit" class="focus:outline-none">
-						<Switch checked={status.active} class="pointer-events-none" />
-					</button>
-				</form>
+				<div class="flex items-center gap-3">
+					{#if pending[perm.key]}
+						<span class="text-xs text-muted-foreground animate-pulse">Saving...</span>
+					{/if}
+					<Switch 
+						checked={status.active} 
+						disabled={pending[perm.key]}
+						onCheckedChange={() => handleToggle(perm.key, status.active)} 
+					/>
+				</div>
 			</div>
 		{/each}
 	</div>
