@@ -2,9 +2,9 @@
 	import { getPhcStaffList } from '$lib/remote/admin.remote';
 	import { 
 		getStaffPermissions, 
-		grantPermissionAction, 
-		revokePermissionAction, 
-		resetStaffPermissionsAction 
+		grantPermission, 
+		revokePermission, 
+		resetStaffPermissions 
 	} from '$lib/remote/permissions.remote';
 	import { PERMISSION_DESCRIPTIONS, type PermissionKey } from '$lib/config/permissions';
 	import { ROLE_DEFAULTS } from '$lib/config/role-defaults';
@@ -110,7 +110,7 @@
 	async function handleToggle(permission: string, currentActive: boolean) {
 		if (!selectedStaffId) return;
 		
-		const action = currentActive ? revokePermissionAction : grantPermissionAction;
+		const action = currentActive ? revokePermission : grantPermission;
 		
 		pendingToggles[permission] = true;
 		try {
@@ -133,7 +133,7 @@
 		
 		isResetting = true;
 		try {
-			await resetStaffPermissionsAction({ staffId: selectedStaffId });
+			await resetStaffPermissions({ staffId: selectedStaffId });
 			rawOverrides = await getStaffPermissions(selectedStaffId);
 			toast.success('Permissions reset to role defaults');
 		} catch (err: any) {
@@ -166,7 +166,7 @@
 
 	<div class="flex flex-col lg:flex-row gap-6 flex-1 min-h-0">
 		<!-- Left Pane: Staff List -->
-		<Card class="flex flex-col w-full lg:w-1/3 shrink-0 h-full overflow-hidden">
+		<Card class="w-full lg:w-1/3 shrink-0 h-full overflow-hidden {selectedStaff ? 'hidden lg:flex flex-col' : 'flex flex-col'}">
 			<CardHeader class="border-b px-4 py-3 shrink-0 bg-muted/20">
 				<div class="relative">
 					<Search class="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
@@ -214,7 +214,7 @@
 		</Card>
 
 		<!-- Right Pane: Permission Matrix -->
-		<Card class="flex flex-col flex-1 h-full overflow-hidden">
+		<Card class="flex-1 h-full overflow-hidden {selectedStaff ? 'flex flex-col' : 'hidden lg:flex flex-col'}">
 			{#if !selectedStaff}
 				<div class="flex flex-col items-center justify-center flex-1 text-muted-foreground bg-muted/10">
 					<ShieldCheck class="size-12 opacity-20 mb-3" />
@@ -222,8 +222,16 @@
 					<p class="text-sm mt-1">Choose someone from the list to view and edit their permissions</p>
 				</div>
 			{:else}
+				<div class="flex flex-col flex-1 h-full animate-in fade-in slide-in-from-bottom-4 duration-300">
 				<CardHeader class="border-b px-6 py-4 shrink-0 flex flex-row items-center justify-between bg-muted/10">
 					<div class="flex items-center gap-3 min-w-0">
+						<!-- Mobile Back Button -->
+						<button 
+							class="lg:hidden shrink-0 -ml-2 mr-1 p-2 rounded-full hover:bg-muted transition-colors"
+							onclick={() => { selectedStaffId = null; }}
+						>
+							<Undo2 class="size-5 text-muted-foreground" />
+						</button>
 						<Avatar class="size-12 border shadow-sm">
 							<AvatarFallback class="bg-primary/10 text-primary font-bold uppercase">
 								{selectedStaff.fullName?.split(' ').slice(0, 2).map((n: string) => n[0]).join('')}
@@ -254,7 +262,7 @@
 					</Button>
 				</CardHeader>
 				
-				<ScrollArea class="flex-1 p-6 relative">
+				<div class="flex-1 p-6 relative overflow-y-auto">
 					{#if isFetchingPermissions}
 						<div class="absolute inset-0 bg-background/50 backdrop-blur-sm z-10 flex items-center justify-center">
 							<Loader2 class="size-8 animate-spin text-primary" />
@@ -313,7 +321,8 @@
 							</section>
 						{/each}
 					</div>
-				</ScrollArea>
+				</div>
+				</div>
 			{/if}
 		</Card>
 	</div>

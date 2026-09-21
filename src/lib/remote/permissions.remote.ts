@@ -1,9 +1,9 @@
-import { form, query } from '$app/server';
+import { form, command, query } from '$app/server';
 import { getRequestEvent } from '$app/server';
 import { db } from '$lib/server/db';
 import { requirePermission } from '$lib/server/permissions';
 import * as v from 'valibot';
-import { grantPermission, revokePermission } from '$lib/server/db/queries/permissions';
+import { grantPermission as grantPermissionQuery, revokePermission as revokePermissionQuery } from '$lib/server/db/queries/permissions';
 
 export const getStaffPermissions = query(v.string(), async (staffId) => {
 	const event = getRequestEvent();
@@ -58,58 +58,66 @@ export const getPlatformPermissionsAudit = query(async () => {
 	});
 });
 
-export const grantPermissionAction = form(
-	v.object({
-		staffId: v.string(),
-		permission: v.string()
-	}),
-	async (data) => {
-		const event = getRequestEvent();
-		if (!event.locals.staffId || !event.locals.phcId) throw new Error('Unauthorized');
+const grantPermissionSchema = v.object({
+	staffId: v.string(),
+	permission: v.string()
+});
 
-		await requirePermission('manage:permissions');
+const grantPermissionHandler = async (data: any) => {
+	const event = getRequestEvent();
+	if (!event.locals.staffId || !event.locals.phcId) throw new Error('Unauthorized');
+	await requirePermission('manage:permissions');
 
-		return await grantPermission({
-			staffId: data.staffId,
-			phcId: event.locals.phcId,
-			permission: data.permission,
-			grantedBy: event.locals.staffId
-		});
-	}
-);
+	await grantPermissionQuery({
+		staffId: data.staffId,
+		phcId: event.locals.phcId,
+		permission: data.permission,
+		grantedBy: event.locals.staffId
+	});
+	return { success: true };
+};
 
-export const revokePermissionAction = form(
-	v.object({
-		staffId: v.string(),
-		permission: v.string()
-	}),
-	async (data) => {
-		const event = getRequestEvent();
-		if (!event.locals.staffId || !event.locals.phcId) throw new Error('Unauthorized');
+export const grantPermission = command(grantPermissionSchema, grantPermissionHandler);
+export const grantPermissionAction = form(grantPermissionSchema, grantPermissionHandler);
 
-		await requirePermission('manage:permissions');
+const revokePermissionSchema = v.object({
+	staffId: v.string(),
+	permission: v.string()
+});
 
-		return await revokePermission({
-			staffId: data.staffId,
-			phcId: event.locals.phcId,
-			permission: data.permission,
-			grantedBy: event.locals.staffId
-		});
-	}
-);
+const revokePermissionHandler = async (data: any) => {
+	const event = getRequestEvent();
+	if (!event.locals.staffId || !event.locals.phcId) throw new Error('Unauthorized');
+	await requirePermission('manage:permissions');
 
-export const resetStaffPermissionsAction = form(
-	v.object({
-		staffId: v.string()
-	}),
-	async (data) => {
-		const event = getRequestEvent();
-		if (!event.locals.staffId) throw new Error('Unauthorized');
+	await revokePermissionQuery({
+		staffId: data.staffId,
+		phcId: event.locals.phcId,
+		permission: data.permission,
+		revokedBy: event.locals.staffId
+	});
+	return { success: true };
+};
 
-		await requirePermission('manage:permissions');
+export const revokePermission = command(revokePermissionSchema, revokePermissionHandler);
+export const revokePermissionAction = form(revokePermissionSchema, revokePermissionHandler);
 
-		const { resetStaffPermissions } = await import('$lib/server/db/queries/permissions');
-		await resetStaffPermissions(data.staffId);
-		return { success: true };
-	}
-);
+const resetStaffPermissionsSchema = v.object({
+	staffId: v.string()
+});
+
+const resetStaffPermissionsHandler = async (data: any) => {
+	const event = getRequestEvent();
+	if (!event.locals.staffId || !event.locals.phcId) throw new Error('Unauthorized');
+	await requirePermission('manage:permissions');
+
+	await db
+		.delete(db.permissions)
+		.where(
+			(p, { and, eq }) => and(eq(p.staffId, data.staffId), eq(p.phcId, event.locals.phcId!))
+		);
+	return { success: true };
+};
+
+export const resetStaffPermissions = command(resetStaffPermissionsSchema, resetStaffPermissionsHandler);
+export const resetStaffPermissionsAction = form(resetStaffPermissionsSchema, resetStaffPermissionsHandler);
