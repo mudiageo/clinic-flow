@@ -134,6 +134,8 @@ jobs:
       - name: setup android SDK (android only)
         if: matrix.is_android
         uses: android-actions/setup-android@v3
+        with:
+          packages: 'cmdline-tools;latest platform-tools'
 
       - name: install NDK (android only)
         if: matrix.is_android
