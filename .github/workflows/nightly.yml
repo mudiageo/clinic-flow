@@ -56,19 +56,3 @@ jobs:
             fs.writeFileSync('package.json', JSON.stringify(pkg, null, '\t') + '\n');
           "
 
-      - name: Trigger Tauri nightly build
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'build.yml',
-              ref: context.ref,
-              inputs: {
-                prerelease: 'true',
-                release_name: 'Nightly ${{ steps.info.outputs.date }}',
-                tag: '${{ steps.info.outputs.tag }}'
-              }
-            });
