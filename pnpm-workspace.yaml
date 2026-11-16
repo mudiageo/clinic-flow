@@ -10,3 +10,18 @@ minimumReleaseAgeExclude:
   - '@changesets/apply-release-plan@8.1.1'
   - '@changesets/cli@3.0.3'
   - '@changesets/config@4.0.1'
+catalog:
+  vite: npm:@voidzero-dev/vite-plus-core@1.6.0
+  vitest: 5.1.0
+  vite-plus: 1.6.0
+  '@vitest/browser-playwright': 5.1.0
+overrides:
+  vite@*: 'catalog:'
+  vitest@*: 'catalog:'
+peerDependencyRules:
+  allowAny:
+    - vite
+    - vitest
+  allowedVersions:
+    vite: '*'
+    vitest: '*'

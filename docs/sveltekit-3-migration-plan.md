@@ -115,7 +115,7 @@ No `searchParams.set/delete/append/sort` or `page.url.pathname =` assignments ex
 3. `pnpm test` (Vitest run).
 4. `pnpm build` — note the build may need env vars; use `.env.example`-shaped values inline if `defineEnvVars` requires them (e.g. `DATABASE_URL`, `BETTER_AUTH_SECRET`, `ORIGIN`). The `building` guard in `hooks.server.ts` prevents DB/SMS startup during build.
 5. Confirm both adapters still work: default `adapter-auto` build and `TAURI=1` static build.
-6. `pnpm lint` (prettier + eslint) on touched files.
+6. `pnpm lint` (Oxfmt + Oxlint + Oxvelte) on touched files.
 7. Tick completed items in `MIGRATION_TASKS.md`, resolve the stale `@migration-task`, then delete `MIGRATION_TASKS.md`.
 
 ### Additional finding: `src/lib/utils/server.ts` is now server-only
