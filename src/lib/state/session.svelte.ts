@@ -1,7 +1,7 @@
 // Client-side session state with permission helpers
 // Populated by (app)/+layout.svelte from the server session
 
-import type { PermissionKey } from '$lib/config/permissions';
+import type { PermissionKey } from '#lib/config/permissions.ts';
 
 interface SessionState {
 	user: { id: string; name: string; email: string } | null;
@@ -19,10 +19,18 @@ function createSessionStore() {
 	});
 
 	return {
-		get user() { return state.user; },
-		get role() { return state.role; },
-		get phcId() { return state.phcId; },
-		get permissions() { return state.permissions; },
+		get user() {
+			return state.user;
+		},
+		get role() {
+			return state.role;
+		},
+		get phcId() {
+			return state.phcId;
+		},
+		get permissions() {
+			return state.permissions;
+		},
 
 		/**
 		 * Initialize the session from server data (called in +layout.svelte)
@@ -48,7 +56,7 @@ function createSessionStore() {
 		 */
 		canAny(...perms: PermissionKey[]): boolean {
 			if (state.role === 'superadmin') return true;
-			return perms.some(p => state.permissions.includes(p));
+			return perms.some((p) => state.permissions.includes(p));
 		},
 
 		/**
@@ -56,7 +64,7 @@ function createSessionStore() {
 		 */
 		canAll(...perms: PermissionKey[]): boolean {
 			if (state.role === 'superadmin') return true;
-			return perms.every(p => state.permissions.includes(p));
+			return perms.every((p) => state.permissions.includes(p));
 		},
 
 		clear() {

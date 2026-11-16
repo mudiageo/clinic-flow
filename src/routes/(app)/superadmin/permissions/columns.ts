@@ -1,7 +1,7 @@
 import type { ColumnDef } from '@tanstack/table-core';
 import { createRawSnippet } from 'svelte';
-import { renderSnippet } from '$lib/components/ui/data-table/index.js';
-import Badge from '$lib/components/ui/badge/badge.svelte';
+import { renderSnippet } from '#lib/components/ui/data-table/index.js';
+import Badge from '#lib/components/ui/badge/badge.svelte';
 
 type PermissionAuditItem = {
 	id: string;

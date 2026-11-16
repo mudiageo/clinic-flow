@@ -1,17 +1,17 @@
 <script lang="ts">
-	import { patientStore } from '$lib/state/patients.svelte';
-	import { queueStore } from '$lib/state/queue.svelte';
-	import { Autocomplete, AutocompleteHighlight } from '$lib/components/ui/autocomplete/index.js';
-	import { Button } from '$lib/components/ui/button';
+	import { patientStore } from '#lib/state/patients.svelte.ts';
+	import { queueStore } from '#lib/state/queue.svelte.ts';
+	import { Autocomplete, AutocompleteHighlight } from '#lib/components/ui/autocomplete/index.js';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import {
 		Card,
 		CardHeader,
 		CardTitle,
 		CardContent,
 		CardDescription
-	} from '$lib/components/ui/card';
+	} from '#lib/components/ui/card/index.ts';
 	import { toast } from 'svelte-sonner';
-	import { Label } from '$lib/components/ui/label';
+	import { Label } from '#lib/components/ui/label/index.ts';
 	import {
 		Search,
 		User,

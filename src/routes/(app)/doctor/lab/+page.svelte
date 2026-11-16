@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { labRequestStore } from '$lib/state/lab-requests.svelte';
-	import { patientStore } from '$lib/state/patients.svelte';
-	import { notificationStore } from '$lib/state/notifications.svelte';
+	import { labRequestStore } from '#lib/state/lab-requests.svelte.ts';
+	import { patientStore } from '#lib/state/patients.svelte.ts';
+	import { notificationStore } from '#lib/state/notifications.svelte.ts';
 	import {
 		Table,
 		TableBody,
@@ -9,15 +9,20 @@
 		TableHead,
 		TableHeader,
 		TableRow
-	} from '$lib/components/ui/table';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
-	import { Textarea } from '$lib/components/ui/textarea';
-	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
+	} from '#lib/components/ui/table/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
+	import { Textarea } from '#lib/components/ui/textarea/index.ts';
+	import { Card, CardHeader, CardTitle, CardContent } from '#lib/components/ui/card/index.ts';
+	import * as Dialog from '#lib/components/ui/dialog/index.ts';
+	import {
+		Select,
+		SelectContent,
+		SelectItem,
+		SelectTrigger
+	} from '#lib/components/ui/select/index.ts';
 	import { Select as SelectPrimitive } from 'bits-ui';
 	import {
 		Search,
@@ -27,7 +32,7 @@
 		ChevronRight,
 		TestTube2
 	} from '@lucide/svelte';
-	import { formatDateTime } from '$lib/utils/date';
+	import { formatDateTime } from '#lib/utils/date.ts';
 	import { toast } from 'svelte-sonner';
 
 	let searchQuery = $state('');

@@ -22,10 +22,7 @@ export async function getTriageRulesList(phcId: string) {
 
 export async function createEncounterRecord(data: any) {
 	const encounters = getTable('encounters');
-	const [encounter] = await database
-		.insert(encounters)
-		.values(data)
-		.returning();
+	const [encounter] = await database.insert(encounters).values(data).returning();
 	return encounter;
 }
 
@@ -41,9 +38,6 @@ export async function updateEncounterNotesRecord(encounterId: string, doctorNote
 
 export async function saveVitalsRecord(data: any) {
 	const vitalsRecords = getTable('vitalsRecords');
-	const [vitals] = await database
-		.insert(vitalsRecords)
-		.values(data)
-		.returning();
+	const [vitals] = await database.insert(vitalsRecords).values(data).returning();
 	return vitals;
 }

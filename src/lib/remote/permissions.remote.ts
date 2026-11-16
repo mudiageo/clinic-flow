@@ -1,9 +1,12 @@
 import { form, command, query } from '$app/server';
 import { getRequestEvent } from '$app/server';
-import { db } from '$lib/server/db';
-import { requirePermission } from '$lib/server/permissions';
+import { db } from '#lib/server/db/index.ts';
+import { requirePermission } from '#lib/server/permissions.ts';
 import * as v from 'valibot';
-import { grantPermission as grantPermissionQuery, revokePermission as revokePermissionQuery } from '$lib/server/db/queries/permissions';
+import {
+	grantPermission as grantPermissionQuery,
+	revokePermission as revokePermissionQuery
+} from '#lib/server/db/queries/permissions.ts';
 
 export const getStaffPermissions = query(v.string(), async (staffId) => {
 	const event = getRequestEvent();
@@ -113,11 +116,15 @@ const resetStaffPermissionsHandler = async (data: any) => {
 
 	await db
 		.delete(db.permissions)
-		.where(
-			(p, { and, eq }) => and(eq(p.staffId, data.staffId), eq(p.phcId, event.locals.phcId!))
-		);
+		.where((p, { and, eq }) => and(eq(p.staffId, data.staffId), eq(p.phcId, event.locals.phcId!)));
 	return { success: true };
 };
 
-export const resetStaffPermissions = command(resetStaffPermissionsSchema, resetStaffPermissionsHandler);
-export const resetStaffPermissionsAction = form(resetStaffPermissionsSchema, resetStaffPermissionsHandler);
+export const resetStaffPermissions = command(
+	resetStaffPermissionsSchema,
+	resetStaffPermissionsHandler
+);
+export const resetStaffPermissionsAction = form(
+	resetStaffPermissionsSchema,
+	resetStaffPermissionsHandler
+);

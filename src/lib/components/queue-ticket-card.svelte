@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { LocalQueueTicket } from '$lib/local-db/db';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Button } from '$lib/components/ui/button';
-	import { queueStore } from '$lib/state/queue.svelte';
-	import { formatDistanceToNow } from '$lib/utils/date';
+	import type { LocalQueueTicket } from '#lib/local-db/db.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { queueStore } from '#lib/state/queue.svelte.ts';
+	import { formatDistanceToNow } from '#lib/utils/date.ts';
 	import { Clock, CheckCircle2, UserX, AlertTriangle, Activity, Check } from '@lucide/svelte';
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
+	import * as DropdownMenu from '#lib/components/ui/dropdown-menu/index.ts';
 
 	type Props = {
 		ticket: LocalQueueTicket;
@@ -63,12 +63,19 @@
 				</Badge>
 				{#if ticket.aiRiskScore !== undefined && ticket.aiRiskScore !== null}
 					<div class="relative group">
-						<Badge variant="secondary" class="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-indigo-200 cursor-help transition-colors">
+						<Badge
+							variant="secondary"
+							class="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-indigo-200 cursor-help transition-colors"
+						>
 							⚡ AI Risk: {ticket.aiRiskScore}/100
 						</Badge>
-						<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-2.5 bg-popover text-popover-foreground text-xs rounded-lg shadow-xl border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
+						<div
+							class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-2.5 bg-popover text-popover-foreground text-xs rounded-lg shadow-xl border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none"
+						>
 							<span class="font-semibold block mb-1 text-indigo-600">AI Rationale:</span>
-							<p class="leading-relaxed m-0">{ticket.aiRiskRationale || 'No rationale provided.'}</p>
+							<p class="leading-relaxed m-0">
+								{ticket.aiRiskRationale || 'No rationale provided.'}
+							</p>
 						</div>
 					</div>
 				{/if}

@@ -1,11 +1,18 @@
 <script lang="ts">
-	import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '$lib/components/ui/card';
+	import {
+		Card,
+		CardContent,
+		CardHeader,
+		CardTitle,
+		CardDescription,
+		CardFooter
+	} from '#lib/components/ui/card/index.ts';
 	import { Megaphone, Send, Users } from '@lucide/svelte';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
-	import { Textarea } from '$lib/components/ui/textarea';
-	import * as Select from '$lib/components/ui/select';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
+	import { Textarea } from '#lib/components/ui/textarea/index.ts';
+	import * as Select from '#lib/components/ui/select/index.ts';
 	import { toast } from 'svelte-sonner';
 
 	let subject = $state('');
@@ -54,14 +61,21 @@
 				<form onsubmit={handleSend}>
 					<CardHeader>
 						<CardTitle>Compose Broadcast</CardTitle>
-						<CardDescription>This message will appear in the target users' in-app notification center and via email.</CardDescription>
+						<CardDescription
+							>This message will appear in the target users' in-app notification center and via
+							email.</CardDescription
+						>
 					</CardHeader>
 					<CardContent class="space-y-4">
 						<div class="space-y-2">
 							<Label for="target">Target Audience</Label>
 							<Select.Root type="single" bind:value={target}>
 								<Select.Trigger class="w-full">
-									{target === 'all' ? 'All Staff (Platform Wide)' : target === 'admins' ? 'All Clinic Admins' : 'Specific PHC'}
+									{target === 'all'
+										? 'All Staff (Platform Wide)'
+										: target === 'admins'
+											? 'All Clinic Admins'
+											: 'Specific PHC'}
 								</Select.Trigger>
 								<Select.Content>
 									<Select.Item value="all">All Staff (Platform Wide)</Select.Item>
@@ -73,15 +87,19 @@
 
 						<div class="space-y-2">
 							<Label for="subject">Subject</Label>
-							<Input id="subject" bind:value={subject} placeholder="e.g. Scheduled Maintenance Notice" />
+							<Input
+								id="subject"
+								bind:value={subject}
+								placeholder="e.g. Scheduled Maintenance Notice"
+							/>
 						</div>
 
 						<div class="space-y-2">
 							<Label for="message">Message Body</Label>
-							<Textarea 
-								id="message" 
-								bind:value={message} 
-								placeholder="Enter your announcement here. Markdown is supported." 
+							<Textarea
+								id="message"
+								bind:value={message}
+								placeholder="Enter your announcement here. Markdown is supported."
 								class="min-h-[200px]"
 							/>
 						</div>

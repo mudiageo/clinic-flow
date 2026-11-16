@@ -1,24 +1,29 @@
 <script lang="ts">
-	import { patientStore } from '$lib/state/patients.svelte';
-	import { queueStore } from '$lib/state/queue.svelte';
-	import QrScanner from '$lib/components/QrScanner.svelte';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
+	import { patientStore } from '#lib/state/patients.svelte.ts';
+	import { queueStore } from '#lib/state/queue.svelte.ts';
+	import QrScanner from '#lib/components/QrScanner.svelte';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
 	import {
 		Card,
 		CardHeader,
 		CardTitle,
 		CardContent,
 		CardDescription
-	} from '$lib/components/ui/card';
+	} from '#lib/components/ui/card/index.ts';
 	import { Select as SelectPrimitive } from 'bits-ui';
-	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select';
-	import { PhoneInput } from '$lib/components/ui/phone-input';
-	import * as Stepper from '$lib/components/ui/stepper';
-	import { ShinyButton } from '$lib/components/ui/shiny-button';
+	import {
+		Select,
+		SelectTrigger,
+		SelectContent,
+		SelectItem
+	} from '#lib/components/ui/select/index.ts';
+	import { PhoneInput } from '#lib/components/ui/phone-input/index.ts';
+	import * as Stepper from '#lib/components/ui/stepper/index.ts';
+	import { ShinyButton } from '#lib/components/ui/shiny-button/index.ts';
 	import { toast } from 'svelte-sonner';
-	import * as Dialog from '$lib/components/ui/dialog';
+	import * as Dialog from '#lib/components/ui/dialog/index.ts';
 	import QRCode from 'qrcode';
 	import {
 		Search,
@@ -430,14 +435,24 @@
 										</div>
 									</div>
 								</div>
-								
-								<div class="p-4 border rounded-xl bg-amber-500/5 border-amber-500/20 mt-6 shadow-sm">
+
+								<div
+									class="p-4 border rounded-xl bg-amber-500/5 border-amber-500/20 mt-6 shadow-sm"
+								>
 									<label class="flex items-start gap-3 cursor-pointer">
-										<input type="checkbox" bind:checked={form.hasConsent} class="mt-1 accent-amber-600 size-5 shrink-0" />
+										<input
+											type="checkbox"
+											bind:checked={form.hasConsent}
+											class="mt-1 accent-amber-600 size-5 shrink-0"
+										/>
 										<div class="space-y-1">
-											<p class="font-semibold text-amber-900 dark:text-amber-200">Patient Consent & Data Privacy (NDPR)</p>
+											<p class="font-semibold text-amber-900 dark:text-amber-200">
+												Patient Consent & Data Privacy (NDPR)
+											</p>
 											<p class="text-xs text-amber-700/80 dark:text-amber-300/80 leading-relaxed">
-												I confirm that the patient has been informed of and explicitly consented to the digital storage of their medical records and agrees to receive health-related SMS notifications.
+												I confirm that the patient has been informed of and explicitly consented to
+												the digital storage of their medical records and agrees to receive
+												health-related SMS notifications.
 											</p>
 										</div>
 									</label>

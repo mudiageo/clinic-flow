@@ -1,4 +1,4 @@
-import { db, type LocalVitalsRecord, type LocalTriageRule } from '$lib/local-db/db';
+import { db, type LocalVitalsRecord, type LocalTriageRule } from '#lib/local-db/db.ts';
 import { LocalCollection } from './local-collection.svelte';
 
 export interface VitalsInput {

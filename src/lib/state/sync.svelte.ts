@@ -1,7 +1,7 @@
-import { db } from '$lib/local-db/db';
+import { db } from '#lib/local-db/db.ts';
 import { pushOperations, pullChanges } from '../../routes/sync/sync.remote';
 import { toast } from 'svelte-sonner';
-import { settingsStore } from '$lib/state/settings.svelte';
+import { settingsStore } from '#lib/state/settings.svelte.ts';
 
 // Generate a stable device ID for sync segregation
 function getDeviceId() {
@@ -19,7 +19,7 @@ class SyncStore {
 	pendingCount = $state(0);
 	lastSyncedAt = $state<number | null>(null);
 	isSyncing = $state(false);
-	conflicts = $state<{id: string, entityType: string, reason: string}[]>([]);
+	conflicts = $state<{ id: string; entityType: string; reason: string }[]>([]);
 
 	private phcId: string | null = null;
 	private cursor = 0;
@@ -122,7 +122,11 @@ class SyncStore {
 					}
 				} catch (e: any) {
 					console.error('Push batch failed:', e);
-					if (e?.status === 401 || e?.message?.includes('401') || e?.message?.includes('UNAUTHORIZED')) {
+					if (
+						e?.status === 401 ||
+						e?.message?.includes('401') ||
+						e?.message?.includes('UNAUTHORIZED')
+					) {
 						toast.error('Session expired. Please log in again to continue syncing.');
 						this.isSyncing = false;
 						if (typeof window !== 'undefined') {
@@ -186,7 +190,11 @@ class SyncStore {
 			this.lastSyncedAt = Date.now();
 		} catch (e: any) {
 			console.error('Pull changes failed:', e);
-			if (e?.status === 401 || e?.message?.includes('401') || e?.message?.includes('UNAUTHORIZED')) {
+			if (
+				e?.status === 401 ||
+				e?.message?.includes('401') ||
+				e?.message?.includes('UNAUTHORIZED')
+			) {
 				toast.error('Session expired. Please log in again to continue syncing.');
 				if (typeof window !== 'undefined') {
 					window.location.href = '/login';

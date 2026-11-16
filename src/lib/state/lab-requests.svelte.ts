@@ -1,4 +1,4 @@
-import { db, type LocalLabRequest } from '$lib/local-db/db';
+import { db, type LocalLabRequest } from '#lib/local-db/db.ts';
 import { LocalCollection } from './local-collection.svelte';
 
 class LabRequestStore extends LocalCollection<LocalLabRequest> {

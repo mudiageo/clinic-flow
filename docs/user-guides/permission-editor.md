@@ -18,7 +18,7 @@ The Permission Editor allows you to **override** these defaults for individual s
 
 1. Go to **Admin > Permission Editor** (or click the Permission Editor tile on your Dashboard).
 2. Select a staff member from the list on the left.
-3. Review their active permissions on the right. 
+3. Review their active permissions on the right.
    - A standard grey switch means the permission matches their standard role template.
    - A **Blue "Added" badge** means you have granted them an extra permission they normally wouldn't have.
    - A **Red "Revoked" badge** means you have taken away a permission they normally would have.

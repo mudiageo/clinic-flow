@@ -44,10 +44,7 @@ export async function updateDevice(
 	}
 ) {
 	const table = getTable('devices');
-	return await database
-		.update(table)
-		.set(updateData)
-		.where(eq(table.id, deviceId));
+	return await database.update(table).set(updateData).where(eq(table.id, deviceId));
 }
 
 export async function deleteDevice(deviceId: string) {

@@ -1,8 +1,8 @@
-import { patientStore } from '$lib/state/patients.svelte';
-import { vitalsStore } from '$lib/state/vitals.svelte';
-import { queueStore } from '$lib/state/queue.svelte';
-import { encounterStore } from '$lib/state/encounters.svelte';
-import { prescriptionStore } from '$lib/state/prescriptions.svelte';
+import { patientStore } from '#lib/state/patients.svelte.ts';
+import { vitalsStore } from '#lib/state/vitals.svelte.ts';
+import { queueStore } from '#lib/state/queue.svelte.ts';
+import { encounterStore } from '#lib/state/encounters.svelte.ts';
+import { prescriptionStore } from '#lib/state/prescriptions.svelte.ts';
 
 export async function seedDemoData() {
 	// 1. Create Patients
@@ -21,7 +21,7 @@ export async function seedDemoData() {
 		nextOfKinPhone: null,
 		deleted: false
 	});
-	
+
 	const p2Id = await patientStore.create({
 		clinicId: 'PHC-DEMO-002',
 		phcId: 'PHC-DEMO',
@@ -55,11 +55,76 @@ export async function seedDemoData() {
 	});
 
 	// Outbreak Cluster (Cholera) - 5 Cases to trigger threshold
-	const ob1Id = await patientStore.create({ clinicId: 'PHC-OB-01', phcId: 'PHC-DEMO', isPregnant: false, familyId: null, guardianId: null, nextOfKinPhone: null, deleted: false, name: 'Yusuf Ibrahim', sex: 'M', dob: '2015-08-20', address: 'Bakin Ruwa', community: 'Bakin Ruwa' });
-	const ob2Id = await patientStore.create({ clinicId: 'PHC-OB-02', phcId: 'PHC-DEMO', isPregnant: false, familyId: null, guardianId: null, nextOfKinPhone: null, deleted: false, name: 'Halima Sani', sex: 'F', dob: '2018-01-10', address: 'Bakin Ruwa', community: 'Bakin Ruwa' });
-	const ob3Id = await patientStore.create({ clinicId: 'PHC-OB-03', phcId: 'PHC-DEMO', isPregnant: false, familyId: null, guardianId: null, nextOfKinPhone: null, deleted: false, name: 'Kabir Usman', sex: 'M', dob: '1990-07-25', address: 'Bakin Ruwa', community: 'Bakin Ruwa' });
-	const ob4Id = await patientStore.create({ clinicId: 'PHC-OB-04', phcId: 'PHC-DEMO', isPregnant: false, familyId: null, guardianId: null, nextOfKinPhone: null, deleted: false, name: 'Zainab Ali', sex: 'F', dob: '2010-04-12', address: 'Bakin Ruwa', community: 'Bakin Ruwa' });
-	const ob5Id = await patientStore.create({ clinicId: 'PHC-OB-05', phcId: 'PHC-DEMO', isPregnant: false, familyId: null, guardianId: null, nextOfKinPhone: null, deleted: false, name: 'Musa Dauda', sex: 'M', dob: '1985-09-30', address: 'Bakin Ruwa', community: 'Bakin Ruwa' });
+	const ob1Id = await patientStore.create({
+		clinicId: 'PHC-OB-01',
+		phcId: 'PHC-DEMO',
+		isPregnant: false,
+		familyId: null,
+		guardianId: null,
+		nextOfKinPhone: null,
+		deleted: false,
+		name: 'Yusuf Ibrahim',
+		sex: 'M',
+		dob: '2015-08-20',
+		address: 'Bakin Ruwa',
+		community: 'Bakin Ruwa'
+	});
+	const ob2Id = await patientStore.create({
+		clinicId: 'PHC-OB-02',
+		phcId: 'PHC-DEMO',
+		isPregnant: false,
+		familyId: null,
+		guardianId: null,
+		nextOfKinPhone: null,
+		deleted: false,
+		name: 'Halima Sani',
+		sex: 'F',
+		dob: '2018-01-10',
+		address: 'Bakin Ruwa',
+		community: 'Bakin Ruwa'
+	});
+	const ob3Id = await patientStore.create({
+		clinicId: 'PHC-OB-03',
+		phcId: 'PHC-DEMO',
+		isPregnant: false,
+		familyId: null,
+		guardianId: null,
+		nextOfKinPhone: null,
+		deleted: false,
+		name: 'Kabir Usman',
+		sex: 'M',
+		dob: '1990-07-25',
+		address: 'Bakin Ruwa',
+		community: 'Bakin Ruwa'
+	});
+	const ob4Id = await patientStore.create({
+		clinicId: 'PHC-OB-04',
+		phcId: 'PHC-DEMO',
+		isPregnant: false,
+		familyId: null,
+		guardianId: null,
+		nextOfKinPhone: null,
+		deleted: false,
+		name: 'Zainab Ali',
+		sex: 'F',
+		dob: '2010-04-12',
+		address: 'Bakin Ruwa',
+		community: 'Bakin Ruwa'
+	});
+	const ob5Id = await patientStore.create({
+		clinicId: 'PHC-OB-05',
+		phcId: 'PHC-DEMO',
+		isPregnant: false,
+		familyId: null,
+		guardianId: null,
+		nextOfKinPhone: null,
+		deleted: false,
+		name: 'Musa Dauda',
+		sex: 'M',
+		dob: '1985-09-30',
+		address: 'Bakin Ruwa',
+		community: 'Bakin Ruwa'
+	});
 
 	// 2. Add Vitals & Encounters for Outbreak
 	await vitalsStore.create({
@@ -186,7 +251,6 @@ export async function seedDemoData() {
 		doctorNotes: 'Needs monitoring',
 		isNhisBillable: false
 	});
-
 
 	// 3. Queue patients for the demo
 	await vitalsStore.create({

@@ -2,7 +2,7 @@ import { form, query } from '$app/server';
 import * as v from 'valibot';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { requireSuperadmin } from '$lib/server/rbac';
+import { requireSuperadmin } from '#lib/server/rbac.ts';
 
 const SETTINGS_FILE = path.join(process.cwd(), '.clinicflow_settings.json');
 

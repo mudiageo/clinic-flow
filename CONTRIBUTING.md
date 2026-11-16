@@ -67,7 +67,7 @@ clinic-flow/
 2. Follow the project rules in `AGENTS.md` — especially:
    - Use `$app/env/private` for server env vars, never `process.env`
    - Use `@lucide/svelte` for icons (not `lucide-svelte`)
-   - Never use Dexie directly — use the stores in `$lib/state/`
+   - Never use Dexie directly — use the stores in `#lib/state/`
    - Use SvelteKit remote functions (`query`, `command`) — no `+page.server.ts`
 3. Open a **pull request** into `main`.
 
@@ -82,6 +82,7 @@ pnpm changeset
 ```
 
 The CLI will ask you:
+
 1. **Which packages changed?** — select `clinic-flow`
 2. **Bump type:**
    - `patch` — bug fix, small improvement (e.g. `0.1.5 → 0.1.6`)
@@ -109,13 +110,13 @@ The `{ref}` is automatically injected by `@changesets/changelog-github` as a PR 
 
 Use a **conventional commit-style prefix** in the summary:
 
-| Prefix | When to use |
-|---|---|
-| `feat(scope):` | New feature |
-| `fix(scope):` | Bug fix |
-| `perf(scope):` | Performance improvement |
-| `chore:` | Maintenance, dependency bumps |
-| `docs:` | Documentation only |
+| Prefix             | When to use                            |
+| ------------------ | -------------------------------------- |
+| `feat(scope):`     | New feature                            |
+| `fix(scope):`      | Bug fix                                |
+| `perf(scope):`     | Performance improvement                |
+| `chore:`           | Maintenance, dependency bumps          |
+| `docs:`            | Documentation only                     |
 | `refactor(scope):` | Code refactor with no behaviour change |
 
 **Examples:**
@@ -132,17 +133,17 @@ fix(marketing): correct broken links on /support index page
 
 ✅ `feat(triage): add AI risk score badge with hover rationale tooltip to queue cards`  
 ❌ `update queue card` — too vague  
-❌ `Fixed stuff` — not descriptive  
+❌ `Fixed stuff` — not descriptive
 
 ---
 
 ## Release Channels
 
-| Channel | Branch | Tag pattern | Intended for |
-|---|---|---|---|
-| **stable** | `main` | `v1.0.0` | Production PHC deployment |
-| **beta** | `beta` | `v1.0.0-beta.3` | Supervised testing only |
-| **alpha** | `alpha` | `v1.0.0-alpha.1` | Internal preview builds |
+| Channel     | Branch           | Tag pattern               | Intended for                  |
+| ----------- | ---------------- | ------------------------- | ----------------------------- |
+| **stable**  | `main`           | `v1.0.0`                  | Production PHC deployment     |
+| **beta**    | `beta`           | `v1.0.0-beta.3`           | Supervised testing only       |
+| **alpha**   | `alpha`          | `v1.0.0-alpha.1`          | Internal preview builds       |
 | **nightly** | `nightly` (cron) | `v1.0.0-nightly.20260914` | Automated overnight snapshots |
 
 > ⚠️ **Clinical Safety Note:** Only `stable` builds should ever be deployed in a live Primary Health Centre. Pre-release builds may contain untested AI features and schema migrations that are incompatible with existing patient data.

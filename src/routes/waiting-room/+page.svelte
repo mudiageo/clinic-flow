@@ -1,13 +1,18 @@
 <script lang="ts">
-	import { queueStore } from '$lib/state/queue.svelte';
-	import { patientStore } from '$lib/state/patients.svelte';
-	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
+	import { queueStore } from '#lib/state/queue.svelte.ts';
+	import { patientStore } from '#lib/state/patients.svelte.ts';
+	import { Card, CardHeader, CardTitle, CardContent } from '#lib/components/ui/card/index.ts';
 	import { Select as SelectPrimitive } from 'bits-ui';
-	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select';
-	import { Button } from '$lib/components/ui/button';
+	import {
+		Select,
+		SelectTrigger,
+		SelectContent,
+		SelectItem
+	} from '#lib/components/ui/select/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import { onMount } from 'svelte';
-	import { Badge } from '$lib/components/ui/badge';
-	import { ScrollArea } from '$lib/components/ui/scroll-area';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { ScrollArea } from '#lib/components/ui/scroll-area/index.ts';
 	import {
 		HeartPulse,
 		Volume2,

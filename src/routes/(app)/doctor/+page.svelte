@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { queueStore } from '$lib/state/queue.svelte';
-	import { patientStore } from '$lib/state/patients.svelte';
+	import { queueStore } from '#lib/state/queue.svelte.ts';
+	import { patientStore } from '#lib/state/patients.svelte.ts';
 	import {
 		Card,
 		CardContent,
 		CardHeader,
 		CardTitle,
 		CardDescription
-	} from '$lib/components/ui/card';
-	import QueueTicketCard from '$lib/components/queue-ticket-card.svelte';
+	} from '#lib/components/ui/card/index.ts';
+	import QueueTicketCard from '#lib/components/queue-ticket-card.svelte';
 	import {
 		Stethoscope,
 		AlertCircle,
@@ -17,7 +17,7 @@
 		Clock,
 		UserCheck
 	} from '@lucide/svelte';
-	import { NumberTicker } from '$lib/components/ui/number-ticker';
+	import { NumberTicker } from '#lib/components/ui/number-ticker/index.ts';
 
 	// Get reactive queue items. Filter for 'called' or 'waiting' or 'in_progress' to show on doctor's queue.
 	// We sort it by urgency, then by time.
@@ -91,7 +91,10 @@
 					<p class="text-xs font-semibold text-triage-amber uppercase tracking-wider">
 						Amber Warning
 					</p>
-					<NumberTicker value={stats.amber} class="text-2xl font-bold text-triage-amber mt-1 block" />
+					<NumberTicker
+						value={stats.amber}
+						class="text-2xl font-bold text-triage-amber mt-1 block"
+					/>
 				</div>
 				<div
 					class="size-10 rounded-lg bg-triage-amber/10 flex items-center justify-center text-triage-amber ring-1 ring-triage-amber/20"

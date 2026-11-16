@@ -54,7 +54,7 @@ When continuing work, **you must abide by the rules in `AGENTS.md`**:
 2. **Component Naming:** Always use `kebab-case` for component files.
 3. **UI Components:** Always use `shadcn-svelte` or `more-shadcn-svelte`. Do not build custom UI if a component exists.
 4. **Icons:** Use `@lucide/svelte` exclusively.
-5. **Database Access:** Never use Dexie directly inside `.svelte` components. Always route reads and writes through `$lib/state/` stores.
+5. **Database Access:** Never use Dexie directly inside `.svelte` components. Always route reads and writes through `#lib/state/` stores.
 6. **Date Formatting:** Exclusively use the native `Intl` API (`src/lib/utils/date.ts`). Do not use `date-fns`.
 
 ---

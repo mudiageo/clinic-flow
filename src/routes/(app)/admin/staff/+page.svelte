@@ -5,7 +5,7 @@
 		CardTitle,
 		CardContent,
 		CardDescription
-	} from '$lib/components/ui/card';
+	} from '#lib/components/ui/card/index.ts';
 	import {
 		Table,
 		TableBody,
@@ -13,14 +13,14 @@
 		TableHead,
 		TableHeader,
 		TableRow
-	} from '$lib/components/ui/table';
-	import { Switch } from '$lib/components/ui/switch';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import { updateStaffStatus } from '$lib/remote/admin.remote';
-	import { setStaffPin } from '$lib/remote/staff.remote';
+	} from '#lib/components/ui/table/index.ts';
+	import { Switch } from '#lib/components/ui/switch/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import * as Dialog from '#lib/components/ui/dialog/index.ts';
+	import { updateStaffStatus } from '#lib/remote/admin.remote.ts';
+	import { setStaffPin } from '#lib/remote/staff.remote.ts';
 	import { toast } from 'svelte-sonner';
 	import { UserCog, Plus, ShieldCheck, KeyRound, Loader2 } from '@lucide/svelte';
 
@@ -49,8 +49,6 @@
 	}
 
 	// savePin and revokePin are now handled by enhance forms in the markup
-	
-
 </script>
 
 <svelte:head>
@@ -103,7 +101,10 @@
 							<TableCell class="font-semibold px-6">
 								{staff.fullName}
 								{#if staff.authUserId.startsWith('pending-')}
-									<span class="ml-2 text-xs text-muted-foreground font-normal bg-muted px-2 py-0.5 rounded-full">Invited</span>
+									<span
+										class="ml-2 text-xs text-muted-foreground font-normal bg-muted px-2 py-0.5 rounded-full"
+										>Invited</span
+									>
 								{/if}
 							</TableCell>
 							<TableCell class="px-6">
@@ -124,18 +125,25 @@
 									Set PIN
 								</Button>
 								{const revokePin = setStaffPin.for(staff.id)}
-								<form {...revokePin.enhance(async (form) => {
-									try {
-										if (await form.submit()) {
-											if (revokePin.result?.success) toast.success('PIN revoked successfully');
+								<form
+									{...revokePin.enhance(async (form) => {
+										try {
+											if (await form.submit()) {
+												if (revokePin.result?.success) toast.success('PIN revoked successfully');
+											}
+										} catch (error) {
+											toast.error('Error revoking PIN');
 										}
-									} catch (error) {
-										toast.error('Error revoking PIN');
-									}
-								})}>
+									})}
+								>
 									<input {...revokePin.fields.staffId.as('hidden', staff.id)} />
 									<input {...revokePin.fields.pin.as('hidden', '0000')} />
-									<Button type="submit" variant="ghost" size="sm" class="text-destructive hover:text-destructive hover:bg-destructive/10">
+									<Button
+										type="submit"
+										variant="ghost"
+										size="sm"
+										class="text-destructive hover:text-destructive hover:bg-destructive/10"
+									>
 										Revoke PIN
 									</Button>
 								</form>
@@ -156,7 +164,8 @@
 		<Dialog.Header>
 			<Dialog.Title>Set Staff PIN</Dialog.Title>
 			<Dialog.Description>
-				Enter a 4-digit PIN for this staff member. They can use this to quickly log in on shared devices.
+				Enter a 4-digit PIN for this staff member. They can use this to quickly log in on shared
+				devices.
 			</Dialog.Description>
 		</Dialog.Header>
 		<form
@@ -185,17 +194,19 @@
 		>
 			<input {...setStaffPin.fields.staffId.as('hidden', selectedStaffId ?? '')} />
 			<div class="flex flex-col items-center justify-center space-y-6 py-6">
-				<Input 
+				<Input
 					{...setStaffPin.fields.pin.as('password')}
-					inputmode="numeric" 
+					inputmode="numeric"
 					maxlength={4}
-					bind:value={pinInput} 
+					bind:value={pinInput}
 					class="text-center text-4xl tracking-[1em] h-20 w-64 font-mono font-bold"
 					placeholder="••••"
 				/>
 			</div>
 			<Dialog.Footer>
-				<Button type="button" variant="outline" onclick={() => pinDialogOpen = false}>Cancel</Button>
+				<Button type="button" variant="outline" onclick={() => (pinDialogOpen = false)}
+					>Cancel</Button
+				>
 				<Button type="submit" disabled={isSettingPin || pinInput.length !== 4}>
 					{#if isSettingPin}
 						<Loader2 class="size-4 mr-2 animate-spin" /> Saving...

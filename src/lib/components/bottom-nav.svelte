@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import type { Component } from 'svelte';
-	import { cn } from '$lib/utils';
-	import { Badge } from '$lib/components/ui/badge';
+	import { cn } from '#lib/utils.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
 
 	export type BottomNavItem = {
 		href: string;

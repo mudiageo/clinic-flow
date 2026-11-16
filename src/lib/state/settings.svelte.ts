@@ -55,7 +55,7 @@ class SettingsStore {
 	async fetchFromServer() {
 		if (typeof localStorage === 'undefined') return;
 		const phcId = localStorage.getItem('phcId') || 'demo-phc-1';
-		
+
 		try {
 			const serverSettings = await getPhcSettings(phcId);
 			if (serverSettings) {
@@ -77,10 +77,10 @@ class SettingsStore {
 				localStorage.setItem('phcSettings', JSON.stringify(this.#settings));
 			}
 		} catch (e) {
-			console.error("Failed to fetch PHC settings", e);
+			console.error('Failed to fetch PHC settings', e);
 		}
 	}
-	
+
 	// Local override specifically for the UI (this will be pushed back to server later if requested)
 	updateLocal(settings: Partial<PhcSettings>) {
 		this.#settings = { ...this.#settings, ...settings };

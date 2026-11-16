@@ -55,10 +55,12 @@ export async function revokePermission(data: {
 	return result[0];
 }
 
-export async function grantPermissionsBulk(items: Array<{ staffId: string; phcId: string; permission: string; grantedBy: string }>) {
+export async function grantPermissionsBulk(
+	items: Array<{ staffId: string; phcId: string; permission: string; grantedBy: string }>
+) {
 	const table = getTable('permissions');
 	if (items.length === 0) return;
-	await database.insert(table).values(items.map(i => ({ ...i, revoked: false })));
+	await database.insert(table).values(items.map((i) => ({ ...i, revoked: false })));
 }
 
 export async function resetStaffPermissions(staffId: string) {

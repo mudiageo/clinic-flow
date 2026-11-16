@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { encounterStore } from '$lib/state/encounters.svelte';
-	import { patientStore } from '$lib/state/patients.svelte';
+	import { encounterStore } from '#lib/state/encounters.svelte.ts';
+	import { patientStore } from '#lib/state/patients.svelte.ts';
 	import {
 		Table,
 		TableBody,
@@ -8,17 +8,23 @@
 		TableHead,
 		TableHeader,
 		TableRow
-	} from '$lib/components/ui/table';
-	import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '$lib/components/ui/card';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Button } from '$lib/components/ui/button';
+	} from '#lib/components/ui/table/index.ts';
+	import {
+		Card,
+		CardHeader,
+		CardTitle,
+		CardContent,
+		CardDescription
+	} from '#lib/components/ui/card/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import { FileText, Send, CheckCircle2 } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 
-	const claims = $derived(encounterStore.items.filter(e => e.isNhisBillable));
+	const claims = $derived(encounterStore.items.filter((e) => e.isNhisBillable));
 
 	function submitClaim(id: string) {
-		toast.success(`Claim for encounter ${id.substring(0,8)} submitted to NHIS API (simulated)`);
+		toast.success(`Claim for encounter ${id.substring(0, 8)} submitted to NHIS API (simulated)`);
 	}
 </script>
 
@@ -65,7 +71,9 @@
 							<TableCell>{pt?.name || 'Unknown'}</TableCell>
 							<TableCell class="font-mono text-xs">{pt?.clinicId || 'N/A'}</TableCell>
 							<TableCell>
-								<Badge variant="outline" class="bg-amber-500/10 text-amber-600 border-amber-500/20">Pending Submission</Badge>
+								<Badge variant="outline" class="bg-amber-500/10 text-amber-600 border-amber-500/20"
+									>Pending Submission</Badge
+								>
 							</TableCell>
 							<TableCell class="text-right">
 								<Button size="sm" variant="outline" onclick={() => submitClaim(claim.id)}>

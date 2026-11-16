@@ -55,4 +55,3 @@ jobs:
             pkg.version = base + '-nightly.${{ steps.info.outputs.date }}';
             fs.writeFileSync('package.json', JSON.stringify(pkg, null, '\t') + '\n');
           "
-

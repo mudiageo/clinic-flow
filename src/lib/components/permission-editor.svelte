@@ -1,11 +1,10 @@
 <script lang="ts">
-	import { Switch } from '$lib/components/ui/switch';
-	import { Label } from '$lib/components/ui/label';
-	import { Badge } from '$lib/components/ui/badge';
-	import { invalidateAll } from '$app/navigation';
+	import { Switch } from '#lib/components/ui/switch/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import { toast } from 'svelte-sonner';
-	import { grantPermission, revokePermission } from '$lib/remote/permissions.remote';
-	
+	import { grantPermission, revokePermission } from '#lib/remote/permissions.remote.ts';
+
 	let pending = $state<Record<string, boolean>>({});
 
 	let {
@@ -50,13 +49,13 @@
 	async function handleToggle(permission: string, currentActive: boolean) {
 		const action = currentActive ? revokePermission : grantPermission;
 		pending[permission] = true;
-		
+
 		const previousPermissions = activePermissions;
 		const previousAuditLog = auditLog;
-		
+
 		// 1. Optimistic UI Update: Permissions Array
 		activePermissions = [
-			...activePermissions.filter(p => p.permission !== permission),
+			...activePermissions.filter((p) => p.permission !== permission),
 			{
 				id: `optimistic-${Date.now()}`,
 				permission,
@@ -64,7 +63,7 @@
 				expiresAt: null
 			}
 		];
-		
+
 		// 2. Optimistic UI Update: Audit Log
 		auditLog = [
 			{
@@ -145,10 +144,10 @@
 					{#if pending[perm.key]}
 						<span class="text-xs text-muted-foreground animate-pulse">Saving...</span>
 					{/if}
-					<Switch 
-						checked={status.active} 
+					<Switch
+						checked={status.active}
 						disabled={pending[perm.key]}
-						onCheckedChange={() => handleToggle(perm.key, status.active)} 
+						onCheckedChange={() => handleToggle(perm.key, status.active)}
 					/>
 				</div>
 			</div>

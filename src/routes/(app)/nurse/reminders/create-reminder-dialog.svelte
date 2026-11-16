@@ -1,17 +1,17 @@
 <script lang="ts">
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
-	import { Textarea } from '$lib/components/ui/textarea';
-	import { Autocomplete, AutocompleteHighlight } from '$lib/components/ui/autocomplete/index.js';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
+	import { Textarea } from '#lib/components/ui/textarea/index.ts';
+	import { Autocomplete, AutocompleteHighlight } from '#lib/components/ui/autocomplete/index.js';
 	import { toast } from 'svelte-sonner';
-	import { patientStore } from '$lib/state/patients.svelte';
-	import { reminderStore } from '$lib/state/reminders.svelte';
+	import { patientStore } from '#lib/state/patients.svelte.ts';
+	import { reminderStore } from '#lib/state/reminders.svelte.ts';
 	import { Calendar, User, Clock } from '@lucide/svelte';
 
 	import { getContext } from 'svelte';
-	
+
 	const session = getContext<{ phcId: string }>('session');
 
 	let { open = $bindable(false) } = $props();

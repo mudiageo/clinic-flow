@@ -1,8 +1,11 @@
 import { query, form, getRequestEvent } from '$app/server';
-import { db } from '$lib/server/db';
+import { db } from '#lib/server/db/index.ts';
 import * as v from 'valibot';
 import { invalid } from '@sveltejs/kit';
-import { updateDevice as updateDeviceDAL, deleteDevice as deleteDeviceDAL } from '$lib/server/db/queries/devices';
+import {
+	updateDevice as updateDeviceDAL,
+	deleteDevice as deleteDeviceDAL
+} from '#lib/server/db/queries/devices.ts';
 
 // Fetch all devices for the current PHC
 export const getDevices = query(async () => {
@@ -19,8 +22,17 @@ export const getDevices = query(async () => {
 export const updateDevice = form(
 	v.object({
 		deviceId: v.string(),
-		status: v.optional(v.union([v.literal('pending'), v.literal('approved'), v.literal('revoked')])),
-		role: v.optional(v.union([v.literal('kiosk'), v.literal('triage'), v.literal('doctor_tablet'), v.literal('pharmacy_terminal')]))
+		status: v.optional(
+			v.union([v.literal('pending'), v.literal('approved'), v.literal('revoked')])
+		),
+		role: v.optional(
+			v.union([
+				v.literal('kiosk'),
+				v.literal('triage'),
+				v.literal('doctor_tablet'),
+				v.literal('pharmacy_terminal')
+			])
+		)
 	}),
 	async (data, issue) => {
 		const event = getRequestEvent();
@@ -31,7 +43,7 @@ export const updateDevice = form(
 		if (data.role) updateData.role = data.role;
 
 		await updateDeviceDAL(data.deviceId, updateData);
-			
+
 		return { success: true };
 	}
 );

@@ -42,19 +42,21 @@ We use `@lucide/svelte` exclusively. Do not import from `lucide-svelte`.
 
 ### 4. Database Access
 
-Never use Dexie directly in components. Always use the stores defined in `$lib/state/` (e.g., `patientStore`, `queueStore`, `vitalsStore`) for reactive data binding.
+Never use Dexie directly in components. Always use the stores defined in `#lib/state/` (e.g., `patientStore`, `queueStore`, `vitalsStore`) for reactive data binding.
 
 ### 5. Date Formatting
 
-Do not use `date-fns` for formatting dates. Always use the native `Intl` API, preferably through the `$lib/utils/date.ts` utility functions.
+Do not use `date-fns` for formatting dates. Always use the native `Intl` API, preferably through the `#lib/utils/date.ts` utility functions.
 
 ### 6. Server Architecture & Data Fetching
 
-**CRITICAL:** Do NOT use `+page.server.ts` or `+layout.server.ts` for server-side logic and data fetching. We use a Client-Server architecture utilizing SvelteKit's experimental **remote functions** (`import { query, command, form } from '$app/server'`). 
-All server-side queries and mutations MUST be defined in `$lib/remote/*.remote.ts` files, and imported directly into `+page.svelte` components. If you need data, write a `query` remote function. If you need mutations, write a `command` or a `form` remote function as appropriate.
+**CRITICAL:** Do NOT use `+page.server.ts` or `+layout.server.ts` for server-side logic and data fetching. We use a Client-Server architecture utilizing SvelteKit's experimental **remote functions** (`import { query, command, form } from '$app/server'`).
+All server-side queries and mutations MUST be defined in `#lib/remote/*.remote.ts` files, and imported directly into `+page.svelte` components. If you need data, write a `query` remote function. If you need mutations, write a `command` or a `form` remote function as appropriate.
 
 ### 7. Feature Implementation Protocol
+
 **CRITICAL:** Before implementing ANY new feature, the agent MUST follow this exact workflow:
+
 1. **Define Permissions:** Explicitly outline the roles and permissions required for the feature. Note that **Superadmins** have global authority to enable/restrict/lock features platform-wide, while local **Admins** can only toggle features for their specific PHC (if not locked by a Superadmin).
 2. **Define AI Safety & Mitigations (CRITICAL):** If the feature uses AI, you MUST explicitly define the clinical risks, required UI disclaimers (e.g., the `<AiDisclaimer>` component), and human-in-the-loop guardrails to prevent hallucinations from causing patient harm. AI safety must be at the forefront of every healthcare feature.
 3. **Generate Two Documents:** Create TWO separate markdown files in the `docs/features/` directory before writing any code:

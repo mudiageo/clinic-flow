@@ -16,19 +16,19 @@
 
 <script lang="ts">
 	import { page } from '$app/state';
-	import * as Sidebar from '$lib/components/ui/sidebar';
-	import { Avatar, AvatarFallback } from '$lib/components/ui/avatar';
-	import SyncIndicator from '$lib/components/SyncIndicator.svelte';
-	import { signOutAction } from '$lib/remote/auth.remote';
-	import { notificationStore } from '$lib/state/notifications.svelte';
+	import * as Sidebar from '#lib/components/ui/sidebar/index.ts';
+	import { Avatar, AvatarFallback } from '#lib/components/ui/avatar/index.ts';
+	import SyncIndicator from '#lib/components/SyncIndicator.svelte';
+	import { signOutAction } from '#lib/remote/auth.remote.ts';
+	import { notificationStore } from '#lib/state/notifications.svelte.ts';
 	import { HeartPulse, LogOut, UserCircle, Bell, HelpCircle } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
-	import * as Popover from '$lib/components/ui/popover';
-	import GlobalHelpDrawer from '$lib/components/global-help-drawer.svelte';
-	import { Badge } from '$lib/components/ui/badge';
-	import { ScrollArea } from '$lib/components/ui/scroll-area';
-	import { Button } from '$lib/components/ui/button';
-	import { formatDistanceToNow } from '$lib/utils/date';
+	import * as Popover from '#lib/components/ui/popover/index.ts';
+	import GlobalHelpDrawer from '#lib/components/global-help-drawer.svelte';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { ScrollArea } from '#lib/components/ui/scroll-area/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { formatDistanceToNow } from '#lib/utils/date.ts';
 	import { onMount } from 'svelte';
 
 	type Props = {
@@ -136,7 +136,12 @@
 						<div class="flex items-center justify-between px-4 py-3 border-b">
 							<h4 class="font-semibold">Notifications</h4>
 							{#if notificationStore.unreadCount > 0}
-								<Button variant="ghost" size="sm" class="h-auto px-2 text-xs" onclick={() => notificationStore.markAllAsRead()}>
+								<Button
+									variant="ghost"
+									size="sm"
+									class="h-auto px-2 text-xs"
+									onclick={() => notificationStore.markAllAsRead()}
+								>
 									Mark all read
 								</Button>
 							{/if}
@@ -149,8 +154,10 @@
 							{:else}
 								<div class="flex flex-col">
 									{#each notificationStore.items as notif}
-										<button 
-											class="flex flex-col gap-1 p-4 text-left hover:bg-muted/50 transition-colors border-b last:border-0 {notif.read ? 'opacity-70' : 'bg-primary/5'}"
+										<button
+											class="flex flex-col gap-1 p-4 text-left hover:bg-muted/50 transition-colors border-b last:border-0 {notif.read
+												? 'opacity-70'
+												: 'bg-primary/5'}"
 											onclick={() => {
 												notificationStore.markAsRead(notif.id);
 												if (notif.link) window.location.href = notif.link;
@@ -162,7 +169,8 @@
 													{formatDistanceToNow(notif.timestamp)}
 												</span>
 											</div>
-											<span class="text-sm text-muted-foreground line-clamp-2">{notif.message}</span>
+											<span class="text-sm text-muted-foreground line-clamp-2">{notif.message}</span
+											>
 										</button>
 									{/each}
 								</div>
@@ -213,13 +221,16 @@
 
 			<!-- Log out -->
 			<Sidebar.MenuItem>
-				<form {...signOutAction} onsubmit={(e) => {
-					localStorage.removeItem('clinicflow_offline_session');
-					if (typeof navigator !== 'undefined' && !navigator.onLine) {
-						e.preventDefault();
-						window.location.href = '/login';
-					}
-				}}>
+				<form
+					{...signOutAction}
+					onsubmit={(e) => {
+						localStorage.removeItem('clinicflow_offline_session');
+						if (typeof navigator !== 'undefined' && !navigator.onLine) {
+							e.preventDefault();
+							window.location.href = '/login';
+						}
+					}}
+				>
 					<Sidebar.MenuButton
 						class="w-full text-destructive hover:bg-destructive/10 hover:text-destructive"
 					>

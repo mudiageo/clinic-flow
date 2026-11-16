@@ -1,13 +1,24 @@
 <script lang="ts">
-	import { getServerStatus, generatePairingToken } from '$lib/remote/server-status.remote';
-	import { getDevices } from '$lib/remote/devices.remote';
-	import { getUplinkConfig, saveUplinkConfig, testUplinkConnection, removeUplinkConfig } from '$lib/remote/cloud-uplink.remote';
-	import { Button } from '$lib/components/ui/button';
-	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
-	import { Separator } from '$lib/components/ui/separator';
+	import { getServerStatus, generatePairingToken } from '#lib/remote/server-status.remote.ts';
+	import { getDevices } from '#lib/remote/devices.remote.ts';
+	import {
+		getUplinkConfig,
+		saveUplinkConfig,
+		testUplinkConnection,
+		removeUplinkConfig
+	} from '#lib/remote/cloud-uplink.remote.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardHeader,
+		CardTitle
+	} from '#lib/components/ui/card/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
+	import { Separator } from '#lib/components/ui/separator/index.ts';
 	import {
 		Server,
 		Wifi,
@@ -82,8 +93,6 @@
 
 	// Form handlers are now managed by enhance actions directly in the markup for saveUplinkConfig and removeUplinkConfig
 
-
-
 	async function handleGeneratePairingCode() {
 		isGenerating = true;
 		try {
@@ -96,7 +105,11 @@
 			// Generate QR code URL
 			const pairingUrl = `${window.location.origin}/connect?token=${result.token}`;
 			const { default: QRCode } = await import('qrcode');
-			qrDataUrl = await QRCode.toDataURL(pairingUrl, { width: 280, margin: 2, color: { dark: '#0f172a', light: '#f8fafc' } });
+			qrDataUrl = await QRCode.toDataURL(pairingUrl, {
+				width: 280,
+				margin: 2,
+				color: { dark: '#0f172a', light: '#f8fafc' }
+			});
 
 			showQr = true;
 
@@ -134,7 +147,6 @@
 </svelte:head>
 
 <div class="p-6 space-y-6 max-w-5xl mx-auto">
-
 	<!-- Header -->
 	<div class="flex items-center justify-between">
 		<div class="flex items-center gap-3">
@@ -157,7 +169,9 @@
 			<CardContent class="flex items-center gap-3 py-4">
 				<AlertTriangle class="size-5 text-amber-500" />
 				<p class="text-sm text-amber-700 dark:text-amber-400">
-					Server status is only available on the local Master Server. This feature requires <code class="font-mono">DATABASE_URL</code> to point to a local SQLite database.
+					Server status is only available on the local Master Server. This feature requires <code
+						class="font-mono">DATABASE_URL</code
+					> to point to a local SQLite database.
 				</p>
 			</CardContent>
 		</Card>
@@ -180,7 +194,9 @@
 						<Cpu class="size-4" />
 						<span class="text-xs font-medium uppercase tracking-wide">Memory</span>
 					</div>
-					<p class="text-2xl font-bold text-foreground">{status.memoryMb} <span class="text-base font-normal text-muted-foreground">MB</span></p>
+					<p class="text-2xl font-bold text-foreground">
+						{status.memoryMb} <span class="text-base font-normal text-muted-foreground">MB</span>
+					</p>
 				</CardContent>
 			</Card>
 
@@ -212,16 +228,24 @@
 					<Wifi class="size-5 text-primary" />
 					<CardTitle class="text-base">Network Broadcasting</CardTitle>
 				</div>
-				<CardDescription>Tablets on the same Wi-Fi automatically discover this server.</CardDescription>
+				<CardDescription
+					>Tablets on the same Wi-Fi automatically discover this server.</CardDescription
+				>
 			</CardHeader>
 			<CardContent class="space-y-3">
-				<div class="flex items-center gap-3 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+				<div
+					class="flex items-center gap-3 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20"
+				>
 					<CheckCircle2 class="size-5 text-emerald-500 shrink-0" />
 					<div>
 						<p class="text-sm font-semibold text-foreground">mDNS Active</p>
 						<p class="text-xs text-muted-foreground font-mono">clinicflow-server.local</p>
 					</div>
-					<Badge variant="outline" class="ml-auto border-emerald-500/30 text-emerald-600 dark:text-emerald-400">Broadcasting</Badge>
+					<Badge
+						variant="outline"
+						class="ml-auto border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+						>Broadcasting</Badge
+					>
 				</div>
 			</CardContent>
 		</Card>
@@ -233,23 +257,41 @@
 					<ShieldCheck class="size-5 text-primary" />
 					<CardTitle class="text-base">Secure Device Pairing</CardTitle>
 				</div>
-				<CardDescription>Generate a one-time QR code for a tablet to scan and pair with this server.</CardDescription>
+				<CardDescription
+					>Generate a one-time QR code for a tablet to scan and pair with this server.</CardDescription
+				>
 			</CardHeader>
 			<CardContent class="space-y-4">
 				{#if status.pendingDevices > 0}
-					<div class="flex items-center gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-sm">
+					<div
+						class="flex items-center gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-sm"
+					>
 						<AlertTriangle class="size-4 text-amber-500 shrink-0" />
-						<span class="text-amber-700 dark:text-amber-400"><strong>{status.pendingDevices}</strong> device(s) waiting for approval in <a href="/admin/devices" class="underline">Device Manager</a>.</span>
+						<span class="text-amber-700 dark:text-amber-400"
+							><strong>{status.pendingDevices}</strong> device(s) waiting for approval in
+							<a href="/admin/devices" class="underline">Device Manager</a>.</span
+						>
 					</div>
 				{/if}
 
 				{#if showQr && qrDataUrl}
-					<div class="flex flex-col items-center gap-4 p-6 bg-muted/30 rounded-xl border border-border/50">
-						<img src={qrDataUrl} alt="Pairing QR Code" class="rounded-xl shadow-lg" width="200" height="200" />
+					<div
+						class="flex flex-col items-center gap-4 p-6 bg-muted/30 rounded-xl border border-border/50"
+					>
+						<img
+							src={qrDataUrl}
+							alt="Pairing QR Code"
+							class="rounded-xl shadow-lg"
+							width="200"
+							height="200"
+						/>
 						<div class="text-center space-y-1">
 							<p class="text-sm font-semibold">Scan with a tablet to pair it</p>
-							<p class="text-xs text-muted-foreground font-mono tracking-widest">{pairingToken?.token}</p>
-							<div class="flex items-center justify-center gap-1.5 text-xs mt-2"
+							<p class="text-xs text-muted-foreground font-mono tracking-widest">
+								{pairingToken?.token}
+							</p>
+							<div
+								class="flex items-center justify-center gap-1.5 text-xs mt-2"
 								class:text-emerald-500={tokenCountdown > 60}
 								class:text-amber-500={tokenCountdown <= 60 && tokenCountdown > 20}
 								class:text-red-500={tokenCountdown <= 20}
@@ -258,10 +300,16 @@
 								<span>Expires in {tokenCountdown}s</span>
 							</div>
 						</div>
-						<Button variant="outline" size="sm" onclick={handleGeneratePairingCode}>Regenerate</Button>
+						<Button variant="outline" size="sm" onclick={handleGeneratePairingCode}
+							>Regenerate</Button
+						>
 					</div>
 				{:else}
-					<Button onclick={handleGeneratePairingCode} disabled={isGenerating} class="w-full h-12 gap-2">
+					<Button
+						onclick={handleGeneratePairingCode}
+						disabled={isGenerating}
+						class="w-full h-12 gap-2"
+					>
 						<QrCode class="size-5" />
 						{isGenerating ? 'Generating...' : 'Generate Pairing QR Code'}
 					</Button>
@@ -276,43 +324,68 @@
 					<CloudUpload class="size-5 text-primary" />
 					<CardTitle class="text-base">Cloud Uplink</CardTitle>
 				</div>
-				<CardDescription>Sync this server's data to the central ClinicFlow cloud when internet is available.</CardDescription>
+				<CardDescription
+					>Sync this server's data to the central ClinicFlow cloud when internet is available.</CardDescription
+				>
 			</CardHeader>
 			<CardContent class="space-y-4">
 				{#if uplinkCfg?.isConfigured}
 					<!-- Connected state -->
 					<div class="space-y-3">
-						<div class="flex items-center gap-3 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+						<div
+							class="flex items-center gap-3 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20"
+						>
 							<CheckCircle2 class="size-5 text-emerald-500 shrink-0" />
 							<div class="flex-1 min-w-0">
 								<p class="text-sm font-semibold">Uplink Configured</p>
 								<p class="text-xs text-muted-foreground font-mono truncate">{uplinkCfg.cloudUrl}</p>
 							</div>
 							{#if uplinkConnected === true}
-								<Badge class="bg-emerald-500/10 text-emerald-600 border-emerald-500/30">Online</Badge>
+								<Badge class="bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
+									>Online</Badge
+								>
 							{:else if uplinkConnected === false}
 								<Badge variant="destructive">Offline</Badge>
 							{/if}
 						</div>
-						<div class="flex items-center gap-2 p-3 rounded-lg bg-muted/30 border border-border/50 text-sm">
+						<div
+							class="flex items-center gap-2 p-3 rounded-lg bg-muted/30 border border-border/50 text-sm"
+						>
 							<ShieldCheck class="size-4 text-primary shrink-0" />
 							<div>
 								<p class="font-medium">SuperAdmin Mirrored</p>
-								<p class="text-xs text-muted-foreground">{uplinkCfg.superAdminEmail} can log in offline.</p>
+								<p class="text-xs text-muted-foreground">
+									{uplinkCfg.superAdminEmail} can log in offline.
+								</p>
 							</div>
 						</div>
 						<div class="flex gap-2">
-							<Button variant="outline" size="sm" class="flex-1 gap-2" onclick={handleTestUplink} disabled={isTestingUplink}>
-								{#if isTestingUplink}<Loader2 class="size-4 animate-spin" />{:else}<Link2 class="size-4" />{/if}
+							<Button
+								variant="outline"
+								size="sm"
+								class="flex-1 gap-2"
+								onclick={handleTestUplink}
+								disabled={isTestingUplink}
+							>
+								{#if isTestingUplink}<Loader2 class="size-4 animate-spin" />{:else}<Link2
+										class="size-4"
+									/>{/if}
 								Test Connection
 							</Button>
-							<form {...removeUplinkConfig.enhance(async (form) => {
-								await form.submit();
-								uplinkCfg = null;
-								uplinkConnected = null;
-								toast.info('Cloud uplink removed.');
-							})}>
-								<Button type="submit" variant="outline" size="sm" class="gap-2 text-destructive hover:text-destructive w-full">
+							<form
+								{...removeUplinkConfig.enhance(async (form) => {
+									await form.submit();
+									uplinkCfg = null;
+									uplinkConnected = null;
+									toast.info('Cloud uplink removed.');
+								})}
+							>
+								<Button
+									type="submit"
+									variant="outline"
+									size="sm"
+									class="gap-2 text-destructive hover:text-destructive w-full"
+								>
 									<Unlink class="size-4" />
 									Remove
 								</Button>
@@ -321,14 +394,16 @@
 					</div>
 				{:else if showUplinkForm}
 					<!-- Config form -->
-					<form 
+					<form
 						class="space-y-4 p-4 rounded-xl bg-muted/30 border border-border/50"
 						{...saveUplinkConfig.enhance(async (form) => {
 							isSavingUplink = true;
 							try {
 								if (await form.submit()) {
 									if (saveUplinkConfig.result) {
-										toast.success(`Connected to ${saveUplinkConfig.result.cloudUrl}. SuperAdmin credentials mirrored for offline access.`);
+										toast.success(
+											`Connected to ${saveUplinkConfig.result.cloudUrl}. SuperAdmin credentials mirrored for offline access.`
+										);
 										showUplinkForm = false;
 										await refresh();
 									}
@@ -347,7 +422,10 @@
 								placeholder="Paste your base64 uplink key from the cloud dashboard"
 								class="font-mono text-xs"
 							/>
-							<p class="text-xs text-muted-foreground">Generate this key in your ClinicFlow Cloud Admin → PHC Management → Generate Uplink Key.</p>
+							<p class="text-xs text-muted-foreground">
+								Generate this key in your ClinicFlow Cloud Admin → PHC Management → Generate Uplink
+								Key.
+							</p>
 						</div>
 						<div class="space-y-2">
 							<Label for="sa-password">SuperAdmin Password</Label>
@@ -355,12 +433,18 @@
 								{...saveUplinkConfig.fields.superAdminPassword.as('password')}
 								placeholder="Enter the cloud SuperAdmin password"
 							/>
-							<p class="text-xs text-muted-foreground">Used once to create an offline login hash. Never stored in plaintext.</p>
+							<p class="text-xs text-muted-foreground">
+								Used once to create an offline login hash. Never stored in plaintext.
+							</p>
 						</div>
 						<div class="flex gap-2">
-							<Button variant="ghost" class="flex-1" onclick={() => showUplinkForm = false}>Cancel</Button>
+							<Button variant="ghost" class="flex-1" onclick={() => (showUplinkForm = false)}
+								>Cancel</Button
+							>
 							<Button type="submit" class="flex-1 gap-2" disabled={isSavingUplink}>
-								{#if isSavingUplink}<Loader2 class="size-4 animate-spin" />{:else}<CloudUpload class="size-4" />{/if}
+								{#if isSavingUplink}<Loader2 class="size-4 animate-spin" />{:else}<CloudUpload
+										class="size-4"
+									/>{/if}
 								Connect to Cloud
 							</Button>
 						</div>
@@ -371,9 +455,13 @@
 						<HardDrive class="size-5 text-muted-foreground shrink-0" />
 						<div class="flex-1">
 							<p class="text-sm font-medium">Not configured</p>
-							<p class="text-xs text-muted-foreground">Connect to the cloud to enable sync and SuperAdmin offline access.</p>
+							<p class="text-xs text-muted-foreground">
+								Connect to the cloud to enable sync and SuperAdmin offline access.
+							</p>
 						</div>
-						<Button variant="outline" size="sm" onclick={() => showUplinkForm = true}>Configure</Button>
+						<Button variant="outline" size="sm" onclick={() => (showUplinkForm = true)}
+							>Configure</Button
+						>
 					</div>
 				{/if}
 			</CardContent>

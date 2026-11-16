@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { triageRuleStore } from '$lib/state/triage-rules.svelte';
+	import { triageRuleStore } from '#lib/state/triage-rules.svelte.ts';
 	import {
 		Card,
 		CardHeader,
 		CardTitle,
 		CardContent,
 		CardDescription
-	} from '$lib/components/ui/card';
+	} from '#lib/components/ui/card/index.ts';
 	import {
 		Table,
 		TableBody,
@@ -14,11 +14,11 @@
 		TableHead,
 		TableHeader,
 		TableRow
-	} from '$lib/components/ui/table';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Input } from '$lib/components/ui/input';
-	import { Button } from '$lib/components/ui/button';
-	import { ScrollArea } from '$lib/components/ui/scroll-area';
+	} from '#lib/components/ui/table/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { ScrollArea } from '#lib/components/ui/scroll-area/index.ts';
 	import {
 		Dialog,
 		DialogContent,
@@ -26,9 +26,9 @@
 		DialogTitle,
 		DialogDescription,
 		DialogTrigger
-	} from '$lib/components/ui/dialog';
-	import { Switch } from '$lib/components/ui/switch';
-	import { Label } from '$lib/components/ui/label';
+	} from '#lib/components/ui/dialog/index.ts';
+	import { Switch } from '#lib/components/ui/switch/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
 	import { toast } from 'svelte-sonner';
 	import { Settings, Edit2, Check, X, ShieldAlert, AlertTriangle, Plus } from '@lucide/svelte';
 
@@ -123,22 +123,30 @@
 				</p>
 			</div>
 		</div>
-		
+
 		<Dialog bind:open={isAddDialogOpen}>
-			<DialogTrigger class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2">
+			<DialogTrigger
+				class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2"
+			>
 				<Plus class="size-4 mr-2" />
 				Add Rule
 			</DialogTrigger>
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>Add New Triage Rule</DialogTitle>
-					<DialogDescription>Define a new condition that will automatically flag a patient's vitals.</DialogDescription>
+					<DialogDescription
+						>Define a new condition that will automatically flag a patient's vitals.</DialogDescription
+					>
 				</DialogHeader>
 				<form onsubmit={handleAddRule} class="space-y-4 py-4">
 					<div class="grid grid-cols-2 gap-4">
 						<div class="space-y-2">
 							<Label for="field">Field</Label>
-							<select id="field" bind:value={newRule.field} class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+							<select
+								id="field"
+								bind:value={newRule.field}
+								class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+							>
 								<option value="temperatureCelsius">Temperature</option>
 								<option value="systolicBp">Systolic BP</option>
 								<option value="diastolicBp">Diastolic BP</option>
@@ -149,7 +157,11 @@
 						</div>
 						<div class="space-y-2">
 							<Label for="operator">Operator</Label>
-							<select id="operator" bind:value={newRule.operator} class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+							<select
+								id="operator"
+								bind:value={newRule.operator}
+								class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+							>
 								<option value=">">Greater than (>)</option>
 								<option value="<">Less than (&lt;)</option>
 								<option value=">=">Greater or eq (>=)</option>
@@ -161,11 +173,21 @@
 					<div class="grid grid-cols-2 gap-4">
 						<div class="space-y-2">
 							<Label for="threshold">Threshold</Label>
-							<Input id="threshold" type="number" step="0.1" bind:value={newRule.threshold} required />
+							<Input
+								id="threshold"
+								type="number"
+								step="0.1"
+								bind:value={newRule.threshold}
+								required
+							/>
 						</div>
 						<div class="space-y-2">
 							<Label for="level">Result Level</Label>
-							<select id="level" bind:value={newRule.resultingLevel} class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+							<select
+								id="level"
+								bind:value={newRule.resultingLevel}
+								class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+							>
 								<option value="red">RED (Emergency)</option>
 								<option value="amber">AMBER (Priority)</option>
 								<option value="green">GREEN (Standard)</option>
@@ -174,14 +196,20 @@
 					</div>
 					<div class="space-y-2">
 						<Label for="reason">Clinical Reason (Optional)</Label>
-						<Input id="reason" bind:value={newRule.reasonTemplate} placeholder="e.g. Fever indicator" />
+						<Input
+							id="reason"
+							bind:value={newRule.reasonTemplate}
+							placeholder="e.g. Fever indicator"
+						/>
 					</div>
 					<div class="flex items-center space-x-2 bg-muted/30 p-3 rounded-lg border">
 						<Switch id="pregnant" bind:checked={newRule.requiresPregnant} />
 						<Label for="pregnant" class="font-medium cursor-pointer">Requires Pregnancy</Label>
 					</div>
 					<div class="flex justify-end gap-2 pt-2">
-						<Button type="button" variant="outline" onclick={() => isAddDialogOpen = false}>Cancel</Button>
+						<Button type="button" variant="outline" onclick={() => (isAddDialogOpen = false)}
+							>Cancel</Button
+						>
 						<Button type="submit">Add Rule</Button>
 					</div>
 				</form>
@@ -309,7 +337,11 @@
 					<div class="grid grid-cols-2 gap-4">
 						<div class="space-y-2">
 							<Label for="edit-field">Field</Label>
-							<select id="edit-field" bind:value={editingRule.field} class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+							<select
+								id="edit-field"
+								bind:value={editingRule.field}
+								class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+							>
 								<option value="temperatureCelsius">Temperature</option>
 								<option value="systolicBp">Systolic BP</option>
 								<option value="diastolicBp">Diastolic BP</option>
@@ -320,7 +352,11 @@
 						</div>
 						<div class="space-y-2">
 							<Label for="edit-operator">Operator</Label>
-							<select id="edit-operator" bind:value={editingRule.operator} class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+							<select
+								id="edit-operator"
+								bind:value={editingRule.operator}
+								class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+							>
 								<option value=">">Greater than (>)</option>
 								<option value="<">Less than (&lt;)</option>
 								<option value=">=">Greater or eq (>=)</option>
@@ -332,11 +368,21 @@
 					<div class="grid grid-cols-2 gap-4">
 						<div class="space-y-2">
 							<Label for="edit-threshold">Threshold</Label>
-							<Input id="edit-threshold" type="number" step="0.1" bind:value={editingRule.threshold} required />
+							<Input
+								id="edit-threshold"
+								type="number"
+								step="0.1"
+								bind:value={editingRule.threshold}
+								required
+							/>
 						</div>
 						<div class="space-y-2">
 							<Label for="edit-level">Result Level</Label>
-							<select id="edit-level" bind:value={editingRule.resultingLevel} class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+							<select
+								id="edit-level"
+								bind:value={editingRule.resultingLevel}
+								class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+							>
 								<option value="red">RED (Emergency)</option>
 								<option value="amber">AMBER (Priority)</option>
 								<option value="green">GREEN (Standard)</option>
@@ -345,14 +391,20 @@
 					</div>
 					<div class="space-y-2">
 						<Label for="edit-reason">Clinical Reason (Optional)</Label>
-						<Input id="edit-reason" bind:value={editingRule.reasonTemplate} placeholder="e.g. Fever indicator" />
+						<Input
+							id="edit-reason"
+							bind:value={editingRule.reasonTemplate}
+							placeholder="e.g. Fever indicator"
+						/>
 					</div>
 					<div class="flex items-center space-x-2 bg-muted/30 p-3 rounded-lg border">
 						<Switch id="edit-pregnant" bind:checked={editingRule.requiresPregnant} />
 						<Label for="edit-pregnant" class="font-medium cursor-pointer">Requires Pregnancy</Label>
 					</div>
 					<div class="flex justify-end gap-2 pt-2">
-						<Button type="button" variant="outline" onclick={() => isEditDialogOpen = false}>Cancel</Button>
+						<Button type="button" variant="outline" onclick={() => (isEditDialogOpen = false)}
+							>Cancel</Button
+						>
 						<Button type="button" onclick={saveEditFull}>Save Changes</Button>
 					</div>
 				</div>

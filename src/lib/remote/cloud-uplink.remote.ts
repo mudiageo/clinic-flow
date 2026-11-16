@@ -1,9 +1,9 @@
 import { query, form } from '$app/server';
 import { getRequestEvent } from '$app/server';
-import { db } from '$lib/server/db';
+import { db } from '#lib/server/db/index.ts';
 import * as v from 'valibot';
 import { hashPassword } from 'better-auth/crypto';
-import { upsertUplinkConfig, deleteUplinkConfig } from '$lib/server/db/queries/uplink';
+import { upsertUplinkConfig, deleteUplinkConfig } from '#lib/server/db/queries/uplink.ts';
 
 // ─────────────────────────────────────────────────────────────
 // GET UPLINK CONFIG

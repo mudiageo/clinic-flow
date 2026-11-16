@@ -1,10 +1,10 @@
 import { query, command, getRequestEvent } from '$app/server';
 import { error } from '@sveltejs/kit';
 import * as v from 'valibot';
-import { db as serverDb } from '$lib/server/db';
+import { db as serverDb } from '#lib/server/db/index.ts';
 import { sql, eq, inArray, gt, and } from 'drizzle-orm';
-import * as schema from '$lib/server/db/schema';
-import { pharmacyInventory, syncOperations } from '$lib/server/db/schema';
+import * as schema from '#lib/server/db/schema.ts';
+import { pharmacyInventory, syncOperations } from '#lib/server/db/schema.ts';
 
 function requireAuth() {
 	const event = getRequestEvent();
@@ -73,7 +73,8 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 		if (op.entityType === 'profile') {
 			const payload = op.payload as any;
 			if (payload.name) {
-				await serverDb.update(schema.staff)
+				await serverDb
+					.update(schema.staff)
 					.set({ fullName: payload.name })
 					.where(eq(schema.staff.id, op.entityId));
 				// Also update Better Auth user using the authUserId relationship
@@ -81,7 +82,9 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 					where: eq(schema.staff.id, op.entityId)
 				});
 				if (staffMember) {
-					await serverDb.execute(sql`UPDATE "user" SET name = ${payload.name} WHERE id = ${staffMember.authUserId}`);
+					await serverDb.execute(
+						sql`UPDATE "user" SET name = ${payload.name} WHERE id = ${staffMember.authUserId}`
+					);
 				}
 				accepted.push(op.localId);
 			}
@@ -90,7 +93,8 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 
 		if (op.entityType === 'preferences') {
 			const payload = op.payload as any;
-			await serverDb.update(schema.staff)
+			await serverDb
+				.update(schema.staff)
 				.set({ preferences: JSON.stringify(payload) })
 				.where(eq(schema.staff.id, op.entityId));
 			accepted.push(op.localId);
@@ -241,7 +245,7 @@ export const getQueueUpdates = query.live(
 
 export const getPhcSettings = query(v.string(), async (phcId) => {
 	if (phcId === 'demo-phc-1') return null;
-	
+
 	const phc = await serverDb.query.phcs.findFirst({
 		where: (t, { eq }) => eq(t.id, phcId)
 	});

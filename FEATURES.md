@@ -102,7 +102,7 @@ src/routes/
 - [x] Render `{@render children()}` inside `SidebarProvider` shell only
 - [x] Pass `sessionData` down via Svelte context (not re-fetching in each child layout)
 
-#### Shared `AppSidebar` Component (`$lib/components/AppSidebar.svelte`)
+#### Shared `AppSidebar` Component (`#lib/components/AppSidebar.svelte`)
 
 - [x] Accept `navGroups: NavGroup[]` prop
 - [x] Accept `role: string` and `phcName?: string` prop
@@ -200,7 +200,7 @@ revoked     BOOLEAN DEFAULT false
 | `manage:appointments`  | Create/edit appointments      | nurse, admin               |
 | `superadmin:all`       | Full platform access          | superadmin only            |
 
-### Remote Functions (`$lib/remote/permissions.remote.ts`)
+### Remote Functions (`#lib/remote/permissions.remote.ts`)
 
 - [x] `getStaffPermissions(staffId)` — query: list permissions for a staff member
 - [x] `getPhcPermissions(phcId)` — query: all permissions in a PHC
@@ -208,7 +208,7 @@ revoked     BOOLEAN DEFAULT false
 - [x] `revokePermission` — form: revoke a permission (admin only)
 - [x] `checkPermission(staffId, permission)` — query: boolean check
 
-### Server Utility (`$lib/server/permissions.ts`)
+### Server Utility (`#lib/server/permissions.ts`)
 
 - [x] `hasPermission(staffId, permission): Promise<boolean>`
 - [x] `requirePermission(staffId, permission): Promise<void>` — throws 403
@@ -945,9 +945,9 @@ Write (any device)
 _Last updated: 2026-07-15 | Implementation starting Phase 1_
 
 ## Missed Edge Cases & Polish (from Phases 1-8)
+
 - [x] Implement `NumberTicker` animated counters for dashboard KPIs.
 - [x] Implement `All Users` list view in Superadmin with role/PHC filtering.
 - [x] Add specific `liveQuery` optimizations (adaptive sync poll interval based on settingsStore).
 - [x] Full `Family Grouping UI` linking multiple patient profiles.
 - [x] Additional mobile responsiveness polish (hiding sidebar and showing `BottomNav` cleanly across all role layouts).
-

@@ -1,6 +1,7 @@
 # Release Management System — Architecture Plan
 
 ## Overview
+
 A fully automated, end-to-end release management system for ClinicFlow that integrates CI/CD, a dynamic download page, a release API, and a GitHub Releases-powered changelog.
 
 ---
@@ -8,6 +9,7 @@ A fully automated, end-to-end release management system for ClinicFlow that inte
 ## Components
 
 ### 1. CI/CD Pipeline (`/.github/workflows/`)
+
 - **`build.yml`** (existing): Upgrade to support `release/*` branch naming convention, draft vs. published releases, and pre-release flag detection via semver tags (e.g. `v1.0.0-beta.1`).
 - **`release.yml`** (new): A dedicated workflow that is manually triggered (or triggered on tag push `v*`). It:
   - Runs `pnpm version` to bump `package.json`.
@@ -17,7 +19,9 @@ A fully automated, end-to-end release management system for ClinicFlow that inte
   - Updates the `releases.json` registry file on the `main` branch automatically.
 
 ### 2. GitHub Releases as Source of Truth
+
 All release metadata lives in GitHub Releases. The GitHub API (`https://api.github.com/repos/owner/repo/releases`) serves as the single source of truth for:
+
 - Version numbers
 - Release notes / changelogs (from GitHub Release body)
 - Asset download URLs (direct links to `.exe`, `.dmg`, `.deb`, `.apk`)
@@ -25,23 +29,29 @@ All release metadata lives in GitHub Releases. The GitHub API (`https://api.gith
 - Published date
 
 ### 3. Releases API Remote (`src/lib/remote/releases.remote.ts`)
+
 A SvelteKit `query` remote function that:
+
 - Fetches release data from the GitHub API.
 - Parses and normalizes it: stable, beta, pre-release, older versions.
 - Returns structured data to the download page.
 - Caches aggressively (5 min TTL) to avoid GitHub API rate limits.
 
 ### 4. Download Page (`/download`) — Fully Dynamic
+
 The existing static download page will be replaced with a fully dynamic page powered by the Releases API. Features:
+
 - **Latest stable release** prominently shown with all platform buttons and real download URLs.
 - **Beta / Pre-release** section (if any) with appropriate disclaimers.
 - **Version History** accordion — shows all past releases with their platform links.
 - **Server Download** section — dedicated card for the ClinicFlow Server package (Linux `.deb`/`.tar.gz` for self-hosting admins).
 
 ### 5. Releases Page (`/releases`) — New Marketing Page
+
 A dedicated public changelog/release notes page showing all releases in reverse chronological order, with full rendered release body (markdown → HTML).
 
 ### 6. In-App Update Check
+
 The settings store will query the latest GitHub release tag and compare it to the current app version (`import.meta.env.VITE_APP_VERSION`). If newer, it shows a non-intrusive badge in the sidebar.
 
 ---

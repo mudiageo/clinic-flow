@@ -1,17 +1,34 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
-	import { Cloud, Server, QrCode, ArrowRight, Loader2, Link2, HardDrive, Database, Wifi, ShieldCheck } from '@lucide/svelte';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardHeader,
+		CardTitle
+	} from '#lib/components/ui/card/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
+	import {
+		Cloud,
+		Server,
+		QrCode,
+		ArrowRight,
+		Loader2,
+		Link2,
+		HardDrive,
+		Database,
+		Wifi,
+		ShieldCheck
+	} from '@lucide/svelte';
 	import { slide, fade } from 'svelte/transition';
 	import { toast } from 'svelte-sonner';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { onMount } from 'svelte';
-	import { checkServerStatus } from '$lib/remote/setup.remote';
-	import { validatePairingToken } from '$lib/remote/server-status.remote';
-	import { getServerUrl } from '$lib/utils/server';
+	import { checkServerStatus } from '#lib/remote/setup.remote.ts';
+	import { validatePairingToken } from '#lib/remote/server-status.remote.ts';
+	import { getServerUrl } from '#lib/utils/server-url.ts';
 
 	let connectionMode = $state<'select' | 'local' | 'cloud' | 'scanning' | 'master_setup'>('select');
 	let localIp = $state('');
@@ -20,7 +37,7 @@
 
 	async function connectToServer(url: string) {
 		isConnecting = true;
-		
+
 		try {
 			localStorage.setItem('clinicflow_server_url', url);
 
@@ -35,9 +52,14 @@
 			}
 		} catch (error) {
 			console.error(error);
-			const errStr = error instanceof Error ? error.message : (typeof error === 'object' ? JSON.stringify(error) : String(error));
+			const errStr =
+				error instanceof Error
+					? error.message
+					: typeof error === 'object'
+						? JSON.stringify(error)
+						: String(error);
 			toast.error(`Connection Error: ${errStr}`, { duration: 10000 });
-			
+
 			localStorage.removeItem('clinicflow_server_url');
 		} finally {
 			isConnecting = false;
@@ -75,11 +97,14 @@
 			try {
 				const controller = new AbortController();
 				const timeoutId = setTimeout(() => controller.abort(), 1500); // Fast timeout for scanning
-				
+
 				// Ping a static asset to bypass Service Worker routing logic safely
-				const res = await fetch(`${url}/favicon.svg`, { signal: controller.signal, mode: 'no-cors' });
+				const res = await fetch(`${url}/favicon.svg`, {
+					signal: controller.signal,
+					mode: 'no-cors'
+				});
 				clearTimeout(timeoutId);
-				
+
 				foundUrl = url;
 				break;
 			} catch (e) {
@@ -93,7 +118,10 @@
 			await connectToServer(foundUrl);
 		} else {
 			isConnecting = false;
-			toast.error('Auto-detect failed. Your router might block mDNS. Please enter the IP manually.', { id: 'autodetect' });
+			toast.error(
+				'Auto-detect failed. Your router might block mDNS. Please enter the IP manually.',
+				{ id: 'autodetect' }
+			);
 		}
 	}
 
@@ -115,13 +143,15 @@
 					const cache = await caches.open('clinicflow-config');
 					await cache.put('/server-url', new Response(serverUrl));
 				}
-				
+
 				// Generate a generic device name based on user agent or random ID
-				const deviceName = `Tablet-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
-				
+				const deviceName = `Tablet-${Math.floor(Math.random() * 10000)
+					.toString()
+					.padStart(4, '0')}`;
+
 				// Now this remote call will be properly routed to the master server
 				const res = await validatePairingToken({ token, deviceName, role: 'kiosk' });
-				
+
 				localStorage.setItem('clinicflow_phc_id', res.phcId);
 				toast.success('Device paired successfully! Waiting for admin approval.');
 				goto('/login');
@@ -136,13 +166,13 @@
 					} catch (err) {}
 				}
 				// Clear token from URL so they can try again manually
-				goto('/connect', { replaceState: true });
+				goto('/connect', { replace: true });
 			} finally {
 				isConnecting = false;
 			}
 		} else if (token) {
 			toast.error('Invalid pairing link. Missing server address.');
-			goto('/connect', { replaceState: true });
+			goto('/connect', { replace: true });
 		}
 	});
 </script>
@@ -151,11 +181,14 @@
 	<title>Connect to Server - ClinicFlow</title>
 </svelte:head>
 
-<div class="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col justify-center items-center p-4 sm:p-8">
-	
+<div
+	class="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col justify-center items-center p-4 sm:p-8"
+>
 	<div class="w-full max-w-lg" in:fade={{ duration: 400 }}>
 		<div class="text-center mb-8">
-			<div class="inline-flex items-center justify-center p-3 bg-primary/10 text-primary rounded-2xl mb-4">
+			<div
+				class="inline-flex items-center justify-center p-3 bg-primary/10 text-primary rounded-2xl mb-4"
+			>
 				<Link2 class="size-8" />
 			</div>
 			<h1 class="text-3xl font-extrabold tracking-tight text-foreground">Connect Device</h1>
@@ -165,8 +198,7 @@
 		<Card class="shadow-xl border-border/50 overflow-hidden">
 			{#if connectionMode === 'select'}
 				<div class="p-6 space-y-4" in:slide={{ duration: 300 }}>
-					
-					<button 
+					<button
 						class="w-full flex items-start gap-4 p-5 rounded-xl border border-border/60 bg-card hover:bg-muted/50 hover:border-primary/50 transition-all text-left group"
 						onclick={() => {
 							const defaultUrl = getServerUrl();
@@ -174,36 +206,47 @@
 							connectionMode = 'cloud';
 						}}
 					>
-						<div class="p-3 bg-blue-500/10 text-blue-500 rounded-lg group-hover:scale-110 transition-transform">
+						<div
+							class="p-3 bg-blue-500/10 text-blue-500 rounded-lg group-hover:scale-110 transition-transform"
+						>
 							<Cloud class="size-6" />
 						</div>
 						<div class="flex-1">
 							<h3 class="font-bold text-foreground">Cloud Server</h3>
-							<p class="text-sm text-muted-foreground leading-relaxed mt-1">Connect to the managed ClinicFlow cloud. Requires stable internet.</p>
+							<p class="text-sm text-muted-foreground leading-relaxed mt-1">
+								Connect to the managed ClinicFlow cloud. Requires stable internet.
+							</p>
 						</div>
-						<ArrowRight class="size-5 text-muted-foreground group-hover:text-primary mt-3 transition-colors" />
+						<ArrowRight
+							class="size-5 text-muted-foreground group-hover:text-primary mt-3 transition-colors"
+						/>
 					</button>
 
-					<button 
+					<button
 						class="w-full flex items-start gap-4 p-5 rounded-xl border border-border/60 bg-card hover:bg-muted/50 hover:border-primary/50 transition-all text-left group"
-						onclick={() => connectionMode = 'local'}
+						onclick={() => (connectionMode = 'local')}
 					>
-						<div class="p-3 bg-emerald-500/10 text-emerald-500 rounded-lg group-hover:scale-110 transition-transform">
+						<div
+							class="p-3 bg-emerald-500/10 text-emerald-500 rounded-lg group-hover:scale-110 transition-transform"
+						>
 							<Server class="size-6" />
 						</div>
 						<div class="flex-1">
 							<h3 class="font-bold text-foreground">Local Network Server</h3>
-							<p class="text-sm text-muted-foreground leading-relaxed mt-1">Connect to a computer in this clinic via Wi-Fi. No internet required.</p>
+							<p class="text-sm text-muted-foreground leading-relaxed mt-1">
+								Connect to a computer in this clinic via Wi-Fi. No internet required.
+							</p>
 						</div>
-						<ArrowRight class="size-5 text-muted-foreground group-hover:text-primary mt-3 transition-colors" />
+						<ArrowRight
+							class="size-5 text-muted-foreground group-hover:text-primary mt-3 transition-colors"
+						/>
 					</button>
 				</div>
-			
 			{:else if connectionMode === 'local'}
 				<div class="p-6" in:slide={{ duration: 300 }}>
-					<button 
+					<button
 						class="text-sm text-muted-foreground hover:text-foreground mb-6 flex items-center transition-colors"
-						onclick={() => connectionMode = 'select'}
+						onclick={() => (connectionMode = 'select')}
 					>
 						← Back to options
 					</button>
@@ -211,23 +254,27 @@
 					<div class="space-y-6">
 						<div class="space-y-3">
 							<Label class="text-base">Server IP Address</Label>
-							<Input 
-								bind:value={localIp} 
-								placeholder="e.g. 192.168.1.100:5173" 
+							<Input
+								bind:value={localIp}
+								placeholder="e.g. 192.168.1.100:5173"
 								class="h-14 text-lg font-mono"
 								onkeydown={(e) => e.key === 'Enter' && handleConnectLocal()}
 							/>
-							<p class="text-sm text-muted-foreground">Find this IP address on the main computer's dashboard.</p>
+							<p class="text-sm text-muted-foreground">
+								Find this IP address on the main computer's dashboard.
+							</p>
 						</div>
 
 						<div class="flex items-center gap-4">
 							<div class="h-px bg-border flex-1"></div>
-							<span class="text-xs font-semibold text-muted-foreground uppercase tracking-widest">OR</span>
+							<span class="text-xs font-semibold text-muted-foreground uppercase tracking-widest"
+								>OR</span
+							>
 							<div class="h-px bg-border flex-1"></div>
 						</div>
 
-						<Button 
-							variant="outline" 
+						<Button
+							variant="outline"
 							class="w-full h-14 border-primary/20 text-primary hover:bg-primary/5"
 							disabled={isConnecting}
 							onclick={handleAutoDetect}
@@ -236,8 +283,8 @@
 							Auto-Detect Network Server
 						</Button>
 
-						<Button 
-							variant="outline" 
+						<Button
+							variant="outline"
 							class="w-full h-14 border-border text-foreground hover:bg-muted mt-3"
 							onclick={() => toast.info('QR Scanner component not implemented yet!')}
 						>
@@ -245,7 +292,7 @@
 							Scan QR Code
 						</Button>
 
-						<Button 
+						<Button
 							class="w-full h-14 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 mt-4"
 							disabled={isConnecting}
 							onclick={handleConnectLocal}
@@ -260,27 +307,29 @@
 				</div>
 			{:else if connectionMode === 'cloud'}
 				<div class="p-6" in:slide={{ duration: 300 }}>
-					<button 
+					<button
 						class="text-sm text-muted-foreground hover:text-foreground mb-6 flex items-center transition-colors"
-						onclick={() => connectionMode = 'select'}
+						onclick={() => (connectionMode = 'select')}
 					>
 						← Back to options
 					</button>
 
 					<div class="space-y-6">
-
 						<div class="space-y-3">
 							<Label class="text-base">Cloud Server URL</Label>
-							<Input 
-								bind:value={cloudUrl} 
-								placeholder="e.g. https://clinic.clinicflow.org" 
+							<Input
+								bind:value={cloudUrl}
+								placeholder="e.g. https://clinic.clinicflow.org"
 								class="h-14 text-lg font-mono"
 								onkeydown={(e) => e.key === 'Enter' && handleConnectCloudUrl()}
 							/>
-							<p class="text-sm text-muted-foreground">Admins can connect directly to their cloud clinic. Kiosks and staff tablets should use a secure Pairing Link instead.</p>
+							<p class="text-sm text-muted-foreground">
+								Admins can connect directly to their cloud clinic. Kiosks and staff tablets should
+								use a secure Pairing Link instead.
+							</p>
 						</div>
 
-						<Button 
+						<Button
 							class="w-full h-14 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 mt-4"
 							disabled={isConnecting}
 							onclick={handleConnectCloudUrl}
@@ -298,8 +347,15 @@
 
 		{#if connectionMode === 'select'}
 			<div class="mt-8 pt-8 border-t border-border/50 text-center relative">
-				<span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-50 dark:bg-slate-950 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-widest">Admin Setup</span>
-				<Button variant="ghost" class="text-muted-foreground hover:text-foreground" onclick={() => connectionMode = 'master_setup'}>
+				<span
+					class="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-50 dark:bg-slate-950 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-widest"
+					>Admin Setup</span
+				>
+				<Button
+					variant="ghost"
+					class="text-muted-foreground hover:text-foreground"
+					onclick={() => (connectionMode = 'master_setup')}
+				>
 					<HardDrive class="size-4 mr-2" />
 					Initialize as Master Server
 				</Button>
@@ -307,42 +363,55 @@
 		{/if}
 
 		{#if connectionMode === 'master_setup'}
-			<div class="mt-6 p-6 bg-card rounded-2xl shadow-xl border border-primary/20" in:slide={{ duration: 400 }}>
+			<div
+				class="mt-6 p-6 bg-card rounded-2xl shadow-xl border border-primary/20"
+				in:slide={{ duration: 400 }}
+			>
 				<div class="flex flex-col items-center text-center space-y-4">
 					<div class="p-4 bg-primary/10 rounded-2xl text-primary">
 						<HardDrive class="size-8" />
 					</div>
 					<div>
 						<h3 class="text-2xl font-bold">Master Server Setup</h3>
-						<p class="text-muted-foreground mt-2">Configure this computer as the central offline sync hub for your clinic.</p>
+						<p class="text-muted-foreground mt-2">
+							Configure this computer as the central offline sync hub for your clinic.
+						</p>
 					</div>
-					
+
 					<div class="w-full space-y-4 text-left my-4">
 						<div class="flex gap-4">
 							<Database class="size-6 text-primary shrink-0" />
 							<div>
 								<h4 class="font-semibold">Local Offline Database</h4>
-								<p class="text-sm text-muted-foreground">Creates a fast database directly on this computer's hard drive.</p>
+								<p class="text-sm text-muted-foreground">
+									Creates a fast database directly on this computer's hard drive.
+								</p>
 							</div>
 						</div>
 						<div class="flex gap-4">
 							<Wifi class="size-6 text-primary shrink-0" />
 							<div>
 								<h4 class="font-semibold">Automatic Network Broadcasting</h4>
-								<p class="text-sm text-muted-foreground">Tablets on the same Wi-Fi will find this server automatically via mDNS.</p>
+								<p class="text-sm text-muted-foreground">
+									Tablets on the same Wi-Fi will find this server automatically via mDNS.
+								</p>
 							</div>
 						</div>
 						<div class="flex gap-4">
 							<ShieldCheck class="size-6 text-primary shrink-0" />
 							<div>
 								<h4 class="font-semibold">Secure Device Pairing</h4>
-								<p class="text-sm text-muted-foreground">Generates a one-time QR code for tablets to scan and authenticate.</p>
+								<p class="text-sm text-muted-foreground">
+									Generates a one-time QR code for tablets to scan and authenticate.
+								</p>
 							</div>
 						</div>
 					</div>
 
 					<div class="flex w-full gap-4 pt-4">
-						<Button variant="ghost" class="flex-1" onclick={() => connectionMode = 'select'}>Cancel</Button>
+						<Button variant="ghost" class="flex-1" onclick={() => (connectionMode = 'select')}
+							>Cancel</Button
+						>
 						<Button class="flex-1" onclick={handleInitMasterServer}>Start Setup Wizard</Button>
 					</div>
 				</div>
@@ -351,8 +420,13 @@
 
 		<!-- Loader Overlay -->
 		{#if isConnecting && connectionMode === 'select'}
-			<div class="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm" in:fade>
-				<div class="flex flex-col items-center gap-4 p-8 bg-card rounded-2xl shadow-2xl border border-border">
+			<div
+				class="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+				in:fade
+			>
+				<div
+					class="flex flex-col items-center gap-4 p-8 bg-card rounded-2xl shadow-2xl border border-border"
+				>
 					<Loader2 class="size-12 animate-spin text-primary" />
 					<p class="font-bold text-lg animate-pulse">Contacting Server...</p>
 				</div>

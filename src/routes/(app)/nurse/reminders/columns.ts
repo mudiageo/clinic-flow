@@ -1,7 +1,7 @@
 import type { ColumnDef } from '@tanstack/table-core';
-import { Badge } from '$lib/components/ui/badge';
+import { Badge } from '#lib/components/ui/badge/index.ts';
 import { createRawSnippet } from 'svelte';
-import { renderComponent, renderSnippet } from '$lib/components/ui/data-table/index.js';
+import { renderComponent, renderSnippet } from '#lib/components/ui/data-table/index.js';
 
 export type ReminderRow = {
 	id: string;

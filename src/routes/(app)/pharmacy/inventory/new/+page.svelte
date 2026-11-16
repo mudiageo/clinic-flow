@@ -1,19 +1,19 @@
 <script lang="ts">
-	import { pharmacyStore } from '$lib/state/pharmacy.svelte';
+	import { pharmacyStore } from '#lib/state/pharmacy.svelte.ts';
 	import {
 		Card,
 		CardContent,
 		CardHeader,
 		CardTitle,
 		CardDescription
-	} from '$lib/components/ui/card';
-	import { Input } from '$lib/components/ui/input';
-	import { Button } from '$lib/components/ui/button';
-	import { Label } from '$lib/components/ui/label';
+	} from '#lib/components/ui/card/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
 	import { toast } from 'svelte-sonner';
 	import { PackagePlus, ArrowLeft } from '@lucide/svelte';
 	import { goto } from '$app/navigation';
-	import { Checkbox } from '$lib/components/ui/checkbox';
+	import { Checkbox } from '#lib/components/ui/checkbox/index.ts';
 
 	let itemName = $state('');
 	let category = $state('');

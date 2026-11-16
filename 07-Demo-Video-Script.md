@@ -10,6 +10,7 @@
 **Goal:** Demonstrate the system's ability to seamlessly transition offline and continue functioning without disruption.
 
 **Click-by-Click Action:**
+
 1. Open the **Nurse Dashboard**. Point out the green "Online" indicator in the top right header.
 2. **Turn off the device's Wi-Fi** (or toggle Chrome DevTools Network to "Offline").
 3. Point out the sync status changing to "Offline" (red/amber indicator).
@@ -27,17 +28,18 @@
 **Goal:** Show triage logic working offline and then demonstrate the online AI capabilities.
 
 **Click-by-Click Action:**
+
 1. From Amina's profile, click **Record Vitals**.
 2. Enter a critical temperature (e.g., `39.5°C`) and high blood pressure (`150/95`). Click **Save**.
 3. Navigate to the **Nurse Queue Board**. Show Amina automatically moved to the "Red Alert" urgency column.
-4. **Turn Wi-Fi back ON**. 
+4. **Turn Wi-Fi back ON**.
 5. Point to the sync indicator as it flushes "Pending: 1... 0" and turns green.
 6. Switch tabs to the **Doctor's Dashboard**. Click on Amina's name in the active queue to open the Consultation view.
-7. Click the **Hold to Speak (Voice Intake)** button. Speak naturally: *"Patient presents with a high fever for three days and severe headaches."*
+7. Click the **Hold to Speak (Voice Intake)** button. Speak naturally: _"Patient presents with a high fever for three days and severe headaches."_
 8. Let the AI structure the notes into the Chief Complaint and Symptoms fields.
 
 **Voiceover Narration:**
-"Even while completely offline, our smart rules engine evaluates vitals. Watch as we enter a high temperature—Amina is instantly flagged as 'Red Alert' and bumped to the top of the queue. When the internet returns, ClinicFlow silently pushes those offline records to the secure cloud. 
+"Even while completely offline, our smart rules engine evaluates vitals. Watch as we enter a high temperature—Amina is instantly flagged as 'Red Alert' and bumped to the top of the queue. When the internet returns, ClinicFlow silently pushes those offline records to the secure cloud.
 Now, as the Doctor takes over, we leverage AI to eliminate typing. By simply dictating the symptoms in English or local Nigerian languages, ClinicFlow automatically structures the clinical notes, saving doctors hours of paperwork every week."
 
 ---
@@ -47,6 +49,7 @@ Now, as the Doctor takes over, we leverage AI to eliminate typing. By simply dic
 **Goal:** Prove that devices on the same local network (or via the cloud) sync instantly.
 
 **Click-by-Click Action:**
+
 1. Set up a side-by-side view (or switch tabs quickly) of the **Doctor's Desk** and the **Pharmacy Dashboard**.
 2. On the Doctor's Desk, add a prescription for "Artemether-Lumefantrine" and click **Complete Encounter**.
 3. Immediately show the **Pharmacy Dashboard**—the prescription pops into the active dispense queue instantly.
@@ -63,6 +66,7 @@ Now, as the Doctor takes over, we leverage AI to eliminate typing. By simply dic
 **Goal:** Highlight background automation and leave a lasting impression.
 
 **Click-by-Click Action:**
+
 1. Navigate to the **Superadmin System Health** dashboard. Show the queue of dispatched SMS messages.
 2. Show a quick graphic or slide of a mobile phone receiving an SMS reminder.
 

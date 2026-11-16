@@ -1,5 +1,5 @@
 import { getQueueUpdates } from '../../routes/sync/sync.remote';
-import type { LocalQueueTicket } from '$lib/local-db/db';
+import type { LocalQueueTicket } from '#lib/local-db/db.ts';
 
 class LiveQueueStore {
 	private liveQueryHandle: any = null;

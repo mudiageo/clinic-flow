@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { getStaffMember, getStaffPermissionAuditLog } from '$lib/remote/admin.remote';
-	import { getStaffPermissions } from '$lib/remote/permissions.remote';
-	import { getRoleDefaults } from '$lib/permissions';
-	import PermissionEditor from '$lib/components/permission-editor.svelte';
-	import { Badge } from '$lib/components/ui/badge';
-	import * as Tabs from '$lib/components/ui/tabs';
+	import { getStaffMember, getStaffPermissionAuditLog } from '#lib/remote/admin.remote.ts';
+	import { getStaffPermissions } from '#lib/remote/permissions.remote.ts';
+	import { getRoleDefaults } from '#lib/permissions.ts';
+	import PermissionEditor from '#lib/components/permission-editor.svelte';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import * as Tabs from '#lib/components/ui/tabs/index.ts';
 	import { User, Calendar, ShieldCheck, Activity, Key, History, ArrowLeft } from '@lucide/svelte';
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '#lib/components/ui/button/index.ts';
 
 	let { staffId }: { staffId: string } = $props();
 
@@ -31,9 +31,13 @@
 
 	{#if staffData}
 		<!-- Header / Profile Info -->
-		<div class="bg-card border rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+		<div
+			class="bg-card border rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+		>
 			<div class="flex items-center gap-4">
-				<div class="size-16 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+				<div
+					class="size-16 rounded-full bg-primary/10 flex items-center justify-center text-primary"
+				>
 					<User class="size-8" />
 				</div>
 				<div>
@@ -54,16 +58,28 @@
 				</div>
 			</div>
 			<div class="text-sm text-muted-foreground flex flex-col items-end">
-				<span class="flex items-center gap-1.5"><Calendar class="size-4" /> Joined: {new Date(staffData.createdAt).toLocaleDateString()}</span>
+				<span class="flex items-center gap-1.5"
+					><Calendar class="size-4" /> Joined: {new Date(
+						staffData.createdAt
+					).toLocaleDateString()}</span
+				>
 			</div>
 		</div>
 
 		<Tabs.Root value="permissions" class="w-full">
-			<Tabs.List class="w-full justify-start border-b rounded-none h-12 bg-transparent p-0 space-x-6">
-				<Tabs.Trigger value="permissions" class="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 h-full gap-2 font-medium">
+			<Tabs.List
+				class="w-full justify-start border-b rounded-none h-12 bg-transparent p-0 space-x-6"
+			>
+				<Tabs.Trigger
+					value="permissions"
+					class="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 h-full gap-2 font-medium"
+				>
 					<Key class="size-4" /> Permissions
 				</Tabs.Trigger>
-				<Tabs.Trigger value="audit" class="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 h-full gap-2 font-medium">
+				<Tabs.Trigger
+					value="audit"
+					class="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 h-full gap-2 font-medium"
+				>
 					<History class="size-4" /> Audit Log
 				</Tabs.Trigger>
 			</Tabs.List>
@@ -83,18 +99,26 @@
 			<Tabs.Content value="audit" class="mt-6 outline-none">
 				<div class="bg-card border rounded-2xl overflow-hidden">
 					{#if auditLogData.length === 0}
-						<div class="p-8 text-center text-muted-foreground">No permission changes recorded yet.</div>
+						<div class="p-8 text-center text-muted-foreground">
+							No permission changes recorded yet.
+						</div>
 					{:else}
 						<div class="divide-y divide-border">
 							{#each auditLogData as log}
-								<div class="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors">
+								<div
+									class="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors"
+								>
 									<div>
 										<div class="font-medium flex items-center gap-2">
 											<Badge variant="outline" class="font-mono text-xs">{log.permission}</Badge>
 											{#if log.revoked}
 												<Badge variant="destructive" class="text-[10px]">Revoked</Badge>
 											{:else}
-												<Badge variant="secondary" class="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px]">Granted</Badge>
+												<Badge
+													variant="secondary"
+													class="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px]"
+													>Granted</Badge
+												>
 											{/if}
 										</div>
 										<div class="text-sm text-muted-foreground mt-1.5 flex items-center gap-1.5">
@@ -114,7 +138,9 @@
 	{:else}
 		<div class="p-8 text-center bg-card border rounded-2xl">
 			<h2 class="text-xl font-semibold text-foreground">Staff Member Not Found</h2>
-			<p class="text-muted-foreground mt-2">The staff member you are looking for does not exist or belongs to another PHC.</p>
+			<p class="text-muted-foreground mt-2">
+				The staff member you are looking for does not exist or belongs to another PHC.
+			</p>
 		</div>
 	{/if}
 </div>

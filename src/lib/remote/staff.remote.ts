@@ -4,7 +4,7 @@ import * as v from 'valibot';
 import { getRequestEvent } from '$app/server';
 import { hashPassword } from 'better-auth/crypto';
 
-import { getStaffByPhc, updateStaffPin } from '$lib/server/db/queries/staff';
+import { getStaffByPhc, updateStaffPin } from '#lib/server/db/queries/staff.ts';
 
 export const getAllStaff = query(async () => {
 	const event = getRequestEvent();
@@ -20,11 +20,11 @@ export const setStaffPin = form(
 	async (data) => {
 		const event = getRequestEvent();
 		if (!event.locals.phcId) throw new Error('Unauthorized');
-		
+
 		const hashedPin = await hashPassword(data.pin);
-		
+
 		await updateStaffPin(data.staffId, hashedPin);
-		
+
 		return { success: true };
 	}
 );

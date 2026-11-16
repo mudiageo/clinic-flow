@@ -2,7 +2,7 @@ import { query, command } from '$app/server';
 import { getRequestEvent } from '$app/server';
 import { redirect } from '@sveltejs/kit';
 import * as v from 'valibot';
-import { getRemindersByPhc, createReminderRecord } from '$lib/server/db/queries/reminders';
+import { getRemindersByPhc, createReminderRecord } from '#lib/server/db/queries/reminders.ts';
 
 function requireSession() {
 	const event = getRequestEvent();

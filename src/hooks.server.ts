@@ -1,14 +1,14 @@
-import type { Handle } from '@sveltejs/kit';
-import { ALLOWED_ORIGINS } from '$app/env/private';
+import type { Handle } from '@sveltejs/kit/hooks';
 import { redirect } from '@sveltejs/kit';
+import { ALLOWED_ORIGINS } from '$app/env/private';
 import { building } from '$app/env';
-import { auth } from '$lib/server/auth';
+import { auth } from '#lib/server/auth.ts';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
-import { db } from '$lib/server/db';
-import { startSmsWorker } from '$lib/server/sms/worker';
+import { db } from '#lib/server/db/index.ts';
+import { startSmsWorker } from '#lib/server/sms/worker.ts';
 import { DATABASE_URL, PORT } from '$app/env/private';
-import { ROLE_DEFAULTS } from '$lib/config/role-defaults';
-import { DASHBOARD_MODULES } from '$lib/config/dashboard-modules';
+import { ROLE_DEFAULTS } from '#lib/config/role-defaults.ts';
+import { DASHBOARD_MODULES } from '#lib/config/dashboard-modules.ts';
 
 if (!building) {
 	startSmsWorker();
@@ -22,24 +22,26 @@ if (!building) {
 		DATABASE_URL.endsWith('.db');
 
 	if (isLocalServer) {
-		import('bonjour-service').then(({ Bonjour }) => {
-			const bonjour = new Bonjour();
-			const port = Number(PORT);
+		import('bonjour-service')
+			.then(({ Bonjour }) => {
+				const bonjour = new Bonjour();
+				const port = Number(PORT);
 
-			bonjour.publish({
-				name: 'ClinicFlow Master Server',
-				type: 'http',
-				port,
-				host: 'clinicflow.local',
-				txt: { version: '1', app: 'clinicflow' }
-			});
+				bonjour.publish({
+					name: 'ClinicFlow Master Server',
+					type: 'http',
+					port,
+					host: 'clinicflow.local',
+					txt: { version: '1', app: 'clinicflow' }
+				});
 
-			console.log(`[mDNS] Broadcasting as "clinicflow-server.local" on port ${port}`);
+				console.log(`[mDNS] Broadcasting as "clinicflow-server.local" on port ${port}`);
 
-			// Graceful shutdown
-			process.on('SIGTERM', () => bonjour.destroy());
-			process.on('SIGINT', () => bonjour.destroy());
-		}).catch((e) => console.warn('[mDNS] bonjour-service unavailable:', e.message));
+				// Graceful shutdown
+				process.on('SIGTERM', () => bonjour.destroy());
+				process.on('SIGINT', () => bonjour.destroy());
+			})
+			.catch((e) => console.warn('[mDNS] bonjour-service unavailable:', e.message));
 	}
 }
 
@@ -63,18 +65,16 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const isRemotePath = event.url.pathname.startsWith('/_app/remote/');
 	const isRemoteCall = event.request.headers.has('X-SvelteKit-Remote');
 	const isGetRequest = event.request.method === 'GET' || event.request.method === 'HEAD';
-	
+
 	// Permissive check to handle Tauri's dynamic ports (e.g. http://tauri.localhost:1430)
-	const isAllowedOrigin = origin !== null && (
-		allAllowedOrigins.includes(origin) ||
-		origin.includes('tauri.localhost') ||
-		origin.includes('localhost') ||
-		origin.startsWith('tauri://') ||
-		origin.startsWith('asset://') ||
-		allAllowedOrigins.includes('*')
-	);
-
-
+	const isAllowedOrigin =
+		origin !== null &&
+		(allAllowedOrigins.includes(origin) ||
+			origin.includes('tauri.localhost') ||
+			origin.includes('localhost') ||
+			origin.startsWith('tauri://') ||
+			origin.startsWith('asset://') ||
+			allAllowedOrigins.includes('*'));
 
 	// CORS preflight for the custom header
 	if (event.request.method === 'OPTIONS') {
@@ -113,8 +113,21 @@ export const handle: Handle = async ({ event, resolve }) => {
 		});
 		event.locals.phcId = staffRecord?.phcId ?? null;
 		event.locals.staffId = staffRecord?.id ?? null;
+
 		event.locals.role =
-			(staffRecord?.role as 'receptionist' | 'nurse' | 'doctor' | 'pharmacy' | 'admin' | 'superadmin' | 'oic' | 'cho' | 'nurse_midwife' | 'chew' | 'jchew' | 'eho') ??
+			(staffRecord?.role as
+				| 'receptionist'
+				| 'nurse'
+				| 'doctor'
+				| 'pharmacy'
+				| 'admin'
+				| 'superadmin'
+				| 'oic'
+				| 'cho'
+				| 'nurse_midwife'
+				| 'chew'
+				| 'jchew'
+				| 'eho') ??
 			(session.session as any).role ??
 			null;
 
@@ -123,17 +136,17 @@ export const handle: Handle = async ({ event, resolve }) => {
 		if (event.locals.role) {
 			activePermissions = [...(ROLE_DEFAULTS[event.locals.role] || [])];
 		}
-		
+
 		if (staffRecord) {
 			const overrides = await db.query.permissions.findMany({
 				where: (p, { eq }) => eq(p.staffId, staffRecord.id)
 			});
-			
+
 			// Apply overrides (currently we only support granting, but if revoked=true existed we'd filter them out)
 			// Assuming the schema has a 'revoked' boolean flag
 			for (const override of overrides) {
 				if (override.revoked) {
-					activePermissions = activePermissions.filter(p => p !== override.permission);
+					activePermissions = activePermissions.filter((p) => p !== override.permission);
 				} else if (!activePermissions.includes(override.permission)) {
 					activePermissions.push(override.permission);
 				}
@@ -174,8 +187,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 		// Use DASHBOARD_MODULES to enforce permissions dynamically
 		// We sort by length descending to match more specific paths first (e.g. /nurse/register before /nurse)
 		const sortedModules = [...DASHBOARD_MODULES].sort((a, b) => b.href.length - a.href.length);
-		
-		const matchedModule = sortedModules.find(m => pathname.startsWith(m.href));
+
+		const matchedModule = sortedModules.find((m) => pathname.startsWith(m.href));
 		if (matchedModule) {
 			if (!permissions.includes(matchedModule.permission) && role !== 'superadmin') {
 				// User does not have the required permission for this route

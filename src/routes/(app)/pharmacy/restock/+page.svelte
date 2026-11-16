@@ -1,15 +1,15 @@
 <script lang="ts">
-	import { restockStore } from '$lib/state/restock-requests.svelte';
-	import { pharmacyStore } from '$lib/state/pharmacy.svelte';
+	import { restockStore } from '#lib/state/restock-requests.svelte.ts';
+	import { pharmacyStore } from '#lib/state/pharmacy.svelte.ts';
 	import {
 		Card,
 		CardContent,
 		CardHeader,
 		CardTitle,
 		CardDescription
-	} from '$lib/components/ui/card';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Button } from '$lib/components/ui/button';
+	} from '#lib/components/ui/card/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import {
 		Table,
 		TableBody,
@@ -17,7 +17,7 @@
 		TableHead,
 		TableHeader,
 		TableRow
-	} from '$lib/components/ui/table';
+	} from '#lib/components/ui/table/index.ts';
 	import { PackageSearch, ArrowLeft, Send, CheckCircle2, Clock, XCircle } from '@lucide/svelte';
 
 	// The store stores all restock requests. We will sort them by latest first.

@@ -1,16 +1,29 @@
 <script lang="ts">
-	import { Input } from '$lib/components/ui/input';
-	import { Button } from '$lib/components/ui/button';
-	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
-	import { Label } from '$lib/components/ui/label';
-	import { Checkbox } from '$lib/components/ui/checkbox';
-	import { inviteStaff } from '$lib/remote/admin.remote';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Card, CardHeader, CardTitle, CardContent } from '#lib/components/ui/card/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
+	import { Checkbox } from '#lib/components/ui/checkbox/index.ts';
+	import { inviteStaff } from '#lib/remote/admin.remote.ts';
 	import { toast } from 'svelte-sonner';
 	import { goto } from '$app/navigation';
 	import { ArrowLeft, Send } from '@lucide/svelte';
 
 	let email = $state('');
-	let role = $state<'receptionist' | 'nurse' | 'doctor' | 'pharmacy' | 'admin' | 'superadmin' | 'oic' | 'cho' | 'nurse_midwife' | 'chew' | 'jchew' | 'eho'>('nurse');
+	let role = $state<
+		| 'receptionist'
+		| 'nurse'
+		| 'doctor'
+		| 'pharmacy'
+		| 'admin'
+		| 'superadmin'
+		| 'oic'
+		| 'cho'
+		| 'nurse_midwife'
+		| 'chew'
+		| 'jchew'
+		| 'eho'
+	>('nurse');
 	let loading = $state(false);
 
 	const availablePermissions = [

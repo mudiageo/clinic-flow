@@ -24,7 +24,7 @@
 - [ ] Family grouping UI: link patients, family panel view (via `patientStore.familyMembers()`)
 - [ ] Queue Management UI: Nurse Station, Doctor's Desk, Waiting Room Display — three distinct routes/layouts, built against `queueStore`
 - [x] Sync status indicator component (Document 2 §3.5) — build this early, keep it visible throughout all further UI work as a constant sanity check
-- [ ] **Checkpoint:** grep the codebase for any component importing `$lib/local-db/db` or calling `liveQuery` directly — should return zero results outside `src/lib/state/`. Fix before moving to Phase 3.
+- [ ] **Checkpoint:** grep the codebase for any component importing `#lib/local-db/db` or calling `liveQuery` directly — should return zero results outside `src/lib/state/`. Fix before moving to Phase 3.
 
 ## Phase 3 — Frictionless Access Integrations (Days 6–8)
 

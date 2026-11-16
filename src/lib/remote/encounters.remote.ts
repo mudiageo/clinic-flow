@@ -2,14 +2,14 @@ import { query, command } from '$app/server';
 import { getRequestEvent } from '$app/server';
 import { redirect } from '@sveltejs/kit';
 import * as v from 'valibot';
-import { db } from '$lib/server/db';
+import { db } from '#lib/server/db/index.ts';
 import {
 	getPatientEncountersList,
 	getTriageRulesList,
 	createEncounterRecord,
 	updateEncounterNotesRecord,
 	saveVitalsRecord
-} from '$lib/server/db/queries/encounters';
+} from '#lib/server/db/queries/encounters.ts';
 
 function requireSession() {
 	const event = getRequestEvent();

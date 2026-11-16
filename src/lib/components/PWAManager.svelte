@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
-	
+
 	let needRefresh = $state(false);
 	let offlineReady = $state(false);
-	
+
 	onMount(async () => {
 		try {
 			const { pwaInfo } = await import('virtual:pwa-info');

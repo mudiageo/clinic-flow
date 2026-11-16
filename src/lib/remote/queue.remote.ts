@@ -8,7 +8,7 @@ import {
 	issueQueueTicket,
 	callQueueTicket,
 	completeQueueTicket
-} from '$lib/server/db/queries/queue';
+} from '#lib/server/db/queries/queue.ts';
 
 function requireSession() {
 	const event = getRequestEvent();

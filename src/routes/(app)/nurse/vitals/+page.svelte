@@ -1,24 +1,24 @@
 <script lang="ts">
-	import { patientStore } from '$lib/state/patients.svelte';
-	import { vitalsStore } from '$lib/state/vitals.svelte';
-	import { queueStore } from '$lib/state/queue.svelte';
-	import { triageRuleStore } from '$lib/state/triage-rules.svelte';
-	import { getPatientRiskScore } from '$lib/remote/ai.remote';
-	import { settingsStore } from '$lib/state/settings.svelte';
-	import QrScanner from '$lib/components/QrScanner.svelte';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
+	import { patientStore } from '#lib/state/patients.svelte.ts';
+	import { vitalsStore } from '#lib/state/vitals.svelte.ts';
+	import { queueStore } from '#lib/state/queue.svelte.ts';
+	import { triageRuleStore } from '#lib/state/triage-rules.svelte.ts';
+	import { getPatientRiskScore } from '#lib/remote/ai.remote.ts';
+	import { settingsStore } from '#lib/state/settings.svelte.ts';
+	import QrScanner from '#lib/components/QrScanner.svelte';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
 	import {
 		Card,
 		CardHeader,
 		CardTitle,
 		CardContent,
 		CardDescription
-	} from '$lib/components/ui/card';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import * as Stepper from '$lib/components/ui/stepper';
-	import { ShinyButton } from '$lib/components/ui/shiny-button';
+	} from '#lib/components/ui/card/index.ts';
+	import * as Dialog from '#lib/components/ui/dialog/index.ts';
+	import * as Stepper from '#lib/components/ui/stepper/index.ts';
+	import { ShinyButton } from '#lib/components/ui/shiny-button/index.ts';
 	import { toast } from 'svelte-sonner';
 	import { onMount } from 'svelte';
 	import {
@@ -189,37 +189,40 @@
 				spo2Percent: spo2 ?? null
 			};
 			const p = selectedPatient;
-			
+
 			// Fetch last 3 historical vitals for longitudinal trend analysis
 			const pastVitals = vitalsStore.items
-				.filter(v => v.patientId === p.id && v.encounterId !== encounterId)
+				.filter((v) => v.patientId === p.id && v.encounterId !== encounterId)
 				.sort((a, b) => b.recordedAt - a.recordedAt)
 				.slice(0, 3);
-			
+
 			getPatientRiskScore({
 				vitals: vitalsPayload,
 				patient: p,
 				chiefComplaint: p.reasonForVisit || triageResult.reason || 'Routine Checkup',
 				pastVitals
-			}).then(async (aiRes) => {
-				for (const tId of savedTicketIds) {
-					const updatePayload: any = {
-						aiRiskScore: aiRes.score,
-						aiRiskRationale: aiRes.rationale
-					};
+			})
+				.then(async (aiRes) => {
+					for (const tId of savedTicketIds) {
+						const updatePayload: any = {
+							aiRiskScore: aiRes.score,
+							aiRiskRationale: aiRes.rationale
+						};
 
-					// Auto-escalation Logic (never downgrade, only upgrade)
-					if (aiRes.score >= 85 && settingsStore.current?.aiAutoTriageEscalation) {
-						updatePayload.triageLevel = 'red';
-						updatePayload.triageReason = (triageResult.reason || '') + ` | 🚨 AI Escalated: ${aiRes.rationale}`;
+						// Auto-escalation Logic (never downgrade, only upgrade)
+						if (aiRes.score >= 85 && settingsStore.current?.aiAutoTriageEscalation) {
+							updatePayload.triageLevel = 'red';
+							updatePayload.triageReason =
+								(triageResult.reason || '') + ` | 🚨 AI Escalated: ${aiRes.rationale}`;
+						}
+
+						await queueStore.update(tId, updatePayload);
 					}
-
-					await queueStore.update(tId, updatePayload);
-				}
-				toast.info(`AI Risk Scored: ${aiRes.score}/100 for ${p.name}`);
-			}).catch(err => {
-				console.warn('AI Risk calculation failed (likely offline):', err);
-			});
+					toast.info(`AI Risk Scored: ${aiRes.score}/100 for ${p.name}`);
+				})
+				.catch((err) => {
+					console.warn('AI Risk calculation failed (likely offline):', err);
+				});
 
 			// Reset state
 			selectedPatient = null;
@@ -559,7 +562,8 @@
 				<AlertTriangle class="size-5" /> Patient Already in Queue
 			</Dialog.Title>
 			<Dialog.Description>
-				{selectedPatient?.name} already has an active ticket in the waiting queue. Proceeding will update their current triage level instead of creating a new ticket.
+				{selectedPatient?.name} already has an active ticket in the waiting queue. Proceeding will update
+				their current triage level instead of creating a new ticket.
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer>

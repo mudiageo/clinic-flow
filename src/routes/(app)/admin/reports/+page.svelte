@@ -1,16 +1,16 @@
 <script lang="ts">
-	import { encounterStore } from '$lib/state/encounters.svelte';
-	import { prescriptionStore } from '$lib/state/prescriptions.svelte';
-	import { Input } from '$lib/components/ui/input';
-	import { Button } from '$lib/components/ui/button';
-	import { Label } from '$lib/components/ui/label';
+	import { encounterStore } from '#lib/state/encounters.svelte.ts';
+	import { prescriptionStore } from '#lib/state/prescriptions.svelte.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
 	import {
 		Card,
 		CardHeader,
 		CardTitle,
 		CardContent,
 		CardDescription
-	} from '$lib/components/ui/card';
+	} from '#lib/components/ui/card/index.ts';
 	import {
 		Table,
 		TableBody,
@@ -18,9 +18,9 @@
 		TableHead,
 		TableHeader,
 		TableRow
-	} from '$lib/components/ui/table';
-	import { Badge } from '$lib/components/ui/badge';
-	import { vitalsStore } from '$lib/state/vitals.svelte';
+	} from '#lib/components/ui/table/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { vitalsStore } from '#lib/state/vitals.svelte.ts';
 	import { FileText, Printer, BarChart3, Activity, Download } from '@lucide/svelte';
 
 	let startDate = $state(
@@ -40,9 +40,7 @@
 	const filteredVitals = $derived.by(() => {
 		const start = new Date(startDate).getTime();
 		const end = new Date(endDate).getTime() + 86400000;
-		return vitalsStore.items.filter(
-			(v) => v.recordedAt >= start && v.recordedAt <= end
-		);
+		return vitalsStore.items.filter((v) => v.recordedAt >= start && v.recordedAt <= end);
 	});
 
 	// Derived metrics
@@ -254,7 +252,9 @@
 									<span class="font-medium truncate pr-4">{complaint}</span>
 									<span class="font-bold text-muted-foreground">{count}</span>
 								</div>
-								<div class="w-full bg-muted rounded-full h-2 overflow-hidden print:border print:border-gray-300">
+								<div
+									class="w-full bg-muted rounded-full h-2 overflow-hidden print:border print:border-gray-300"
+								>
 									<div
 										class="bg-primary h-full rounded-full print:bg-gray-800"
 										style="width: {(count / maxCount) * 100}%"

@@ -5,24 +5,32 @@
 		CardDescription,
 		CardHeader,
 		CardTitle
-	} from '$lib/components/ui/card';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
-	import { Button } from '$lib/components/ui/button';
+	} from '#lib/components/ui/card/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import { KeyRound, ShieldAlert, MonitorSmartphone, LogOut } from '@lucide/svelte';
-	import { updatePassword as updatePasswordAction, getActiveSessions, revokeSessionRemote } from '$lib/remote/auth.remote';
-	import { Skeleton } from '$lib/components/ui/skeleton';
+	import {
+		updatePassword as updatePasswordAction,
+		getActiveSessions,
+		revokeSessionRemote
+	} from '#lib/remote/auth.remote.ts';
+	import { Skeleton } from '#lib/components/ui/skeleton/index.ts';
 	import { toast } from 'svelte-sonner';
 
 	let isSaving = $state(false);
-	
+
 	let currentPassword = $state('');
 	let newPassword = $state('');
 	let confirmPassword = $state('');
 	let passwordStrength = $derived(
-		newPassword.length === 0 ? 0 :
-		newPassword.length < 8 ? 25 :
-		newPassword.match(/[A-Z]/) && newPassword.match(/[0-9]/) ? 100 : 75
+		newPassword.length === 0
+			? 0
+			: newPassword.length < 8
+				? 25
+				: newPassword.match(/[A-Z]/) && newPassword.match(/[0-9]/)
+					? 100
+					: 75
 	);
 
 	async function updatePassword(form: any) {
@@ -36,8 +44,6 @@
 		}
 		return true;
 	}
-
-
 </script>
 
 <div class="space-y-6">
@@ -49,11 +55,13 @@
 	<Card>
 		<CardHeader>
 			<CardTitle>Change Password</CardTitle>
-			<CardDescription>Ensure your account is using a long, random password to stay secure.</CardDescription>
+			<CardDescription
+				>Ensure your account is using a long, random password to stay secure.</CardDescription
+			>
 		</CardHeader>
-		<form 
+		<form
 			{...updatePasswordAction.enhance(async (form) => {
-				if (!await updatePassword(form)) return;
+				if (!(await updatePassword(form))) return;
 				isSaving = true;
 				try {
 					if (await form.submit()) {
@@ -76,7 +84,10 @@
 					<Label for="current-password">Current Password</Label>
 					<div class="relative max-w-sm">
 						<KeyRound class="absolute left-3 top-3.5 size-4 text-muted-foreground" />
-						<Input {...updatePasswordAction.fields.currentPassword.as('password', currentPassword)} class="pl-9 h-11" />
+						<Input
+							{...updatePasswordAction.fields.currentPassword.as('password', currentPassword)}
+							class="pl-9 h-11"
+						/>
 					</div>
 				</div>
 
@@ -85,13 +96,32 @@
 						<Label for="new-password">New Password</Label>
 						<div class="relative max-w-sm">
 							<ShieldAlert class="absolute left-3 top-3.5 size-4 text-muted-foreground" />
-							<Input {...updatePasswordAction.fields.newPassword.as('password', newPassword)} class="pl-9 h-11" />
+							<Input
+								{...updatePasswordAction.fields.newPassword.as('password', newPassword)}
+								class="pl-9 h-11"
+							/>
 						</div>
 						{#if newPassword.length > 0}
 							<div class="max-w-sm mt-2 flex gap-1 h-1.5">
-								<div class="h-full flex-1 rounded-full {passwordStrength >= 25 ? (passwordStrength === 25 ? 'bg-destructive' : 'bg-primary') : 'bg-muted'}"></div>
-								<div class="h-full flex-1 rounded-full {passwordStrength >= 75 ? (passwordStrength === 75 ? 'bg-amber-500' : 'bg-primary') : 'bg-muted'}"></div>
-								<div class="h-full flex-1 rounded-full {passwordStrength === 100 ? 'bg-primary' : 'bg-muted'}"></div>
+								<div
+									class="h-full flex-1 rounded-full {passwordStrength >= 25
+										? passwordStrength === 25
+											? 'bg-destructive'
+											: 'bg-primary'
+										: 'bg-muted'}"
+								></div>
+								<div
+									class="h-full flex-1 rounded-full {passwordStrength >= 75
+										? passwordStrength === 75
+											? 'bg-amber-500'
+											: 'bg-primary'
+										: 'bg-muted'}"
+								></div>
+								<div
+									class="h-full flex-1 rounded-full {passwordStrength === 100
+										? 'bg-primary'
+										: 'bg-muted'}"
+								></div>
 							</div>
 						{/if}
 					</div>
@@ -100,14 +130,25 @@
 						<Label for="confirm-password">Confirm Password</Label>
 						<div class="relative max-w-sm">
 							<ShieldAlert class="absolute left-3 top-3.5 size-4 text-muted-foreground" />
-							<Input id="confirm-password" type="password" bind:value={confirmPassword} class="pl-9 h-11" />
+							<Input
+								id="confirm-password"
+								type="password"
+								bind:value={confirmPassword}
+								class="pl-9 h-11"
+							/>
 						</div>
 					</div>
 				</div>
-				
-				<Button type="submit" disabled={isSaving || !currentPassword || !newPassword || !confirmPassword} class="h-11">
+
+				<Button
+					type="submit"
+					disabled={isSaving || !currentPassword || !newPassword || !confirmPassword}
+					class="h-11"
+				>
 					{#if isSaving}
-						<div class="size-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2"></div>
+						<div
+							class="size-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2"
+						></div>
 						Updating...
 					{:else}
 						Update Password
@@ -131,30 +172,43 @@
 			{:then sessions}
 				<div class="space-y-4">
 					{#each sessions as session (session.id)}
-						<div class="flex items-center justify-between p-4 rounded-xl border {session.id ? 'bg-muted/30' : 'border-dashed'}">
+						<div
+							class="flex items-center justify-between p-4 rounded-xl border {session.id
+								? 'bg-muted/30'
+								: 'border-dashed'}"
+						>
 							<div class="flex items-center gap-4">
 								<div class="p-2.5 rounded-full bg-primary/10 text-primary">
 									<MonitorSmartphone class="size-5" />
 								</div>
 								<div>
 									<div class="font-medium">Device Session</div>
-									<div class="text-xs text-muted-foreground">Expires {new Date(session.expiresAt).toLocaleDateString()}</div>
+									<div class="text-xs text-muted-foreground">
+										Expires {new Date(session.expiresAt).toLocaleDateString()}
+									</div>
 								</div>
 							</div>
 							<div class="flex items-center gap-2">
-								<form {...revokeSessionRemote.enhance(async (form) => {
-									try {
-										if (await form.submit()) {
-											if (revokeSessionRemote.result?.success) {
-												toast.success('Session revoked');
+								<form
+									{...revokeSessionRemote.enhance(async (form) => {
+										try {
+											if (await form.submit()) {
+												if (revokeSessionRemote.result?.success) {
+													toast.success('Session revoked');
+												}
 											}
+										} catch (e) {
+											toast.error('Failed to revoke session');
 										}
-									} catch (e) {
-										toast.error('Failed to revoke session');
-									}
-								})}>
+									})}
+								>
 									<input {...revokeSessionRemote.fields.sessionToken.as('hidden', session.token)} />
-									<Button type="submit" variant="outline" size="sm" class="text-destructive hover:bg-destructive/10 hover:text-destructive">
+									<Button
+										type="submit"
+										variant="outline"
+										size="sm"
+										class="text-destructive hover:bg-destructive/10 hover:text-destructive"
+									>
 										<LogOut class="size-3.5 mr-1.5" />
 										Revoke
 									</Button>
@@ -162,7 +216,7 @@
 							</div>
 						</div>
 					{/each}
-					
+
 					{#if sessions.length === 0}
 						<p class="text-sm text-muted-foreground text-center py-4">No active sessions found.</p>
 					{/if}

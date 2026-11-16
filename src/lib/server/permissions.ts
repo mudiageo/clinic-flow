@@ -4,7 +4,7 @@ import { getRequestEvent } from '$app/server';
 export async function hasPermission(permission: string): Promise<boolean> {
 	const event = getRequestEvent();
 	if (!event || !event.locals) return false;
-	
+
 	if (event.locals.role === 'superadmin') {
 		return true; // Superadmin has all permissions
 	}

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { syncStore } from '$lib/state/sync.svelte';
-	import { Badge } from '$lib/components/ui/badge';
+	import { syncStore } from '#lib/state/sync.svelte.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import { Loader2, AlertCircle } from '@lucide/svelte';
 	import { onMount, onDestroy } from 'svelte';
 
@@ -46,7 +46,11 @@
 					class="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 flex items-center gap-1.5 px-2.5 py-1 hover:bg-emerald-500/20 cursor-pointer transition-colors"
 					onclick={() => syncStore.flush()}
 				>
-					<span class="w-2 h-2 rounded-full bg-emerald-500 {syncStore.pendingCount > 0 ? 'animate-pulse' : ''}"></span>
+					<span
+						class="w-2 h-2 rounded-full bg-emerald-500 {syncStore.pendingCount > 0
+							? 'animate-pulse'
+							: ''}"
+					></span>
 					Connected {syncStore.pendingCount > 0 ? `(${syncStore.pendingCount})` : ''}
 				</Badge>
 			{/if}
@@ -59,14 +63,17 @@
 				Offline ({syncStore.pendingCount} pending)
 			</Badge>
 		{/if}
-		
+
 		{#if syncStore.conflicts.length > 0}
-			<a href="/admin/sync-health" class="text-destructive hover:text-destructive/80 transition-colors">
+			<a
+				href="/admin/sync-health"
+				class="text-destructive hover:text-destructive/80 transition-colors"
+			>
 				<AlertCircle class="size-5 animate-pulse" />
 			</a>
 		{/if}
 	</div>
-	
+
 	<div class="text-[10px] text-muted-foreground ml-1 font-mono">
 		Last synced: {timeAgo}
 	</div>

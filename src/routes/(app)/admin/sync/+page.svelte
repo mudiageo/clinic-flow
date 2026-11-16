@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { db } from '$lib/local-db/db';
-	import { syncStore } from '$lib/state/sync.svelte';
-	import { Button } from '$lib/components/ui/button';
+	import { db } from '#lib/local-db/db.ts';
+	import { syncStore } from '#lib/state/sync.svelte.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import {
 		Card,
 		CardHeader,
 		CardTitle,
 		CardContent,
 		CardDescription
-	} from '$lib/components/ui/card';
+	} from '#lib/components/ui/card/index.ts';
 	import { onMount } from 'svelte';
 	import {
 		AlertTriangle,
@@ -20,8 +20,8 @@
 		ShieldCheck,
 		Database
 	} from '@lucide/svelte';
-	import { SpotlightCard } from '$lib/components/ui/spotlight-card';
-	import { ScrollArea } from '$lib/components/ui/scroll-area';
+	import { SpotlightCard } from '#lib/components/ui/spotlight-card/index.ts';
+	import { ScrollArea } from '#lib/components/ui/scroll-area/index.ts';
 
 	let conflicts = $state<{ table: string; id: string; record: any }[]>([]);
 	let refreshing = $state(false);

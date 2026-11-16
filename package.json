@@ -13,8 +13,9 @@
 		"build:ios": "pnpm tauri ios build",
 		"build:all": "pnpm tauri build && pnpm tauri android build",
 		"prepare": "svelte-kit sync || echo ''",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && pnpm check:sw",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"check:sw": "tsc -p src/service-worker/tsconfig.json --noEmit",
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
 		"test:unit": "vitest",
@@ -42,9 +43,9 @@
 		"@internationalized/date": "^3.12.2",
 		"@lucide/svelte": "^1.45.0",
 		"@rolldown/binding-linux-arm64-gnu": "^1.2.1",
-		"@sveltejs/adapter-auto": "^7.0.1",
-		"@sveltejs/adapter-static": "^3.0.10",
-		"@sveltejs/kit": "^2.63.0",
+		"@sveltejs/adapter-auto": "^8.0.0",
+		"@sveltejs/adapter-static": "^4.0.0",
+		"@sveltejs/kit": "^3.0.0",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@tailwindcss/forms": "^0.5.11",
 		"@tailwindcss/typography": "^0.5.19",
@@ -77,8 +78,8 @@
 		"prettier-plugin-svelte": "^4.1.0",
 		"prettier-plugin-tailwindcss": "^0.8.0",
 		"shadcn-svelte": "^1.4.1",
-		"svelte": "^5.56.1",
-		"svelte-check": "^4.6.0",
+		"svelte": "^5.57.2",
+		"svelte-check": "^4.7.5",
 		"svelte-sonner": "^1.1.1",
 		"sveltekit-superforms": "^2.30.2",
 		"tailwind-merge": "^3.6.0",
@@ -110,5 +111,9 @@
 		"qr-scanner": "^1.4.2",
 		"qrcode": "^1.5.4",
 		"valibot": "^1.4.2"
+	},
+	"imports": {
+		"#lib": "./src/lib/index.js",
+		"#lib/*": "./src/lib/*"
 	}
 }

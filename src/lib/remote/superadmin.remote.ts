@@ -1,8 +1,8 @@
 import { query } from '$app/server';
 import * as v from 'valibot';
-import { requireSuperadmin } from '$lib/server/rbac';
-import { getPhcListWithCounts, getPhcFullDetails } from '$lib/server/db/queries/phcs';
-import { getAllStaffUsers } from '$lib/server/db/queries/staff';
+import { requireSuperadmin } from '#lib/server/rbac.ts';
+import { getPhcListWithCounts, getPhcFullDetails } from '#lib/server/db/queries/phcs.ts';
+import { getAllStaffUsers } from '#lib/server/db/queries/staff.ts';
 
 export const getPhcList = query(async () => {
 	requireSuperadmin();

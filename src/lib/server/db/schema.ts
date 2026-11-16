@@ -58,11 +58,7 @@ export const deviceRoleEnum = pgEnum('device_role', [
 	'pharmacy_terminal'
 ]);
 
-export const deviceStatusEnum = pgEnum('device_status', [
-	'pending',
-	'approved',
-	'revoked'
-]);
+export const deviceStatusEnum = pgEnum('device_status', ['pending', 'approved', 'revoked']);
 
 export const reminderTypeEnum = pgEnum('reminder_type', ['immunization', 'antenatal', 'follow_up']);
 export const reminderStatusEnum = pgEnum('reminder_status', [
@@ -119,7 +115,7 @@ export const phcs = pgTable('phcs', {
 	state: varchar('state', { length: 80 }).notNull(),
 	termiiApiKey: varchar('termii_api_key', { length: 255 }),
 	syncPollInterval: integer('sync_poll_interval').notNull().default(30),
-	
+
 	// Feature Flags
 	maternalHealthEnabled: boolean('maternal_health_enabled').notNull().default(true),
 	immunizationEnabled: boolean('immunization_enabled').notNull().default(true),
@@ -224,7 +220,6 @@ export const pregnancyRecords = pgTable(
 		statusIdx: index('pregnancy_status_idx').on(table.status)
 	})
 );
-
 
 export const familyRelationships = pgTable(
 	'family_relationships',
@@ -508,10 +503,8 @@ export const smsInbox = pgTable(
 	'sms_inbox',
 	{
 		id: uuid('id').primaryKey().defaultRandom(),
-		phcId: uuid('phc_id')
-			.references(() => phcs.id),
-		patientId: uuid('patient_id')
-			.references(() => patients.id),
+		phcId: uuid('phc_id').references(() => phcs.id),
+		patientId: uuid('patient_id').references(() => patients.id),
 		fromPhone: varchar('from_phone', { length: 20 }).notNull(),
 		toPhone: varchar('to_phone', { length: 20 }),
 		message: text('message').notNull(),
@@ -587,7 +580,10 @@ export const syncOperations = pgTable(
 
 export const uplinkConfig = pgTable('uplink_config', {
 	id: uuid('id').primaryKey().defaultRandom(),
-	phcId: uuid('phc_id').notNull().references(() => phcs.id, { onDelete: 'cascade' }).unique(),
+	phcId: uuid('phc_id')
+		.notNull()
+		.references(() => phcs.id, { onDelete: 'cascade' })
+		.unique(),
 	cloudUrl: varchar('cloud_url', { length: 255 }).notNull(), // e.g. https://cloud.clinicflow.org
 	uplinkKey: varchar('uplink_key', { length: 512 }).notNull(), // encrypted API key for cloud auth
 	superAdminEmail: varchar('super_admin_email', { length: 255 }), // mirrored superadmin email
@@ -656,7 +652,11 @@ export const queueTicketsRelations = relations(queueTickets, ({ one }) => ({
 
 export const appointmentsRelations = relations(appointments, ({ one }) => ({
 	patient: one(patients, { fields: [appointments.patientId], references: [patients.id] }),
-	assignedStaff: one(staff, { fields: [appointments.assignedStaffId], references: [staff.id], relationName: 'assignedStaff' })
+	assignedStaff: one(staff, {
+		fields: [appointments.assignedStaffId],
+		references: [staff.id],
+		relationName: 'assignedStaff'
+	})
 }));
 
 export const labRequestsRelations = relations(labRequests, ({ one }) => ({
@@ -666,7 +666,10 @@ export const labRequestsRelations = relations(labRequests, ({ one }) => ({
 
 export const familyRelationshipsRelations = relations(familyRelationships, ({ one }) => ({
 	patient: one(patients, { fields: [familyRelationships.patientId], references: [patients.id] }),
-	relatedPatient: one(patients, { fields: [familyRelationships.relatedPatientId], references: [patients.id] })
+	relatedPatient: one(patients, {
+		fields: [familyRelationships.relatedPatientId],
+		references: [patients.id]
+	})
 }));
 
 export const vitalsRecordsRelations = relations(vitalsRecords, ({ one }) => ({
@@ -691,11 +694,17 @@ export const smsInboxRelations = relations(smsInbox, ({ one }) => ({
 export const prescriptionsRelations = relations(prescriptions, ({ one }) => ({
 	patient: one(patients, { fields: [prescriptions.patientId], references: [patients.id] }),
 	encounter: one(encounters, { fields: [prescriptions.encounterId], references: [encounters.id] }),
-	medication: one(pharmacyInventory, { fields: [prescriptions.inventoryItemId], references: [pharmacyInventory.id] })
+	medication: one(pharmacyInventory, {
+		fields: [prescriptions.inventoryItemId],
+		references: [pharmacyInventory.id]
+	})
 }));
 
 export const restockRequestsRelations = relations(restockRequests, ({ one }) => ({
-	medication: one(pharmacyInventory, { fields: [restockRequests.inventoryItemId], references: [pharmacyInventory.id] })
+	medication: one(pharmacyInventory, {
+		fields: [restockRequests.inventoryItemId],
+		references: [pharmacyInventory.id]
+	})
 }));
 
 export const familiesRelations = relations(families, ({ many }) => ({

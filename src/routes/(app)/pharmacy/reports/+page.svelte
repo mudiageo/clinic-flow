@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { pharmacyStore } from '$lib/state/pharmacy.svelte';
-	import { prescriptionStore } from '$lib/state/prescriptions.svelte';
+	import { pharmacyStore } from '#lib/state/pharmacy.svelte.ts';
+	import { prescriptionStore } from '#lib/state/prescriptions.svelte.ts';
 	import {
 		Card,
 		CardContent,
 		CardHeader,
 		CardTitle,
 		CardDescription
-	} from '$lib/components/ui/card';
-	import { Button } from '$lib/components/ui/button';
+	} from '#lib/components/ui/card/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import { ArrowLeft, BarChart3, TrendingUp, AlertTriangle } from '@lucide/svelte';
 
 	// Compute Top dispensed medications based on dispensed prescriptions

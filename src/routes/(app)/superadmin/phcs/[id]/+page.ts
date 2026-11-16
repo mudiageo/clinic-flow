@@ -1,4 +1,4 @@
-import { getPhcDetails } from '$lib/remote/superadmin.remote';
+import { getPhcDetails } from '#lib/remote/superadmin.remote.ts';
 import { error } from '@sveltejs/kit';
 
 export const load = async ({ params }) => {

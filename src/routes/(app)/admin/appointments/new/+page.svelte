@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { patientStore } from '$lib/state/patients.svelte';
-	import { appointmentStore } from '$lib/state/appointments.svelte';
-	import { Input } from '$lib/components/ui/input';
-	import { Button } from '$lib/components/ui/button';
-	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
-	import { Label } from '$lib/components/ui/label';
-	import { Switch } from '$lib/components/ui/switch';
-	import { Textarea } from '$lib/components/ui/textarea';
+	import { patientStore } from '#lib/state/patients.svelte.ts';
+	import { appointmentStore } from '#lib/state/appointments.svelte.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Card, CardHeader, CardTitle, CardContent } from '#lib/components/ui/card/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
+	import { Switch } from '#lib/components/ui/switch/index.ts';
+	import { Textarea } from '#lib/components/ui/textarea/index.ts';
 	import { toast } from 'svelte-sonner';
 	import { goto } from '$app/navigation';
 	import { ArrowLeft, CalendarPlus, Search } from '@lucide/svelte';
@@ -16,7 +16,9 @@
 	let isSaving = $state(false);
 	let patientSearch = $state('');
 	let patientId = $state('');
-	let type = $state<'antenatal' | 'immunization' | 'follow-up' | 'general' | 'lab-follow-up'>('general');
+	let type = $state<'antenatal' | 'immunization' | 'follow-up' | 'general' | 'lab-follow-up'>(
+		'general'
+	);
 	let assignedStaffId = $state('');
 	let dateStr = $state('');
 	let timeStr = $state('');
@@ -24,8 +26,10 @@
 	let notes = $state('');
 	let smsReminderSent = $state(true);
 
-	const patientResults = $derived(patientSearch.length > 1 ? patientStore.search(patientSearch).slice(0, 5) : []);
-	
+	const patientResults = $derived(
+		patientSearch.length > 1 ? patientStore.search(patientSearch).slice(0, 5) : []
+	);
+
 	function selectPatient(patient: any) {
 		patientId = patient.id;
 		patientSearch = patient.name;
@@ -39,7 +43,7 @@
 		}
 
 		const scheduledAt = new Date(`${dateStr}T${timeStr}`).getTime();
-		
+
 		isSaving = true;
 		try {
 			await appointmentStore.create({
@@ -54,7 +58,7 @@
 				smsReminderSent,
 				createdAt: Date.now()
 			});
-			
+
 			toast.success('Appointment created successfully');
 			goto('/admin/appointments');
 		} catch (error) {
@@ -93,7 +97,12 @@
 							id="patientSearch"
 							bind:value={patientSearch}
 							oninput={() => {
-								if(patientId && !patientSearch.includes(patientStore.items.find(p => p.id === patientId)?.name || '')) {
+								if (
+									patientId &&
+									!patientSearch.includes(
+										patientStore.items.find((p) => p.id === patientId)?.name || ''
+									)
+								) {
 									patientId = '';
 								}
 							}}
@@ -104,7 +113,9 @@
 						/>
 					</div>
 					{#if !patientId && patientSearch.length > 1}
-						<div class="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-md max-h-48 overflow-y-auto">
+						<div
+							class="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-md max-h-48 overflow-y-auto"
+						>
 							{#if patientResults.length === 0}
 								<div class="p-3 text-sm text-muted-foreground">No patients found.</div>
 							{:else}
@@ -171,7 +182,14 @@
 					</div>
 					<div class="space-y-2">
 						<Label for="duration">Duration (mins)</Label>
-						<Input type="number" id="duration" bind:value={durationMinutes} min="5" step="5" required />
+						<Input
+							type="number"
+							id="duration"
+							bind:value={durationMinutes}
+							min="5"
+							step="5"
+							required
+						/>
 					</div>
 				</div>
 
@@ -188,9 +206,7 @@
 					</div>
 				</div>
 
-				<Button type="submit" class="w-full">
-					Schedule Appointment
-				</Button>
+				<Button type="submit" class="w-full">Schedule Appointment</Button>
 			</form>
 		</CardContent>
 	</Card>

@@ -1,4 +1,4 @@
-import { db, type LocalQueueTicket } from '$lib/local-db/db';
+import { db, type LocalQueueTicket } from '#lib/local-db/db.ts';
 import { LocalCollection } from './local-collection.svelte';
 import { syncStore } from './sync.svelte';
 
@@ -19,9 +19,9 @@ class QueueStore extends LocalCollection<LocalQueueTicket> {
 		})
 	);
 
-	generalQueue = $derived(this.sortedQueue.filter(t => t.department === 'general'));
-	ancQueue = $derived(this.sortedQueue.filter(t => t.department === 'anc'));
-	epiQueue = $derived(this.sortedQueue.filter(t => t.department === 'epi'));
+	generalQueue = $derived(this.sortedQueue.filter((t) => t.department === 'general'));
+	ancQueue = $derived(this.sortedQueue.filter((t) => t.department === 'anc'));
+	epiQueue = $derived(this.sortedQueue.filter((t) => t.department === 'epi'));
 
 	nextTicket = $derived(this.sortedQueue[0] ?? null);
 

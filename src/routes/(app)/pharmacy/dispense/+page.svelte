@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { pharmacyStore } from '$lib/state/pharmacy.svelte';
-	import { prescriptionStore } from '$lib/state/prescriptions.svelte';
-	import { patientStore } from '$lib/state/patients.svelte';
-	import { vitalsStore } from '$lib/state/vitals.svelte';
-	import { getRxBrainAnalysis } from '$lib/remote/ai.remote';
-	import AiDisclaimer from '$lib/components/ui/ai-disclaimer.svelte';
-	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
+	import { pharmacyStore } from '#lib/state/pharmacy.svelte.ts';
+	import { prescriptionStore } from '#lib/state/prescriptions.svelte.ts';
+	import { patientStore } from '#lib/state/patients.svelte.ts';
+	import { vitalsStore } from '#lib/state/vitals.svelte.ts';
+	import { getRxBrainAnalysis } from '#lib/remote/ai.remote.ts';
+	import AiDisclaimer from '#lib/components/ui/ai-disclaimer.svelte';
+	import { Card, CardHeader, CardTitle, CardContent } from '#lib/components/ui/card/index.ts';
 	import {
 		Table,
 		TableBody,
@@ -13,11 +13,24 @@
 		TableHead,
 		TableHeader,
 		TableRow
-	} from '$lib/components/ui/table';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Button } from '$lib/components/ui/button';
+	} from '#lib/components/ui/table/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import { toast } from 'svelte-sonner';
-	import { Pill, Check, User, ClipboardList, PackageOpen, Loader2, Sparkles, Brain, AlertTriangle, ShieldCheck, ShieldAlert, AlertCircle } from '@lucide/svelte';
+	import {
+		Pill,
+		Check,
+		User,
+		ClipboardList,
+		PackageOpen,
+		Loader2,
+		Sparkles,
+		Brain,
+		AlertTriangle,
+		ShieldCheck,
+		ShieldAlert,
+		AlertCircle
+	} from '@lucide/svelte';
 
 	const pendingPrescriptions = $derived(prescriptionStore.pending);
 
@@ -38,27 +51,33 @@
 		[patientId: string]: {
 			loading: boolean;
 			result: any | null;
-		}
+		};
 	}>({});
 
 	async function runRxBrain(patientId: string, items: any[]) {
 		const patient = patientStore.get(patientId);
 		if (!patient) return;
-		
+
 		const vitalsHistory = vitalsStore.forPatient(patient.id);
 		const latestVitals = vitalsHistory.length > 0 ? vitalsHistory[0] : null;
 
 		rxBrainState[patientId] = { loading: true, result: null };
-		
+
 		try {
 			const result = await getRxBrainAnalysis({
 				patientData: {
-					age: patient.dob ? new Date().getFullYear() - new Date(patient.dob).getFullYear() : 'Unknown',
+					age: patient.dob
+						? new Date().getFullYear() - new Date(patient.dob).getFullYear()
+						: 'Unknown',
 					sex: patient.sex,
 					isPregnant: patient.isPregnant,
 					latestVitals
 				},
-				prescriptions: items.map(i => ({ drug: i.medicationName, dosage: i.dosage, qty: i.quantity }))
+				prescriptions: items.map((i) => ({
+					drug: i.medicationName,
+					dosage: i.dosage,
+					qty: i.quantity
+				}))
 			});
 			rxBrainState[patientId] = { loading: false, result };
 		} catch (err: any) {
@@ -117,7 +136,13 @@
 								<span class="text-xs font-mono text-muted-foreground">({patient?.clinicId})</span>
 							</span>
 							<div class="flex items-center gap-3">
-								<Button size="sm" variant="outline" class="h-8 bg-indigo-50/50 text-indigo-600 border-indigo-200 hover:bg-indigo-100" onclick={() => runRxBrain(queueItem.patientId, queueItem.items)} disabled={rxBrainState[queueItem.patientId]?.loading}>
+								<Button
+									size="sm"
+									variant="outline"
+									class="h-8 bg-indigo-50/50 text-indigo-600 border-indigo-200 hover:bg-indigo-100"
+									onclick={() => runRxBrain(queueItem.patientId, queueItem.items)}
+									disabled={rxBrainState[queueItem.patientId]?.loading}
+								>
 									{#if rxBrainState[queueItem.patientId]?.loading}
 										<Loader2 class="size-3.5 mr-2 animate-spin" /> Analyzing...
 									{:else}
@@ -133,26 +158,37 @@
 					<CardContent class="pt-4 space-y-4">
 						{#if rxBrainState[queueItem.patientId]?.result}
 							{@const rxRes = rxBrainState[queueItem.patientId].result}
-							<div class="p-4 rounded-xl border border-indigo-100 bg-indigo-50/50 space-y-4 animate-in fade-in slide-in-from-top-2">
+							<div
+								class="p-4 rounded-xl border border-indigo-100 bg-indigo-50/50 space-y-4 animate-in fade-in slide-in-from-top-2"
+							>
 								<div class="flex items-center justify-between">
 									<h4 class="font-bold text-indigo-900 flex items-center gap-2">
 										<Brain class="size-4 text-indigo-600" /> RxBrain Safety Report
 									</h4>
 									{#if rxRes.safeToDispense}
-										<Badge class="bg-emerald-500 hover:bg-emerald-600"><Check class="size-3 mr-1"/> Safe</Badge>
+										<Badge class="bg-emerald-500 hover:bg-emerald-600"
+											><Check class="size-3 mr-1" /> Safe</Badge
+										>
 									{:else}
-										<Badge variant="destructive"><AlertTriangle class="size-3 mr-1"/> Warnings Detected</Badge>
+										<Badge variant="destructive"
+											><AlertTriangle class="size-3 mr-1" /> Warnings Detected</Badge
+										>
 									{/if}
 								</div>
-								
+
 								<AiDisclaimer />
-								
+
 								{#if rxRes.interactions.length > 0}
 									<div class="space-y-2">
-										<p class="text-sm font-semibold text-amber-700 flex items-center gap-1.5"><AlertTriangle class="size-3.5"/> Drug Interactions</p>
+										<p class="text-sm font-semibold text-amber-700 flex items-center gap-1.5">
+											<AlertTriangle class="size-3.5" /> Drug Interactions
+										</p>
 										<ul class="list-disc list-inside text-sm text-amber-900/80">
 											{#each rxRes.interactions as interaction}
-												<li><strong>{interaction.drugs.join(' + ')} ({interaction.severity}):</strong> {interaction.description}</li>
+												<li>
+													<strong>{interaction.drugs.join(' + ')} ({interaction.severity}):</strong>
+													{interaction.description}
+												</li>
 											{/each}
 										</ul>
 									</div>
@@ -160,7 +196,9 @@
 
 								{#if rxRes.contraindications.length > 0}
 									<div class="space-y-2">
-										<p class="text-sm font-semibold text-red-600 flex items-center gap-1.5"><ShieldAlert class="size-3.5"/> Contraindications</p>
+										<p class="text-sm font-semibold text-red-600 flex items-center gap-1.5">
+											<ShieldAlert class="size-3.5" /> Contraindications
+										</p>
 										<ul class="list-disc list-inside text-sm text-red-900/80">
 											{#each rxRes.contraindications as warning}
 												<li>{warning}</li>
@@ -168,10 +206,12 @@
 										</ul>
 									</div>
 								{/if}
-								
+
 								{#if rxRes.dosageWarnings.length > 0}
 									<div class="space-y-2">
-										<p class="text-sm font-semibold text-amber-700 flex items-center gap-1.5"><AlertCircle class="size-3.5"/> Dosage Warnings</p>
+										<p class="text-sm font-semibold text-amber-700 flex items-center gap-1.5">
+											<AlertCircle class="size-3.5" /> Dosage Warnings
+										</p>
 										<ul class="list-disc list-inside text-sm text-amber-900/80">
 											{#each rxRes.dosageWarnings as warning}
 												<li>{warning}</li>
@@ -179,10 +219,13 @@
 										</ul>
 									</div>
 								{/if}
-								
+
 								{#if rxRes.interactions.length === 0 && rxRes.contraindications.length === 0 && rxRes.dosageWarnings.length === 0}
-									<p class="text-sm text-emerald-700 bg-emerald-50 p-3 rounded-lg border border-emerald-100 flex items-center gap-2">
-										<ShieldCheck class="size-4" /> No obvious contraindications or interactions detected based on available data. Pharmacist must still verify.
+									<p
+										class="text-sm text-emerald-700 bg-emerald-50 p-3 rounded-lg border border-emerald-100 flex items-center gap-2"
+									>
+										<ShieldCheck class="size-4" /> No obvious contraindications or interactions detected
+										based on available data. Pharmacist must still verify.
 									</p>
 								{/if}
 							</div>

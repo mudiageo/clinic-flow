@@ -1,4 +1,4 @@
-import { db, type LocalPrescription } from '$lib/local-db/db';
+import { db, type LocalPrescription } from '#lib/local-db/db.ts';
 import { LocalCollection } from './local-collection.svelte';
 
 class PrescriptionStore extends LocalCollection<LocalPrescription> {

@@ -2,7 +2,7 @@
 
 **Goal:** your Tauri app (built with `adapter-static`) calls `query`/`form`/`command` remote functions that actually run on your separately deployed SvelteKit server.
 
-**How it works:** SvelteKit hashes each `.remote.ts` file's **path**, not its contents, to generate its endpoint (`/_app/remote/<hash>/...`). If your Tauri app and your deployed server both have a remote file at the exact same path, they compute the *same hash* — so calls made from the static build "coincidentally" target real endpoints that exist on your server. A service worker intercepts those calls (which 404 locally, since there's no server in the Tauri bundle) and forwards them cross-origin to your real backend, and your server's `hooks.server.ts` adds the CORS headers to allow it.
+**How it works:** SvelteKit hashes each `.remote.ts` file's **path**, not its contents, to generate its endpoint (`/_app/remote/<hash>/...`). If your Tauri app and your deployed server both have a remote file at the exact same path, they compute the _same hash_ — so calls made from the static build "coincidentally" target real endpoints that exist on your server. A service worker intercepts those calls (which 404 locally, since there's no server in the Tauri bundle) and forwards them cross-origin to your real backend, and your server's `hooks.server.ts` adds the CORS headers to allow it.
 
 Only `query`, `form`, and `command` work this way. `prerender` does not — it needs to run at build time in the same project, so keep prerendered data out of this path.
 
@@ -28,18 +28,12 @@ PUBLIC_BACKEND_INSECURE="false"
 
 ## 3. Add the service worker
 
-`src/service-worker.ts` in the Tauri app:
+`src/service-worker/index.ts` in the Tauri app (with a `src/service-worker/tsconfig.json` that extends `$app/tsconfig/service-worker`):
 
 ```ts
-/// <reference no-default-lib="true"/>
-/// <reference lib="esnext" />
-/// <reference lib="webworker" />
-/// <reference types="@sveltejs/kit" />
-/// <reference types="../.svelte-kit/ambient.d.ts" />
+import { self } from '$app/service-worker';
+import { PUBLIC_BACKEND_HOST, PUBLIC_BACKEND_INSECURE } from '$app/env/public';
 
-import { PUBLIC_BACKEND_HOST, PUBLIC_BACKEND_INSECURE } from '$env/static/public';
-
-const self = globalThis.self as unknown as ServiceWorkerGlobalScope;
 const dev = self.location.hostname === 'localhost';
 
 self.addEventListener('install', () => self.skipWaiting());
@@ -100,6 +94,7 @@ self.addEventListener('fetch', (event) => {
 ```
 
 Notes:
+
 - Only `/_app/remote/` requests are intercepted — everything else (page assets, Tauri's own routes) passes through untouched.
 - Body is forwarded as an `ArrayBuffer` so POST payloads (form/command calls) survive the clone/forward round-trip.
 - `X-SvelteKit-Remote` is a custom marker header your server-side hook uses to reliably detect forwarded calls (helpful since `Origin` can be missing in some WebView contexts).
@@ -112,11 +107,11 @@ Notes:
 import type { Handle } from '@sveltejs/kit';
 
 const ALLOWED_ORIGINS = [
-	'http://localhost:5173',   // frontend dev
-	'http://localhost:1420',   // Tauri dev server (default Tauri port)
-	'https://yourdomain.com',  // production frontend, if you also ship a web build
-	'tauri://localhost',       // Tauri desktop (Windows/macOS webview origin)
-	'http://localhost'         // Tauri Android / some Linux webviews
+	'http://localhost:5173', // frontend dev
+	'http://localhost:1420', // Tauri dev server (default Tauri port)
+	'https://yourdomain.com', // production frontend, if you also ship a web build
+	'tauri://localhost', // Tauri desktop (Windows/macOS webview origin)
+	'http://localhost' // Tauri Android / some Linux webviews
 ];
 
 export const handle: Handle = async ({ event, resolve }) => {
@@ -166,7 +161,7 @@ If you already have a `hooks.server.ts` (auth, i18n, etc.), merge this logic int
 
 ## 5. Register the service worker
 
-If you're not already doing this in your root layout, SvelteKit's `adapter-static` build ships `service-worker.ts` automatically when it's detected at `src/service-worker.ts` — no manual registration code needed in most setups, but double-check your `+layout.svelte` doesn't have logic that skips registration in dev/Tauri contexts.
+If you're not already doing this in your root layout, SvelteKit's `adapter-static` build ships the service worker automatically when it's detected at `src/service-worker/index.ts` — no manual registration code needed in most setups, but double-check your `+layout.svelte` doesn't have logic that skips registration in dev/Tauri contexts.
 
 ## 6. Tauri-specific config
 

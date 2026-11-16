@@ -9,17 +9,17 @@ This phase completes the Admin module — upgrading the existing operations dash
 
 ## Existing State (What We Already Have)
 
-| Route / File | Status | Notes |
-| :--- | :---: | :--- |
-| `admin/+layout.svelte` | ✅ | Sidebar with 5 nav groups, mobile BottomNav |
-| `admin/+page.svelte` | ⚠️ Partial | KPI cards exist (NumberTicker), triage breakdown, low stock table. **Missing**: visit trend chart, triage pie chart, active staff indicator, sync health widget |
-| `admin/patients/+page.svelte` | ⚠️ Partial | Patient list with search + QR card dialog. **Missing**: DataTable with pagination/filter, column sorting, CSV export |
-| `admin/staff/[id]/+page.svelte` | ⚠️ Partial | Loads staff member + PermissionEditor. **Missing**: staff info card, permission audit log |
-| `admin/reminders/+page.svelte` | ✅ | SMS reminder list + bulk dispatch |
-| `admin/sync/+page.svelte` | ✅ | Sync engine dashboard + conflict resolution |
-| `admin/triage/+page.svelte` | ⚠️ Partial | Lists rules with toggle. **Missing**: add/edit dialog with Slider, operator Select, pregnancy Switch |
-| Remote: `admin.remote.ts` | ⚠️ Partial | `getStaffMember`, `getPhcStaffList`. **Missing**: `inviteStaff`, `updateStaffStatus`, `getPhcSettings`, `updatePhcSettings` |
-| Remote: `permissions.remote.ts` | ✅ | Grant, revoke, audit queries all working |
+| Route / File                    |   Status   | Notes                                                                                                                                                           |
+| :------------------------------ | :--------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `admin/+layout.svelte`          |     ✅     | Sidebar with 5 nav groups, mobile BottomNav                                                                                                                     |
+| `admin/+page.svelte`            | ⚠️ Partial | KPI cards exist (NumberTicker), triage breakdown, low stock table. **Missing**: visit trend chart, triage pie chart, active staff indicator, sync health widget |
+| `admin/patients/+page.svelte`   | ⚠️ Partial | Patient list with search + QR card dialog. **Missing**: DataTable with pagination/filter, column sorting, CSV export                                            |
+| `admin/staff/[id]/+page.svelte` | ⚠️ Partial | Loads staff member + PermissionEditor. **Missing**: staff info card, permission audit log                                                                       |
+| `admin/reminders/+page.svelte`  |     ✅     | SMS reminder list + bulk dispatch                                                                                                                               |
+| `admin/sync/+page.svelte`       |     ✅     | Sync engine dashboard + conflict resolution                                                                                                                     |
+| `admin/triage/+page.svelte`     | ⚠️ Partial | Lists rules with toggle. **Missing**: add/edit dialog with Slider, operator Select, pregnancy Switch                                                            |
+| Remote: `admin.remote.ts`       | ⚠️ Partial | `getStaffMember`, `getPhcStaffList`. **Missing**: `inviteStaff`, `updateStaffStatus`, `getPhcSettings`, `updatePhcSettings`                                     |
+| Remote: `permissions.remote.ts` |     ✅     | Grant, revoke, audit queries all working                                                                                                                        |
 
 ---
 
@@ -32,19 +32,19 @@ This phase completes the Admin module — upgrading the existing operations dash
 - Add `LocalAppointment` interface:
   ```ts
   interface LocalAppointment {
-    id: string;
-    patientId: string;
-    phcId: string;
-    assignedStaffId: string | null;
-    type: 'antenatal' | 'immunization' | 'follow-up' | 'general' | 'lab-follow-up';
-    scheduledAt: number;
-    durationMinutes: number;
-    notes: string;
-    status: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
-    smsReminderSent: boolean;
-    createdAt: number;
-    syncStatus: 'synced' | 'pending' | 'conflict';
-    updatedAt: number;
+  	id: string;
+  	patientId: string;
+  	phcId: string;
+  	assignedStaffId: string | null;
+  	type: 'antenatal' | 'immunization' | 'follow-up' | 'general' | 'lab-follow-up';
+  	scheduledAt: number;
+  	durationMinutes: number;
+  	notes: string;
+  	status: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
+  	smsReminderSent: boolean;
+  	createdAt: number;
+  	syncStatus: 'synced' | 'pending' | 'conflict';
+  	updatedAt: number;
   }
   ```
 - Register `appointments` Dexie table (version 4): `'id, patientId, assignedStaffId, scheduledAt, status, syncStatus'`
@@ -78,7 +78,7 @@ This phase completes the Admin module — upgrading the existing operations dash
 
 ### 3. UI — Operations Dashboard Enhancement
 
-#### [MODIFY] [+page.svelte](file:///root/clinic-flow/src/routes/(app)/admin/+page.svelte)
+#### [MODIFY] [+page.svelte](<file:///root/clinic-flow/src/routes/(app)/admin/+page.svelte>)
 
 Upgrade the existing dashboard (currently 261 lines) with:
 
@@ -94,7 +94,7 @@ Upgrade the existing dashboard (currently 261 lines) with:
 
 ### 4. UI — Patient Registry Enhancement
 
-#### [MODIFY] [+page.svelte](file:///root/clinic-flow/src/routes/(app)/admin/patients/+page.svelte)
+#### [MODIFY] [+page.svelte](<file:///root/clinic-flow/src/routes/(app)/admin/patients/+page.svelte>)
 
 Upgrade the existing patient list (currently 193 lines) with:
 
@@ -109,7 +109,7 @@ Upgrade the existing patient list (currently 193 lines) with:
 
 ### 5. UI — Staff Management
 
-#### [NEW] [+page.svelte](file:///root/clinic-flow/src/routes/(app)/admin/staff/+page.svelte)
+#### [NEW] [+page.svelte](<file:///root/clinic-flow/src/routes/(app)/admin/staff/+page.svelte>)
 
 Staff list page:
 
@@ -119,7 +119,7 @@ Staff list page:
 - Per-row actions dropdown: View Profile | Toggle Active/Inactive.
 - Toggle active/inactive uses `Dialog` confirmation + calls `updateStaffStatus` remote form.
 
-#### [NEW] [+page.svelte](file:///root/clinic-flow/src/routes/(app)/admin/staff/invite/+page.svelte)
+#### [NEW] [+page.svelte](<file:///root/clinic-flow/src/routes/(app)/admin/staff/invite/+page.svelte>)
 
 Staff invitation form:
 
@@ -129,7 +129,7 @@ Staff invitation form:
 - Submit via `inviteStaff` remote form → success toast + redirect to `/admin/staff`.
 - Note: The invited staff member receives an email with a one-time token link. On first login they set their password (handled by existing Better Auth flow).
 
-#### [MODIFY] [+page.svelte](file:///root/clinic-flow/src/routes/(app)/admin/staff/[id]/+page.svelte)
+#### [MODIFY] [+page.svelte](<file:///root/clinic-flow/src/routes/(app)/admin/staff/[id]/+page.svelte>)
 
 Enhance the existing staff profile (currently 86 lines):
 
@@ -142,7 +142,7 @@ Enhance the existing staff profile (currently 86 lines):
 
 ### 6. UI — Appointments
 
-#### [NEW] [+page.svelte](file:///root/clinic-flow/src/routes/(app)/admin/appointments/+page.svelte)
+#### [NEW] [+page.svelte](<file:///root/clinic-flow/src/routes/(app)/admin/appointments/+page.svelte>)
 
 Appointment calendar page:
 
@@ -153,7 +153,7 @@ Appointment calendar page:
 - "New Appointment" `Button` → navigates to `/admin/appointments/new`.
 - Click any appointment → `Dialog` with full details + actions (Cancel, Mark Complete, Mark No-Show).
 
-#### [NEW] [+page.svelte](file:///root/clinic-flow/src/routes/(app)/admin/appointments/new/+page.svelte)
+#### [NEW] [+page.svelte](<file:///root/clinic-flow/src/routes/(app)/admin/appointments/new/+page.svelte>)
 
 New appointment form:
 
@@ -170,7 +170,7 @@ New appointment form:
 
 ### 7. UI — Triage Rules Enhancement
 
-#### [MODIFY] [+page.svelte](file:///root/clinic-flow/src/routes/(app)/admin/triage/+page.svelte)
+#### [MODIFY] [+page.svelte](<file:///root/clinic-flow/src/routes/(app)/admin/triage/+page.svelte>)
 
 Enhance the existing triage rules page (currently 207 lines):
 
@@ -190,7 +190,7 @@ Enhance the existing triage rules page (currently 207 lines):
 
 ### 8. UI — Reports
 
-#### [NEW] [+page.svelte](file:///root/clinic-flow/src/routes/(app)/admin/reports/+page.svelte)
+#### [NEW] [+page.svelte](<file:///root/clinic-flow/src/routes/(app)/admin/reports/+page.svelte>)
 
 Clinical reports page:
 
@@ -207,7 +207,7 @@ All data is derived from local Dexie stores (offline-capable): `encounterStore`,
 
 ### 9. UI — PHC Settings
 
-#### [NEW] [+page.svelte](file:///root/clinic-flow/src/routes/(app)/admin/settings/+page.svelte)
+#### [NEW] [+page.svelte](<file:///root/clinic-flow/src/routes/(app)/admin/settings/+page.svelte>)
 
 PHC settings page:
 
@@ -221,7 +221,7 @@ PHC settings page:
 
 ### 10. Layout Update
 
-#### [MODIFY] [+layout.svelte](file:///root/clinic-flow/src/routes/(app)/admin/+layout.svelte)
+#### [MODIFY] [+layout.svelte](<file:///root/clinic-flow/src/routes/(app)/admin/+layout.svelte>)
 
 - Add navigation entries for new routes:
   - Staff group: add `/admin/staff` (Staff List) alongside existing `/admin/staff/[id]`.

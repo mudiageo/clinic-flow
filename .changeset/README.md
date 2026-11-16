@@ -15,9 +15,9 @@ describing your change. Commit this file with your PR.
 
 ## Release Channels
 
-| Channel  | Branch              | Tag Suffix      | Example           |
-|----------|---------------------|-----------------|-------------------|
-| stable   | `main`              | (none)          | `v1.2.0`          |
-| beta     | `beta`              | `-beta.N`       | `v1.2.0-beta.3`   |
-| alpha    | `alpha`             | `-alpha.N`      | `v1.2.0-alpha.1`  |
-| nightly  | `nightly` (cron)    | `-nightly.DATE` | `v1.2.0-nightly.20260914` |
+| Channel | Branch           | Tag Suffix      | Example                   |
+| ------- | ---------------- | --------------- | ------------------------- |
+| stable  | `main`           | (none)          | `v1.2.0`                  |
+| beta    | `beta`           | `-beta.N`       | `v1.2.0-beta.3`           |
+| alpha   | `alpha`          | `-alpha.N`      | `v1.2.0-alpha.1`          |
+| nightly | `nightly` (cron) | `-nightly.DATE` | `v1.2.0-nightly.20260914` |

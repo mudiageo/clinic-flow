@@ -20,11 +20,7 @@ export async function searchPatientsList(search?: string) {
 			)
 			.limit(50);
 	}
-	return await database
-		.select()
-		.from(patients)
-		.where(eq(patients.deleted, false))
-		.limit(100);
+	return await database.select().from(patients).where(eq(patients.deleted, false)).limit(100);
 }
 
 export async function getPatientByClinicIdRecord(clinicId: string) {
@@ -39,10 +35,7 @@ export async function getPatientByClinicIdRecord(clinicId: string) {
 
 export async function getFamiliesList() {
 	const families = getTable('families');
-	return await database
-		.select()
-		.from(families)
-		.orderBy(asc(families.householdName));
+	return await database.select().from(families).orderBy(asc(families.householdName));
 }
 
 export async function createPatientRecord(data: any) {

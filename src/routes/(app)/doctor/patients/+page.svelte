@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { patientStore } from '$lib/state/patients.svelte';
-	import { Input } from '$lib/components/ui/input';
-	import { Button } from '$lib/components/ui/button';
-	import { Card, CardContent } from '$lib/components/ui/card';
-	import { Badge } from '$lib/components/ui/badge';
+	import { patientStore } from '#lib/state/patients.svelte.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Card, CardContent } from '#lib/components/ui/card/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import { Search, User, FileText, Activity } from '@lucide/svelte';
 
 	let searchQuery = $state('');

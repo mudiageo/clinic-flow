@@ -1,16 +1,16 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import { patientStore } from '$lib/state/patients.svelte';
-	import { Button } from '$lib/components/ui/button';
-	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
-	import { Badge } from '$lib/components/ui/badge';
+	import { page } from '$app/state';
+	import { patientStore } from '#lib/state/patients.svelte.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Card, CardContent, CardHeader, CardTitle } from '#lib/components/ui/card/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import { ArrowLeft, Users, Calendar, Phone, MapPin } from '@lucide/svelte';
-	import AncTracker from '$lib/components/maternal/anc-tracker.svelte';
-	import ImmunizationCard from '$lib/components/pediatrics/immunization-card.svelte';
-	import { settingsStore } from '$lib/state/settings.svelte';
-	import LinkFamilyDialog from '$lib/components/link-family-dialog.svelte';
+	import AncTracker from '#lib/components/maternal/anc-tracker.svelte';
+	import ImmunizationCard from '#lib/components/pediatrics/immunization-card.svelte';
+	import { settingsStore } from '#lib/state/settings.svelte.ts';
+	import LinkFamilyDialog from '#lib/components/link-family-dialog.svelte';
 
-	let clinicId = $derived($page.params.id);
+	let clinicId = $derived(page.params.id);
 	let patient = $derived(clinicId ? patientStore.findByClinicId(clinicId) : null);
 
 	// State for family linking dialog
@@ -63,7 +63,10 @@
 						</div>
 						<div>
 							<span class="text-muted-foreground block mb-1">Insurance</span>
-							<Badge variant={patient.isNhis ? 'default' : 'secondary'} class="font-normal text-xs mt-0.5">
+							<Badge
+								variant={patient.isNhis ? 'default' : 'secondary'}
+								class="font-normal text-xs mt-0.5"
+							>
 								{patient.isNhis ? 'NHIS Enrollee' : 'None'}
 							</Badge>
 						</div>
@@ -94,9 +97,13 @@
 					</CardTitle>
 					<div class="flex gap-2">
 						{#if patient.familyId}
-							<Button variant="outline" size="sm" href={`/families/${patient.familyId}`}>Dashboard</Button>
+							<Button variant="outline" size="sm" href={`/families/${patient.familyId}`}
+								>Dashboard</Button
+							>
 						{:else}
-							<Button variant="outline" size="sm" onclick={() => isLinkFamilyOpen = true}>Link Family</Button>
+							<Button variant="outline" size="sm" onclick={() => (isLinkFamilyOpen = true)}
+								>Link Family</Button
+							>
 						{/if}
 					</div>
 				</CardHeader>
@@ -107,10 +114,9 @@
 								<div class="flex flex-col gap-1 p-2 rounded-lg bg-muted/40 border border-border">
 									<a
 										href="/patients/{relative.clinicId}"
-										class="text-sm font-medium hover:underline text-foreground"
+										class="text-sm font-medium hover:underline text-foreground">{relative.name}</a
 									>
-										{relative.name}
-									</a>
+
 									<div class="flex items-center justify-between text-xs text-muted-foreground">
 										<span class="font-mono">{relative.clinicId}</span>
 										<Badge variant="secondary" class="h-5 text-[10px]">Relative</Badge>

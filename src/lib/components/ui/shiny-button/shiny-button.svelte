@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
-	import { buttonVariants } from '$lib/components/ui/button';
+	import { cn } from '#lib/utils.ts';
+	import { buttonVariants } from '#lib/components/ui/button/index.ts';
 	import type { Snippet } from 'svelte';
 	import type { VariantProps } from 'class-variance-authority';
 	import type { HTMLButtonAttributes, HTMLAnchorAttributes } from 'svelte/elements';

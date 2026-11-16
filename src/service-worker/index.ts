@@ -1,9 +1,4 @@
-/// <reference no-default-lib="true"/>
-/// <reference lib="esnext" />
-/// <reference lib="webworker" />
-/// <reference types="@sveltejs/kit" />
-/// <reference types="../.svelte-kit/ambient.d.ts" />
-
+import { self } from '$app/service-worker';
 import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
 import { registerRoute, NavigationRoute } from 'workbox-routing';
 import { CacheFirst, NetworkFirst } from 'workbox-strategies';
@@ -11,9 +6,6 @@ import { ExpirationPlugin } from 'workbox-expiration';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 import { BACKEND_HOST, BACKEND_INSECURE } from '$app/env/public';
 
-
-declare let self: ServiceWorkerGlobalScope
-self = globalThis.self as unknown as ServiceWorkerGlobalScope;
 const dev = self.location.hostname === 'localhost';
 
 // Clean up old caches
@@ -28,9 +20,7 @@ registerRoute(
 	new NavigationRoute(
 		new NetworkFirst({
 			cacheName: 'navigation-cache',
-			plugins: [
-				new CacheableResponsePlugin({ statuses: [200] })
-			]
+			plugins: [new CacheableResponsePlugin({ statuses: [200] })]
 		})
 	)
 );
@@ -51,4 +41,3 @@ registerRoute(
 		]
 	})
 );
-

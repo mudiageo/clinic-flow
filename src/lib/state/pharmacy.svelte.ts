@@ -1,4 +1,4 @@
-import { db, type LocalPharmacyInventory } from '$lib/local-db/db';
+import { db, type LocalPharmacyInventory } from '#lib/local-db/db.ts';
 import { LocalCollection } from './local-collection.svelte';
 
 class PharmacyStore extends LocalCollection<LocalPharmacyInventory> {

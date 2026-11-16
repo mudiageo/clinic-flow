@@ -1,10 +1,23 @@
 <script lang="ts">
-	import { getOutbreakData } from '$lib/remote/epidemiology.remote';
-	import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '$lib/components/ui/card';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '$lib/components/ui/table';
+	import { getOutbreakData } from '#lib/remote/epidemiology.remote.ts';
+	import {
+		Card,
+		CardHeader,
+		CardTitle,
+		CardContent,
+		CardDescription
+	} from '#lib/components/ui/card/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import {
+		Table,
+		TableBody,
+		TableCell,
+		TableHead,
+		TableHeader,
+		TableRow
+	} from '#lib/components/ui/table/index.ts';
 	import { Globe, AlertTriangle, ShieldAlert, FileText, Download } from '@lucide/svelte';
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '#lib/components/ui/button/index.ts';
 
 	let isGenerating = $state(false);
 
@@ -28,14 +41,16 @@
 				<Globe class="size-6" />
 			</div>
 			<div>
-				<h1 class="text-2xl font-bold text-foreground tracking-tight">Disease Surveillance & Outbreaks</h1>
+				<h1 class="text-2xl font-bold text-foreground tracking-tight">
+					Disease Surveillance & Outbreaks
+				</h1>
 				<p class="text-muted-foreground text-sm mt-0.5">
 					LGA-level heatmap and epidemiological trends across all facilities.
 				</p>
 			</div>
 		</div>
 		<Button onclick={generateReport} disabled={isGenerating}>
-			<Download class="size-4 mr-2" /> 
+			<Download class="size-4 mr-2" />
 			{isGenerating ? 'Generating...' : 'Weekly Summary PDF'}
 		</Button>
 	</div>
@@ -75,7 +90,9 @@
 									<TableCell class="text-right font-mono text-sm">{lga.cases.typhoid}</TableCell>
 									<TableCell class="text-right">
 										{#if lga.riskLevel === 'High'}
-											<Badge class="bg-destructive hover:bg-destructive text-destructive-foreground">HIGH</Badge>
+											<Badge class="bg-destructive hover:bg-destructive text-destructive-foreground"
+												>HIGH</Badge
+											>
 										{:else if lga.riskLevel === 'Medium'}
 											<Badge class="bg-amber-500 hover:bg-amber-600 text-white">MEDIUM</Badge>
 										{:else}
@@ -97,13 +114,15 @@
 						</CardTitle>
 					</CardHeader>
 					<CardContent class="space-y-4">
-						{#each data.filter(d => d.riskLevel === 'High') as alert}
+						{#each data.filter((d) => d.riskLevel === 'High') as alert}
 							<div class="p-3 border border-destructive/20 bg-destructive/5 rounded-lg text-sm">
 								<p class="font-bold text-destructive mb-1">{alert.lga}, {alert.state}</p>
-								<p class="text-muted-foreground">Elevated risk of transmission. Monitoring recommended.</p>
+								<p class="text-muted-foreground">
+									Elevated risk of transmission. Monitoring recommended.
+								</p>
 							</div>
 						{/each}
-						{#if data.filter(d => d.riskLevel === 'High').length === 0}
+						{#if data.filter((d) => d.riskLevel === 'High').length === 0}
 							<p class="text-sm text-muted-foreground text-center py-4">No high-risk LGAs.</p>
 						{/if}
 					</CardContent>

@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Printer, Send, Activity, ChevronLeft } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
-	
+
 	let referralData: any = $state(null);
 	let isSendingSms = $state(false);
 
@@ -33,13 +33,21 @@
 
 <div class="min-h-screen bg-muted/20 py-8 px-4 print:bg-white print:py-0 print:px-0">
 	<!-- Top Bar (Hidden on print) -->
-	<div class="max-w-3xl mx-auto mb-6 flex items-center justify-between print:hidden bg-card border rounded-lg p-3 shadow-sm">
+	<div
+		class="max-w-3xl mx-auto mb-6 flex items-center justify-between print:hidden bg-card border rounded-lg p-3 shadow-sm"
+	>
 		<Button variant="ghost" size="sm" onclick={() => window.close()}>
 			<ChevronLeft class="size-4 mr-1" /> Close
 		</Button>
 		<div class="flex items-center gap-2">
-			<Button variant="outline" size="sm" onclick={handleSendSms} disabled={isSendingSms || !referralData}>
-				<Send class="size-4 mr-2 text-primary" /> {isSendingSms ? 'Sending...' : 'Send SMS Summary'}
+			<Button
+				variant="outline"
+				size="sm"
+				onclick={handleSendSms}
+				disabled={isSendingSms || !referralData}
+			>
+				<Send class="size-4 mr-2 text-primary" />
+				{isSendingSms ? 'Sending...' : 'Send SMS Summary'}
 			</Button>
 			<Button size="sm" onclick={handlePrint} disabled={!referralData}>
 				<Printer class="size-4 mr-2" /> Print PDF
@@ -48,7 +56,9 @@
 	</div>
 
 	<!-- Printable Letterhead Area -->
-	<div class="max-w-3xl mx-auto bg-white border shadow-sm print:border-none print:shadow-none p-10 md:p-14 print:p-0 font-serif text-slate-800">
+	<div
+		class="max-w-3xl mx-auto bg-white border shadow-sm print:border-none print:shadow-none p-10 md:p-14 print:p-0 font-serif text-slate-800"
+	>
 		{#if referralData}
 			<div class="flex items-center justify-between border-b-2 border-slate-800 pb-6 mb-8">
 				<div>
@@ -57,8 +67,17 @@
 				</div>
 				<div class="text-right text-sm">
 					<p class="font-bold">Date of Referral</p>
-					<p>{new Date(referralData.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-					<p class="mt-2"><span class="font-bold">Urgency:</span> <span class="uppercase border px-1 py-0.5 rounded">{referralData.urgency}</span></p>
+					<p>
+						{new Date(referralData.date).toLocaleDateString(undefined, {
+							year: 'numeric',
+							month: 'long',
+							day: 'numeric'
+						})}
+					</p>
+					<p class="mt-2">
+						<span class="font-bold">Urgency:</span>
+						<span class="uppercase border px-1 py-0.5 rounded">{referralData.urgency}</span>
+					</p>
 				</div>
 			</div>
 
@@ -89,14 +108,20 @@
 						<p class="capitalize">{referralData.sex}</p>
 					</div>
 				</div>
-				
+
 				{#if referralData.vitals}
 					<div class="mt-6 pt-4 border-t">
 						<p class="text-slate-500 text-sm mb-2">Latest Vitals</p>
 						<div class="flex gap-6 text-sm font-medium">
-							{#if referralData.vitals.temperatureCelsius}<p>Temp: {referralData.vitals.temperatureCelsius}°C</p>{/if}
-							{#if referralData.vitals.systolicBp && referralData.vitals.diastolicBp}<p>BP: {referralData.vitals.systolicBp}/{referralData.vitals.diastolicBp} mmHg</p>{/if}
-							{#if referralData.vitals.pulseBpm}<p>Pulse: {referralData.vitals.pulseBpm} bpm</p>{/if}
+							{#if referralData.vitals.temperatureCelsius}<p>
+									Temp: {referralData.vitals.temperatureCelsius}°C
+								</p>{/if}
+							{#if referralData.vitals.systolicBp && referralData.vitals.diastolicBp}<p>
+									BP: {referralData.vitals.systolicBp}/{referralData.vitals.diastolicBp} mmHg
+								</p>{/if}
+							{#if referralData.vitals.pulseBpm}<p>
+									Pulse: {referralData.vitals.pulseBpm} bpm
+								</p>{/if}
 						</div>
 					</div>
 				{/if}
@@ -114,15 +139,11 @@
 						<p class="font-bold text-lg mt-1">Dr. ClinicFlow User</p>
 						<p class="text-sm">Sign: ___________________</p>
 					</div>
-					<div class="text-right text-xs text-slate-400">
-						Generated via ClinicFlow securely
-					</div>
+					<div class="text-right text-xs text-slate-400">Generated via ClinicFlow securely</div>
 				</div>
 			</div>
 		{:else}
-			<div class="py-20 text-center text-slate-500 animate-pulse">
-				Loading referral data...
-			</div>
+			<div class="py-20 text-center text-slate-500 animate-pulse">Loading referral data...</div>
 		{/if}
 	</div>
 </div>

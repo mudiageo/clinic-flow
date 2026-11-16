@@ -73,9 +73,7 @@ export async function createSelfCheckInTicket(phcId: string, patientId: string) 
 	const existing = await database
 		.select()
 		.from(queueTickets)
-		.where(
-			and(eq(queueTickets.phcId, phcId), sql`${queueTickets.createdAt} >= ${todayStart}`)
-		);
+		.where(and(eq(queueTickets.phcId, phcId), sql`${queueTickets.createdAt} >= ${todayStart}`));
 	const nextTicketNumber = existing.length + 1;
 
 	const [ticket] = await database

@@ -1,10 +1,23 @@
 <script lang="ts">
-	import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '$lib/components/ui/card';
-	import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '$lib/components/ui/table';
+	import {
+		Card,
+		CardContent,
+		CardHeader,
+		CardTitle,
+		CardDescription
+	} from '#lib/components/ui/card/index.ts';
+	import {
+		Table,
+		TableBody,
+		TableCell,
+		TableHead,
+		TableHeader,
+		TableRow
+	} from '#lib/components/ui/table/index.ts';
 	import { ClipboardList, Filter } from '@lucide/svelte';
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '#lib/components/ui/button/index.ts';
 
-	let { data } = $props<{ data: { entries: any[], total: number } }>();
+	let { data } = $props<{ data: { entries: any[]; total: number } }>();
 </script>
 
 <svelte:head>
@@ -34,7 +47,7 @@
 		<CardHeader class="border-b border-border bg-muted/20 px-6 py-4">
 			<CardTitle class="text-base font-semibold">Recent Actions</CardTitle>
 		</CardHeader>
-		
+
 		<Table>
 			<TableHeader>
 				<TableRow>
@@ -55,7 +68,8 @@
 								</div>
 								<h3 class="text-xl font-bold">No audit entries yet</h3>
 								<p class="text-muted-foreground max-w-md">
-									Actions will appear here as staff use the system to create patients, update records, and manage the clinic.
+									Actions will appear here as staff use the system to create patients, update
+									records, and manage the clinic.
 								</p>
 							</div>
 						</TableCell>
@@ -63,11 +77,15 @@
 				{:else}
 					{#each data.entries as entry}
 						<TableRow class="hover:bg-muted/40 transition-colors">
-							<TableCell class="text-muted-foreground px-6">{new Date(entry.createdAt).toLocaleString()}</TableCell>
+							<TableCell class="text-muted-foreground px-6"
+								>{new Date(entry.createdAt).toLocaleString()}</TableCell
+							>
 							<TableCell class="font-medium px-6">{entry.staffName}</TableCell>
 							<TableCell class="px-6">{entry.action}</TableCell>
 							<TableCell class="px-6 capitalize">{entry.entityType}</TableCell>
-							<TableCell class="text-right text-muted-foreground px-6 font-mono text-xs">{entry.entityId}</TableCell>
+							<TableCell class="text-right text-muted-foreground px-6 font-mono text-xs"
+								>{entry.entityId}</TableCell
+							>
 						</TableRow>
 					{/each}
 				{/if}

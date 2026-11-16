@@ -1,14 +1,20 @@
 <script lang="ts">
-	import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '$lib/components/ui/card';
+	import {
+		Card,
+		CardContent,
+		CardHeader,
+		CardTitle,
+		CardDescription
+	} from '#lib/components/ui/card/index.ts';
 	import { Download, Monitor, Smartphone, Apple, Tag, History, ExternalLink } from '@lucide/svelte';
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '#lib/components/ui/button/index.ts';
 
 	const releases = [
 		{ platform: 'Windows', version: 'v1.2.4', date: 'Oct 28, 2023', icon: Monitor },
 		{ platform: 'macOS', version: 'v1.2.4', date: 'Oct 28, 2023', icon: Apple },
 		{ platform: 'Linux', version: 'v1.2.4', date: 'Oct 28, 2023', icon: Monitor },
 		{ platform: 'Android', version: 'v1.1.0', date: 'Oct 15, 2023', icon: Smartphone },
-		{ platform: 'iOS', version: 'v1.1.0', date: 'Oct 15, 2023', icon: Smartphone },
+		{ platform: 'iOS', version: 'v1.1.0', date: 'Oct 15, 2023', icon: Smartphone }
 	];
 </script>
 
@@ -46,7 +52,9 @@
 					<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 						{#each releases as release}
 							{@const Icon = release.icon}
-							<div class="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors">
+							<div
+								class="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
+							>
 								<div class="flex items-center gap-3">
 									<div class="p-2 bg-primary/10 text-primary rounded-md">
 										<Icon class="size-5" />
@@ -57,7 +65,8 @@
 									</div>
 								</div>
 								<div class="flex items-center gap-2">
-									<span class="text-xs font-mono bg-muted px-2 py-1 rounded">{release.version}</span>
+									<span class="text-xs font-mono bg-muted px-2 py-1 rounded">{release.version}</span
+									>
 									<Button variant="ghost" size="icon" class="size-8">
 										<ExternalLink class="size-4" />
 									</Button>
@@ -74,7 +83,9 @@
 					<CardDescription>Latest walk-through video shown to new clinics.</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<div class="aspect-video w-full rounded-lg bg-muted flex items-center justify-center border border-dashed">
+					<div
+						class="aspect-video w-full rounded-lg bg-muted flex items-center justify-center border border-dashed"
+					>
 						<!-- In a real app, this would be an iframe embed -->
 						<div class="text-center space-y-2">
 							<Monitor class="size-12 text-muted-foreground mx-auto opacity-20" />
@@ -96,19 +107,37 @@
 				<CardContent>
 					<div class="relative border-l ml-3 pl-5 space-y-6 py-2">
 						<div class="relative">
-							<div class="absolute -left-[27px] bg-primary size-3 rounded-full border-[3px] border-background"></div>
-							<p class="text-sm font-medium">v1.2.4 <span class="text-muted-foreground font-normal ml-2">Oct 28, 2023</span></p>
-							<p class="text-xs text-muted-foreground mt-1">Added offline sync improvements and resolved a bug in the triage queue.</p>
+							<div
+								class="absolute -left-[27px] bg-primary size-3 rounded-full border-[3px] border-background"
+							></div>
+							<p class="text-sm font-medium">
+								v1.2.4 <span class="text-muted-foreground font-normal ml-2">Oct 28, 2023</span>
+							</p>
+							<p class="text-xs text-muted-foreground mt-1">
+								Added offline sync improvements and resolved a bug in the triage queue.
+							</p>
 						</div>
 						<div class="relative">
-							<div class="absolute -left-[27px] bg-muted-foreground/30 size-3 rounded-full border-[3px] border-background"></div>
-							<p class="text-sm font-medium">v1.2.3 <span class="text-muted-foreground font-normal ml-2">Oct 10, 2023</span></p>
-							<p class="text-xs text-muted-foreground mt-1">Introduced the new Pharmacy dashboard.</p>
+							<div
+								class="absolute -left-[27px] bg-muted-foreground/30 size-3 rounded-full border-[3px] border-background"
+							></div>
+							<p class="text-sm font-medium">
+								v1.2.3 <span class="text-muted-foreground font-normal ml-2">Oct 10, 2023</span>
+							</p>
+							<p class="text-xs text-muted-foreground mt-1">
+								Introduced the new Pharmacy dashboard.
+							</p>
 						</div>
 						<div class="relative">
-							<div class="absolute -left-[27px] bg-muted-foreground/30 size-3 rounded-full border-[3px] border-background"></div>
-							<p class="text-sm font-medium">v1.1.0 <span class="text-muted-foreground font-normal ml-2">Sep 15, 2023</span></p>
-							<p class="text-xs text-muted-foreground mt-1">Initial mobile release for Android and iOS.</p>
+							<div
+								class="absolute -left-[27px] bg-muted-foreground/30 size-3 rounded-full border-[3px] border-background"
+							></div>
+							<p class="text-sm font-medium">
+								v1.1.0 <span class="text-muted-foreground font-normal ml-2">Sep 15, 2023</span>
+							</p>
+							<p class="text-xs text-muted-foreground mt-1">
+								Initial mobile release for Android and iOS.
+							</p>
 						</div>
 					</div>
 				</CardContent>

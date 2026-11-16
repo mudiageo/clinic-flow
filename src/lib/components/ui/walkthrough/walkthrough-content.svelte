@@ -3,7 +3,7 @@
 	import { computePosition, autoUpdate, offset, shift, arrow, flip } from '@floating-ui/dom';
 	import { fade } from 'svelte/transition';
 	import { getWalkthroughContext } from './ctx';
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import { X } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
 

@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { getPhcList } from '$lib/remote/superadmin.remote';
+	import { getPhcList } from '#lib/remote/superadmin.remote.ts';
 	import {
 		Card,
 		CardHeader,
 		CardTitle,
 		CardContent,
 		CardDescription
-	} from '$lib/components/ui/card';
+	} from '#lib/components/ui/card/index.ts';
 	import {
 		Table,
 		TableBody,
@@ -14,11 +14,11 @@
 		TableHead,
 		TableHeader,
 		TableRow
-	} from '$lib/components/ui/table';
+	} from '#lib/components/ui/table/index.ts';
 	import { Building2, Activity, Users, ServerCrash, ExternalLink } from '@lucide/svelte';
-	import { Button } from '$lib/components/ui/button';
-	import { Badge } from '$lib/components/ui/badge';
-	import NumberTicker from '$lib/components/ui/number-ticker/number-ticker.svelte';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import NumberTicker from '#lib/components/ui/number-ticker/number-ticker.svelte';
 </script>
 
 <svelte:head>
@@ -47,14 +47,17 @@
 		{@const totalStaff = phcs.reduce((acc: any, phc: any) => acc + phc.staffCount, 0)}
 		{@const totalPatients = phcs.reduce((acc: any, phc: any) => acc + phc.patientCount, 0)}
 		<div class="grid grid-cols-1 md:grid-cols-4 gap-5">
-			
 			<Card>
 				<CardContent class="p-6 flex items-center justify-between">
 					<div>
-						<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total PHCs</p>
+						<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+							Total PHCs
+						</p>
 						<NumberTicker value={totalPhcs} class="text-3xl font-bold mt-1 block" />
 					</div>
-					<div class="size-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+					<div
+						class="size-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary"
+					>
 						<Building2 class="size-5" />
 					</div>
 				</CardContent>
@@ -62,10 +65,14 @@
 			<Card>
 				<CardContent class="p-6 flex items-center justify-between">
 					<div>
-						<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Staff</p>
+						<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+							Total Staff
+						</p>
 						<NumberTicker value={totalStaff} class="text-3xl font-bold mt-1 block" />
 					</div>
-					<div class="size-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+					<div
+						class="size-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500"
+					>
 						<Users class="size-5" />
 					</div>
 				</CardContent>
@@ -73,10 +80,14 @@
 			<Card>
 				<CardContent class="p-6 flex items-center justify-between">
 					<div>
-						<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Patients</p>
+						<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+							Total Patients
+						</p>
 						<NumberTicker value={totalPatients} class="text-3xl font-bold mt-1 block" />
 					</div>
-					<div class="size-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500">
+					<div
+						class="size-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500"
+					>
 						<Activity class="size-5" />
 					</div>
 				</CardContent>
@@ -84,10 +95,14 @@
 			<Card>
 				<CardContent class="p-6 flex items-center justify-between">
 					<div>
-						<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Active Today</p>
+						<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+							Active Today
+						</p>
 						<NumberTicker value={124} class="text-3xl font-bold mt-1 block" />
 					</div>
-					<div class="size-12 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500">
+					<div
+						class="size-12 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500"
+					>
 						<ServerCrash class="size-5" />
 					</div>
 				</CardContent>
@@ -114,7 +129,10 @@
 						{#each phcs as phc}
 							<TableRow>
 								<TableCell class="font-medium">
-									<a href={`/superadmin/phcs/${phc.id}`} class="hover:underline text-primary flex items-center gap-1">
+									<a
+										href={`/superadmin/phcs/${phc.id}`}
+										class="hover:underline text-primary flex items-center gap-1"
+									>
 										{phc.name}
 										<ExternalLink class="size-3" />
 									</a>

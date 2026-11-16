@@ -7,10 +7,10 @@
 		getFilteredRowModel,
 		getPaginationRowModel
 	} from '@tanstack/table-core';
-	import { FlexRender, createSvelteTable } from '$lib/components/ui/data-table/index.js';
-	import * as Table from '$lib/components/ui/table/index.js';
-	import { Input } from '$lib/components/ui/input/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
+	import { FlexRender, createSvelteTable } from '#lib/components/ui/data-table/index.js';
+	import * as Table from '#lib/components/ui/table/index.js';
+	import { Input } from '#lib/components/ui/input/index.js';
+	import { Button } from '#lib/components/ui/button/index.js';
 	import { Search } from '@lucide/svelte';
 
 	type DataTableProps<TData, TValue> = {

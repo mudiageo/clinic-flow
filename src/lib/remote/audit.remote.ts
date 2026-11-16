@@ -1,5 +1,5 @@
 import { query, form } from '$app/server';
-import { db } from '$lib/server/db';
+import { db } from '#lib/server/db/index.ts';
 import { getRequestEvent } from '$app/server';
 import * as v from 'valibot';
 
@@ -9,7 +9,7 @@ export const getAuditLog = query(
 	async ({ page }) => {
 		const event = getRequestEvent();
 		if (!event.locals.phcId) return { entries: [], total: 0 };
-		
+
 		// TODO: query auditLog table once added to schema
 		// For now return empty - the UI will show an empty state
 		return { entries: [] as any[], total: 0 };

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { reminderStore } from '$lib/state/reminders.svelte';
-	import { patientStore } from '$lib/state/patients.svelte';
+	import { reminderStore } from '#lib/state/reminders.svelte.ts';
+	import { patientStore } from '#lib/state/patients.svelte.ts';
 	import { dispatchReminders } from '../../../sms/sms.remote';
 	import {
 		Card,
@@ -8,7 +8,7 @@
 		CardTitle,
 		CardContent,
 		CardDescription
-	} from '$lib/components/ui/card';
+	} from '#lib/components/ui/card/index.ts';
 	import {
 		Table,
 		TableBody,
@@ -16,10 +16,10 @@
 		TableHead,
 		TableHeader,
 		TableRow
-	} from '$lib/components/ui/table';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Button } from '$lib/components/ui/button';
-	import { ScrollArea } from '$lib/components/ui/scroll-area';
+	} from '#lib/components/ui/table/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { ScrollArea } from '#lib/components/ui/scroll-area/index.ts';
 	import { toast } from 'svelte-sonner';
 	import { Bell, Send, Calendar, User, Check, Clock, Loader2 } from '@lucide/svelte';
 

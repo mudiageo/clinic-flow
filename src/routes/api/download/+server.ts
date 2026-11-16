@@ -7,7 +7,7 @@ export async function GET({ url }) {
 
 	let filenameVersion = '';
 	let releasePath = '';
-	
+
 	if (version) {
 		filenameVersion = version.replace(/^app-v/, '');
 		releasePath = `download/${version}`;
@@ -34,22 +34,23 @@ export async function GET({ url }) {
 	if (os === 'windows') {
 		filename = `ClinicFlow_${filenameVersion}_x64-setup.exe`;
 	} else if (os === 'macos') {
-		filename = arch === 'aarch64' 
-			? `ClinicFlow_${filenameVersion}_aarch64.dmg`
-			: `ClinicFlow_${filenameVersion}_x64.dmg`;
+		filename =
+			arch === 'aarch64'
+				? `ClinicFlow_${filenameVersion}_aarch64.dmg`
+				: `ClinicFlow_${filenameVersion}_x64.dmg`;
 	} else if (os === 'linux') {
-		filename = arch === 'aarch64'
-			? `clinic-flow_${filenameVersion}_arm64.deb`
-			: `clinic-flow_${filenameVersion}_amd64.deb`;
+		filename =
+			arch === 'aarch64'
+				? `clinic-flow_${filenameVersion}_arm64.deb`
+				: `clinic-flow_${filenameVersion}_amd64.deb`;
 	} else if (os === 'android') {
 		filename = `ClinicFlow_${filenameVersion}_${arch}.apk`;
 	}
 
 	if (filename) {
-		redirect(
-			302,
-			`https://github.com/mudiageo/clinic-flow/releases/${releasePath}/${filename}`
-		);
+		redirect(302, `https://github.com/mudiageo/clinic-flow/releases/${releasePath}/${filename}`, {
+			external: true
+		});
 	}
 
 	redirect(302, '/download?error=invalid_os');

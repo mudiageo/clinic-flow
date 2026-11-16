@@ -1,24 +1,44 @@
 <script lang="ts">
-	import { Card, CardContent } from '$lib/components/ui/card';
-	import { Button } from '$lib/components/ui/button';
-	import { Badge } from '$lib/components/ui/badge';
-	import { syncStore } from '$lib/state/sync.svelte';
-	import { 
-		UserPlus, 
-		Activity, 
-		Home, 
-		MapPin, 
+	import { Card, CardContent } from '#lib/components/ui/card/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { syncStore } from '#lib/state/sync.svelte.ts';
+	import {
+		UserPlus,
+		Activity,
+		Home,
+		MapPin,
 		WifiOff,
 		CloudUpload,
 		Syringe,
 		ShieldAlert
 	} from '@lucide/svelte';
-	
+
 	const ACTIONS = [
-		{ label: 'Register Patient', icon: UserPlus, href: '/nurse/register', color: 'text-blue-600 bg-blue-50 border-blue-100' },
-		{ label: 'Household Visit', icon: Home, href: '/families', color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
-		{ label: 'Outreach Log', icon: MapPin, href: '/field/outreach', color: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
-		{ label: 'Record Vitals', icon: Activity, href: '/nurse/vitals', color: 'text-rose-600 bg-rose-50 border-rose-100' }
+		{
+			label: 'Register Patient',
+			icon: UserPlus,
+			href: '/nurse/register',
+			color: 'text-blue-600 bg-blue-50 border-blue-100'
+		},
+		{
+			label: 'Household Visit',
+			icon: Home,
+			href: '/families',
+			color: 'text-emerald-600 bg-emerald-50 border-emerald-100'
+		},
+		{
+			label: 'Outreach Log',
+			icon: MapPin,
+			href: '/field/outreach',
+			color: 'text-indigo-600 bg-indigo-50 border-indigo-100'
+		},
+		{
+			label: 'Record Vitals',
+			icon: Activity,
+			href: '/nurse/vitals',
+			color: 'text-rose-600 bg-rose-50 border-rose-100'
+		}
 	];
 </script>
 
@@ -41,13 +61,15 @@
 				</p>
 			</div>
 		</div>
-		
-		<Button 
-			variant="outline" 
-			size="sm" 
+
+		<Button
+			variant="outline"
+			size="sm"
 			onclick={() => syncStore.flush()}
 			disabled={syncStore.isSyncing || syncStore.pendingCount === 0}
-			class="h-10 rounded-xl {syncStore.pendingCount > 0 ? 'border-amber-200 text-amber-700 bg-amber-50' : 'text-muted-foreground'}"
+			class="h-10 rounded-xl {syncStore.pendingCount > 0
+				? 'border-amber-200 text-amber-700 bg-amber-50'
+				: 'text-muted-foreground'}"
 		>
 			<CloudUpload class="size-4 mr-2 {syncStore.isSyncing ? 'animate-bounce' : ''}" />
 			Sync ({syncStore.pendingCount})
@@ -57,7 +79,7 @@
 	<!-- Big Actions -->
 	<div class="grid grid-cols-2 gap-4">
 		{#each ACTIONS as action}
-			<a 
+			<a
 				href={action.href}
 				class="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border bg-card text-center transition-all active:scale-95 shadow-sm"
 			>
@@ -71,16 +93,22 @@
 
 	<!-- Recent Activity (Offline Cache) -->
 	<div class="space-y-3">
-		<h2 class="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+		<h2
+			class="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2"
+		>
 			Recent Activity (Local)
 			<div class="h-px flex-1 bg-border/60"></div>
 		</h2>
-		
+
 		<Card class="border-dashed bg-muted/10 shadow-none">
-			<CardContent class="p-6 flex flex-col items-center justify-center text-center text-muted-foreground">
+			<CardContent
+				class="p-6 flex flex-col items-center justify-center text-center text-muted-foreground"
+			>
 				<Activity class="size-8 opacity-20 mb-2" />
 				<p class="text-sm font-medium">No recent offline activity</p>
-				<p class="text-xs mt-1 max-w-[200px]">Patients registered in field mode will appear here until synced.</p>
+				<p class="text-xs mt-1 max-w-[200px]">
+					Patients registered in field mode will appear here until synced.
+				</p>
 			</CardContent>
 		</Card>
 	</div>
@@ -91,7 +119,9 @@
 			<div>
 				<h4 class="text-sm font-semibold text-red-900">Critical Safety Protocol</h4>
 				<p class="text-xs mt-1 text-red-800 leading-relaxed">
-					If you detect any critical red flags in the field (e.g., severe acute malnutrition, prolonged fever, signs of Lassa), you MUST initiate an immediate physical referral to the PHC. Do not rely solely on offline AI triage for critical cases.
+					If you detect any critical red flags in the field (e.g., severe acute malnutrition,
+					prolonged fever, signs of Lassa), you MUST initiate an immediate physical referral to the
+					PHC. Do not rely solely on offline AI triage for critical cases.
 				</p>
 			</div>
 		</CardContent>

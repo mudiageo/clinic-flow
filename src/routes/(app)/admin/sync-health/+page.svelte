@@ -1,9 +1,22 @@
 <script lang="ts">
-	import { syncStore } from '$lib/state/sync.svelte';
-	import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '$lib/components/ui/card';
-	import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '$lib/components/ui/table';
-	import { Button } from '$lib/components/ui/button';
-	import { Badge } from '$lib/components/ui/badge';
+	import { syncStore } from '#lib/state/sync.svelte.ts';
+	import {
+		Card,
+		CardHeader,
+		CardTitle,
+		CardContent,
+		CardDescription
+	} from '#lib/components/ui/card/index.ts';
+	import {
+		Table,
+		TableBody,
+		TableCell,
+		TableHead,
+		TableHeader,
+		TableRow
+	} from '#lib/components/ui/table/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import { CloudSync, AlertOctagon, CheckCircle2, RotateCw } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 
@@ -12,11 +25,11 @@
 		{ id: 1, device: 'Tablet 1 (Reception)', time: '5 mins ago', status: 'Success', items: 12 },
 		{ id: 2, device: 'Tablet 2 (Consultation)', time: '15 mins ago', status: 'Success', items: 4 },
 		{ id: 3, device: 'Tablet 3 (Pharmacy)', time: '1 hr ago', status: 'Conflict', items: 1 },
-		{ id: 4, device: 'Tablet 1 (Reception)', time: '2 hrs ago', status: 'Success', items: 25 },
+		{ id: 4, device: 'Tablet 1 (Reception)', time: '2 hrs ago', status: 'Success', items: 25 }
 	];
 
 	function dismissConflict(id: string) {
-		syncStore.conflicts = syncStore.conflicts.filter(c => c.id !== id);
+		syncStore.conflicts = syncStore.conflicts.filter((c) => c.id !== id);
 		toast.success('Conflict dismissed. The server version has been kept.');
 	}
 
@@ -44,7 +57,7 @@
 			</div>
 		</div>
 		<Button onclick={retrySync} disabled={syncStore.isSyncing}>
-			<RotateCw class="size-4 mr-2 {syncStore.isSyncing ? 'animate-spin' : ''}" /> 
+			<RotateCw class="size-4 mr-2 {syncStore.isSyncing ? 'animate-spin' : ''}" />
 			Force Sync
 		</Button>
 	</div>
@@ -58,15 +71,24 @@
 						<Badge variant="destructive" class="ml-2">{syncStore.conflicts.length}</Badge>
 					{/if}
 				</CardTitle>
-				<CardDescription>Records that were rejected by the central server due to conflicting edits.</CardDescription>
+				<CardDescription
+					>Records that were rejected by the central server due to conflicting edits.</CardDescription
+				>
 			</CardHeader>
 			<CardContent>
 				{#if syncStore.conflicts.length > 0}
 					<div class="space-y-3">
 						{#each syncStore.conflicts as conflict}
-							<div class="p-3 border rounded-lg bg-destructive/5 flex justify-between items-center gap-4">
+							<div
+								class="p-3 border rounded-lg bg-destructive/5 flex justify-between items-center gap-4"
+							>
 								<div>
-									<p class="font-bold text-sm font-mono capitalize">{conflict.entityType} <span class="text-xs text-muted-foreground normal-case">({conflict.id.substring(0,8)}...)</span></p>
+									<p class="font-bold text-sm font-mono capitalize">
+										{conflict.entityType}
+										<span class="text-xs text-muted-foreground normal-case"
+											>({conflict.id.substring(0, 8)}...)</span
+										>
+									</p>
 									<p class="text-sm text-muted-foreground mt-0.5">Reason: {conflict.reason}</p>
 								</div>
 								<Button variant="outline" size="sm" onclick={() => dismissConflict(conflict.id)}>
@@ -104,12 +126,22 @@
 								<TableCell class="font-medium text-sm">{log.device}</TableCell>
 								<TableCell>
 									{#if log.status === 'Success'}
-										<Badge variant="outline" class="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">Success</Badge>
+										<Badge
+											variant="outline"
+											class="bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+											>Success</Badge
+										>
 									{:else}
-										<Badge variant="outline" class="bg-destructive/10 text-destructive border-destructive/20">Conflict</Badge>
+										<Badge
+											variant="outline"
+											class="bg-destructive/10 text-destructive border-destructive/20"
+											>Conflict</Badge
+										>
 									{/if}
 								</TableCell>
-								<TableCell class="text-right text-muted-foreground text-xs whitespace-nowrap">{log.time}</TableCell>
+								<TableCell class="text-right text-muted-foreground text-xs whitespace-nowrap"
+									>{log.time}</TableCell
+								>
 							</TableRow>
 						{/each}
 					</TableBody>

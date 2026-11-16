@@ -1,13 +1,25 @@
 <script lang="ts">
-	import { getSmsInbox } from '$lib/remote/admin.remote';
-	import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '$lib/components/ui/card';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '$lib/components/ui/table';
+	import { getSmsInbox } from '#lib/remote/admin.remote.ts';
+	import {
+		Card,
+		CardHeader,
+		CardTitle,
+		CardContent,
+		CardDescription
+	} from '#lib/components/ui/card/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import {
+		Table,
+		TableBody,
+		TableCell,
+		TableHead,
+		TableHeader,
+		TableRow
+	} from '#lib/components/ui/table/index.ts';
 	import { MessageSquare, MessageSquareText, Search } from '@lucide/svelte';
-	import { Input } from '$lib/components/ui/input';
+	import { Input } from '#lib/components/ui/input/index.ts';
 
 	let searchQuery = $state('');
-
 </script>
 
 <svelte:head>
@@ -38,7 +50,11 @@
 				</div>
 				<div class="relative w-72">
 					<Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-					<Input placeholder="Search phone or message..." bind:value={searchQuery} class="pl-9 bg-muted/50" />
+					<Input
+						placeholder="Search phone or message..."
+						bind:value={searchQuery}
+						class="pl-9 bg-muted/50"
+					/>
 				</div>
 			</div>
 		</CardHeader>
@@ -60,9 +76,10 @@
 							</TableCell>
 						</TableRow>
 					{:then messages}
-						{@const filtered = messages.filter(m => 
-							m.fromPhone.includes(searchQuery) || 
-							m.message.toLowerCase().includes(searchQuery.toLowerCase())
+						{@const filtered = messages.filter(
+							(m) =>
+								m.fromPhone.includes(searchQuery) ||
+								m.message.toLowerCase().includes(searchQuery.toLowerCase())
 						)}
 						{#each filtered as msg}
 							{@const msgLower = msg.message.toLowerCase()}
@@ -79,9 +96,17 @@
 								</TableCell>
 								<TableCell class="text-right">
 									{#if msgLower.includes('confirm')}
-										<Badge variant="outline" class="bg-green-500/10 text-green-600 border-green-500/20">Appointment Confirmed</Badge>
+										<Badge
+											variant="outline"
+											class="bg-green-500/10 text-green-600 border-green-500/20"
+											>Appointment Confirmed</Badge
+										>
 									{:else if msgLower.includes('stop')}
-										<Badge variant="outline" class="bg-destructive/10 text-destructive border-destructive/20">Unsubscribed</Badge>
+										<Badge
+											variant="outline"
+											class="bg-destructive/10 text-destructive border-destructive/20"
+											>Unsubscribed</Badge
+										>
 									{:else}
 										<Badge variant="outline" class="text-muted-foreground">Unrecognized</Badge>
 									{/if}

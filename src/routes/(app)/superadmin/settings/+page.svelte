@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Input } from '$lib/components/ui/input';
-	import { Button } from '$lib/components/ui/button';
-	import { Label } from '$lib/components/ui/label';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
 	import {
 		Card,
 		CardHeader,
@@ -9,20 +9,13 @@
 		CardContent,
 		CardDescription,
 		CardFooter
-	} from '$lib/components/ui/card';
-	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
-	import { Switch } from '$lib/components/ui/switch';
+	} from '#lib/components/ui/card/index.ts';
+	import { Tabs, TabsContent, TabsList, TabsTrigger } from '#lib/components/ui/tabs/index.ts';
+	import { Switch } from '#lib/components/ui/switch/index.ts';
 	import { toast } from 'svelte-sonner';
-	import { 
-		Settings, 
-		User, 
-		Shield, 
-		Save, 
-		KeyRound,
-		Globe
-	} from '@lucide/svelte';
-	import { updateProfile, updatePassword } from '$lib/remote/auth.remote';
-	import { updateAppSettings } from '$lib/remote/settings.remote';
+	import { Settings, User, Shield, Save, KeyRound, Globe } from '@lucide/svelte';
+	import { updateProfile, updatePassword } from '#lib/remote/auth.remote.ts';
+	import { updateAppSettings } from '#lib/remote/settings.remote.ts';
 
 	let { data } = $props();
 
@@ -55,7 +48,6 @@
 		}
 		return true;
 	}
-
 
 	async function handleSavePreferences() {
 		// Trigger hidden form submit when switches change
@@ -98,7 +90,7 @@
 					</CardTitle>
 					<CardDescription>Update your personal details and contact information.</CardDescription>
 				</CardHeader>
-				<form 
+				<form
 					{...updateProfile.enhance(async (form) => {
 						isSavingProfile = true;
 						try {
@@ -147,11 +139,13 @@
 						<KeyRound class="size-4" />
 						Change Password
 					</CardTitle>
-					<CardDescription>Ensure your master account is using a long, random password to stay secure.</CardDescription>
+					<CardDescription
+						>Ensure your master account is using a long, random password to stay secure.</CardDescription
+					>
 				</CardHeader>
-				<form 
+				<form
 					{...updatePassword.enhance(async (form) => {
-						if (!await handleUpdatePassword(form)) return;
+						if (!(await handleUpdatePassword(form))) return;
 						isSavingSecurity = true;
 						try {
 							if (await form.submit()) {
@@ -172,7 +166,10 @@
 					<CardContent class="space-y-4">
 						<div class="space-y-2">
 							<Label for="currentPassword">Current Password</Label>
-							<Input {...updatePassword.fields.currentPassword.as('password', currentPassword)} required />
+							<Input
+								{...updatePassword.fields.currentPassword.as('password', currentPassword)}
+								required
+							/>
 						</div>
 						<div class="space-y-2">
 							<Label for="newPassword">New Password</Label>
@@ -212,40 +209,50 @@
 					<div class="flex items-center justify-between">
 						<div class="space-y-0.5">
 							<Label class="text-base">Beta Release Channel</Label>
-							<p class="text-sm text-muted-foreground">Receive early access to ClinicFlow updates before they are stable.</p>
+							<p class="text-sm text-muted-foreground">
+								Receive early access to ClinicFlow updates before they are stable.
+							</p>
 						</div>
 						<Switch bind:checked={betaUpdates} onCheckedChange={handleSavePreferences} />
 					</div>
 					<div class="flex items-center justify-between">
 						<div class="space-y-0.5">
 							<Label class="text-base">Strict Audit Mode</Label>
-							<p class="text-sm text-muted-foreground">Enforce strict logging for every administrative action. (Requires restart)</p>
+							<p class="text-sm text-muted-foreground">
+								Enforce strict logging for every administrative action. (Requires restart)
+							</p>
 						</div>
 						<Switch bind:checked={strictAuditMode} onCheckedChange={handleSavePreferences} />
 					</div>
 					<div class="flex items-center justify-between">
 						<div class="space-y-0.5">
 							<Label class="text-base">Anonymous Telemetry</Label>
-							<p class="text-sm text-muted-foreground">Help improve ClinicFlow by sending crash reports and usage statistics.</p>
+							<p class="text-sm text-muted-foreground">
+								Help improve ClinicFlow by sending crash reports and usage statistics.
+							</p>
 						</div>
 						<Switch bind:checked={telemetryEnabled} onCheckedChange={handleSavePreferences} />
 					</div>
 					<div class="flex items-center justify-between">
 						<div class="space-y-0.5">
 							<Label class="text-base">Critical System Alerts</Label>
-							<p class="text-sm text-muted-foreground">Receive emails when connected PHCs go offline or experience critical errors.</p>
+							<p class="text-sm text-muted-foreground">
+								Receive emails when connected PHCs go offline or experience critical errors.
+							</p>
 						</div>
 						<Switch bind:checked={emailAlerts} onCheckedChange={handleSavePreferences} />
 					</div>
 					<div class="flex items-center justify-between">
 						<div class="space-y-0.5">
 							<Label class="text-base">Automated Cloud Backups</Label>
-							<p class="text-sm text-muted-foreground">Silently backup database snapshots to securely encrypted cloud storage.</p>
+							<p class="text-sm text-muted-foreground">
+								Silently backup database snapshots to securely encrypted cloud storage.
+							</p>
 						</div>
 						<Switch bind:checked={autoBackup} onCheckedChange={handleSavePreferences} />
 					</div>
 
-					<form 
+					<form
 						id="preferences-form"
 						class="hidden"
 						{...updateAppSettings.enhance(async (form) => {
@@ -264,7 +271,9 @@
 						})}
 					>
 						<input {...updateAppSettings.fields.betaUpdates.as('checkbox', betaUpdates)} />
-						<input {...updateAppSettings.fields.telemetryEnabled.as('checkbox', telemetryEnabled)} />
+						<input
+							{...updateAppSettings.fields.telemetryEnabled.as('checkbox', telemetryEnabled)}
+						/>
 						<input {...updateAppSettings.fields.strictAuditMode.as('checkbox', strictAuditMode)} />
 						<input {...updateAppSettings.fields.emailAlerts.as('checkbox', emailAlerts)} />
 						<input {...updateAppSettings.fields.autoBackup.as('checkbox', autoBackup)} />

@@ -157,7 +157,7 @@ pnpm drizzle-kit migrate
 pnpm add dexie
 ```
 
-Implement `src/lib/local-db/db.ts` exactly as specified in `02-Architecture.md` §1.2. **This file, and Dexie's `liveQuery()`, must never be imported outside `src/lib/state/*.svelte.ts`.** All userland code (components, routes) interacts only with the class store singletons (`patientStore`, `queueStore`, etc.) documented in `02-Architecture.md` §3 — build the `LocalCollection` base class first (§3.2), then extend it per entity. If a component ever imports `$lib/local-db/db` directly, that's a signal the store layer is being bypassed and should be fixed before merging.
+Implement `src/lib/local-db/db.ts` exactly as specified in `02-Architecture.md` §1.2. **This file, and Dexie's `liveQuery()`, must never be imported outside `src/lib/state/*.svelte.ts`.** All userland code (components, routes) interacts only with the class store singletons (`patientStore`, `queueStore`, etc.) documented in `02-Architecture.md` §3 — build the `LocalCollection` base class first (§3.2), then extend it per entity. If a component ever imports `#lib/local-db/db` directly, that's a signal the store layer is being bypassed and should be fixed before merging.
 
 > Reference: https://dexie.org/docs/Tutorial/Getting-started · https://dexie.org/docs/liveQuery()
 
@@ -332,7 +332,7 @@ Before marking any module in `04-Timeline.md` complete, the agent should verify 
 - **Never hardcode triage thresholds in component logic** — always read from the `triageRules` table.
 - **Never call Gemini or Termii/Africa's Talking directly from client code** — server-side remote functions (`command`/`query`) only, keys never shipped to the browser bundle.
 - **Never let a write path assume connectivity** — every mutation goes through a class store's `create`/`update` method, which writes to Dexie first, full stop, per `02-Architecture.md` §1.3 and §3.2.
-- **Never import `$lib/local-db/db` or call Dexie's `liveQuery()` from a component or route** — only the class store files in `$lib/state/*.svelte.ts` may do so, per `02-Architecture.md` §0 and §3.1.
+- **Never import `#lib/local-db/db` or call Dexie's `liveQuery()` from a component or route** — only the class store files in `$lib/state/*.svelte.ts` may do so, per `02-Architecture.md` §0 and §3.1.
 - **Never overwrite `pharmacy_inventory.current_stock` via naive last-write-wins** — delta-based only, via the `pushOperations` command's `delta` operation type, per `02-Architecture.md` §2.4.
-- **Never hand-edit generated shadcn-svelte component files** in `$lib/components/ui/` for one-off sizing — override via className at the call site so `shadcn-svelte update` stays safe.
+- **Never hand-edit generated shadcn-svelte component files** in `#lib/components/ui/` for one-off sizing — override via className at the call site so `shadcn-svelte update` stays safe.
 - **Never assume the Tauri build has a working server** — remote function calls (`sync.remote.ts` and friends) resolve to fetch wrappers targeting a separately-deployed Node-adapter SvelteKit instance, not the static Tauri bundle itself.

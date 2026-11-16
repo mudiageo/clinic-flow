@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { getPlatformPermissionsAudit } from '$lib/remote/permissions.remote';
-	import { Skeleton } from '$lib/components/ui/skeleton';
+	import { getPlatformPermissionsAudit } from '#lib/remote/permissions.remote.ts';
+	import { Skeleton } from '#lib/components/ui/skeleton/index.ts';
 	import { Shield } from '@lucide/svelte';
 	import DataTable from './data-table.svelte';
 	import { columns } from './columns';

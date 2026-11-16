@@ -1,19 +1,19 @@
 <script lang="ts">
-	import { queueStore } from '$lib/state/queue.svelte';
-	import { patientStore } from '$lib/state/patients.svelte';
-	import { Button } from '$lib/components/ui/button';
-	import { Badge } from '$lib/components/ui/badge';
+	import { queueStore } from '#lib/state/queue.svelte.ts';
+	import { patientStore } from '#lib/state/patients.svelte.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import {
 		Card,
 		CardContent,
 		CardHeader,
 		CardTitle,
 		CardDescription
-	} from '$lib/components/ui/card';
-	import QueueTicketCard from '$lib/components/queue-ticket-card.svelte';
-	import { ScrollArea } from '$lib/components/ui/scroll-area';
-	import { ShinyButton } from '$lib/components/ui/shiny-button';
-	import { Walkthrough } from '$lib/components/ui/walkthrough';
+	} from '#lib/components/ui/card/index.ts';
+	import QueueTicketCard from '#lib/components/queue-ticket-card.svelte';
+	import { ScrollArea } from '#lib/components/ui/scroll-area/index.ts';
+	import { ShinyButton } from '#lib/components/ui/shiny-button/index.ts';
+	import { Walkthrough } from '#lib/components/ui/walkthrough/index.ts';
 	import {
 		Users,
 		AlertCircle,
@@ -25,8 +25,8 @@
 		UserCheck,
 		Check
 	} from '@lucide/svelte';
-	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
-	import { NumberTicker } from '$lib/components/ui/number-ticker';
+	import { Tabs, TabsContent, TabsList, TabsTrigger } from '#lib/components/ui/tabs/index.ts';
+	import { NumberTicker } from '#lib/components/ui/number-ticker/index.ts';
 	import { flip } from 'svelte/animate';
 	import { slide } from 'svelte/transition';
 
@@ -121,7 +121,10 @@
 					<p class="text-xs font-semibold text-triage-amber uppercase tracking-wider">
 						Amber Warning
 					</p>
-					<NumberTicker value={stats.amber} class="text-2xl font-bold text-triage-amber mt-1 block" />
+					<NumberTicker
+						value={stats.amber}
+						class="text-2xl font-bold text-triage-amber mt-1 block"
+					/>
 				</div>
 				<div
 					class="size-10 rounded-lg bg-triage-amber/10 flex items-center justify-center text-triage-amber ring-1 ring-triage-amber/20"
@@ -137,7 +140,10 @@
 					<p class="text-xs font-semibold text-triage-green uppercase tracking-wider">
 						Green Routine
 					</p>
-					<NumberTicker value={stats.green} class="text-2xl font-bold text-triage-green mt-1 block" />
+					<NumberTicker
+						value={stats.green}
+						class="text-2xl font-bold text-triage-green mt-1 block"
+					/>
 				</div>
 				<div
 					class="size-10 rounded-lg bg-triage-green/10 flex items-center justify-center text-triage-green ring-1 ring-triage-green/20"
@@ -156,23 +162,39 @@
 				<CardDescription>Real-time patient flow and triaging</CardDescription>
 			</div>
 		</CardHeader>
-		
+
 		<Tabs value="general" class="w-full">
-			<TabsList class="mb-4 w-full justify-start overflow-x-auto bg-transparent h-12 p-0 space-x-2 border-b border-border rounded-none">
-				<TabsTrigger value="general" class="rounded-t-lg rounded-b-none data-[state=active]:bg-card data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary border-b-2 border-transparent px-4">
+			<TabsList
+				class="mb-4 w-full justify-start overflow-x-auto bg-transparent h-12 p-0 space-x-2 border-b border-border rounded-none"
+			>
+				<TabsTrigger
+					value="general"
+					class="rounded-t-lg rounded-b-none data-[state=active]:bg-card data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary border-b-2 border-transparent px-4"
+				>
 					General Outpatient ({queueStore.generalQueue.length})
 				</TabsTrigger>
-				<TabsTrigger value="anc" class="rounded-t-lg rounded-b-none data-[state=active]:bg-card data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary border-b-2 border-transparent px-4">
+				<TabsTrigger
+					value="anc"
+					class="rounded-t-lg rounded-b-none data-[state=active]:bg-card data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary border-b-2 border-transparent px-4"
+				>
 					Antenatal Care (ANC) ({queueStore.ancQueue.length})
 				</TabsTrigger>
-				<TabsTrigger value="epi" class="rounded-t-lg rounded-b-none data-[state=active]:bg-card data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary border-b-2 border-transparent px-4">
+				<TabsTrigger
+					value="epi"
+					class="rounded-t-lg rounded-b-none data-[state=active]:bg-card data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary border-b-2 border-transparent px-4"
+				>
 					Immunization (EPI) ({queueStore.epiQueue.length})
 				</TabsTrigger>
 			</TabsList>
 
 			{#each ['general', 'anc', 'epi'] as dept}
 				<TabsContent value={dept}>
-					{@const queueItems = dept === 'general' ? queueStore.generalQueue : dept === 'anc' ? queueStore.ancQueue : queueStore.epiQueue}
+					{@const queueItems =
+						dept === 'general'
+							? queueStore.generalQueue
+							: dept === 'anc'
+								? queueStore.ancQueue
+								: queueStore.epiQueue}
 					<div class="space-y-4 animate-stagger">
 						{#if queueItems.length === 0}
 							<div
@@ -194,7 +216,6 @@
 			{/each}
 		</Tabs>
 	</Card>
-
 </div>
 
 <Walkthrough
@@ -204,19 +225,22 @@
 		{
 			target: 'call-next-btn',
 			title: 'Call Next Patient',
-			description: 'Click here to automatically call the highest priority patient from the queue to your station.',
+			description:
+				'Click here to automatically call the highest priority patient from the queue to your station.',
 			position: 'bottom'
 		},
 		{
 			target: 'stats-grid',
 			title: 'Triage Overview',
-			description: 'Monitor the live queue categorized by urgency. Red Alert patients need immediate attention.',
+			description:
+				'Monitor the live queue categorized by urgency. Red Alert patients need immediate attention.',
 			position: 'bottom'
 		},
 		{
 			target: 'queue-list',
 			title: 'Active Queue',
-			description: 'This is the real-time queue. Click on any patient card to manually manage their status.',
+			description:
+				'This is the real-time queue. Click on any patient card to manually manage their status.',
 			position: 'top'
 		}
 	]}

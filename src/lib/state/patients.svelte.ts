@@ -1,4 +1,4 @@
-import { db, type LocalPatient } from '$lib/local-db/db';
+import { db, type LocalPatient } from '#lib/local-db/db.ts';
 import { LocalCollection } from './local-collection.svelte';
 
 class PatientStore extends LocalCollection<LocalPatient> {

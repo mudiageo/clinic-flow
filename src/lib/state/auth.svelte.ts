@@ -1,13 +1,19 @@
-import { getUserProfile, getUserPreferences } from '$lib/remote/auth.remote';
+import { getUserProfile, getUserPreferences } from '#lib/remote/auth.remote.ts';
 import { toast } from 'svelte-sonner';
-import { db } from '$lib/local-db/db';
-import { syncStore } from '$lib/state/sync.svelte';
+import { db } from '#lib/local-db/db.ts';
+import { syncStore } from '#lib/state/sync.svelte.ts';
 
 class AuthStore {
-	profile = $state<{ staffId: string; name: string; email: string; role: string; phcName: string } | null>(null);
+	profile = $state<{
+		staffId: string;
+		name: string;
+		email: string;
+		role: string;
+		phcName: string;
+	} | null>(null);
 	preferences = $state<any>(null);
 	isLoaded = $state(false);
-	
+
 	constructor() {
 		if (typeof window !== 'undefined') {
 			this.loadFromCache();
@@ -18,14 +24,18 @@ class AuthStore {
 	private loadFromCache() {
 		const cachedProfile = localStorage.getItem('clinicflow_profile');
 		if (cachedProfile) {
-			try { this.profile = JSON.parse(cachedProfile); } catch (e) {}
+			try {
+				this.profile = JSON.parse(cachedProfile);
+			} catch (e) {}
 		}
-		
+
 		const cachedPrefs = localStorage.getItem('clinicflow_prefs');
 		if (cachedPrefs) {
-			try { this.preferences = JSON.parse(cachedPrefs); } catch (e) {}
+			try {
+				this.preferences = JSON.parse(cachedPrefs);
+			} catch (e) {}
 		}
-		
+
 		if (this.profile) this.isLoaded = true;
 	}
 
@@ -35,17 +45,17 @@ class AuthStore {
 				getUserProfile(),
 				getUserPreferences()
 			]);
-			
+
 			if (serverProfile) {
 				this.profile = serverProfile;
 				localStorage.setItem('clinicflow_profile', JSON.stringify(serverProfile));
 			}
-			
+
 			if (serverPrefs) {
 				this.preferences = serverPrefs;
 				localStorage.setItem('clinicflow_prefs', JSON.stringify(serverPrefs));
 			}
-			
+
 			this.isLoaded = true;
 		} catch (e) {
 			console.error('Failed to sync auth data with server (likely offline)', e);
@@ -56,11 +66,11 @@ class AuthStore {
 
 	async updateProfile(name: string) {
 		if (!this.profile) return;
-		
+
 		// Optimistic update
 		this.profile.name = name;
 		localStorage.setItem('clinicflow_profile', JSON.stringify(this.profile));
-		
+
 		// Queue background sync
 		try {
 			await db.syncLog.add({
@@ -85,7 +95,7 @@ class AuthStore {
 		// Optimistic update
 		this.preferences = prefs;
 		localStorage.setItem('clinicflow_prefs', JSON.stringify(prefs));
-		
+
 		// Queue background sync
 		try {
 			await db.syncLog.add({

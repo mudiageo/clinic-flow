@@ -1,5 +1,5 @@
-import { db } from '$lib/server/db';
-import { reminders } from '$lib/server/db/schema';
+import { db } from '#lib/server/db/index.ts';
+import { reminders } from '#lib/server/db/schema.ts';
 import { TERMII_API_KEY, TERMII_SENDER_ID } from '$app/env/private';
 import { eq, lte, and } from 'drizzle-orm';
 

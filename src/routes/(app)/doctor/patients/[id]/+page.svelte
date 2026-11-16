@@ -1,22 +1,22 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { patientStore } from '$lib/state/patients.svelte';
-	import { vitalsStore } from '$lib/state/vitals.svelte';
-	import { encounterStore } from '$lib/state/encounters.svelte';
-	import { labRequestStore } from '$lib/state/lab-requests.svelte';
+	import { patientStore } from '#lib/state/patients.svelte.ts';
+	import { vitalsStore } from '#lib/state/vitals.svelte.ts';
+	import { encounterStore } from '#lib/state/encounters.svelte.ts';
+	import { labRequestStore } from '#lib/state/lab-requests.svelte.ts';
 	import {
 		Card,
 		CardContent,
 		CardHeader,
 		CardTitle,
 		CardDescription
-	} from '$lib/components/ui/card';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Button } from '$lib/components/ui/button';
-	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
+	} from '#lib/components/ui/card/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Tabs, TabsContent, TabsList, TabsTrigger } from '#lib/components/ui/tabs/index.ts';
 	import { ChevronLeft, User, Activity, FileText, FlaskConical, Clock } from '@lucide/svelte';
-	import Sparkline from '$lib/components/Sparkline.svelte';
-	import { formatDate, formatDateTime } from '$lib/utils/date';
+	import Sparkline from '#lib/components/Sparkline.svelte';
+	import { formatDate, formatDateTime } from '#lib/utils/date.ts';
 
 	const patientId = page.params.id as string;
 	const patient = $derived(patientStore.get(patientId));

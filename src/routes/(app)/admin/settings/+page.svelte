@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { updatePhcSettings } from '$lib/remote/admin.remote';
-	import { db } from '$lib/local-db/db';
-	import { Input } from '$lib/components/ui/input';
-	import { Button } from '$lib/components/ui/button';
-	import { Label } from '$lib/components/ui/label';
+	import { updatePhcSettings } from '#lib/remote/admin.remote.ts';
+	import { db } from '#lib/local-db/db.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
 	import {
 		Card,
 		CardHeader,
@@ -11,7 +11,7 @@
 		CardContent,
 		CardDescription,
 		CardFooter
-	} from '$lib/components/ui/card';
+	} from '#lib/components/ui/card/index.ts';
 	import {
 		Dialog,
 		DialogContent,
@@ -19,11 +19,20 @@
 		DialogTitle,
 		DialogDescription,
 		DialogTrigger
-	} from '$lib/components/ui/dialog';
+	} from '#lib/components/ui/dialog/index.ts';
 	import { toast } from 'svelte-sonner';
-	import { Settings, Save, Smartphone, RotateCcw, AlertOctagon, TestTube2, CloudCog, LayoutDashboard } from '@lucide/svelte';
-	import { Switch } from '$lib/components/ui/switch';
-	import { settingsStore } from '$lib/state/settings.svelte';
+	import {
+		Settings,
+		Save,
+		Smartphone,
+		RotateCcw,
+		AlertOctagon,
+		TestTube2,
+		CloudCog,
+		LayoutDashboard
+	} from '@lucide/svelte';
+	import { Switch } from '#lib/components/ui/switch/index.ts';
+	import { settingsStore } from '#lib/state/settings.svelte.ts';
 
 	let { data } = $props<{ data: { settings: any } }>();
 
@@ -55,7 +64,7 @@
 			lgaDsoPhone = data.settings.lgaDsoPhone || '';
 			termiiApiKey = data.settings.termiiApiKey || '';
 			syncPollInterval = data.settings.syncPollInterval || 15;
-			
+
 			maternalHealthEnabled = data.settings.maternalHealthEnabled ?? true;
 			immunizationEnabled = data.settings.immunizationEnabled ?? true;
 			aiVoiceEnabled = data.settings.aiVoiceEnabled ?? true;
@@ -91,7 +100,7 @@
 			});
 			if (res?.success) {
 				toast.success('Settings saved successfully');
-				
+
 				// Update local reactive store
 				settingsStore.updateLocal({
 					name: phcName,
@@ -115,7 +124,7 @@
 			isSaving = false;
 		}
 	}
-	
+
 	async function testSms() {
 		if (!termiiApiKey) {
 			toast.error('Please enter and save an API key first');
@@ -128,8 +137,8 @@
 		}, 1500);
 	}
 
-	import { seedDemoData } from '$lib/utils/seed';
-	
+	import { seedDemoData } from '#lib/utils/seed.ts';
+
 	let isSeeding = $state(false);
 
 	async function runDemoSeed() {
@@ -205,7 +214,9 @@
 				<div class="space-y-2 pt-2 border-t border-border">
 					<Label for="lgaDsoPhone">LGA Disease Surveillance Officer (DSO) Phone</Label>
 					<Input id="lgaDsoPhone" bind:value={lgaDsoPhone} placeholder="e.g. 08012345678" />
-					<p class="text-xs text-muted-foreground mt-1">Used for escalating Outbreak Radar reports via SMS.</p>
+					<p class="text-xs text-muted-foreground mt-1">
+						Used for escalating Outbreak Radar reports via SMS.
+					</p>
 				</div>
 			</CardContent>
 		</Card>
@@ -217,13 +228,21 @@
 					<Smartphone class="size-4" />
 					SMS Notifications (Termii)
 				</CardTitle>
-				<CardDescription>Configure Termii for appointment reminders and notifications</CardDescription>
+				<CardDescription
+					>Configure Termii for appointment reminders and notifications</CardDescription
+				>
 			</CardHeader>
 			<CardContent class="space-y-4">
 				<div class="space-y-2">
 					<Label for="apiKey">Termii API Key</Label>
 					<div class="flex gap-2">
-						<Input id="apiKey" type="password" bind:value={termiiApiKey} placeholder="TL-XXXXXXXXXXXXXXXXXXXXXXXXX" class="flex-1" />
+						<Input
+							id="apiKey"
+							type="password"
+							bind:value={termiiApiKey}
+							placeholder="TL-XXXXXXXXXXXXXXXXXXXXXXXXX"
+							class="flex-1"
+						/>
 						<Button type="button" variant="outline" onclick={testSms}>
 							<TestTube2 class="size-4 mr-2" />
 							Test
@@ -247,63 +266,81 @@
 				<div class="flex items-center justify-between">
 					<div class="space-y-0.5">
 						<Label class="text-base">Maternal Health Module</Label>
-						<p class="text-sm text-muted-foreground">ANC tracking, EDD calculators, and digital partograms.</p>
+						<p class="text-sm text-muted-foreground">
+							ANC tracking, EDD calculators, and digital partograms.
+						</p>
 					</div>
 					<Switch bind:checked={maternalHealthEnabled} />
 				</div>
 				<div class="flex items-center justify-between">
 					<div class="space-y-0.5">
 						<Label class="text-base">Digital Immunizations</Label>
-						<p class="text-sm text-muted-foreground">Automated NPI vaccine schedules for infants.</p>
+						<p class="text-sm text-muted-foreground">
+							Automated NPI vaccine schedules for infants.
+						</p>
 					</div>
 					<Switch bind:checked={immunizationEnabled} />
 				</div>
 				<div class="flex items-center justify-between">
 					<div class="space-y-0.5">
 						<Label class="text-base">AI Voice Transcription</Label>
-						<p class="text-sm text-muted-foreground">Record chief complaints in local languages (Pidgin, Hausa, etc).</p>
+						<p class="text-sm text-muted-foreground">
+							Record chief complaints in local languages (Pidgin, Hausa, etc).
+						</p>
 					</div>
 					<Switch bind:checked={aiVoiceEnabled} />
 				</div>
 				<div class="flex items-center justify-between">
 					<div class="space-y-0.5">
 						<Label class="text-base">Disease Outbreak Detection</Label>
-						<p class="text-sm text-muted-foreground">Automatically detect and flag potential epidemiological outbreaks.</p>
+						<p class="text-sm text-muted-foreground">
+							Automatically detect and flag potential epidemiological outbreaks.
+						</p>
 					</div>
 					<Switch bind:checked={outbreakDetectionEnabled} />
 				</div>
 				<div class="flex items-center justify-between">
 					<div class="space-y-0.5">
 						<Label class="text-base">Two-Way SMS Confirmations</Label>
-						<p class="text-sm text-muted-foreground">Allow patients to reply 'CONFIRM' to SMS reminders.</p>
+						<p class="text-sm text-muted-foreground">
+							Allow patients to reply 'CONFIRM' to SMS reminders.
+						</p>
 					</div>
 					<Switch bind:checked={twoWaySmsEnabled} />
 				</div>
 				<div class="flex items-center justify-between">
 					<div class="space-y-0.5">
 						<Label class="text-base">External Referrals System</Label>
-						<p class="text-sm text-muted-foreground">Generate and print standardized referral letters to secondary facilities.</p>
+						<p class="text-sm text-muted-foreground">
+							Generate and print standardized referral letters to secondary facilities.
+						</p>
 					</div>
 					<Switch bind:checked={referralsEnabled} />
 				</div>
 				<div class="flex items-center justify-between">
 					<div class="space-y-0.5">
 						<Label class="text-base">Family Health Dashboards</Label>
-						<p class="text-sm text-muted-foreground">Group patients by households for unified view of appointments and metrics.</p>
+						<p class="text-sm text-muted-foreground">
+							Group patients by households for unified view of appointments and metrics.
+						</p>
 					</div>
 					<Switch bind:checked={familyHealthEnabled} />
 				</div>
 				<div class="flex items-center justify-between">
 					<div class="space-y-0.5">
 						<Label class="text-base">Real-Time Staff Notifications</Label>
-						<p class="text-sm text-muted-foreground">Enable cross-device alerts for queues, lab results, and prescriptions.</p>
+						<p class="text-sm text-muted-foreground">
+							Enable cross-device alerts for queues, lab results, and prescriptions.
+						</p>
 					</div>
 					<Switch bind:checked={realTimeNotificationsEnabled} />
 				</div>
 				<div class="flex items-center justify-between">
 					<div class="space-y-0.5">
 						<Label class="text-base">NHIS / HMO Tracking</Label>
-						<p class="text-sm text-muted-foreground">Flag enrollees and track billable services for health insurance claims.</p>
+						<p class="text-sm text-muted-foreground">
+							Flag enrollees and track billable services for health insurance claims.
+						</p>
 					</div>
 					<Switch bind:checked={nhisTrackingEnabled} />
 				</div>
@@ -332,7 +369,9 @@
 						<option value="30">Every 30 minutes</option>
 						<option value="60">Every 1 hour</option>
 					</select>
-					<p class="text-xs text-muted-foreground mt-1">Shorter intervals use more battery and bandwidth.</p>
+					<p class="text-xs text-muted-foreground mt-1">
+						Shorter intervals use more battery and bandwidth.
+					</p>
 				</div>
 			</CardContent>
 			<CardFooter class="bg-muted/10 border-t flex justify-end p-4">
@@ -359,14 +398,22 @@
 			<CardDescription>Irreversible actions that affect your local data.</CardDescription>
 		</CardHeader>
 		<CardContent class="space-y-4">
-			<div class="flex items-center justify-between p-4 border border-indigo-200 rounded-lg bg-indigo-50/50">
+			<div
+				class="flex items-center justify-between p-4 border border-indigo-200 rounded-lg bg-indigo-50/50"
+			>
 				<div>
 					<h4 class="font-bold text-indigo-900">Seed Demo Data</h4>
 					<p class="text-sm text-indigo-700/80 mt-1">
-						Injects realistic Nigerian dummy patients, a simulated Cholera outbreak, and active triage queues for hackathon pitch testing.
+						Injects realistic Nigerian dummy patients, a simulated Cholera outbreak, and active
+						triage queues for hackathon pitch testing.
 					</p>
 				</div>
-				<Button variant="outline" class="border-indigo-200 text-indigo-700 hover:bg-indigo-100 shrink-0 ml-4" disabled={isSeeding} onclick={runDemoSeed}>
+				<Button
+					variant="outline"
+					class="border-indigo-200 text-indigo-700 hover:bg-indigo-100 shrink-0 ml-4"
+					disabled={isSeeding}
+					onclick={runDemoSeed}
+				>
 					{#if isSeeding}
 						<RotateCcw class="size-4 mr-2 animate-spin" />
 						Seeding...
@@ -377,27 +424,35 @@
 				</Button>
 			</div>
 
-			<div class="flex items-center justify-between p-4 border border-destructive/20 rounded-lg bg-destructive/5">
+			<div
+				class="flex items-center justify-between p-4 border border-destructive/20 rounded-lg bg-destructive/5"
+			>
 				<div>
 					<h4 class="font-bold text-foreground">Reset Local Database</h4>
 					<p class="text-sm text-muted-foreground mt-1">
-						Clear all local offline data and log out. Remote data will not be deleted, but unsynced changes will be lost.
+						Clear all local offline data and log out. Remote data will not be deleted, but unsynced
+						changes will be lost.
 					</p>
 				</div>
 				<Dialog>
-					<DialogTrigger class="ml-4 shrink-0 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 h-9 px-4 py-2">
+					<DialogTrigger
+						class="ml-4 shrink-0 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 h-9 px-4 py-2"
+					>
 						Reset Data
 					</DialogTrigger>
 					<DialogContent>
 						<DialogHeader>
 							<DialogTitle class="text-destructive">Are you absolutely sure?</DialogTitle>
 							<DialogDescription>
-								This action cannot be undone. This will permanently delete your local offline database and log you out.
-								Any data that has not been synchronized to the cloud will be lost forever.
+								This action cannot be undone. This will permanently delete your local offline
+								database and log you out. Any data that has not been synchronized to the cloud will
+								be lost forever.
 							</DialogDescription>
 						</DialogHeader>
 						<div class="flex justify-end gap-3 mt-4">
-							<DialogTrigger class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2">
+							<DialogTrigger
+								class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
+							>
 								Cancel
 							</DialogTrigger>
 							<Button variant="destructive" disabled={isResetting} onclick={resetDemoData}>

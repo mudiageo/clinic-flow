@@ -1,8 +1,15 @@
 <script lang="ts">
-	import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '$lib/components/ui/card';
+	import {
+		Card,
+		CardContent,
+		CardHeader,
+		CardTitle,
+		CardDescription,
+		CardFooter
+	} from '#lib/components/ui/card/index.ts';
 	import { CreditCard, CheckCircle2, AlertCircle, ArrowUpRight } from '@lucide/svelte';
-	import { Button } from '$lib/components/ui/button';
-	import { Badge } from '$lib/components/ui/badge';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
 </script>
 
 <svelte:head>
@@ -35,7 +42,9 @@
 							<div>
 								<div class="flex items-center gap-2">
 									<p class="font-medium">Ugbowo Main Clinic</p>
-									<Badge variant="outline" class="text-green-600 border-green-200 bg-green-50">Active</Badge>
+									<Badge variant="outline" class="text-green-600 border-green-200 bg-green-50"
+										>Active</Badge
+									>
 								</div>
 								<p class="text-sm text-muted-foreground mt-1">Pro Tier • ₦50,000/mo</p>
 							</div>
@@ -49,7 +58,9 @@
 							<div>
 								<div class="flex items-center gap-2">
 									<p class="font-medium">Oredo Community Health Center</p>
-									<Badge variant="outline" class="text-orange-600 border-orange-200 bg-orange-50">Trial Ends Soon</Badge>
+									<Badge variant="outline" class="text-orange-600 border-orange-200 bg-orange-50"
+										>Trial Ends Soon</Badge
+									>
 								</div>
 								<p class="text-sm text-muted-foreground mt-1">Free Tier (3 days left)</p>
 							</div>

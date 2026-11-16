@@ -4,10 +4,7 @@ import { db } from '../index';
 
 export async function createPhc(data: { name: string; state: string; lga: string }) {
 	const phcs = getTable('phcs');
-	return await database
-		.insert(phcs)
-		.values(data)
-		.returning();
+	return await database.insert(phcs).values(data).returning();
 }
 
 export async function updatePhcSettingsById(phcId: string, data: any) {

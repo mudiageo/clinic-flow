@@ -4,9 +4,7 @@ import { db } from '../index';
 
 export async function updateStaffPin(staffId: string, hashedPin: string): Promise<void> {
 	const staff = getTable('staff');
-	await database.update(staff)
-		.set({ pin: hashedPin })
-		.where(eq(staff.id, staffId));
+	await database.update(staff).set({ pin: hashedPin }).where(eq(staff.id, staffId));
 }
 
 export async function getStaffByPhc(phcId: string) {
@@ -18,10 +16,10 @@ export async function getStaffByPhc(phcId: string) {
 }
 
 export async function getAllStaffUsers() {
-    const staff = getTable('staff');
-    const phcs = getTable('phcs');
-    
-    return await database
+	const staff = getTable('staff');
+	const phcs = getTable('phcs');
+
+	return await database
 		.select({
 			id: staff.id,
 			name: staff.fullName,
@@ -35,23 +33,27 @@ export async function getAllStaffUsers() {
 }
 
 export async function createStaff(data: any) {
-    const staff = getTable('staff');
-    return await database.insert(staff).values(data).returning();
+	const staff = getTable('staff');
+	return await database.insert(staff).values(data).returning();
 }
 
 export async function updateStaffProfile(staffId: string, data: any) {
-    const staff = getTable('staff');
-    return await database.update(staff).set(data).where(eq(staff.id, staffId));
+	const staff = getTable('staff');
+	return await database.update(staff).set(data).where(eq(staff.id, staffId));
 }
 
 export async function updateStaffPreferences(staffId: string, preferences: any) {
-    const staff = getTable('staff');
-    return await database.update(staff).set({ preferences: JSON.stringify(preferences) }).where(eq(staff.id, staffId));
+	const staff = getTable('staff');
+	return await database
+		.update(staff)
+		.set({ preferences: JSON.stringify(preferences) })
+		.where(eq(staff.id, staffId));
 }
 
 export async function updateStaffStatusById(staffId: string, phcId: string, active: boolean) {
-    const staff = getTable('staff');
-    return await database.update(staff)
-        .set({ active })
-        .where(and(eq(staff.id, staffId), eq(staff.phcId, phcId)));
+	const staff = getTable('staff');
+	return await database
+		.update(staff)
+		.set({ active })
+		.where(and(eq(staff.id, staffId), eq(staff.phcId, phcId)));
 }

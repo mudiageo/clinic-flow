@@ -136,9 +136,9 @@ All sync-related remote functions live in one file, deployed as part of the sepa
 // src/routes/sync/sync.remote.ts
 import { query, command } from '$app/server';
 import * as v from 'valibot';
-import { db as serverDb } from '$lib/server/db';
+import { db as serverDb } from '#lib/server/db/index.ts';
 import { sql, eq } from 'drizzle-orm';
-import { pharmacyInventory } from '$lib/server/db/schema';
+import { pharmacyInventory } from '#lib/server/db/schema.ts';
 
 const operationSchema = v.object({
 	localId: v.number(),
@@ -250,7 +250,7 @@ The sync manager is itself a Svelte 5 class store (see §3), not a bare module-l
 
 ```ts
 // src/lib/state/sync.svelte.ts
-import { db } from '$lib/local-db/db';
+import { db } from '#lib/local-db/db.ts';
 import { pushOperations, pullChanges } from '../../routes/sync/sync.remote';
 
 class SyncStore {
@@ -344,7 +344,7 @@ Most stores share the same shape (list + CRUD + sync-log write), so factor that 
 ```ts
 // src/lib/state/local-collection.svelte.ts
 import { liveQuery, type Table } from 'dexie';
-import { db } from '$lib/local-db/db';
+import { db } from '#lib/local-db/db.ts';
 
 export abstract class LocalCollection<
 	T extends { id: string; updatedAt: number; syncStatus: string }
@@ -399,7 +399,7 @@ export abstract class LocalCollection<
 
 ```ts
 // src/lib/state/patients.svelte.ts
-import { db, type LocalPatient } from '$lib/local-db/db';
+import { db, type LocalPatient } from '#lib/local-db/db.ts';
 import { LocalCollection } from './local-collection.svelte';
 
 class PatientStore extends LocalCollection<LocalPatient> {
@@ -434,7 +434,7 @@ Userland usage — no Dexie import, no `liveQuery` import, anywhere in this comp
 
 ```svelte
 <script lang="ts">
-	import { patientStore } from '$lib/state/patients.svelte';
+	import { patientStore } from '#lib/state/patients.svelte.ts';
 	let searchTerm = $state('');
 	const results = $derived(patientStore.search(searchTerm));
 </script>
@@ -449,7 +449,7 @@ Userland usage — no Dexie import, no `liveQuery` import, anywhere in this comp
 
 ```ts
 // src/lib/state/queue.svelte.ts
-import { db, type LocalQueueTicket } from '$lib/local-db/db';
+import { db, type LocalQueueTicket } from '#lib/local-db/db.ts';
 import { LocalCollection } from './local-collection.svelte';
 
 class QueueStore extends LocalCollection<LocalQueueTicket> {
@@ -502,7 +502,7 @@ export const queueStore = new QueueStore();
 
 ```svelte
 <script lang="ts">
-	import { syncStore } from '$lib/state/sync.svelte';
+	import { syncStore } from '#lib/state/sync.svelte.ts';
 </script>
 
 <div class="sync-badge" class:offline={!syncStore.online}>
@@ -521,7 +521,7 @@ This matters more than it looks: low-literacy staff need explicit, constant reas
 ```svelte
 <!-- src/routes/waiting-room/+page.svelte -->
 <script lang="ts">
-	import { queueStore } from '$lib/state/queue.svelte';
+	import { queueStore } from '#lib/state/queue.svelte.ts';
 
 	let lastAnnounced = $state<string | null>(null);
 

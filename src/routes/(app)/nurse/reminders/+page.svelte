@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { reminderStore } from '$lib/state/reminders.svelte';
-	import { patientStore } from '$lib/state/patients.svelte';
+	import { reminderStore } from '#lib/state/reminders.svelte.ts';
+	import { patientStore } from '#lib/state/patients.svelte.ts';
 	import { Bell, Plus, Clock } from '@lucide/svelte';
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import DataTable from './data-table.svelte';
 	import { columns, type ReminderRow } from './columns';
 	import CreateReminderDialog from './create-reminder-dialog.svelte';

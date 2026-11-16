@@ -1,13 +1,17 @@
 import { form, query, command } from '$app/server';
 import { getRequestEvent } from '$app/server';
-import { auth } from '$lib/server/auth';
+import { auth } from '#lib/server/auth.ts';
 import { invalid, redirect, isRedirect } from '@sveltejs/kit';
 import * as v from 'valibot';
-import { db } from '$lib/server/db';
+import { db } from '#lib/server/db/index.ts';
 import { APIError } from 'better-auth/api';
 import { eq, sql } from 'drizzle-orm';
-import { createPhc } from '$lib/server/db/queries/phcs';
-import { createStaff, updateStaffProfile, updateStaffPreferences } from '$lib/server/db/queries/staff';
+import { createPhc } from '#lib/server/db/queries/phcs.ts';
+import {
+	createStaff,
+	updateStaffProfile,
+	updateStaffPreferences
+} from '#lib/server/db/queries/staff.ts';
 import { DATABASE_URL } from '$app/env/private';
 
 export const signInAction = form(
@@ -64,17 +68,15 @@ export const getStaffForLogin = query(
 	}),
 	async (data) => {
 		const isLocalServer = DATABASE_URL?.startsWith('file:') || DATABASE_URL?.startsWith('libsql:');
-		
+
 		if (!isLocalServer && !data.phcId) {
 			// On cloud, we MUST have a phcId to prevent cross-tenant data bleed
 			return [];
 		}
 
 		const staffList = await db.query.staff.findMany({
-			where: (s, { eq, and }) => 
-				data.phcId 
-					? and(eq(s.active, true), eq(s.phcId, data.phcId))
-					: eq(s.active, true),
+			where: (s, { eq, and }) =>
+				data.phcId ? and(eq(s.active, true), eq(s.phcId, data.phcId)) : eq(s.active, true),
 			columns: {
 				id: true,
 				fullName: true,
@@ -121,14 +123,14 @@ export const updateProfile = form(
 	async (data) => {
 		const event = getRequestEvent();
 		if (!event.locals.user || !event.locals.staffId) return invalid('Unauthorized');
-		
+
 		await updateStaffProfile(event.locals.staffId, { fullName: data.name });
-			
+
 		// Also update Better Auth user
 		// We use direct DB since better auth user update is admin API
 		// Note: The `users` table is maintained by Better Auth
 		await db.execute(sql`UPDATE "user" SET name = ${data.name} WHERE id = ${event.locals.user.id}`);
-		
+
 		return { success: true };
 	}
 );
@@ -195,7 +197,7 @@ export const updatePreferences = form(
 export const getActiveSessions = query(async () => {
 	const event = getRequestEvent();
 	if (!event.locals.user) return [];
-	
+
 	const sessions = await auth.api.listSessions({
 		headers: event.request.headers
 	});
@@ -339,7 +341,7 @@ export const signInWithPin = form(
 	}),
 	async (data, issue) => {
 		const event = getRequestEvent();
-		
+
 		// 1. Get staff member and their PIN hash
 		const staffMember = await db.query.staff.findFirst({
 			where: (s, { eq }) => eq(s.id, data.staffId),

@@ -168,10 +168,10 @@ jobs:
         uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DATABASE_URL: "file:dummy.db"
-          BETTER_AUTH_SECRET: "dummy-secret"
-          ORIGIN: "http://localhost:5173"
-          TAURI: "1"
+          DATABASE_URL: 'file:dummy.db'
+          BETTER_AUTH_SECRET: 'dummy-secret'
+          ORIGIN: 'http://localhost:5173'
+          TAURI: '1'
         with:
           tagName: ${{ needs.metadata.outputs.tag }}
           releaseName: ${{ needs.metadata.outputs.release_name }}
@@ -187,7 +187,6 @@ jobs:
           tauriScript: ${{ matrix.is_android && 'vp exec tauri' || '' }}
           mobile: ${{ matrix.is_android && 'android' || '' }}
           args: ${{ matrix.args }}
-
 
   # ── Hybrid Nightly Strategy (Static Pointer & Retention) ──────────
   update-nightly-pointer:
@@ -207,10 +206,10 @@ jobs:
         run: |
           # 1. Download all assets from the freshly built timestamped release
           gh release download "$TAG_NAME" --dir release-assets || echo "No assets found"
-          
+
           # 2. Delete the old static nightly release and tag
           gh release delete nightly --cleanup-tag -y || true
-          
+
           # 3. Recreate the nightly release pointing to the current commit with the same assets
           if [ -d "release-assets" ]; then
             gh release create nightly ./release-assets/*               --title "Nightly Build"               --notes "This is the static pointer to the latest nightly build. For specific historical builds (7-day retention), see the timestamped releases."               --prerelease
@@ -223,6 +222,6 @@ jobs:
         with:
           keep_latest: 7
           delete_tags: true
-          delete_tag_pattern: ".*-nightly.*"
+          delete_tag_pattern: '.*-nightly.*'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

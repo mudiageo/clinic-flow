@@ -8,11 +8,11 @@ import { error } from '@sveltejs/kit';
 export function requireRole(allowedRoles: string[]) {
 	const event = getRequestEvent();
 	const role = event.locals.role;
-	
+
 	if (!role || !allowedRoles.includes(role)) {
 		throw error(403, 'Forbidden: Insufficient privileges');
 	}
-	
+
 	return role;
 }
 

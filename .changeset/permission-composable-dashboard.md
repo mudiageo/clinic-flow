@@ -1,5 +1,5 @@
 ---
-"clinic-flow": minor
+'clinic-flow': minor
 ---
 
 **Permission-Composable Dashboard System**

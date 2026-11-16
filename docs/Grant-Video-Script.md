@@ -1,9 +1,10 @@
 # ClinicFlow: 60-Second Grant Pitch Video Script
 
 **Instructions for Recording:**
-*   **Setting:** A clean, well-lit background. Have a tablet or laptop open next to you showing the ClinicFlow dashboard.
-*   **Tone:** Passionate, confident, and urgent.
-*   **Pacing:** Speak clearly but keep the energy high.
+
+- **Setting:** A clean, well-lit background. Have a tablet or laptop open next to you showing the ClinicFlow dashboard.
+- **Tone:** Passionate, confident, and urgent.
+- **Pacing:** Speak clearly but keep the energy high.
 
 ---
 

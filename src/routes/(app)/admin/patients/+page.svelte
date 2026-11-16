@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { patientStore } from '$lib/state/patients.svelte';
-	import { encounterStore } from '$lib/state/encounters.svelte';
-	import { Input } from '$lib/components/ui/input';
+	import { patientStore } from '#lib/state/patients.svelte.ts';
+	import { encounterStore } from '#lib/state/encounters.svelte.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
 	import {
 		Card,
 		CardHeader,
@@ -9,7 +9,7 @@
 		CardContent,
 		CardDescription,
 		CardFooter
-	} from '$lib/components/ui/card';
+	} from '#lib/components/ui/card/index.ts';
 	import {
 		Table,
 		TableBody,
@@ -17,7 +17,7 @@
 		TableHead,
 		TableHeader,
 		TableRow
-	} from '$lib/components/ui/table';
+	} from '#lib/components/ui/table/index.ts';
 	import {
 		Dialog,
 		DialogContent,
@@ -25,12 +25,24 @@
 		DialogTitle,
 		DialogDescription,
 		DialogTrigger
-	} from '$lib/components/ui/dialog';
-	import { Button } from '$lib/components/ui/button';
-	import { ScrollArea } from '$lib/components/ui/scroll-area';
-	import QrCode from '$lib/components/QrCode.svelte';
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { Search, Printer, User, FolderOpen, Scan, FileText, ArrowRight, MoreHorizontal, ChevronLeft, ChevronRight, ArrowUpDown } from '@lucide/svelte';
+	} from '#lib/components/ui/dialog/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { ScrollArea } from '#lib/components/ui/scroll-area/index.ts';
+	import QrCode from '#lib/components/QrCode.svelte';
+	import * as DropdownMenu from '#lib/components/ui/dropdown-menu/index.ts';
+	import {
+		Search,
+		Printer,
+		User,
+		FolderOpen,
+		Scan,
+		FileText,
+		ArrowRight,
+		MoreHorizontal,
+		ChevronLeft,
+		ChevronRight,
+		ArrowUpDown
+	} from '@lucide/svelte';
 	import { goto } from '$app/navigation';
 
 	let searchTerm = $state('');
@@ -49,8 +61,12 @@
 			let valA = a[sortColumn];
 			let valB = b[sortColumn];
 			if (sortColumn === 'lastVisit') {
-				const encA = encounterStore.items.filter((e) => e.patientId === a.id).sort((x, y) => y.visitDate - x.visitDate)[0];
-				const encB = encounterStore.items.filter((e) => e.patientId === b.id).sort((x, y) => y.visitDate - x.visitDate)[0];
+				const encA = encounterStore.items
+					.filter((e) => e.patientId === a.id)
+					.sort((x, y) => y.visitDate - x.visitDate)[0];
+				const encB = encounterStore.items
+					.filter((e) => e.patientId === b.id)
+					.sort((x, y) => y.visitDate - x.visitDate)[0];
 				valA = encA ? new Date(encA.visitDate).getTime() : 0;
 				valB = encB ? new Date(encB.visitDate).getTime() : 0;
 			}
@@ -90,7 +106,9 @@
 	}
 
 	function getLastVisit(patientId: string) {
-		const encounters = encounterStore.items.filter((e) => e.patientId === patientId).sort((x, y) => y.visitDate - x.visitDate);
+		const encounters = encounterStore.items
+			.filter((e) => e.patientId === patientId)
+			.sort((x, y) => y.visitDate - x.visitDate);
 		if (encounters.length > 0) {
 			return new Date(encounters[0].visitDate).toLocaleDateString();
 		}
@@ -100,14 +118,14 @@
 	function getAge(dob: string | Date | null | undefined): string {
 		if (!dob) return '—';
 		const diff = Date.now() - new Date(dob).getTime();
-		const ageDate = new Date(diff); 
+		const ageDate = new Date(diff);
 		const years = Math.abs(ageDate.getUTCFullYear() - 1970);
 		return years > 0 ? `${years}y` : '<1y';
 	}
 
 	function exportCsv() {
 		const headers = ['Clinic ID', 'Name', 'Phone', 'Sex', 'Age', 'Community', 'Last Visit'];
-		const rows = sortedResults.map(p => [
+		const rows = sortedResults.map((p) => [
 			p.clinicId,
 			p.name,
 			p.phone || '',
@@ -116,17 +134,20 @@
 			p.community || '',
 			getLastVisit(p.id)
 		]);
-		
+
 		const csvContent = [
 			headers.join(','),
-			...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+			...rows.map((row) => row.map((cell) => `"${cell}"`).join(','))
 		].join('\n');
-		
+
 		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
 		const url = URL.createObjectURL(blob);
 		const link = document.createElement('a');
 		link.setAttribute('href', url);
-		link.setAttribute('download', `patients_registry_${new Date().toISOString().split('T')[0]}.csv`);
+		link.setAttribute(
+			'download',
+			`patients_registry_${new Date().toISOString().split('T')[0]}.csv`
+		);
 		link.style.visibility = 'hidden';
 		document.body.appendChild(link);
 		link.click();
@@ -227,8 +248,7 @@
 						</TableHead>
 						<TableHead
 							class="font-semibold text-muted-foreground px-6 py-3.5 text-right w-16 text-xs uppercase tracking-wider"
-							></TableHead
-						>
+						></TableHead>
 					</TableRow>
 				</TableHeader>
 				<TableBody class="animate-stagger">
@@ -264,23 +284,27 @@
 								>
 								<TableCell class="px-6 py-4 text-right">
 									<DropdownMenu.Root>
-										<DropdownMenu.Trigger class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0">
+										<DropdownMenu.Trigger
+											class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0"
+										>
 											<span class="sr-only">Open menu</span>
 											<MoreHorizontal class="h-4 w-4" />
 										</DropdownMenu.Trigger>
 										<DropdownMenu.Content align="end">
 											<DropdownMenu.Label>Actions</DropdownMenu.Label>
-											<DropdownMenu.Item onSelect={() => goto(`/admin/patients/${patient.id}`)}>
+											<DropdownMenu.Item onSelect={() => goto(`/patients/${patient.clinicId}`)}>
 												<User class="mr-2 size-4" />
 												View Profile
 											</DropdownMenu.Item>
-											<DropdownMenu.Item onSelect={() => goto(`/admin/patients/${patient.id}/history`)}>
+											<DropdownMenu.Item onSelect={() => goto(`/doctor/patients/${patient.id}`)}>
 												<FileText class="mr-2 size-4" />
 												Medical History
 											</DropdownMenu.Item>
 											<DropdownMenu.Separator />
 											<Dialog>
-												<DialogTrigger class="w-full flex items-center justify-start rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground">
+												<DialogTrigger
+													class="w-full flex items-center justify-start rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+												>
 													<Scan class="mr-2 size-4" />
 													Scan ID Card
 												</DialogTrigger>
@@ -329,7 +353,10 @@
 		</ScrollArea>
 		<CardFooter class="flex items-center justify-between p-4 bg-muted/10">
 			<div class="text-sm text-muted-foreground font-medium">
-				Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, sortedResults.length)} of {sortedResults.length} records
+				Showing {(currentPage - 1) * pageSize + 1} to {Math.min(
+					currentPage * pageSize,
+					sortedResults.length
+				)} of {sortedResults.length} records
 			</div>
 			<div class="flex items-center gap-2">
 				<Button

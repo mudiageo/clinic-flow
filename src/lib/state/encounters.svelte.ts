@@ -1,4 +1,4 @@
-import { db, type LocalEncounter } from '$lib/local-db/db';
+import { db, type LocalEncounter } from '#lib/local-db/db.ts';
 import { LocalCollection } from './local-collection.svelte';
 
 class EncounterStore extends LocalCollection<LocalEncounter> {

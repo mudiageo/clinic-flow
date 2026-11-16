@@ -82,7 +82,14 @@ Output ONLY raw JSON format:
   "assessment": "Suspected diagnoses or problem list, contextualized by patient age/sex.",
   "plan": "Proposed treatment, ordered lab tests, prescriptions, and follow-up."
 }`.trim(),
-		buildPrompt: (vitals: any, transcript: string, patientProfile: any, history: any[], prescriptions: any[], labs: any) =>
+		buildPrompt: (
+			vitals: any,
+			transcript: string,
+			patientProfile: any,
+			history: any[],
+			prescriptions: any[],
+			labs: any
+		) =>
 			`${AI_PROMPTS.soapNote.system}\n\nDe-identified Patient Profile:\n${JSON.stringify(patientProfile, null, 2)}\n\nPast Medical History:\n${JSON.stringify(history, null, 2)}\n\nPatient Vitals:\n${JSON.stringify(vitals, null, 2)}\n\nDoctor's Transcript/Notes:\n"${transcript}"\n\nPending Prescriptions:\n${JSON.stringify(prescriptions, null, 2)}\n\nPending Lab Tests:\n${JSON.stringify(labs, null, 2)}`
 	},
 	epidemiologyForecast: {

@@ -1,4 +1,4 @@
-import { db, type LocalRestockRequest } from '$lib/local-db/db';
+import { db, type LocalRestockRequest } from '#lib/local-db/db.ts';
 import { LocalCollection } from './local-collection.svelte';
 
 class RestockStore extends LocalCollection<LocalRestockRequest> {

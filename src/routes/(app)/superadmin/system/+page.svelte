@@ -1,5 +1,11 @@
 <script lang="ts">
-	import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '$lib/components/ui/card';
+	import {
+		Card,
+		CardContent,
+		CardHeader,
+		CardTitle,
+		CardDescription
+	} from '#lib/components/ui/card/index.ts';
 	import { ServerCrash, Database, RefreshCw, MessageSquare, Clock } from '@lucide/svelte';
 
 	// Mocking system health data since we don't have real metric collectors in this demo
@@ -43,7 +49,9 @@
 					<div class="p-2 bg-green-50 text-green-600 rounded-lg">
 						<Database class="size-5" />
 					</div>
-					<span class="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">Online</span>
+					<span class="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full"
+						>Online</span
+					>
 				</div>
 				<p class="text-sm font-medium text-muted-foreground">PostgreSQL Database</p>
 				<p class="text-xl font-bold text-foreground mt-1">{dbStatus}</p>
@@ -56,7 +64,9 @@
 					<div class="p-2 bg-blue-50 text-blue-600 rounded-lg">
 						<RefreshCw class="size-5" />
 					</div>
-					<span class="text-xs font-semibold text-muted-foreground bg-muted px-2 py-1 rounded-full">Live</span>
+					<span class="text-xs font-semibold text-muted-foreground bg-muted px-2 py-1 rounded-full"
+						>Live</span
+					>
 				</div>
 				<p class="text-sm font-medium text-muted-foreground">Global Sync Queue</p>
 				<p class="text-xl font-bold text-foreground mt-1">{syncPending} pending ops</p>
@@ -69,7 +79,9 @@
 					<div class="p-2 bg-purple-50 text-purple-600 rounded-lg">
 						<MessageSquare class="size-5" />
 					</div>
-					<span class="text-xs font-semibold text-red-600 bg-red-50 px-2 py-1 rounded-full">{smsFailed} failed</span>
+					<span class="text-xs font-semibold text-red-600 bg-red-50 px-2 py-1 rounded-full"
+						>{smsFailed} failed</span
+					>
 				</div>
 				<p class="text-sm font-medium text-muted-foreground">SMS Gateway (24h)</p>
 				<p class="text-xl font-bold text-foreground mt-1">{smsSent.toLocaleString()} sent</p>
@@ -96,12 +108,23 @@
 		</CardHeader>
 		<CardContent>
 			<div class="rounded-md bg-muted p-4 font-mono text-sm space-y-2 h-64 overflow-y-auto">
-				<div class="text-muted-foreground">[2023-11-04 14:32:11] INFO: App started on port 3000</div>
+				<div class="text-muted-foreground">
+					[2023-11-04 14:32:11] INFO: App started on port 3000
+				</div>
 				<div class="text-muted-foreground">[2023-11-04 15:10:02] INFO: Sync worker initialized</div>
-				<div class="text-orange-600">[2023-11-04 16:45:33] WARN: Termii API rate limit approached (95%)</div>
-				<div class="text-red-600">[2023-11-05 09:12:05] ERROR: Failed to process offline queue from PHC-8821: Invalid payload format</div>
-				<div class="text-muted-foreground">[2023-11-05 09:12:10] INFO: Retrying PHC-8821 queue... Success.</div>
-				<div class="text-muted-foreground">[2023-11-05 11:30:00] INFO: Daily backup completed successfully.</div>
+				<div class="text-orange-600">
+					[2023-11-04 16:45:33] WARN: Termii API rate limit approached (95%)
+				</div>
+				<div class="text-red-600">
+					[2023-11-05 09:12:05] ERROR: Failed to process offline queue from PHC-8821: Invalid
+					payload format
+				</div>
+				<div class="text-muted-foreground">
+					[2023-11-05 09:12:10] INFO: Retrying PHC-8821 queue... Success.
+				</div>
+				<div class="text-muted-foreground">
+					[2023-11-05 11:30:00] INFO: Daily backup completed successfully.
+				</div>
 			</div>
 		</CardContent>
 	</Card>

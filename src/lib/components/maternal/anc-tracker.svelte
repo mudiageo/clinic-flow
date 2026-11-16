@@ -1,14 +1,20 @@
 <script lang="ts">
-	import { pregnancyStore } from '$lib/state/pregnancy.svelte';
-	import { patientStore } from '$lib/state/patients.svelte';
-	import { Button } from '$lib/components/ui/button';
-	import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '$lib/components/ui/card';
+	import { pregnancyStore } from '#lib/state/pregnancy.svelte.ts';
+	import { patientStore } from '#lib/state/patients.svelte.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import {
+		Card,
+		CardContent,
+		CardHeader,
+		CardTitle,
+		CardDescription
+	} from '#lib/components/ui/card/index.ts';
 	import { Baby, CalendarPlus, Activity, Plus } from '@lucide/svelte';
 	import PartogramDialog from './partogram-dialog.svelte';
 	import DeliveryDialog from './delivery-dialog.svelte';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
 
 	let { patientId }: { patientId: string } = $props();
 
@@ -20,7 +26,7 @@
 	let eddDateStr = $state('');
 	let gravida = $state<number>(1);
 	let parity = $state<number>(0);
-	
+
 	let partogramOpen = $state(false);
 	let deliveryOpen = $state(false);
 
@@ -50,19 +56,18 @@
 		const edd = new Date(eddDateStr).getTime();
 
 		await pregnancyStore.createRecord(patientId, lmp, edd, gravida, parity);
-		
+
 		// Ensure patient is marked as pregnant for triage rules
 		if (!patient?.isPregnant) {
 			await patientStore.update(patientId, { isPregnant: true, updatedAt: Date.now() });
 		}
-		
+
 		showNewPregnancyForm = false;
 	}
 
 	function handleDeliver() {
 		deliveryOpen = true;
 	}
-
 </script>
 
 <Card class="mt-6 border-triage-amber/20 overflow-hidden">
@@ -73,7 +78,9 @@
 				Maternal Health & ANC
 			</CardTitle>
 			{#if activePregnancy}
-				<Badge variant="outline" class="border-triage-amber text-triage-amber bg-triage-amber/10">Active Pregnancy</Badge>
+				<Badge variant="outline" class="border-triage-amber text-triage-amber bg-triage-amber/10"
+					>Active Pregnancy</Badge
+				>
 			{/if}
 		</div>
 	</CardHeader>
@@ -82,34 +89,44 @@
 			<div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
 				<div>
 					<span class="text-muted-foreground text-sm block mb-1">Last Menstrual Period (LMP)</span>
-					<div class="font-medium">{activePregnancy.lmpDate ? new Date(activePregnancy.lmpDate).toLocaleDateString() : 'Unknown'}</div>
+					<div class="font-medium">
+						{activePregnancy.lmpDate
+							? new Date(activePregnancy.lmpDate).toLocaleDateString()
+							: 'Unknown'}
+					</div>
 				</div>
 				<div>
 					<span class="text-muted-foreground text-sm block mb-1">Estimated Delivery (EDD)</span>
-					<div class="font-medium text-triage-amber">{activePregnancy.eddDate ? new Date(activePregnancy.eddDate).toLocaleDateString() : 'Unknown'}</div>
+					<div class="font-medium text-triage-amber">
+						{activePregnancy.eddDate
+							? new Date(activePregnancy.eddDate).toLocaleDateString()
+							: 'Unknown'}
+					</div>
 				</div>
 				<div>
 					<span class="text-muted-foreground text-sm block mb-1">Gestational Age</span>
-					<div class="font-bold">{activePregnancy.lmpDate ? calculateGestationalAge(activePregnancy.lmpDate) : 'Unknown'}</div>
+					<div class="font-bold">
+						{activePregnancy.lmpDate ? calculateGestationalAge(activePregnancy.lmpDate) : 'Unknown'}
+					</div>
 				</div>
 				<div>
 					<span class="text-muted-foreground text-sm block mb-1">Gravida / Parity</span>
-					<div class="font-medium">G{activePregnancy.gravida || 1} P{activePregnancy.parity || 0}</div>
+					<div class="font-medium">
+						G{activePregnancy.gravida || 1} P{activePregnancy.parity || 0}
+					</div>
 				</div>
 			</div>
-			
+
 			<div class="flex gap-3 pt-4 border-t border-border">
 				<Button variant="outline" class="w-full">
 					<Activity class="size-4 mr-2" />
 					Log ANC Visit
 				</Button>
-				<Button variant="outline" class="w-full" onclick={() => partogramOpen = true}>
+				<Button variant="outline" class="w-full" onclick={() => (partogramOpen = true)}>
 					<Activity class="size-4 mr-2" />
 					Start Partogram (Labor)
 				</Button>
-				<Button variant="default" class="w-full" onclick={handleDeliver}>
-					Mark as Delivered
-				</Button>
+				<Button variant="default" class="w-full" onclick={handleDeliver}>Mark as Delivered</Button>
 			</div>
 		{:else}
 			{#if showNewPregnancyForm}
@@ -135,8 +152,10 @@
 						</div>
 					</div>
 					<div class="flex gap-3 justify-end pt-4">
-						<Button variant="ghost" onclick={() => showNewPregnancyForm = false}>Cancel</Button>
-						<Button onclick={handleSavePregnancy} disabled={!lmpDateStr || !eddDateStr}>Start ANC Tracking</Button>
+						<Button variant="ghost" onclick={() => (showNewPregnancyForm = false)}>Cancel</Button>
+						<Button onclick={handleSavePregnancy} disabled={!lmpDateStr || !eddDateStr}
+							>Start ANC Tracking</Button
+						>
 					</div>
 				</div>
 			{:else}
@@ -145,8 +164,10 @@
 						<Baby class="size-6 text-muted-foreground" />
 					</div>
 					<h3 class="font-semibold text-lg mb-1">No Active Pregnancy</h3>
-					<p class="text-muted-foreground text-sm mb-4">Log a new pregnancy to start tracking ANC visits and EDD.</p>
-					<Button onclick={() => showNewPregnancyForm = true}>
+					<p class="text-muted-foreground text-sm mb-4">
+						Log a new pregnancy to start tracking ANC visits and EDD.
+					</p>
+					<Button onclick={() => (showNewPregnancyForm = true)}>
 						<CalendarPlus class="size-4 mr-2" />
 						Log New Pregnancy
 					</Button>

@@ -56,17 +56,9 @@ export default defineConfig({
 			},
 
 			experimental: {
-				remoteFunctions: true,
-				explicitEnvironmentVariables: true,
-				handleRenderingErrors: true
-			},
-			typescript: {
-				config: (config) => {
-					config.include.push('../drizzle.config.ts');
-				}
+				remoteFunctions: true
 			}
-		}),
-
+		})
 	],
 	test: {
 		expect: { requireAssertions: true },

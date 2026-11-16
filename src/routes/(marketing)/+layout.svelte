@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import { HeartPulse } from '@lucide/svelte';
 
 	let { children } = $props();
@@ -20,9 +20,21 @@
 
 			<nav class="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
 				<a href="/#features" class="hover:text-foreground transition-colors">Features</a>
-				<a href="/download" class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Download</a>
-				<a href="/releases" class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Releases</a>
-				<a href="/support" class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Support & Guides</a>
+				<a
+					href="/download"
+					class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+					>Download</a
+				>
+				<a
+					href="/releases"
+					class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+					>Releases</a
+				>
+				<a
+					href="/support"
+					class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+					>Support & Guides</a
+				>
 			</nav>
 
 			<div class="flex items-center gap-4">

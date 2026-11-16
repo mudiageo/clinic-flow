@@ -1,22 +1,40 @@
 <script lang="ts">
-	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { 
-		Syringe, 
-		Search, 
-		Baby,
-		CheckCircle2,
-		CalendarDays
-	} from '@lucide/svelte';
+	import { Card, CardHeader, CardTitle, CardContent } from '#lib/components/ui/card/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Syringe, Search, Baby, CheckCircle2, CalendarDays } from '@lucide/svelte';
 
 	// Mock EPI roster
 	const infants = [
-		{ name: 'Musa Ibrahim', age: '6 weeks', nextDue: 'Today', status: 'due', vaccines: ['OPV1', 'Penta1', 'PCV1', 'Rota1'] },
-		{ name: 'Chidera Okafor', age: '14 weeks', nextDue: 'Tomorrow', status: 'upcoming', vaccines: ['OPV3', 'Penta3', 'PCV3'] },
-		{ name: 'Fatima Sani', age: '9 months', nextDue: 'Overdue (3 days)', status: 'overdue', vaccines: ['Measles1', 'Yellow Fever'] },
-		{ name: 'David Mark', age: '10 weeks', nextDue: 'Completed 10-wk', status: 'completed', vaccines: [] },
+		{
+			name: 'Musa Ibrahim',
+			age: '6 weeks',
+			nextDue: 'Today',
+			status: 'due',
+			vaccines: ['OPV1', 'Penta1', 'PCV1', 'Rota1']
+		},
+		{
+			name: 'Chidera Okafor',
+			age: '14 weeks',
+			nextDue: 'Tomorrow',
+			status: 'upcoming',
+			vaccines: ['OPV3', 'Penta3', 'PCV3']
+		},
+		{
+			name: 'Fatima Sani',
+			age: '9 months',
+			nextDue: 'Overdue (3 days)',
+			status: 'overdue',
+			vaccines: ['Measles1', 'Yellow Fever']
+		},
+		{
+			name: 'David Mark',
+			age: '10 weeks',
+			nextDue: 'Completed 10-wk',
+			status: 'completed',
+			vaccines: []
+		}
 	];
 </script>
 
@@ -47,8 +65,18 @@
 
 	<div class="grid grid-cols-1 gap-3">
 		{#each infants as infant}
-			<Card class="card-hover border-l-4 {infant.status === 'due' ? 'border-l-amber-500' : infant.status === 'overdue' ? 'border-l-red-500' : infant.status === 'completed' ? 'border-l-emerald-500' : 'border-l-sky-500'}">
-				<CardContent class="p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
+			<Card
+				class="card-hover border-l-4 {infant.status === 'due'
+					? 'border-l-amber-500'
+					: infant.status === 'overdue'
+						? 'border-l-red-500'
+						: infant.status === 'completed'
+							? 'border-l-emerald-500'
+							: 'border-l-sky-500'}"
+			>
+				<CardContent
+					class="p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:items-center justify-between"
+				>
 					<div class="flex items-start sm:items-center gap-4">
 						<div class="p-3 rounded-full bg-muted/30 text-muted-foreground shrink-0">
 							<Baby class="size-6" />
@@ -58,19 +86,28 @@
 							<p class="text-sm text-muted-foreground flex items-center gap-2 mt-0.5">
 								<span class="font-medium text-foreground">{infant.age}</span>
 								<span>·</span>
-								<span class="flex items-center gap-1 {infant.status === 'overdue' ? 'text-red-600 font-semibold' : infant.status === 'due' ? 'text-amber-600 font-semibold' : ''}">
+								<span
+									class="flex items-center gap-1 {infant.status === 'overdue'
+										? 'text-red-600 font-semibold'
+										: infant.status === 'due'
+											? 'text-amber-600 font-semibold'
+											: ''}"
+								>
 									<CalendarDays class="size-3.5" />
 									{infant.nextDue}
 								</span>
 							</p>
 						</div>
 					</div>
-					
+
 					<div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
 						{#if infant.vaccines.length > 0}
 							<div class="flex flex-wrap gap-1.5">
 								{#each infant.vaccines as v}
-									<Badge variant="secondary" class="bg-teal-50 text-teal-700 hover:bg-teal-100 border-teal-200">
+									<Badge
+										variant="secondary"
+										class="bg-teal-50 text-teal-700 hover:bg-teal-100 border-teal-200"
+									>
 										{v}
 									</Badge>
 								{/each}
@@ -79,7 +116,9 @@
 								Record
 							</Button>
 						{:else}
-							<div class="flex items-center gap-2 text-emerald-600 font-medium text-sm bg-emerald-50 px-3 py-1.5 rounded-full">
+							<div
+								class="flex items-center gap-2 text-emerald-600 font-medium text-sm bg-emerald-50 px-3 py-1.5 rounded-full"
+							>
 								<CheckCircle2 class="size-4" />
 								Up to date
 							</div>

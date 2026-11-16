@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import * as Sheet from '$lib/components/ui/sheet';
-	import { ScrollArea } from '$lib/components/ui/scroll-area';
-	import { Separator } from '$lib/components/ui/separator';
+	import * as Sheet from '#lib/components/ui/sheet/index.ts';
+	import { ScrollArea } from '#lib/components/ui/scroll-area/index.ts';
+	import { Separator } from '#lib/components/ui/separator/index.ts';
 	import { ExternalLink, BookOpen, Lightbulb, Activity, ArrowRight } from '@lucide/svelte';
 
 	let { open = $bindable(false) } = $props();
@@ -15,7 +15,7 @@
 				description: 'Enter patient vitals to automatically calculate their triage priority.',
 				tips: [
 					'Ensure accurate temperature and BP readings.',
-					'Red alert patients are pushed to the top of the doctor\'s queue.'
+					"Red alert patients are pushed to the top of the doctor's queue."
 				],
 				links: [{ title: 'Understanding Triage Rules', url: '/support/triage-rules' }]
 			};
@@ -47,7 +47,7 @@
 			title: 'Help Center',
 			description: 'Need assistance with ClinicFlow?',
 			tips: [
-				'Check your connection status in the sidebar if data isn\'t syncing.',
+				"Check your connection status in the sidebar if data isn't syncing.",
 				'Contact your PHC Admin for permission issues.'
 			],
 			links: [
@@ -82,7 +82,9 @@
 					</h3>
 					<ul class="space-y-3">
 						{#each context.tips as tip}
-							<li class="flex items-start gap-2 text-sm text-muted-foreground bg-muted/30 p-3 rounded-lg border border-border/50">
+							<li
+								class="flex items-start gap-2 text-sm text-muted-foreground bg-muted/30 p-3 rounded-lg border border-border/50"
+							>
 								<Activity class="size-4 shrink-0 text-primary mt-0.5" />
 								<span>{tip}</span>
 							</li>
@@ -97,17 +99,23 @@
 					<h3 class="text-sm font-semibold mb-3">Related Articles</h3>
 					<div class="space-y-2">
 						{#each context.links as link}
-							<a href={link.url} class="group flex items-center justify-between p-3 rounded-lg border border-border/50 bg-card hover:bg-accent hover:text-accent-foreground transition-colors text-sm font-medium">
+							<a
+								href={link.url}
+								class="group flex items-center justify-between p-3 rounded-lg border border-border/50 bg-card hover:bg-accent hover:text-accent-foreground transition-colors text-sm font-medium"
+							>
 								{link.title}
 								<ExternalLink class="size-3.5 opacity-50 group-hover:opacity-100" />
 							</a>
 						{/each}
 					</div>
 				</div>
-				
+
 				<!-- Global Link -->
 				<div class="pt-2">
-					<a href="/support" class="text-sm text-primary hover:underline font-medium inline-flex items-center gap-1">
+					<a
+						href="/support"
+						class="text-sm text-primary hover:underline font-medium inline-flex items-center gap-1"
+					>
 						Visit Full Help Center <ArrowRight class="size-3" />
 					</a>
 				</div>

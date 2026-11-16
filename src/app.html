@@ -10,18 +10,29 @@
 	<body data-sveltekit-preload-data="hover">
 		<script>
 			// Global Missing Config Intercept: Prevent boot if unpaired
-			(function() {
+			(function () {
 				var path = window.location.pathname;
-				var exactPublicRoutes = ['/', '/welcome', '/connect', '/onboarding', '/download', '/login', '/register'];
-				var isPublic = exactPublicRoutes.includes(path) || path.startsWith('/support') || path.startsWith('/__');
-				
+				var exactPublicRoutes = [
+					'/',
+					'/welcome',
+					'/connect',
+					'/onboarding',
+					'/download',
+					'/login',
+					'/register'
+				];
+				var isPublic =
+					exactPublicRoutes.includes(path) || path.startsWith('/support') || path.startsWith('/__');
+
 				if (!isPublic) {
-					if (!localStorage.getItem('clinicflow_server_url') && !localStorage.getItem('clinicflow_is_master')) {
+					if (
+						!localStorage.getItem('clinicflow_server_url') &&
+						!localStorage.getItem('clinicflow_is_master')
+					) {
 						window.location.replace('/welcome');
 					}
 				}
 			})();
-
 		</script>
 		<div style="display: contents">%sveltekit.body%</div>
 	</body>

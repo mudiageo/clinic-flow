@@ -12,8 +12,8 @@ export type AppNotification = {
 
 class NotificationStore {
 	items = $state<AppNotification[]>([]);
-	unreadCount = $derived(this.items.filter(n => !n.read).length);
-	
+	unreadCount = $derived(this.items.filter((n) => !n.read).length);
+
 	private bc: BroadcastChannel | null = null;
 	private currentRole = 'all';
 
@@ -23,7 +23,7 @@ class NotificationStore {
 			this.bc.onmessage = (event) => {
 				this.handleIncoming(event.data);
 			};
-			
+
 			// Load from local storage for persistence across tabs
 			const saved = localStorage.getItem('clinicflow_notifications');
 			if (saved) {
@@ -56,14 +56,23 @@ class NotificationStore {
 			this.save();
 			toast(notification.title, {
 				description: notification.message,
-				action: notification.link ? {
-					label: 'View',
-					onClick: () => { window.location.href = notification.link!; }
-				} : undefined
+				action: notification.link
+					? {
+							label: 'View',
+							onClick: () => {
+								window.location.href = notification.link!;
+							}
+						}
+					: undefined
 			});
 
 			// Trigger native web notification if app is in background
-			if (typeof document !== 'undefined' && document.hidden && 'Notification' in window && Notification.permission === 'granted') {
+			if (
+				typeof document !== 'undefined' &&
+				document.hidden &&
+				'Notification' in window &&
+				Notification.permission === 'granted'
+			) {
 				const n = new Notification(notification.title, {
 					body: notification.message,
 					icon: '/favicon.png'
@@ -81,7 +90,12 @@ class NotificationStore {
 	// Trigger a notification across all tabs/windows (and over local network if we use a relay)
 	// For this demo, BroadcastChannel works great for same-device cross-tab communication.
 	// For actual multi-device LAN, this would tie into the sync engine or a local websocket.
-	broadcast(title: string, message: string, roleTarget: 'nurse' | 'doctor' | 'pharmacy' | 'all', link?: string) {
+	broadcast(
+		title: string,
+		message: string,
+		roleTarget: 'nurse' | 'doctor' | 'pharmacy' | 'all',
+		link?: string
+	) {
 		const notification: AppNotification = {
 			id: crypto.randomUUID(),
 			title,
@@ -91,10 +105,10 @@ class NotificationStore {
 			roleTarget,
 			link
 		};
-		
+
 		// Handle locally if applicable
 		this.handleIncoming(notification);
-		
+
 		// Broadcast to other tabs
 		if (this.bc) {
 			this.bc.postMessage(notification);
@@ -102,16 +116,16 @@ class NotificationStore {
 	}
 
 	markAsRead(id: string) {
-		const item = this.items.find(n => n.id === id);
+		const item = this.items.find((n) => n.id === id);
 		if (item) {
 			item.read = true;
 			this.items = [...this.items];
 			this.save();
 		}
 	}
-	
+
 	markAllAsRead() {
-		this.items = this.items.map(n => ({ ...n, read: true }));
+		this.items = this.items.map((n) => ({ ...n, read: true }));
 		this.save();
 	}
 

@@ -1,23 +1,37 @@
 <script lang="ts">
-	import { getAllUsers } from '$lib/remote/superadmin.remote';
-	import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '$lib/components/ui/card';
-	import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '$lib/components/ui/table';
-	import { Badge } from '$lib/components/ui/badge';
+	import { getAllUsers } from '#lib/remote/superadmin.remote.ts';
+	import {
+		Card,
+		CardContent,
+		CardHeader,
+		CardTitle,
+		CardDescription
+	} from '#lib/components/ui/card/index.ts';
+	import {
+		Table,
+		TableBody,
+		TableCell,
+		TableHead,
+		TableHeader,
+		TableRow
+	} from '#lib/components/ui/table/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import { Users, Search, MoreHorizontal } from '@lucide/svelte';
-	import { Input } from '$lib/components/ui/input';
-	import { Button } from '$lib/components/ui/button';
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import * as DropdownMenu from '#lib/components/ui/dropdown-menu/index.ts';
 
 	let searchTerm = $state('');
 
 	function filterUsers(users: any[]) {
 		if (!searchTerm) return users;
 		const lower = searchTerm.toLowerCase();
-		return users.filter((u) => 
-			u.name.toLowerCase().includes(lower) || 
-			u.email.toLowerCase().includes(lower) || 
-			u.phcName?.toLowerCase().includes(lower) ||
-			u.role.toLowerCase().includes(lower)
+		return users.filter(
+			(u) =>
+				u.name.toLowerCase().includes(lower) ||
+				u.email.toLowerCase().includes(lower) ||
+				u.phcName?.toLowerCase().includes(lower) ||
+				u.role.toLowerCase().includes(lower)
 		);
 	}
 </script>
@@ -76,31 +90,42 @@
 								<TableCell class="font-medium">{user.name}</TableCell>
 								<TableCell class="text-muted-foreground">{user.email}</TableCell>
 								<TableCell>
-									<Badge variant={user.role === 'admin' ? 'default' : 'secondary'} class="capitalize">{user.role}</Badge>
+									<Badge
+										variant={user.role === 'admin' ? 'default' : 'secondary'}
+										class="capitalize">{user.role}</Badge
+									>
 								</TableCell>
 								<TableCell>{user.phcName || '—'}</TableCell>
 								<TableCell>
-									<Badge variant={user.active ? 'outline' : 'destructive'} class={user.active ? 'text-green-600 border-green-200 bg-green-50' : ''}>
+									<Badge
+										variant={user.active ? 'outline' : 'destructive'}
+										class={user.active ? 'text-green-600 border-green-200 bg-green-50' : ''}
+									>
 										{user.active ? 'Active' : 'Inactive'}
 									</Badge>
 								</TableCell>
 								<TableCell class="text-right">
 									<DropdownMenu.Root>
-										<DropdownMenu.Trigger class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0">
+										<DropdownMenu.Trigger
+											class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0"
+										>
 											<span class="sr-only">Open menu</span>
 											<MoreHorizontal class="h-4 w-4" />
 										</DropdownMenu.Trigger>
 										<DropdownMenu.Content align="end">
 											<DropdownMenu.Label>Actions</DropdownMenu.Label>
 											<DropdownMenu.Item>Reset Password</DropdownMenu.Item>
-											<DropdownMenu.Item class="text-destructive">Deactivate User</DropdownMenu.Item>
+											<DropdownMenu.Item class="text-destructive">Deactivate User</DropdownMenu.Item
+											>
 										</DropdownMenu.Content>
 									</DropdownMenu.Root>
 								</TableCell>
 							</TableRow>
 						{:else}
 							<TableRow>
-								<TableCell colspan={6} class="text-center py-8 text-muted-foreground">No users found.</TableCell>
+								<TableCell colspan={6} class="text-center py-8 text-muted-foreground"
+									>No users found.</TableCell
+								>
 							</TableRow>
 						{/each}
 					</TableBody>

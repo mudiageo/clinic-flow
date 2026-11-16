@@ -1,11 +1,11 @@
 import { query, command } from '$app/server';
 import { getRequestEvent } from '$app/server';
-import { db } from '$lib/server/db';
-import { requirePermission } from '$lib/server/permissions';
+import { db } from '#lib/server/db/index.ts';
+import { requirePermission } from '#lib/server/permissions.ts';
 import * as v from 'valibot';
-import { createStaff, updateStaffStatusById } from '$lib/server/db/queries/staff';
-import { grantPermissionsBulk } from '$lib/server/db/queries/permissions';
-import { updatePhcSettingsById } from '$lib/server/db/queries/phcs';
+import { createStaff, updateStaffStatusById } from '#lib/server/db/queries/staff.ts';
+import { grantPermissionsBulk } from '#lib/server/db/queries/permissions.ts';
+import { updatePhcSettingsById } from '#lib/server/db/queries/phcs.ts';
 
 export const getStaffMember = query(v.string(), async (staffId) => {
 	const event = getRequestEvent();
@@ -31,14 +31,27 @@ export const getPhcStaffList = query(async () => {
 export const inviteStaff = command(
 	v.object({
 		email: v.pipe(v.string(), v.email()),
-		role: v.picklist(['receptionist', 'nurse', 'doctor', 'pharmacy', 'admin', 'superadmin', 'oic', 'cho', 'nurse_midwife', 'chew', 'jchew', 'eho']),
+		role: v.picklist([
+			'receptionist',
+			'nurse',
+			'doctor',
+			'pharmacy',
+			'admin',
+			'superadmin',
+			'oic',
+			'cho',
+			'nurse_midwife',
+			'chew',
+			'jchew',
+			'eho'
+		]),
 		permissions: v.array(v.string())
 	}),
 	async (data) => {
 		const event = getRequestEvent();
 		if (!event.locals.staffId || !event.locals.phcId) throw new Error('Unauthorized');
 		await requirePermission('manage:staff');
-		
+
 		const [newStaff] = await createStaff({
 			authUserId: 'pending-' + crypto.randomUUID(),
 			fullName: data.email,

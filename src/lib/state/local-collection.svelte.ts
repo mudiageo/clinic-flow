@@ -1,5 +1,5 @@
 import { liveQuery, type Table } from 'dexie';
-import { db } from '$lib/local-db/db';
+import { db } from '#lib/local-db/db.ts';
 
 export abstract class LocalCollection<
 	T extends { id: string; updatedAt: number; syncStatus: string }

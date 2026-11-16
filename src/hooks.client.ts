@@ -1,4 +1,4 @@
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 
 // Eagerly set up the interceptor before SvelteKit boots
 if (browser) {
@@ -83,7 +83,7 @@ if (browser) {
 					args[1].headers = headers;
 
 					debugStr += 'Method: ' + (args[1].method || 'GET') + '\n';
-					
+
 					if (args[1].body) {
 						debugStr += 'Body Type: ' + args[1].body.constructor.name + '\n';
 					} else {
@@ -94,11 +94,12 @@ if (browser) {
 						try {
 							debugStr += 'Using Tauri Rust HTTP Plugin...\n';
 							const { fetch: tauriFetch } = await import('@tauri-apps/plugin-http');
-							
+
 							const response = await tauriFetch(args[0], args[1]);
 
 							if (!response.ok) {
-								debugStr += 'Response Status: ' + response.status + ' ' + response.statusText + '\n';
+								debugStr +=
+									'Response Status: ' + response.status + ' ' + response.statusText + '\n';
 								showDebugOverlay('Tauri HTTP Fetch Failed (Non-200)', debugStr);
 							}
 							return response as unknown as Response;

@@ -8,7 +8,7 @@ import {
 	getFamiliesList,
 	createPatientRecord,
 	createFamilyRecord
-} from '$lib/server/db/queries/patients';
+} from '#lib/server/db/queries/patients.ts';
 
 function requireSession() {
 	const event = getRequestEvent();

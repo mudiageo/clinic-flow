@@ -1,9 +1,22 @@
 <script lang="ts">
-	import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '$lib/components/ui/card';
+	import {
+		Card,
+		CardContent,
+		CardHeader,
+		CardTitle,
+		CardDescription
+	} from '#lib/components/ui/card/index.ts';
 	import { Building2, MapPin, Users, Activity, Settings2, Trash2, PowerOff } from '@lucide/svelte';
-	import { Button } from '$lib/components/ui/button';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '$lib/components/ui/table';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import {
+		Table,
+		TableBody,
+		TableCell,
+		TableHead,
+		TableHeader,
+		TableRow
+	} from '#lib/components/ui/table/index.ts';
 
 	let { data } = $props<{ data: { phc: any } }>();
 	const phc = $derived(data.phc);
@@ -34,7 +47,10 @@
 				<PowerOff class="size-4 mr-2" />
 				Deactivate
 			</Button>
-			<Button variant="outline" class="text-destructive border-destructive/30 hover:bg-destructive/10">
+			<Button
+				variant="outline"
+				class="text-destructive border-destructive/30 hover:bg-destructive/10"
+			>
 				<Trash2 class="size-4 mr-2" />
 				Reset Data
 			</Button>
@@ -45,10 +61,14 @@
 		<Card>
 			<CardContent class="p-6 flex items-center justify-between">
 				<div>
-					<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Staff</p>
+					<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+						Total Staff
+					</p>
 					<p class="text-3xl font-bold text-foreground mt-1">{phc.staffCount}</p>
 				</div>
-				<div class="size-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+				<div
+					class="size-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500"
+				>
 					<Users class="size-5" />
 				</div>
 			</CardContent>
@@ -56,10 +76,14 @@
 		<Card>
 			<CardContent class="p-6 flex items-center justify-between">
 				<div>
-					<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Patients</p>
+					<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+						Total Patients
+					</p>
 					<p class="text-3xl font-bold text-foreground mt-1">{phc.patientCount}</p>
 				</div>
-				<div class="size-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500">
+				<div
+					class="size-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500"
+				>
 					<Activity class="size-5" />
 				</div>
 			</CardContent>
@@ -67,13 +91,17 @@
 		<Card>
 			<CardContent class="p-6 flex items-center justify-between">
 				<div>
-					<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Sync Status</p>
+					<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+						Sync Status
+					</p>
 					<div class="flex items-center gap-2 mt-1">
 						<span class="size-2.5 rounded-full bg-green-500"></span>
 						<p class="text-xl font-bold text-foreground">Healthy</p>
 					</div>
 				</div>
-				<div class="size-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+				<div
+					class="size-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500"
+				>
 					<Settings2 class="size-5" />
 				</div>
 			</CardContent>
@@ -103,7 +131,9 @@
 							</TableCell>
 							<TableCell>
 								{#if member.active}
-									<Badge variant="outline" class="text-green-600 border-green-200 bg-green-50">Active</Badge>
+									<Badge variant="outline" class="text-green-600 border-green-200 bg-green-50"
+										>Active</Badge
+									>
 								{:else}
 									<Badge variant="destructive">Inactive</Badge>
 								{/if}
@@ -111,7 +141,9 @@
 						</TableRow>
 					{:else}
 						<TableRow>
-							<TableCell colspan={3} class="text-center py-8 text-muted-foreground">No staff members found.</TableCell>
+							<TableCell colspan={3} class="text-center py-8 text-muted-foreground"
+								>No staff members found.</TableCell
+							>
 						</TableRow>
 					{/each}
 				</TableBody>

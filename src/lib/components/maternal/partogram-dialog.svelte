@@ -1,8 +1,15 @@
 <script lang="ts">
-	import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '$lib/components/ui/dialog';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
+	import {
+		Dialog,
+		DialogContent,
+		DialogHeader,
+		DialogTitle,
+		DialogDescription,
+		DialogFooter
+	} from '#lib/components/ui/dialog/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
 	import { Activity, Plus, Check } from '@lucide/svelte';
 
 	let { open = $bindable(false), patientId } = $props();
@@ -16,19 +23,22 @@
 
 	// Local state for the prototype
 	let entries = $state<PartogramEntry[]>([]);
-	
+
 	let newDilation = $state<number | ''>('');
 	let newFhr = $state<number | ''>('');
 	let newContractions = $state<number | ''>('');
 
 	function handleAddEntry() {
 		if (newDilation !== '' && newFhr !== '' && newContractions !== '') {
-			entries = [...entries, {
-				time: Date.now(),
-				cervicalDilation: Number(newDilation),
-				fetalHeartRate: Number(newFhr),
-				contractions: Number(newContractions)
-			}];
+			entries = [
+				...entries,
+				{
+					time: Date.now(),
+					cervicalDilation: Number(newDilation),
+					fetalHeartRate: Number(newFhr),
+					contractions: Number(newContractions)
+				}
+			];
 			newDilation = '';
 			newFhr = '';
 			newContractions = '';
@@ -70,16 +80,28 @@
 						{:else}
 							{#each entries as entry}
 								<tr class="bg-background">
-									<td class="px-4 py-3 font-medium">{new Date(entry.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+									<td class="px-4 py-3 font-medium"
+										>{new Date(entry.time).toLocaleTimeString([], {
+											hour: '2-digit',
+											minute: '2-digit'
+										})}</td
+									>
 									<td class="px-4 py-3">
 										<div class="flex items-center gap-2">
 											<div class="w-full bg-muted rounded-full h-2 max-w-[100px]">
-												<div class="bg-triage-amber h-2 rounded-full" style="width: {(entry.cervicalDilation / 10) * 100}%"></div>
+												<div
+													class="bg-triage-amber h-2 rounded-full"
+													style="width: {(entry.cervicalDilation / 10) * 100}%"
+												></div>
 											</div>
 											<span class="w-8 text-right">{entry.cervicalDilation}cm</span>
 										</div>
 									</td>
-									<td class="px-4 py-3 {entry.fetalHeartRate < 110 || entry.fetalHeartRate > 160 ? 'text-triage-red font-bold' : 'text-triage-green'}">
+									<td
+										class="px-4 py-3 {entry.fetalHeartRate < 110 || entry.fetalHeartRate > 160
+											? 'text-triage-red font-bold'
+											: 'text-triage-green'}"
+									>
 										{entry.fetalHeartRate} bpm
 									</td>
 									<td class="px-4 py-3">
@@ -110,7 +132,10 @@
 					</div>
 				</div>
 				<div class="mt-4 flex justify-end">
-					<Button onclick={handleAddEntry} disabled={newDilation === '' || newFhr === '' || newContractions === ''}>
+					<Button
+						onclick={handleAddEntry}
+						disabled={newDilation === '' || newFhr === '' || newContractions === ''}
+					>
 						<Plus class="size-4 mr-2" />
 						Add to Partogram
 					</Button>
@@ -119,8 +144,11 @@
 		</div>
 
 		<DialogFooter>
-			<Button variant="outline" onclick={() => open = false}>Close</Button>
-			<Button onclick={() => open = false} class="bg-triage-amber hover:bg-triage-amber/90 text-triage-amber-foreground">
+			<Button variant="outline" onclick={() => (open = false)}>Close</Button>
+			<Button
+				onclick={() => (open = false)}
+				class="bg-triage-amber hover:bg-triage-amber/90 text-triage-amber-foreground"
+			>
 				<Check class="size-4 mr-2" />
 				Finalize Labor
 			</Button>

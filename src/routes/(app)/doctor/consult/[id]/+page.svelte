@@ -1,41 +1,46 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { queueStore } from '$lib/state/queue.svelte';
-	import { patientStore } from '$lib/state/patients.svelte';
-	import { vitalsStore } from '$lib/state/vitals.svelte';
-	import { pharmacyStore } from '$lib/state/pharmacy.svelte';
-	import { prescriptionStore } from '$lib/state/prescriptions.svelte';
-	import { encounterStore } from '$lib/state/encounters.svelte';
-	import { labRequestStore } from '$lib/state/lab-requests.svelte';
-	import { reminderStore } from '$lib/state/reminders.svelte';
-	import { settingsStore } from '$lib/state/settings.svelte';
-	import { notificationStore } from '$lib/state/notifications.svelte';
+	import { queueStore } from '#lib/state/queue.svelte.ts';
+	import { patientStore } from '#lib/state/patients.svelte.ts';
+	import { vitalsStore } from '#lib/state/vitals.svelte.ts';
+	import { pharmacyStore } from '#lib/state/pharmacy.svelte.ts';
+	import { prescriptionStore } from '#lib/state/prescriptions.svelte.ts';
+	import { encounterStore } from '#lib/state/encounters.svelte.ts';
+	import { labRequestStore } from '#lib/state/lab-requests.svelte.ts';
+	import { reminderStore } from '#lib/state/reminders.svelte.ts';
+	import { settingsStore } from '#lib/state/settings.svelte.ts';
+	import { notificationStore } from '#lib/state/notifications.svelte.ts';
 
-	import { Button } from '$lib/components/ui/button';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Separator } from '$lib/components/ui/separator';
-	import { Textarea } from '$lib/components/ui/textarea';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
-	import * as Dialog from '$lib/components/ui/dialog';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { Separator } from '#lib/components/ui/separator/index.ts';
+	import { Textarea } from '#lib/components/ui/textarea/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
+	import * as Dialog from '#lib/components/ui/dialog/index.ts';
 	import {
 		Card,
 		CardContent,
 		CardHeader,
 		CardTitle,
 		CardDescription
-	} from '$lib/components/ui/card';
-	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
-	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
+	} from '#lib/components/ui/card/index.ts';
+	import { Tabs, TabsContent, TabsList, TabsTrigger } from '#lib/components/ui/tabs/index.ts';
+	import {
+		Select,
+		SelectContent,
+		SelectItem,
+		SelectTrigger
+	} from '#lib/components/ui/select/index.ts';
 	import { Select as SelectPrimitive } from 'bits-ui';
-	import * as Resizable from '$lib/components/ui/resizable';
-	import { AudioWave } from '$lib/components/ui/audio-wave';
-	import Sparkline from '$lib/components/Sparkline.svelte';
+	import * as Resizable from '#lib/components/ui/resizable/index.ts';
+	import { AudioWave } from '#lib/components/ui/audio-wave/index.ts';
+	import Sparkline from '#lib/components/Sparkline.svelte';
 
 	import { toast } from 'svelte-sonner';
-	import { aiService } from '$lib/services/ai/ai.service';
-	import { getClinicalDecisionSupport, generateSoapNote } from '$lib/remote/ai.remote';
-	import AiDisclaimer from '$lib/components/ui/ai-disclaimer.svelte';
+	import { aiService } from '#lib/services/ai/ai.service.ts';
+	import { getClinicalDecisionSupport, generateSoapNote } from '#lib/remote/ai.remote.ts';
+	import AiDisclaimer from '#lib/components/ui/ai-disclaimer.svelte';
 	import {
 		Stethoscope,
 		Mic,
@@ -112,17 +117,22 @@
 
 	function generateReferral() {
 		if (!patient) return;
-		localStorage.setItem('temp_referral', JSON.stringify({
-			patientName: patient.name,
-			clinicId: patient.clinicId,
-			age: patient.dob ? new Date().getFullYear() - new Date(patient.dob).getFullYear() : 'Unknown',
-			sex: patient.sex,
-			facility: referralFacility,
-			reason: referralReason,
-			urgency: referralUrgency,
-			date: new Date().toISOString(),
-			vitals: vitals
-		}));
+		localStorage.setItem(
+			'temp_referral',
+			JSON.stringify({
+				patientName: patient.name,
+				clinicId: patient.clinicId,
+				age: patient.dob
+					? new Date().getFullYear() - new Date(patient.dob).getFullYear()
+					: 'Unknown',
+				sex: patient.sex,
+				facility: referralFacility,
+				reason: referralReason,
+				urgency: referralUrgency,
+				date: new Date().toISOString(),
+				vitals: vitals
+			})
+		);
 		window.open(`/doctor/referral/print`, '_blank');
 		showReferralDialog = false;
 	}
@@ -133,7 +143,7 @@
 	let recognition: any = null;
 	let interimTranscript = $state('');
 	let finalTranscript = $state('');
-	
+
 	let selectedLanguage = $state('English');
 
 	// Dr Assist (AI)
@@ -166,7 +176,9 @@
 		}
 	}
 
-	const pastEncounters = $derived(patient ? encounterStore.forPatient(patient.id).filter(e => e.id !== ticket?.encounterId) : []);
+	const pastEncounters = $derived(
+		patient ? encounterStore.forPatient(patient.id).filter((e) => e.id !== ticket?.encounterId) : []
+	);
 
 	let soapLoading = $state(false);
 	async function runSoapGenerator() {
@@ -183,18 +195,15 @@
 				prescriptions,
 				labs: testType ? { type: testType, urgency, notes: labNotes } : null
 			});
-			
-			const formattedNote = 
-`[AI-Drafted SOAP Note]
+
+			const formattedNote = `[AI-Drafted SOAP Note]
 S: ${res.subjective}
 O: ${res.objective}
 A: ${res.assessment}
 P: ${res.plan}`;
-			
-			doctorNotes = doctorNotes 
-				? doctorNotes + '\n\n' + formattedNote 
-				: formattedNote;
-			
+
+			doctorNotes = doctorNotes ? doctorNotes + '\n\n' + formattedNote : formattedNote;
+
 			toast.success('SOAP note drafted. Please review and edit.');
 		} catch (e: any) {
 			toast.error(e.message);
@@ -216,7 +225,7 @@ P: ${res.plan}`;
 
 		if (ticket.status === 'waiting') {
 			queueStore.update(ticket.id, { status: 'in_progress', calledAt: Date.now() });
-			
+
 			// Notify nurse that patient has been called in by the doctor
 			if (patient) {
 				notificationStore.broadcast(
@@ -355,7 +364,7 @@ P: ${res.plan}`;
 
 			if (prescriptions.length > 0) {
 				notificationStore.broadcast(
-					'New Prescription', 
+					'New Prescription',
 					`Dr. has prescribed ${prescriptions.length} item(s) for ${patient.name}.`,
 					'pharmacy',
 					'/pharmacy'
@@ -411,7 +420,7 @@ P: ${res.plan}`;
 				</div>
 			</div>
 			<div class="flex items-center gap-2">
-				<Button variant="outline" onclick={() => showReferralDialog = true}>
+				<Button variant="outline" onclick={() => (showReferralDialog = true)}>
 					<Send class="size-4 mr-2" /> Refer Patient
 				</Button>
 				<Button onclick={handleCompleteEncounter} class="bg-primary shadow-md hover:bg-primary/95">
@@ -481,7 +490,9 @@ P: ${res.plan}`;
 							{#if pastEncounters.length > 0}
 								{#each pastEncounters.slice(0, 3) as enc}
 									<div class="p-3 border rounded-lg bg-card text-sm space-y-1">
-										<div class="font-medium text-foreground line-clamp-1">{enc.chiefComplaint || 'Consultation'}</div>
+										<div class="font-medium text-foreground line-clamp-1">
+											{enc.chiefComplaint || 'Consultation'}
+										</div>
 										<div class="text-xs text-muted-foreground">
 											{new Date(enc.visitDate).toLocaleDateString()}
 											{#if enc.triageLevel}
@@ -491,7 +502,9 @@ P: ${res.plan}`;
 									</div>
 								{/each}
 							{:else}
-								<div class="p-3 border rounded-lg bg-card text-sm text-muted-foreground italic text-center">
+								<div
+									class="p-3 border rounded-lg bg-card text-sm text-muted-foreground italic text-center"
+								>
 									No past encounters found.
 								</div>
 							{/if}
@@ -530,8 +543,10 @@ P: ${res.plan}`;
 								value="ai-assist"
 								class="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 rounded-none px-2 py-2"
 							>
-								<div class="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 font-semibold">
-									<Sparkles class="size-3.5" /> 
+								<div
+									class="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 font-semibold"
+								>
+									<Sparkles class="size-3.5" />
 									Dr. Assist
 								</div>
 							</TabsTrigger>
@@ -548,15 +563,27 @@ P: ${res.plan}`;
 									</h4>
 									<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 										<label class="flex items-center gap-2 text-sm text-indigo-800">
-											<input type="checkbox" bind:checked={groupEducationCompleted} class="rounded border-indigo-300 text-indigo-600 focus:ring-indigo-600" />
+											<input
+												type="checkbox"
+												bind:checked={groupEducationCompleted}
+												class="rounded border-indigo-300 text-indigo-600 focus:ring-indigo-600"
+											/>
 											Group Education Attended
 										</label>
 										<label class="flex items-center gap-2 text-sm text-indigo-800">
-											<input type="checkbox" bind:checked={routineSupplementsGiven} class="rounded border-indigo-300 text-indigo-600 focus:ring-indigo-600" />
+											<input
+												type="checkbox"
+												bind:checked={routineSupplementsGiven}
+												class="rounded border-indigo-300 text-indigo-600 focus:ring-indigo-600"
+											/>
 											Iron / Folic Acid Issued
 										</label>
 										<label class="flex items-center gap-2 text-sm text-indigo-800">
-											<input type="checkbox" bind:checked={tetanusToxoidGiven} class="rounded border-indigo-300 text-indigo-600 focus:ring-indigo-600" />
+											<input
+												type="checkbox"
+												bind:checked={tetanusToxoidGiven}
+												class="rounded border-indigo-300 text-indigo-600 focus:ring-indigo-600"
+											/>
 											Tetanus Toxoid Administered
 										</label>
 									</div>
@@ -569,17 +596,27 @@ P: ${res.plan}`;
 									</h4>
 									<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 										<label class="flex items-center gap-2 text-sm text-teal-800">
-											<input type="checkbox" bind:checked={growthMonitoringCompleted} class="rounded border-teal-300 text-teal-600 focus:ring-teal-600" />
+											<input
+												type="checkbox"
+												bind:checked={growthMonitoringCompleted}
+												class="rounded border-teal-300 text-teal-600 focus:ring-teal-600"
+											/>
 											Growth Monitoring Charted
 										</label>
 										<label class="flex items-center gap-2 text-sm text-teal-800">
-											<input type="checkbox" bind:checked={vaccineAdministered} class="rounded border-teal-300 text-teal-600 focus:ring-teal-600" />
+											<input
+												type="checkbox"
+												bind:checked={vaccineAdministered}
+												class="rounded border-teal-300 text-teal-600 focus:ring-teal-600"
+											/>
 											Vaccine Dosage Administered
 										</label>
 										<div class="flex flex-col gap-1 col-span-1 md:col-span-2 mt-2">
 											<Label class="text-teal-800">Nutritional Assessment</Label>
 											<Select type="single" bind:value={nutritionalAssessment}>
-												<SelectTrigger class="bg-white border-teal-200"><SelectPrimitive.Value placeholder="Select Status" /></SelectTrigger>
+												<SelectTrigger class="bg-white border-teal-200"
+													><SelectPrimitive.Value placeholder="Select Status" /></SelectTrigger
+												>
 												<SelectContent>
 													<SelectItem value="normal">Normal</SelectItem>
 													<SelectItem value="mam">Moderate Acute Malnutrition (MAM)</SelectItem>
@@ -596,11 +633,13 @@ P: ${res.plan}`;
 									<Label class="font-semibold flex items-center gap-1.5"
 										><Clipboard class="size-4" /> Chief Complaint</Label
 									>
-									
+
 									{#if settingsStore.current.aiVoiceEnabled}
 										<div class="flex items-center gap-2">
 											<Select type="single" bind:value={selectedLanguage}>
-												<SelectTrigger class="h-7 text-xs w-[110px]"><SelectPrimitive.Value placeholder="Language" /></SelectTrigger>
+												<SelectTrigger class="h-7 text-xs w-[110px]"
+													><SelectPrimitive.Value placeholder="Language" /></SelectTrigger
+												>
 												<SelectContent>
 													<SelectItem value="English">English</SelectItem>
 													<SelectItem value="Nigerian Pidgin">Pidgin</SelectItem>
@@ -638,11 +677,11 @@ P: ${res.plan}`;
 										<FileSpreadsheet class="size-4" /> Doctor Notes
 									</Label>
 									{#if settingsStore.current.aiVoiceEnabled && hasAcceptedAiTerms}
-										<Button 
-											variant="outline" 
-											size="sm" 
-											class="h-7 text-xs border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100" 
-											onclick={runSoapGenerator} 
+										<Button
+											variant="outline"
+											size="sm"
+											class="h-7 text-xs border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100"
+											onclick={runSoapGenerator}
 											disabled={soapLoading}
 										>
 											{#if soapLoading}
@@ -776,25 +815,38 @@ P: ${res.plan}`;
 						</TabsContent>
 						<TabsContent value="ai-assist" class="m-0 space-y-4 animate-in fade-in-50 zoom-in-95">
 							<AiDisclaimer />
-							
+
 							{#if !hasAcceptedAiTerms}
-								<div class="p-8 border rounded-xl flex flex-col items-center justify-center text-center space-y-4 bg-muted/30 mt-6">
+								<div
+									class="p-8 border rounded-xl flex flex-col items-center justify-center text-center space-y-4 bg-muted/30 mt-6"
+								>
 									<ShieldCheck class="size-12 text-primary" />
 									<div>
 										<h3 class="font-bold text-lg">AI Clinical Decision Support</h3>
 										<p class="text-sm text-muted-foreground max-w-md mt-2">
-											Dr. Assist is an experimental AI tool designed to provide second opinions and differential diagnoses based on WHO guidelines.
+											Dr. Assist is an experimental AI tool designed to provide second opinions and
+											differential diagnoses based on WHO guidelines.
 										</p>
 									</div>
-									<Button onclick={() => showAiTermsModal = true}>Review & Accept Terms to Enable</Button>
+									<Button onclick={() => (showAiTermsModal = true)}
+										>Review & Accept Terms to Enable</Button
+									>
 								</div>
 							{:else}
-								<div class="flex items-center justify-between p-4 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/50 rounded-xl mb-6">
+								<div
+									class="flex items-center justify-between p-4 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/50 rounded-xl mb-6"
+								>
 									<div class="space-y-1">
 										<h4 class="font-semibold text-indigo-900 dark:text-indigo-200">Run Analysis</h4>
-										<p class="text-xs text-indigo-700/70 dark:text-indigo-300/70">Analyze current vitals and notes to generate clinical suggestions.</p>
+										<p class="text-xs text-indigo-700/70 dark:text-indigo-300/70">
+											Analyze current vitals and notes to generate clinical suggestions.
+										</p>
 									</div>
-									<Button onclick={runDrAssist} disabled={dssLoading} class="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md">
+									<Button
+										onclick={runDrAssist}
+										disabled={dssLoading}
+										class="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md"
+									>
 										{#if dssLoading}
 											<Loader2 class="size-4 mr-2 animate-spin" /> Analyzing...
 										{:else}
@@ -802,22 +854,26 @@ P: ${res.plan}`;
 										{/if}
 									</Button>
 								</div>
-								
+
 								{#if dssResult}
 									<div class="space-y-6 animate-in slide-in-from-bottom-2 fade-in duration-300">
 										{#if dssResult.redFlags && dssResult.redFlags.length > 0}
-											<div class="p-4 rounded-xl border border-red-500/30 bg-red-500/10 space-y-2 shadow-sm">
+											<div
+												class="p-4 rounded-xl border border-red-500/30 bg-red-500/10 space-y-2 shadow-sm"
+											>
 												<h4 class="font-bold text-red-600 flex items-center gap-2">
 													<AlertTriangle class="size-5" /> CRITICAL RED FLAGS DETECTED
 												</h4>
-												<ul class="list-disc list-inside text-sm font-medium text-red-700/90 space-y-1 pl-1">
+												<ul
+													class="list-disc list-inside text-sm font-medium text-red-700/90 space-y-1 pl-1"
+												>
 													{#each dssResult.redFlags as flag}
 														<li>{flag}</li>
 													{/each}
 												</ul>
 											</div>
 										{/if}
-										
+
 										<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 											<Card class="shadow-sm">
 												<CardHeader class="pb-2 bg-muted/20 border-b">
@@ -830,54 +886,81 @@ P: ${res.plan}`;
 														<div class="space-y-1.5">
 															<div class="flex items-center justify-between">
 																<span class="font-medium text-sm">{diff.condition}</span>
-																<Badge variant={diff.probability === 'High' ? 'default' : 'outline'} class="text-[10px] uppercase {diff.probability === 'High' ? 'bg-indigo-600' : ''}">
+																<Badge
+																	variant={diff.probability === 'High' ? 'default' : 'outline'}
+																	class="text-[10px] uppercase {diff.probability === 'High'
+																		? 'bg-indigo-600'
+																		: ''}"
+																>
 																	{diff.probability}
 																</Badge>
 															</div>
-															<p class="text-xs text-muted-foreground leading-relaxed">{diff.rationale}</p>
+															<p class="text-xs text-muted-foreground leading-relaxed">
+																{diff.rationale}
+															</p>
 														</div>
 														<Separator />
 													{/each}
 												</CardContent>
 											</Card>
-											
+
 											<div class="space-y-4">
 												<Card class="shadow-sm">
 													<CardHeader class="pb-2 bg-muted/20 border-b">
-														<CardTitle class="text-sm font-semibold flex justify-between items-center">
+														<CardTitle
+															class="text-sm font-semibold flex justify-between items-center"
+														>
 															<div class="flex items-center gap-2">
 																<FlaskConical class="size-4 text-indigo-500" /> Suggested Tests
 															</div>
-															<Button variant="outline" size="sm" class="h-6 text-xs px-2" onclick={() => {
-																labNotes = dssResult.suggestedTests.join(', ');
-																toast.success('Tests copied to Lab Notes');
-															}}>Copy to Lab</Button>
+															<Button
+																variant="outline"
+																size="sm"
+																class="h-6 text-xs px-2"
+																onclick={() => {
+																	labNotes = dssResult.suggestedTests.join(', ');
+																	toast.success('Tests copied to Lab Notes');
+																}}>Copy to Lab</Button
+															>
 														</CardTitle>
 													</CardHeader>
 													<CardContent class="pt-4">
-														<ul class="list-disc list-inside text-sm text-muted-foreground space-y-1">
+														<ul
+															class="list-disc list-inside text-sm text-muted-foreground space-y-1"
+														>
 															{#each dssResult.suggestedTests as test}
 																<li>{test}</li>
 															{/each}
 														</ul>
 													</CardContent>
 												</Card>
-												
+
 												<Card class="shadow-sm">
 													<CardHeader class="pb-2 bg-muted/20 border-b">
-														<CardTitle class="text-sm font-semibold flex justify-between items-center">
+														<CardTitle
+															class="text-sm font-semibold flex justify-between items-center"
+														>
 															<div class="flex items-center gap-2">
 																<Pill class="size-4 text-indigo-500" /> Treatment Plan
 															</div>
-															<Button variant="outline" size="sm" class="h-6 text-xs px-2" onclick={() => {
-																const plan = '\n[AI Treatment Plan]:\n- ' + dssResult.treatments.join('\n- ');
-																doctorNotes += plan;
-																toast.success('Inserted into Doctor Notes');
-															}}>Insert to Notes</Button>
+															<Button
+																variant="outline"
+																size="sm"
+																class="h-6 text-xs px-2"
+																onclick={() => {
+																	const plan =
+																		'\n[AI Treatment Plan]:\n- ' +
+																		dssResult.treatments.join('\n- ');
+																	doctorNotes += plan;
+																	toast.success('Inserted into Doctor Notes');
+																}}>Insert to Notes</Button
+															>
 														</CardTitle>
 													</CardHeader>
 													<CardContent class="pt-4">
-														<ul class="list-disc list-inside text-sm text-muted-foreground space-y-1">
+														<ul
+															class="list-disc list-inside text-sm text-muted-foreground space-y-1"
+														>
 															{#each dssResult.treatments as tx}
 																<li>{tx}</li>
 															{/each}
@@ -886,21 +969,31 @@ P: ${res.plan}`;
 												</Card>
 											</div>
 										</div>
-										
-										<p class="text-xs text-center text-muted-foreground italic bg-muted/50 p-2 rounded-md">{dssResult.disclaimer}</p>
+
+										<p
+											class="text-xs text-center text-muted-foreground italic bg-muted/50 p-2 rounded-md"
+										>
+											{dssResult.disclaimer}
+										</p>
 									</div>
 								{/if}
 							{/if}
 						</TabsContent>
 					</div>
-					
+
 					{#if patient.isNhis}
 						<div class="mt-6 p-4 border rounded-xl bg-blue-500/5 border-blue-500/20">
 							<label class="flex items-center gap-3 cursor-pointer">
-								<input type="checkbox" bind:checked={isNhisBillable} class="accent-blue-600 size-5" />
+								<input
+									type="checkbox"
+									bind:checked={isNhisBillable}
+									class="accent-blue-600 size-5"
+								/>
 								<div class="space-y-0.5">
 									<p class="font-semibold text-blue-900 dark:text-blue-200">Submit as NHIS Claim</p>
-									<p class="text-xs text-blue-700/70 dark:text-blue-300/70">Flag this encounter and its services for HMO billing.</p>
+									<p class="text-xs text-blue-700/70 dark:text-blue-300/70">
+										Flag this encounter and its services for HMO billing.
+									</p>
 								</div>
 							</label>
 						</div>
@@ -955,7 +1048,7 @@ P: ${res.plan}`;
 			</div>
 		</div>
 		<Dialog.Footer>
-			<Button variant="outline" onclick={() => showReferralDialog = false}>Cancel</Button>
+			<Button variant="outline" onclick={() => (showReferralDialog = false)}>Cancel</Button>
 			<Button onclick={generateReferral} disabled={!referralFacility || !referralReason}>
 				Generate PDF
 			</Button>
@@ -972,18 +1065,24 @@ P: ${res.plan}`;
 		</Dialog.Header>
 		<div class="py-4 space-y-4 text-sm text-foreground">
 			<p>
-				You are enabling <strong>Dr. Assist</strong>, an experimental AI clinical decision support tool.
+				You are enabling <strong>Dr. Assist</strong>, an experimental AI clinical decision support
+				tool.
 			</p>
 			<ul class="list-disc list-inside space-y-2 text-muted-foreground">
 				<li>Dr. Assist is for <strong>informational purposes only</strong>.</li>
 				<li>It may hallucinate or provide incorrect medical advice.</li>
-				<li><strong>You are solely responsible</strong> for the final diagnosis and treatment plan.</li>
+				<li>
+					<strong>You are solely responsible</strong> for the final diagnosis and treatment plan.
+				</li>
 				<li>Do not blindly prescribe medication without verifying clinical appropriateness.</li>
 			</ul>
 		</div>
 		<Dialog.Footer>
-			<Button variant="outline" onclick={() => showAiTermsModal = false}>Decline</Button>
-			<Button onclick={acceptAiTerms} class="bg-amber-600 hover:bg-amber-700 text-white font-medium">
+			<Button variant="outline" onclick={() => (showAiTermsModal = false)}>Decline</Button>
+			<Button
+				onclick={acceptAiTerms}
+				class="bg-amber-600 hover:bg-amber-700 text-white font-medium"
+			>
 				I Understand & Accept
 			</Button>
 		</Dialog.Footer>

@@ -2,7 +2,7 @@ import { query, form, command } from '$app/server';
 import { getRequestEvent } from '$app/server';
 import * as v from 'valibot';
 import { randomBytes } from 'node:crypto';
-import { getDeviceCountsByPhc, registerPendingDevice } from '$lib/server/db/queries/devices';
+import { getDeviceCountsByPhc, registerPendingDevice } from '#lib/server/db/queries/devices.ts';
 import { DATABASE_URL } from '$app/env/private';
 
 // ─────────────────────────────────────────────────────────────
@@ -24,7 +24,8 @@ export const getServerStatus = query(async () => {
 		nodeVersion: process.version,
 		activeDevices: counts.activeCount,
 		pendingDevices: counts.pendingCount,
-		isMasterServer: DATABASE_URL?.startsWith('file:') || DATABASE_URL?.startsWith('libsql:') || false
+		isMasterServer:
+			DATABASE_URL?.startsWith('file:') || DATABASE_URL?.startsWith('libsql:') || false
 	};
 });
 

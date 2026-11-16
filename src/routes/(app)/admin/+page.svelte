@@ -1,20 +1,20 @@
 <script lang="ts">
-	import { patientStore } from '$lib/state/patients.svelte';
-	import { queueStore } from '$lib/state/queue.svelte';
-	import { pharmacyStore } from '$lib/state/pharmacy.svelte';
-	import { encounterStore } from '$lib/state/encounters.svelte';
-	import { syncStore } from '$lib/state/sync.svelte';
-	import { outbreakEngine } from '$lib/state/outbreaks.svelte';
-	import { settingsStore } from '$lib/state/settings.svelte';
+	import { patientStore } from '#lib/state/patients.svelte.ts';
+	import { queueStore } from '#lib/state/queue.svelte.ts';
+	import { pharmacyStore } from '#lib/state/pharmacy.svelte.ts';
+	import { encounterStore } from '#lib/state/encounters.svelte.ts';
+	import { syncStore } from '#lib/state/sync.svelte.ts';
+	import { outbreakEngine } from '#lib/state/outbreaks.svelte.ts';
+	import { settingsStore } from '#lib/state/settings.svelte.ts';
 	import {
 		Card,
 		CardHeader,
 		CardTitle,
 		CardContent,
 		CardDescription
-	} from '$lib/components/ui/card';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Avatar, AvatarFallback } from '$lib/components/ui/avatar';
+	} from '#lib/components/ui/card/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { Avatar, AvatarFallback } from '#lib/components/ui/avatar/index.ts';
 	import {
 		Table,
 		TableBody,
@@ -22,15 +22,28 @@
 		TableHead,
 		TableHeader,
 		TableRow
-	} from '$lib/components/ui/table';
-	import { SpotlightCard } from '$lib/components/ui/spotlight-card';
-	import { NumberTicker } from '$lib/components/ui/number-ticker';
-	import { Alert, AlertTitle, AlertDescription } from '$lib/components/ui/alert';
-	import { Button } from '$lib/components/ui/button';
-	import { Users, ClipboardList, AlertTriangle, Activity, ShieldAlert, CheckCircle2, CloudSync, Wifi, WifiOff, Siren, CloudUpload, PackageX } from '@lucide/svelte';
+	} from '#lib/components/ui/table/index.ts';
+	import { SpotlightCard } from '#lib/components/ui/spotlight-card/index.ts';
+	import { NumberTicker } from '#lib/components/ui/number-ticker/index.ts';
+	import { Alert, AlertTitle, AlertDescription } from '#lib/components/ui/alert/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import {
+		Users,
+		ClipboardList,
+		AlertTriangle,
+		Activity,
+		ShieldAlert,
+		CheckCircle2,
+		CloudSync,
+		Wifi,
+		WifiOff,
+		Siren,
+		CloudUpload,
+		PackageX
+	} from '@lucide/svelte';
 
 	import { onMount } from 'svelte';
-	import { getPhcStaffList } from '$lib/remote/admin.remote';
+	import { getPhcStaffList } from '#lib/remote/admin.remote.ts';
 	import { toast } from 'svelte-sonner';
 
 	let staffList = $state<any[]>([]);
@@ -48,8 +61,10 @@
 	const encounters = $derived(encounterStore.items);
 
 	const completedConsultations = $derived(
-		queueItems.filter((t: any) => t.status === 'done' && 
-			new Date(t.createdAt).toDateString() === new Date().toDateString()).length
+		queueItems.filter(
+			(t: any) =>
+				t.status === 'done' && new Date(t.createdAt).toDateString() === new Date().toDateString()
+		).length
 	);
 
 	const syncStatus = $derived({
@@ -65,10 +80,12 @@
 			const d = new Date(now);
 			d.setDate(d.getDate() - i);
 			const dateStr = d.toDateString();
-			const count = encounters.filter((e: any) => new Date(e.visitDate).toDateString() === dateStr).length;
+			const count = encounters.filter(
+				(e: any) => new Date(e.visitDate).toDateString() === dateStr
+			).length;
 			days.push({ day: d.toLocaleDateString('en-US', { weekday: 'short' }), count });
 		}
-		const max = Math.max(...days.map(d => d.count), 1);
+		const max = Math.max(...days.map((d) => d.count), 1);
 		return { days, max };
 	});
 
@@ -109,25 +126,35 @@
 
 	<!-- AI Outbreak Radar Widget -->
 	{#if settingsStore.current.outbreakDetectionEnabled}
-		<Card class="border-purple-200/40 shadow-sm overflow-hidden bg-gradient-to-br from-card to-purple-50/30 dark:to-purple-950/10">
+		<Card
+			class="border-purple-200/40 shadow-sm overflow-hidden bg-gradient-to-br from-card to-purple-50/30 dark:to-purple-950/10"
+		>
 			<div class="h-1.5 w-full bg-gradient-to-r from-purple-500 to-indigo-500"></div>
 			<CardHeader class="pb-3 border-b border-border/40 bg-card/50">
 				<div class="flex items-start justify-between">
 					<div class="flex items-center gap-3">
-						<div class="p-2 rounded-lg bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
+						<div
+							class="p-2 rounded-lg bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400"
+						>
 							<Activity class="size-5" />
 						</div>
 						<div>
 							<CardTitle class="flex items-center gap-2 text-lg">
 								Outbreak Radar
-								<Badge variant="secondary" class="bg-purple-100 text-purple-700 hover:bg-purple-100 dark:bg-purple-900/50 dark:text-purple-300">Beta</Badge>
+								<Badge
+									variant="secondary"
+									class="bg-purple-100 text-purple-700 hover:bg-purple-100 dark:bg-purple-900/50 dark:text-purple-300"
+									>Beta</Badge
+								>
 							</CardTitle>
-							<CardDescription>Multi-signal epidemiological forecasting & early warning</CardDescription>
+							<CardDescription
+								>Multi-signal epidemiological forecasting & early warning</CardDescription
+							>
 						</div>
 					</div>
 					<div class="flex items-center gap-2">
 						{#if !outbreakEngine.aiAnalysis && !outbreakEngine.isAnalysing}
-							<button 
+							<button
 								class="text-xs font-semibold px-3 py-1.5 rounded-md bg-purple-600 hover:bg-purple-700 text-white transition-colors flex items-center gap-1.5 shadow-sm"
 								onclick={() => outbreakEngine.runAiAnalysis()}
 							>
@@ -135,7 +162,10 @@
 								Run AI Analysis
 							</button>
 						{/if}
-						<a href="/admin/outbreak-radar" class="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5 rounded hover:bg-muted">
+						<a
+							href="/admin/outbreak-radar"
+							class="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5 rounded hover:bg-muted"
+						>
 							Full Report &rarr;
 						</a>
 					</div>
@@ -148,11 +178,15 @@
 					<div class="p-4 bg-destructive/5 border-b border-destructive/10">
 						<div class="flex items-center gap-2 text-destructive mb-2">
 							<AlertTriangle class="size-4" />
-							<span class="text-sm font-bold uppercase tracking-wider">Threshold Alerts (Rule-based)</span>
+							<span class="text-sm font-bold uppercase tracking-wider"
+								>Threshold Alerts (Rule-based)</span
+							>
 						</div>
 						<div class="grid gap-2">
 							{#each outbreakEngine.alerts as alert}
-								<div class="text-sm font-medium text-destructive/90 flex items-center justify-between bg-destructive/10 px-3 py-2 rounded-md">
+								<div
+									class="text-sm font-medium text-destructive/90 flex items-center justify-between bg-destructive/10 px-3 py-2 rounded-md"
+								>
 									<span>{alert.disease} in {alert.community} ({alert.count} cases in 7 days)</span>
 									<span class="text-xs opacity-70 flex items-center gap-1">
 										<Siren class="size-3" /> Exceeds NPHCDA threshold
@@ -166,24 +200,35 @@
 				<!-- AI Analysis State -->
 				<div class="p-5">
 					{#if outbreakEngine.isAnalysing}
-						<div class="flex flex-col items-center justify-center py-6 space-y-3 text-muted-foreground">
-							<div class="size-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-							<p class="text-sm font-medium animate-pulse">Aggregating vitals, labs, and encounters for Gemini 2.5 Pro...</p>
+						<div
+							class="flex flex-col items-center justify-center py-6 space-y-3 text-muted-foreground"
+						>
+							<div
+								class="size-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"
+							></div>
+							<p class="text-sm font-medium animate-pulse">
+								Aggregating vitals, labs, and encounters for Gemini 2.5 Pro...
+							</p>
 						</div>
 					{:else if outbreakEngine.aiAnalysis}
 						{@const ai = outbreakEngine.aiAnalysis}
-						
+
 						<div class="space-y-4">
 							<div class="flex items-start justify-between">
 								<div class="flex items-center gap-2">
-									<Badge variant="outline" class="border-purple-200 text-purple-700 dark:border-purple-800 dark:text-purple-300 gap-1 text-xs">
+									<Badge
+										variant="outline"
+										class="border-purple-200 text-purple-700 dark:border-purple-800 dark:text-purple-300 gap-1 text-xs"
+									>
 										<CheckCircle2 class="size-3" />
 										AI Confidence: {ai.confidence}
 									</Badge>
-									<span class="text-xs text-muted-foreground">Analysed {new Date(ai.generatedAt).toLocaleTimeString()}</span>
+									<span class="text-xs text-muted-foreground"
+										>Analysed {new Date(ai.generatedAt).toLocaleTimeString()}</span
+									>
 								</div>
-								
-								<button 
+
+								<button
 									class="text-xs text-purple-600 hover:text-purple-700 font-medium underline-offset-4 hover:underline"
 									onclick={() => {
 										navigator.clipboard.writeText(ai.lgaSummary);
@@ -198,21 +243,32 @@
 							{#if ai.outbreaks?.length > 0 || ai.preAlerts?.length > 0}
 								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 									{#each ai.outbreaks || [] as outbreak}
-										<div class="rounded-lg border bg-card p-3 space-y-2 shadow-sm border-l-4 {outbreak.severity === 'critical' ? 'border-l-destructive' : 'border-l-amber-500'}">
+										<div
+											class="rounded-lg border bg-card p-3 space-y-2 shadow-sm border-l-4 {outbreak.severity ===
+											'critical'
+												? 'border-l-destructive'
+												: 'border-l-amber-500'}"
+										>
 											<div class="flex justify-between items-start">
 												<div>
 													<h4 class="font-bold text-sm flex items-center gap-1.5">
 														{outbreak.disease}
 														{#if outbreak.severity === 'critical'}
-															<Badge variant="destructive" class="h-4 text-[10px] px-1">Critical</Badge>
+															<Badge variant="destructive" class="h-4 text-[10px] px-1"
+																>Critical</Badge
+															>
 														{/if}
 													</h4>
-													<p class="text-[11px] text-muted-foreground">{outbreak.affectedCommunities.join(', ')}</p>
+													<p class="text-[11px] text-muted-foreground">
+														{outbreak.affectedCommunities.join(', ')}
+													</p>
 												</div>
-												<Badge variant="outline" class="text-[10px] capitalize bg-muted/50">{outbreak.status}</Badge>
+												<Badge variant="outline" class="text-[10px] capitalize bg-muted/50"
+													>{outbreak.status}</Badge
+												>
 											</div>
 											<p class="text-xs text-muted-foreground leading-snug">{outbreak.summary}</p>
-											
+
 											<div class="flex items-center justify-between pt-1 border-t border-border/50">
 												<span class="text-[10px] text-muted-foreground">Forecast next week:</span>
 												<span class="text-xs font-bold">{outbreak.forecastNextWeek} cases</span>
@@ -221,36 +277,57 @@
 									{/each}
 
 									{#each ai.preAlerts || [] as preAlert}
-										<div class="rounded-lg border bg-card p-3 space-y-2 shadow-sm border-l-4 border-l-blue-400">
+										<div
+											class="rounded-lg border bg-card p-3 space-y-2 shadow-sm border-l-4 border-l-blue-400"
+										>
 											<div class="flex justify-between items-start">
 												<div>
-													<h4 class="font-bold text-sm flex items-center gap-1.5">{preAlert.disease}</h4>
-													<p class="text-[11px] text-muted-foreground">{preAlert.affectedCommunities.join(', ')}</p>
+													<h4 class="font-bold text-sm flex items-center gap-1.5">
+														{preAlert.disease}
+													</h4>
+													<p class="text-[11px] text-muted-foreground">
+														{preAlert.affectedCommunities.join(', ')}
+													</p>
 												</div>
-												<Badge variant="secondary" class="h-4 text-[10px] px-1 bg-blue-100 text-blue-700">Pre-Alert</Badge>
+												<Badge
+													variant="secondary"
+													class="h-4 text-[10px] px-1 bg-blue-100 text-blue-700">Pre-Alert</Badge
+												>
 											</div>
 											<p class="text-xs text-muted-foreground leading-snug">{preAlert.summary}</p>
 										</div>
 									{/each}
 								</div>
 							{:else}
-								<div class="flex items-center gap-2 text-sm text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 p-3 rounded-lg border border-emerald-100 dark:border-emerald-900/30">
+								<div
+									class="flex items-center gap-2 text-sm text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 p-3 rounded-lg border border-emerald-100 dark:border-emerald-900/30"
+								>
 									<CheckCircle2 class="size-4" />
-									<span>No active outbreaks or rising pre-alerts detected in the last 30 days.</span>
+									<span>No active outbreaks or rising pre-alerts detected in the last 30 days.</span
+									>
 								</div>
 							{/if}
-							
-							{#if ai.stockImpactForecast?.some(s => s.willRunOut)}
-								<div class="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 p-2 rounded-md border border-amber-100">
+
+							{#if ai.stockImpactForecast?.some((s) => s.willRunOut)}
+								<div
+									class="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 p-2 rounded-md border border-amber-100"
+								>
 									<AlertTriangle class="size-3.5 shrink-0" />
-									<span><strong>Stock Warning:</strong> Projected demand exceeds current stock for {ai.stockImpactForecast.filter(s => s.willRunOut).map(s => s.drug).join(', ')}.</span>
+									<span
+										><strong>Stock Warning:</strong> Projected demand exceeds current stock for {ai.stockImpactForecast
+											.filter((s) => s.willRunOut)
+											.map((s) => s.drug)
+											.join(', ')}.</span
+									>
 								</div>
 							{/if}
 						</div>
 					{:else}
 						<div class="text-center py-4 space-y-1">
 							<p class="text-sm font-medium text-foreground">AI Intelligence is idle</p>
-							<p class="text-xs text-muted-foreground">Run analysis to cross-reference vitals, lab results, and seasonal baselines.</p>
+							<p class="text-xs text-muted-foreground">
+								Run analysis to cross-reference vitals, lab results, and seasonal baselines.
+							</p>
 						</div>
 					{/if}
 				</div>
@@ -350,8 +427,13 @@
 					<div class="flex items-end gap-2 h-48 mt-4">
 						{#each visitsPerDay.days as { day, count }}
 							<div class="flex-1 flex flex-col justify-end items-center gap-2 group">
-								<div class="w-full bg-primary/20 hover:bg-primary transition-colors rounded-t-md relative flex justify-center" style="height: {(count / visitsPerDay.max) * 100}%">
-									<div class="absolute -top-6 text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity bg-foreground text-background px-2 py-0.5 rounded shadow-sm">
+								<div
+									class="w-full bg-primary/20 hover:bg-primary transition-colors rounded-t-md relative flex justify-center"
+									style="height: {(count / visitsPerDay.max) * 100}%"
+								>
+									<div
+										class="absolute -top-6 text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity bg-foreground text-background px-2 py-0.5 rounded shadow-sm"
+									>
 										{count}
 									</div>
 								</div>
@@ -363,63 +445,74 @@
 			</Card>
 
 			<!-- Low Stock Inventory Alerts -->
-		<Card class="card-hover">
-			<CardHeader class="pb-3">
-				<div class="flex items-center gap-2">
-					<AlertTriangle class="size-4 text-muted-foreground" />
-					<CardTitle class="text-base font-semibold">System Alerts</CardTitle>
-				</div>
-			</CardHeader>
-			<CardContent class="space-y-4">
-				{#if syncStore.pendingCount > 0}
-					<div class="flex items-center gap-4 rounded-lg border bg-amber-50/50 p-3">
-						<div class="rounded-full bg-amber-100 p-2 text-amber-600">
-							<CloudUpload class="size-4 animate-bounce" />
-						</div>
-						<div class="flex-1 space-y-1">
-							<p class="text-sm font-medium leading-none text-amber-900">
-								Pending Offline Sync
-							</p>
-							<p class="text-sm text-amber-700/80">
-								{syncStore.pendingCount} records waiting to sync.
-							</p>
-						</div>
-						<Button size="sm" variant="outline" class="h-8 border-amber-200 text-amber-700 hover:bg-amber-100" onclick={() => syncStore.flush()} disabled={syncStore.isSyncing}>
-							Sync Now
-						</Button>
+			<Card class="card-hover">
+				<CardHeader class="pb-3">
+					<div class="flex items-center gap-2">
+						<AlertTriangle class="size-4 text-muted-foreground" />
+						<CardTitle class="text-base font-semibold">System Alerts</CardTitle>
 					</div>
-				{/if}
-
-				{#if lowStockItems.length > 0}
-					<div class="flex flex-col gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-3">
-						<div class="flex items-center gap-4">
-							<div class="rounded-full bg-destructive/10 p-2 text-destructive">
-								<PackageX class="size-4" />
+				</CardHeader>
+				<CardContent class="space-y-4">
+					{#if syncStore.pendingCount > 0}
+						<div class="flex items-center gap-4 rounded-lg border bg-amber-50/50 p-3">
+							<div class="rounded-full bg-amber-100 p-2 text-amber-600">
+								<CloudUpload class="size-4 animate-bounce" />
 							</div>
 							<div class="flex-1 space-y-1">
-								<p class="text-sm font-medium leading-none text-destructive">
-									Low Stock Warning
-								</p>
-								<p class="text-sm text-destructive/80">
-									{lowStockItems.length} items are below threshold.
+								<p class="text-sm font-medium leading-none text-amber-900">Pending Offline Sync</p>
+								<p class="text-sm text-amber-700/80">
+									{syncStore.pendingCount} records waiting to sync.
 								</p>
 							</div>
-							<Button size="sm" variant="outline" class="h-8 border-destructive/20 text-destructive hover:bg-destructive/10" onclick={() => window.location.href = '/pharmacy/restock'}>
-								Request Restock
+							<Button
+								size="sm"
+								variant="outline"
+								class="h-8 border-amber-200 text-amber-700 hover:bg-amber-100"
+								onclick={() => syncStore.flush()}
+								disabled={syncStore.isSyncing}
+							>
+								Sync Now
 							</Button>
 						</div>
-					</div>
-				{/if}
+					{/if}
 
-				{#if syncStore.pendingCount === 0 && lowStockItems.length === 0}
-					<div class="flex flex-col items-center justify-center p-6 text-center text-muted-foreground border border-dashed rounded-lg">
-						<CheckCircle2 class="size-8 text-green-500 mb-2 opacity-80" />
-						<p class="text-sm font-medium text-green-600">All Systems Nominal</p>
-						<p class="text-xs mt-1">No alerts or pending syncs.</p>
-					</div>
-				{/if}
-			</CardContent>
-		</Card>
+					{#if lowStockItems.length > 0}
+						<div
+							class="flex flex-col gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-3"
+						>
+							<div class="flex items-center gap-4">
+								<div class="rounded-full bg-destructive/10 p-2 text-destructive">
+									<PackageX class="size-4" />
+								</div>
+								<div class="flex-1 space-y-1">
+									<p class="text-sm font-medium leading-none text-destructive">Low Stock Warning</p>
+									<p class="text-sm text-destructive/80">
+										{lowStockItems.length} items are below threshold.
+									</p>
+								</div>
+								<Button
+									size="sm"
+									variant="outline"
+									class="h-8 border-destructive/20 text-destructive hover:bg-destructive/10"
+									onclick={() => (window.location.href = '/pharmacy/restock')}
+								>
+									Request Restock
+								</Button>
+							</div>
+						</div>
+					{/if}
+
+					{#if syncStore.pendingCount === 0 && lowStockItems.length === 0}
+						<div
+							class="flex flex-col items-center justify-center p-6 text-center text-muted-foreground border border-dashed rounded-lg"
+						>
+							<CheckCircle2 class="size-8 text-green-500 mb-2 opacity-80" />
+							<p class="text-sm font-medium text-green-600">All Systems Nominal</p>
+							<p class="text-xs mt-1">No alerts or pending syncs.</p>
+						</div>
+					{/if}
+				</CardContent>
+			</Card>
 		</div>
 
 		<div class="space-y-6">
@@ -506,11 +599,15 @@
 								<div class="relative group">
 									<Avatar class="border-2 border-background ring-2 ring-transparent">
 										<AvatarFallback class="bg-primary/10 text-primary font-medium text-xs">
-											{staff.fullName.substring(0,2).toUpperCase()}
+											{staff.fullName.substring(0, 2).toUpperCase()}
 										</AvatarFallback>
 									</Avatar>
-									<span class="absolute bottom-0 right-0 size-3 rounded-full border-2 border-background bg-green-500"></span>
-									<div class="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-foreground text-background text-xs px-2 py-1 rounded shadow pointer-events-none whitespace-nowrap z-50">
+									<span
+										class="absolute bottom-0 right-0 size-3 rounded-full border-2 border-background bg-green-500"
+									></span>
+									<div
+										class="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-foreground text-background text-xs px-2 py-1 rounded shadow pointer-events-none whitespace-nowrap z-50"
+									>
 										{staff.fullName}
 									</div>
 								</div>
@@ -529,11 +626,17 @@
 					<div class="flex items-center justify-between">
 						<span class="text-sm text-muted-foreground">Status</span>
 						{#if syncStatus.isOnline}
-							<Badge variant="outline" class="bg-green-500/10 text-green-600 border-green-500/20 gap-1.5 px-2">
+							<Badge
+								variant="outline"
+								class="bg-green-500/10 text-green-600 border-green-500/20 gap-1.5 px-2"
+							>
 								<Wifi class="size-3" /> Online
 							</Badge>
 						{:else}
-							<Badge variant="outline" class="bg-destructive/10 text-destructive border-destructive/20 gap-1.5 px-2">
+							<Badge
+								variant="outline"
+								class="bg-destructive/10 text-destructive border-destructive/20 gap-1.5 px-2"
+							>
 								<WifiOff class="size-3" /> Offline
 							</Badge>
 						{/if}
@@ -544,7 +647,11 @@
 					</div>
 					<div class="flex items-center justify-between">
 						<span class="text-sm text-muted-foreground">Last Sync</span>
-						<span class="text-sm">{syncStatus.lastSync ? new Date(syncStatus.lastSync).toLocaleTimeString() : 'Never'}</span>
+						<span class="text-sm"
+							>{syncStatus.lastSync
+								? new Date(syncStatus.lastSync).toLocaleTimeString()
+								: 'Never'}</span
+						>
 					</div>
 				</CardContent>
 			</Card>

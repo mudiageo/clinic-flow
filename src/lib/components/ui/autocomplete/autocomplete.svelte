@@ -1,6 +1,6 @@
 <script lang="ts" generics="T">
-	import { Input } from '$lib/components/ui/input';
-	import { cn } from '$lib/utils';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { cn } from '#lib/utils.ts';
 	import { Loader2, Search, X } from '@lucide/svelte';
 	import { fly } from 'svelte/transition';
 	import type { Snippet } from 'svelte';

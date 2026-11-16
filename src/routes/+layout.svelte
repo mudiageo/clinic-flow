@@ -1,9 +1,9 @@
 <script lang="ts">
 	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
-	import { Toaster } from '$lib/components/ui/sonner';
-	import PWAManager from '$lib/components/PWAManager.svelte';
-	import { Skeleton } from '$lib/components/ui/skeleton';
+	import favicon from '#lib/assets/favicon.svg';
+	import { Toaster } from '#lib/components/ui/sonner/index.ts';
+	import PWAManager from '#lib/components/PWAManager.svelte';
+	import { Skeleton } from '#lib/components/ui/skeleton/index.ts';
 
 	let { children } = $props();
 
@@ -56,8 +56,10 @@
 	{#snippet failed(error, reset)}
 		<div class="min-h-screen flex flex-col items-center justify-center p-8 text-destructive">
 			<h2 class="text-2xl font-bold">Failed to load</h2>
-			<p>{error?.message || "Unknown error"}</p>
-			<button class="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg" onclick={reset}>Retry</button>
+			<p>{error?.message || 'Unknown error'}</p>
+			<button class="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg" onclick={reset}
+				>Retry</button
+			>
 		</div>
 	{/snippet}
 

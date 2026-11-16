@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { pharmacyStore } from '$lib/state/pharmacy.svelte';
+	import { pharmacyStore } from '#lib/state/pharmacy.svelte.ts';
 	import {
 		Card,
 		CardContent,
 		CardHeader,
 		CardTitle,
 		CardDescription
-	} from '$lib/components/ui/card';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Button } from '$lib/components/ui/button';
+	} from '#lib/components/ui/card/index.ts';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import {
 		Table,
 		TableBody,
@@ -16,8 +16,8 @@
 		TableHead,
 		TableHeader,
 		TableRow
-	} from '$lib/components/ui/table';
-	import { Input } from '$lib/components/ui/input';
+	} from '#lib/components/ui/table/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
 	import {
 		Pill,
 		AlertTriangle,
@@ -29,8 +29,8 @@
 		AlertCircle
 	} from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
-	import { restockStore } from '$lib/state/restock-requests.svelte';
-	import type { LocalPharmacyInventory } from '$lib/local-db/db';
+	import { restockStore } from '#lib/state/restock-requests.svelte.ts';
+	import type { LocalPharmacyInventory } from '#lib/local-db/db.ts';
 
 	let searchQuery = $state('');
 

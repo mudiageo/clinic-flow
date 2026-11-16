@@ -1,14 +1,26 @@
 <script lang="ts">
-	import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '$lib/components/ui/dialog';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
-	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
+	import {
+		Dialog,
+		DialogContent,
+		DialogHeader,
+		DialogTitle,
+		DialogDescription,
+		DialogFooter
+	} from '#lib/components/ui/dialog/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
+	import {
+		Select,
+		SelectContent,
+		SelectItem,
+		SelectTrigger
+	} from '#lib/components/ui/select/index.ts';
 	import { Baby, Calendar, CheckCircle2 } from '@lucide/svelte';
-	import { patientStore } from '$lib/state/patients.svelte';
-	import { appointmentStore } from '$lib/state/appointments.svelte';
-	import { reminderStore } from '$lib/state/reminders.svelte';
-	import { pregnancyStore } from '$lib/state/pregnancy.svelte';
+	import { patientStore } from '#lib/state/patients.svelte.ts';
+	import { appointmentStore } from '#lib/state/appointments.svelte.ts';
+	import { reminderStore } from '#lib/state/reminders.svelte.ts';
+	import { pregnancyStore } from '#lib/state/pregnancy.svelte.ts';
 
 	let { open = $bindable(false), patientId, pregnancyRecordId, onComplete } = $props();
 
@@ -38,10 +50,13 @@
 	async function handleFinalizeDelivery() {
 		if (!babyName || !babySex || !deliveryDateStr) return;
 		isProcessing = true;
-		
+
 		try {
 			const mother = patientStore.findById(patientId);
-			const phcId = typeof localStorage !== 'undefined' ? localStorage.getItem('phcId') || 'demo-phc-1' : 'demo-phc-1';
+			const phcId =
+				typeof localStorage !== 'undefined'
+					? localStorage.getItem('phcId') || 'demo-phc-1'
+					: 'demo-phc-1';
 			const deliveryDate = new Date(deliveryDateStr).getTime();
 
 			// 1. Mark pregnancy as delivered
@@ -50,8 +65,8 @@
 
 			// 2. Generate Mother's Postnatal Care (PNC) Schedule
 			for (const visit of PNC_SCHEDULE) {
-				const scheduleDate = deliveryDate + (visit.daysOffset * 24 * 60 * 60 * 1000);
-				
+				const scheduleDate = deliveryDate + visit.daysOffset * 24 * 60 * 60 * 1000;
+
 				// Create Appointment
 				await appointmentStore.insert({
 					id: crypto.randomUUID(),
@@ -77,7 +92,7 @@
 						phcId,
 						type: 'antenatal',
 						label: `Mother Postnatal Checkup: ${visit.label}`,
-						dueDate: scheduleDate - (24 * 60 * 60 * 1000), // 1 day before
+						dueDate: scheduleDate - 24 * 60 * 60 * 1000, // 1 day before
 						recipientPhone: mother.phone,
 						status: 'scheduled',
 						sentAt: null,
@@ -94,7 +109,7 @@
 			const babyId = crypto.randomUUID();
 			const clinicIdBase = Math.floor(100000 + Math.random() * 900000).toString();
 			const babyClinicId = `CF-BB-${clinicIdBase}`;
-			
+
 			await patientStore.insert({
 				id: babyId,
 				clinicId: babyClinicId,
@@ -118,8 +133,8 @@
 
 			// 4. Generate Baby's Immunization Schedule (NPI)
 			for (const vax of NPI_SCHEDULE) {
-				const scheduleDate = deliveryDate + (vax.daysOffset * 24 * 60 * 60 * 1000);
-				
+				const scheduleDate = deliveryDate + vax.daysOffset * 24 * 60 * 60 * 1000;
+
 				// Appointment
 				await appointmentStore.insert({
 					id: crypto.randomUUID(),
@@ -145,7 +160,7 @@
 						phcId,
 						type: 'immunization',
 						label: `Baby Immunization: ${vax.label}`,
-						dueDate: scheduleDate - (24 * 60 * 60 * 1000),
+						dueDate: scheduleDate - 24 * 60 * 60 * 1000,
 						recipientPhone: mother.phone,
 						status: 'scheduled',
 						sentAt: null,
@@ -160,14 +175,12 @@
 
 			open = false;
 			if (onComplete) onComplete();
-
-		} catch(e) {
-			console.error("Failed delivery", e);
+		} catch (e) {
+			console.error('Failed delivery', e);
 		} finally {
 			isProcessing = false;
 		}
 	}
-
 </script>
 
 <Dialog bind:open>
@@ -178,7 +191,8 @@
 				Record Delivery & Generate Schedules
 			</DialogTitle>
 			<DialogDescription>
-				This will automatically generate the mother's postnatal (PNC) schedule and register the baby with a full NPI Immunization schedule.
+				This will automatically generate the mother's postnatal (PNC) schedule and register the baby
+				with a full NPI Immunization schedule.
 			</DialogDescription>
 		</DialogHeader>
 
@@ -187,18 +201,18 @@
 				<Label>Date of Delivery</Label>
 				<Input type="date" bind:value={deliveryDateStr} />
 			</div>
-			
+
 			<div class="space-y-2">
 				<Label>Baby's Name</Label>
 				<Input type="text" placeholder="e.g., Baby of Amina" bind:value={babyName} />
 			</div>
-			
+
 			<div class="grid grid-cols-2 gap-4">
 				<div class="space-y-2">
 					<Label>Sex</Label>
 					<Select type="single" value={babySex} onValueChange={(v) => (babySex = v as any)}>
 						<SelectTrigger class="capitalize">
-							{babySex || "Select Sex"}
+							{babySex || 'Select Sex'}
 						</SelectTrigger>
 						<SelectContent>
 							<SelectItem value="male">Male</SelectItem>
@@ -213,7 +227,9 @@
 			</div>
 
 			<div class="bg-muted p-4 rounded-md mt-4 text-sm text-muted-foreground border">
-				<h4 class="font-medium text-foreground mb-2 flex items-center gap-1"><Calendar class="size-4" /> Automations to run:</h4>
+				<h4 class="font-medium text-foreground mb-2 flex items-center gap-1">
+					<Calendar class="size-4" /> Automations to run:
+				</h4>
 				<ul class="list-disc pl-5 space-y-1">
 					<li>Register <b>{babyName || 'Baby'}</b> as a new patient profile</li>
 					<li>Schedule <b>3 Postnatal Visits</b> for the mother</li>
@@ -224,7 +240,9 @@
 		</div>
 
 		<DialogFooter>
-			<Button variant="outline" onclick={() => open = false} disabled={isProcessing}>Cancel</Button>
+			<Button variant="outline" onclick={() => (open = false)} disabled={isProcessing}
+				>Cancel</Button
+			>
 			<Button onclick={handleFinalizeDelivery} disabled={isProcessing || !babyName || !babySex}>
 				{isProcessing ? 'Processing...' : 'Complete Delivery'}
 			</Button>
