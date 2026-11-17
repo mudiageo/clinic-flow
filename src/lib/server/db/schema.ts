@@ -736,6 +736,10 @@ export const auditLog = pgTable(
 	})
 );
 
+export const syncOperationsRelations = relations(syncOperations, ({ one }) => ({
+	phc: one(phcs, { fields: [syncOperations.phcId], references: [phcs.id] })
+}));
+
 export const auditLogRelations = relations(auditLog, ({ one }) => ({
 	phc: one(phcs, { fields: [auditLog.phcId], references: [phcs.id] }),
 	staff: one(staff, { fields: [auditLog.staffId], references: [staff.id] })
