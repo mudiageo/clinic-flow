@@ -2,9 +2,10 @@ import { query, command, getRequestEvent } from '$app/server';
 import { error } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { db as serverDb } from '#lib/server/db/index.ts';
-import { sql, eq, inArray, gt, and } from 'drizzle-orm';
+import { sql, eq } from 'drizzle-orm';
 import * as schema from '#lib/server/db/schema.ts';
 import { pharmacyInventory, syncOperations } from '#lib/server/db/schema.ts';
+import { toServerRow, SYNC_ENTITY_TABLE } from '#lib/seed/adapters.ts';
 
 function requireAuth() {
 	const event = getRequestEvent();
@@ -43,7 +44,8 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 		restockRequests: schema.restockRequests,
 		appointments: schema.appointments,
 		pregnancyRecords: schema.pregnancyRecords,
-		staff: schema.staff
+		staff: schema.staff,
+		families: schema.families
 	};
 
 	for (const op of operations) {
@@ -103,7 +105,9 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 
 		const tableObj = tableMap[op.entityType];
 		if (!tableObj) {
-			console.warn(`Unknown entity type: ${op.entityType}`);
+			console.warn(
+				`Unknown entity type: ${op.entityType} (expected one of ${Object.keys(SYNC_ENTITY_TABLE).join(', ')})`
+			);
 			continue;
 		}
 
@@ -116,29 +120,9 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 			: null;
 
 		const payload = op.payload as Record<string, any>;
-		const { syncStatus, serverUpdatedAt, ...cleanPayload } = payload;
-
-		// Fix timestamps
-		for (const [k, v] of Object.entries(cleanPayload)) {
-			if (
-				[
-					'dob',
-					'recordedAt',
-					'calledAt',
-					'completedAt',
-					'visitDate',
-					'dueDate',
-					'sentAt',
-					'dispensedAt',
-					'createdAt',
-					'lmpDate',
-					'eddDate'
-				].includes(k) &&
-				typeof v === 'number'
-			) {
-				cleanPayload[k] = new Date(v);
-			}
-		}
+		// Compatibility shim: map client field names/types to the server row.
+		// See docs/data-model/client-server-field-mapping.md.
+		const cleanPayload = toServerRow(op.entityType, payload) as Record<string, any>;
 
 		if (!existing || op.timestamp >= (existing.updatedAt?.getTime() || 0)) {
 			if (
@@ -170,7 +154,9 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 					entityType: op.entityType,
 					entityId: op.entityId,
 					operation: op.operation,
-					payload: JSON.stringify(cleanPayload),
+					// Preserve the original client payload so other devices get the
+					// client-shaped row they expect (no shim needed on pull).
+					payload: JSON.stringify(payload),
 					clientUpdatedAt: new Date(op.timestamp)
 				});
 			} catch (e) {
@@ -244,8 +230,6 @@ export const getQueueUpdates = query.live(
 );
 
 export const getPhcSettings = query(v.string(), async (phcId) => {
-	if (phcId === 'demo-phc-1') return null;
-
 	const phc = await serverDb.query.phcs.findFirst({
 		where: (t, { eq }) => eq(t.id, phcId)
 	});

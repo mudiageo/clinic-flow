@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { patientStore } from '#lib/state/patients.svelte.ts';
 	import { appointmentStore } from '#lib/state/appointments.svelte.ts';
+	import { sessionStore } from '#lib/state/session.svelte.ts';
 	import { Input } from '#lib/components/ui/input/index.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Card, CardHeader, CardTitle, CardContent } from '#lib/components/ui/card/index.ts';
@@ -48,7 +49,7 @@
 		try {
 			await appointmentStore.create({
 				patientId,
-				phcId: 'demo-phc-1',
+				phcId: sessionStore.activePhcId,
 				assignedStaffId: assignedStaffId || null,
 				type,
 				scheduledAt,

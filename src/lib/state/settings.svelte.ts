@@ -54,7 +54,8 @@ class SettingsStore {
 
 	async fetchFromServer() {
 		if (typeof localStorage === 'undefined') return;
-		const phcId = localStorage.getItem('phcId') || 'demo-phc-1';
+		const phcId = localStorage.getItem('clinicflow_phc_id') || '';
+		if (!phcId) return;
 
 		try {
 			const serverSettings = await getPhcSettings(phcId);

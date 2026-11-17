@@ -1,440 +1,323 @@
+/**
+ * Deterministic, idempotent ClinicFlow database seeder.
+ *
+ * Usage:
+ *   pnpm db:seed                       seed all three demo PHCs
+ *   pnpm db:seed -- --phc=egor         seed only Egor
+ *   pnpm db:seed -- --phc=oredo --reset
+ *
+ * The data itself lives in `src/lib/seed/fixtures.ts`; this file only writes it
+ * to Postgres through the same `toServerRow()` shim used by the sync endpoint.
+ * Re-running never duplicates rows: every id is derived from a stable key.
+ */
+
 import { drizzle } from 'drizzle-orm/postgres-js';
-import { eq } from 'drizzle-orm';
+import { eq, inArray, sql } from 'drizzle-orm';
 import postgres from 'postgres';
+import { hashPassword } from 'better-auth/crypto';
 import * as schema from './schema.js';
-import { betterAuth } from 'better-auth';
-import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import {
+	buildAllFixtures,
+	buildFixtures,
+	PHC_PROFILES,
+	SEED_DEVICE_ID,
+	seedId,
+	type FixtureSet
+} from '../../seed/fixtures.js';
+import { toServerRow } from '../../seed/adapters.js';
+
+// ── CLI arguments ───────────────────────────────────────────────────────────
+
+const args = process.argv.slice(2).filter((a) => a !== '--');
+const phcArg = args.find((a) => a.startsWith('--phc='))?.slice('--phc='.length);
+const reset = args.includes('--reset');
+const forceRemote = args.includes('--force-remote');
+
+if (phcArg && !PHC_PROFILES.some((p) => p.slug === phcArg)) {
+	console.error(
+		`Unknown PHC "${phcArg}". Available: ${PHC_PROFILES.map((p) => p.slug).join(', ')}`
+	);
+	process.exit(1);
+}
 
 const dbUrl = process.env.DATABASE_URL;
 if (!dbUrl) {
-	throw new Error('DATABASE_URL is not set. Run with --env-file=.env');
+	throw new Error('DATABASE_URL is not set. Run with --env-file=.env (pnpm db:seed does this).');
+}
+
+// Refuse to write to a non-local database unless explicitly overridden.
+if (!forceRemote) {
+	let host = 'unknown';
+	try {
+		host = new URL(dbUrl).hostname;
+	} catch {
+		// fall through to the guard below
+	}
+	if (!['localhost', '127.0.0.1', '::1'].includes(host)) {
+		throw new Error(
+			`Refusing to seed non-local database (host: ${host}). Pass --force-remote only if you are certain.`
+		);
+	}
 }
 
 const client = postgres(dbUrl);
 const db = drizzle(client, { schema });
 
-// Minimal auth instance just for seeding
-const auth = betterAuth({
-	baseURL: 'http://localhost:5173',
-	secret: 'seed-secret-do-not-use-in-prod',
-	database: drizzleAdapter(db, { provider: 'pg' }),
-	emailAndPassword: { enabled: true }
-});
+// ── Helpers ─────────────────────────────────────────────────────────────────
 
-async function seed() {
-	console.log('🌱 Seeding database for ClinicFlow...');
+type AnyTable = { id: any; [key: string]: any };
 
-	// 1. Create a PHC in Benin City
-	console.log('-> Creating PHC: Oredo Primary Health Centre');
-	const [oredoPhc] = await db
-		.insert(schema.phcs)
-		.values({
-			name: 'Oredo Primary Health Centre',
-			lga: 'Oredo',
-			state: 'Edo State'
-		})
-		.returning();
-
-	// 2. Create Staff Users (with Better Auth login)
-	console.log('-> Creating Staff users (password: "password123")');
-	const staffToCreate = [
-		{ email: 'doctor@clinic.com', name: 'Dr. Osasere', role: 'doctor' },
-		{ email: 'nurse@clinic.com', name: 'Nurse Idia', role: 'nurse' },
-		{ email: 'reception@clinic.com', name: 'Receptionist Efe', role: 'receptionist' },
-		{ email: 'pharmacy@clinic.com', name: 'Pharmacist Nosakhare', role: 'pharmacy' },
-		{ email: 'admin@clinic.com', name: 'Admin Izevbokun', role: 'admin' }
-	];
-
-	const staffRecords = [];
-	for (const s of staffToCreate) {
-		// We use the auth API directly on the server instance
-		let user;
-		try {
-			const res = await auth.api.signUpEmail({
-				body: {
-					email: s.email,
-					password: 'password123',
-					name: s.name
-				}
-			});
-			user = res.user;
-		} catch (e: any) {
-			if (e.message?.includes('already exists') || e.status === 400) {
-				// Find existing user if already seeded
-				const existing = await db.query.user.findFirst({
-					where: (u, { eq }) => eq(u.email, s.email)
-				});
-				if (existing) user = existing;
-			} else {
-				throw e;
-			}
-		}
-
-		if (user) {
-			const [staff] = await db
-				.insert(schema.staff)
-				.values({
-					authUserId: user.id,
-					fullName: s.name,
-					role: s.role as any,
-					phcId: oredoPhc.id,
-					active: true
-				})
-				.onConflictDoNothing()
-				.returning();
-
-			// If it already existed, fetch it
-			if (!staff) {
-				const existingStaff = await db.query.staff.findFirst({
-					where: (st, { eq }) => eq(st.authUserId, user.id)
-				});
-				if (existingStaff) staffRecords.push(existingStaff);
-			} else {
-				staffRecords.push(staff);
-			}
-		}
-	}
-
-	const doctor = staffRecords.find((s) => s.role === 'doctor');
-	const nurse = staffRecords.find((s) => s.role === 'nurse');
-
-	// 3. Create Families and Patients
-	console.log('-> Creating Families and Patients');
-	const [familyA, familyB] = await db
-		.insert(schema.families)
-		.values([
-			{ householdName: 'The Igbinosa Family', community: 'GRA, Benin City' },
-			{ householdName: 'The Osagie Family', community: 'Ring Road, Benin City' }
-		])
-		.returning();
-
-	const [patient1, patient2, patient3, patient4, patient5] = await db
-		.insert(schema.patients)
-		.values([
-			{
-				clinicId: 'ORD-2026-001',
-				phcId: oredoPhc.id,
-				familyId: familyA.id,
-				fullName: 'Adesuwa Igbinosa',
-				phone: '08012345678',
-				dob: new Date('1990-05-15'),
-				sex: 'female',
-				address: '15 Boundary Road',
-				community: 'GRA',
-				isPregnant: true
-			},
-			{
-				clinicId: 'ORD-2026-002',
-				phcId: oredoPhc.id,
-				familyId: familyA.id,
-				fullName: 'Osaro Igbinosa',
-				phone: '08012345679',
-				estimatedAge: 38,
-				sex: 'male',
-				address: '15 Boundary Road',
-				community: 'GRA',
-				isPregnant: false
-			},
-			{
-				clinicId: 'ORD-2026-003',
-				phcId: oredoPhc.id,
-				familyId: familyB.id,
-				fullName: 'Efosa Osagie',
-				phone: '08098765432',
-				dob: new Date('2015-02-10'), // Child
-				sex: 'male',
-				address: '42 Mission Road',
-				community: 'Ring Road',
-				isPregnant: false
-			},
-			{
-				clinicId: 'ORD-2026-004',
-				phcId: oredoPhc.id,
-				fullName: 'Ivie Omoregie',
-				phone: '07011223344',
-				estimatedAge: 65,
-				sex: 'female',
-				address: '10 Sapele Road',
-				community: 'Oka',
-				isPregnant: false
-			},
-			{
-				clinicId: 'ORD-2026-005',
-				phcId: oredoPhc.id,
-				fullName: 'Nosakhare Eboigbe',
-				phone: '08122334455',
-				dob: new Date('1985-08-20'),
-				sex: 'male',
-				address: '5 Ekenwan Road',
-				community: 'Ugbiyoko',
-				isPregnant: false
-			}
-		])
-		.returning();
-
-	// Create Guardian relation for Efosa (Child) -> Osaro (Adult, let's pretend they are related or we just link family)
+/** Bulk upsert keyed by the deterministic id. */
+async function upsert(table: AnyTable, rows: Record<string, unknown>[]): Promise<number> {
+	if (rows.length === 0) return 0;
+	// Use the inserted values for every column. Never put the primary key in SET
+	// (each conflicting row would be rewritten to the first row's id), and never
+	// build SET from rows[0] alone (batches can have differing optional fields).
+	const setValues = Object.fromEntries(
+		Object.keys(rows[0])
+			.filter((key) => key !== 'id' && table[key] !== undefined)
+			.map((key) => [key, sql.raw(`excluded."${table[key].name}"`)])
+	);
 	await db
-		.update(schema.patients)
-		.set({ guardianId: patient2.id })
-		.where(eq(schema.patients.id, patient3.id));
-
-	// 4. Create Encounters & Vitals
-	console.log('-> Creating Encounters and Vitals');
-	const [enc1, enc2] = await db
-		.insert(schema.encounters)
-		.values([
-			{
-				patientId: patient1.id,
-				phcId: oredoPhc.id,
-				recordedByStaffId: nurse?.id,
-				chiefComplaint: 'Fever and headache for 3 days. Also experiencing slight nausea.',
-				chiefComplaintRaw: 'I dey get fever and headache since 3 days now, my body just dey hot.',
-				chiefComplaintLanguage: 'pidgin'
-			},
-			{
-				patientId: patient4.id,
-				phcId: oredoPhc.id,
-				recordedByStaffId: nurse?.id,
-				chiefComplaint: 'Routine BP check, feeling dizzy.'
-			}
-		])
-		.returning();
-
-	await db.insert(schema.vitalsRecords).values([
-		{
-			encounterId: enc1.id,
-			patientId: patient1.id,
-			temperatureCelsius: 38.5,
-			systolicBp: 110,
-			diastolicBp: 70,
-			pulseBpm: 90,
-			weightKg: 65,
-			triageLevel: 'amber',
-			triageReason: 'High Fever (≥38.0°C)'
-		},
-		{
-			encounterId: enc2.id,
-			patientId: patient4.id,
-			systolicBp: 165,
-			diastolicBp: 95,
-			pulseBpm: 85,
-			weightKg: 78,
-			triageLevel: 'red',
-			triageReason: 'Critical Hypertension (Systolic ≥160)'
-		}
-	]);
-
-	// 5. Create Queue Tickets
-	console.log('-> Creating Queue Tickets');
-	await db.insert(schema.queueTickets).values([
-		{
-			patientId: patient1.id,
-			phcId: oredoPhc.id,
-			encounterId: enc1.id,
-			ticketNumber: 1,
-			status: 'waiting',
-			triageLevel: 'amber',
-			triageReason: 'High Fever (≥38.0°C)'
-		},
-		{
-			patientId: patient4.id,
-			phcId: oredoPhc.id,
-			encounterId: enc2.id,
-			ticketNumber: 2,
-			status: 'called',
-			triageLevel: 'red',
-			triageReason: 'Critical Hypertension (Systolic ≥160)',
-			calledAt: new Date()
-		},
-		{
-			patientId: patient5.id,
-			phcId: oredoPhc.id,
-			ticketNumber: 3,
-			status: 'waiting',
-			triageLevel: 'green'
-		}
-	]);
-
-	// 6. Pharmacy Inventory
-	console.log('-> Creating Pharmacy Inventory');
-	const [itemAL, itemPara, itemAmox] = await db
-		.insert(schema.pharmacyInventory)
-		.values([
-			{
-				phcId: oredoPhc.id,
-				itemName: 'Artemether-Lumefantrine (AL) 20/120mg',
-				category: 'antimalarial',
-				unit: 'pack',
-				currentStock: 150,
-				lowStockThreshold: 20,
-				isCritical: true
-			},
-			{
-				phcId: oredoPhc.id,
-				itemName: 'Paracetamol 500mg',
-				category: 'analgesic',
-				unit: 'pack',
-				currentStock: 500,
-				lowStockThreshold: 50,
-				isCritical: false
-			},
-			{
-				phcId: oredoPhc.id,
-				itemName: 'Amoxicillin 500mg',
-				category: 'antibiotic',
-				unit: 'pack',
-				currentStock: 100,
-				lowStockThreshold: 30,
-				isCritical: true
-			},
-			{
-				phcId: oredoPhc.id,
-				itemName: 'Oral Rehydration Salts (ORS)',
-				category: 'other',
-				unit: 'sachet',
-				currentStock: 300,
-				lowStockThreshold: 50,
-				isCritical: true
-			},
-			{
-				phcId: oredoPhc.id,
-				itemName: 'Zinc Tablets 20mg',
-				category: 'other',
-				unit: 'pack',
-				currentStock: 200,
-				lowStockThreshold: 40,
-				isCritical: false
-			},
-			{
-				phcId: oredoPhc.id,
-				itemName: 'Sulfadoxine-Pyrimethamine (SP)',
-				category: 'antimalarial',
-				unit: 'dose',
-				currentStock: 80,
-				lowStockThreshold: 20,
-				isCritical: true
-			},
-			{
-				phcId: oredoPhc.id,
-				itemName: 'Mebendazole 500mg',
-				category: 'other',
-				unit: 'tablet',
-				currentStock: 150,
-				lowStockThreshold: 30,
-				isCritical: false
-			}
-		])
-		.returning();
-
-	// 7. Prescriptions
-	console.log('-> Creating Prescriptions');
-	await db.insert(schema.prescriptions).values([
-		{
-			encounterId: enc1.id,
-			patientId: patient1.id,
-			inventoryItemId: itemAL.id,
-			quantity: 1,
-			dosageInstructions: 'Take 1 pack over 3 days as directed.',
-			dispensed: false
-		},
-		{
-			encounterId: enc1.id,
-			patientId: patient1.id,
-			inventoryItemId: itemPara.id,
-			quantity: 10,
-			dosageInstructions: 'Take 2 tablets every 8 hours for fever.',
-			dispensed: false
-		}
-	]);
-
-	// 8. Triage Rules
-	console.log('-> Creating Triage Rules');
-	await db.insert(schema.triageRules).values([
-		{
-			phcId: oredoPhc.id,
-			field: 'temperatureCelsius',
-			operator: 'gte',
-			threshold: 39.5,
-			resultingLevel: 'red',
-			reasonTemplate: 'Critical Fever (≥39.5°C)',
-			requiresPregnant: false,
-			active: true,
-			version: 1
-		},
-		{
-			phcId: oredoPhc.id,
-			field: 'temperatureCelsius',
-			operator: 'gte',
-			threshold: 38.0,
-			resultingLevel: 'amber',
-			reasonTemplate: 'High Fever (≥38.0°C)',
-			requiresPregnant: false,
-			active: true,
-			version: 1
-		},
-		{
-			phcId: oredoPhc.id,
-			field: 'systolicBp',
-			operator: 'gte',
-			threshold: 160,
-			resultingLevel: 'red',
-			reasonTemplate: 'Critical Hypertension (Systolic ≥160)',
-			requiresPregnant: false,
-			active: true,
-			version: 1
-		},
-		{
-			phcId: oredoPhc.id,
-			field: 'systolicBp',
-			operator: 'gte',
-			threshold: 140,
-			resultingLevel: 'red',
-			reasonTemplate: 'Pregnancy Hypertension Alert (Systolic ≥140)',
-			requiresPregnant: true,
-			active: true,
-			version: 1
-		},
-		{
-			phcId: oredoPhc.id,
-			field: 'spo2Percent',
-			operator: 'lte',
-			threshold: 92,
-			resultingLevel: 'red',
-			reasonTemplate: 'Critical Hypoxia (SpO2 ≤92%)',
-			requiresPregnant: false,
-			active: true,
-			version: 1
-		}
-	]);
-
-	// 9. Reminders
-	console.log('-> Creating Reminders');
-	await db.insert(schema.reminders).values([
-		{
-			patientId: patient1.id,
-			phcId: oredoPhc.id,
-			type: 'antenatal',
-			label: 'ANC Follow-up Visit',
-			dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-			recipientPhone: patient1.phone!,
-			status: 'scheduled'
-		},
-		{
-			patientId: patient3.id,
-			phcId: oredoPhc.id,
-			type: 'immunization',
-			label: 'Polio Dose 3',
-			dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-			recipientPhone: patient2.phone!, // Osaro is guardian
-			status: 'scheduled'
-		}
-	]);
-
-	console.log('✅ Comprehensive seeding complete!');
-	process.exit(0);
+		.insert(table)
+		.values(rows as any)
+		.onConflictDoUpdate({ target: table.id, set: setValues as any });
+	return rows.length;
 }
 
-seed().catch((err) => {
-	console.error('Error seeding DB:', err);
-	process.exit(1);
-});
+/** Ensure a Better Auth user + credential account exist; return the real user id. */
+async function ensureAuthUser(input: {
+	id: string;
+	email: string;
+	name: string;
+	password: string;
+}): Promise<string> {
+	const [existing] = await db.select().from(schema.user).where(eq(schema.user.email, input.email));
+	if (existing) {
+		const [account] = await db
+			.select()
+			.from(schema.account)
+			.where(eq(schema.account.userId, existing.id));
+		if (!account) {
+			await db.insert(schema.account).values({
+				id: seedId(`auth:account:${input.email}`),
+				accountId: existing.id,
+				providerId: 'credential',
+				userId: existing.id,
+				password: await hashPassword(input.password)
+			});
+		}
+		return existing.id;
+	}
+
+	await db.insert(schema.user).values({
+		id: input.id,
+		email: input.email,
+		name: input.name,
+		emailVerified: true
+	});
+	await db.insert(schema.account).values({
+		id: seedId(`auth:account:${input.email}`),
+		accountId: input.id,
+		providerId: 'credential',
+		userId: input.id,
+		password: await hashPassword(input.password)
+	});
+	return input.id;
+}
+
+/** Delete only rows that belong to the deterministic fixture catalogue. */
+async function resetSeedRows(fixtures: FixtureSet[]) {
+	console.log('-> Removing previous fixture rows (--reset)');
+	const phcIds = fixtures.map((f) => f.phcId);
+	const patientIds = fixtures.flatMap((f) => f.patients.map((p) => p.id));
+	const emails = fixtures.flatMap((f) => f.authUsers.map((u) => u.email));
+
+	const byPhc = async (table: AnyTable) => {
+		await db.delete(table).where(inArray(table.phcId, phcIds));
+	};
+	const byId = async (table: AnyTable, ids: string[]) => {
+		if (ids.length) await db.delete(table).where(inArray(table.id, ids));
+	};
+
+	// Tables that reference patients/encounters rather than PHCs must go first.
+	if (patientIds.length) {
+		await db
+			.delete(schema.prescriptions)
+			.where(inArray(schema.prescriptions.patientId, patientIds));
+		await db
+			.delete(schema.vitalsRecords)
+			.where(inArray(schema.vitalsRecords.patientId, patientIds));
+		await db
+			.delete(schema.familyRelationships)
+			.where(inArray(schema.familyRelationships.patientId, patientIds));
+	}
+
+	await byPhc(schema.syncOperations);
+	await byPhc(schema.labRequests);
+	await byPhc(schema.queueTickets);
+	await byPhc(schema.restockRequests);
+	await byPhc(schema.encounters);
+	await byPhc(schema.appointments);
+	await byPhc(schema.pregnancyRecords);
+	await byPhc(schema.reminders);
+	await byPhc(schema.pharmacyInventory);
+	await byPhc(schema.devices);
+	await byPhc(schema.smsInbox);
+	await byPhc(schema.auditLog);
+	await byPhc(schema.permissions);
+	await byPhc(schema.staff);
+	await byPhc(schema.triageRules);
+	await byPhc(schema.patients);
+
+	for (const f of fixtures)
+		await byId(
+			schema.families,
+			f.families.map((x) => x.id)
+		);
+	await byId(schema.phcs, phcIds);
+
+	// Auth accounts are keyed by email, not by PHC.
+	const seededUsers = await db.select().from(schema.user).where(inArray(schema.user.email, emails));
+	const userIds = seededUsers.map((u) => u.id);
+	if (userIds.length) {
+		await db.delete(schema.account).where(inArray(schema.account.userId, userIds));
+		await db.delete(schema.session).where(inArray(schema.session.userId, userIds));
+		await db.delete(schema.user).where(inArray(schema.user.id, userIds));
+	}
+}
+
+// ── Seed one PHC ────────────────────────────────────────────────────────────
+
+async function seedFixture(f: FixtureSet) {
+	const { profile } = f;
+	console.log(`\n-> PHC: ${profile.name} (${profile.slug})`);
+
+	let rowsWritten = 0;
+
+	rowsWritten += await upsert(schema.phcs as AnyTable, [
+		{
+			id: f.phcId,
+			name: profile.name,
+			lga: profile.lga,
+			state: profile.state,
+			lgaDsoPhone: profile.lgaDsoPhone,
+			...profile.flags
+		}
+	]);
+
+	const userIds = new Map<string, string>();
+	for (const user of f.authUsers) userIds.set(user.email, await ensureAuthUser(user));
+
+	rowsWritten += await upsert(
+		schema.staff as AnyTable,
+		f.staff.map((s) => {
+			const owner = f.authUsers.find((u) => u.id === s.authUserId);
+			return {
+				...(toServerRow('staff', s as unknown as Record<string, unknown>) as Record<
+					string,
+					unknown
+				>),
+				authUserId: (owner && userIds.get(owner.email)) || s.authUserId
+			};
+		})
+	);
+
+	rowsWritten += await upsert(
+		schema.families as AnyTable,
+		f.families.map((x) => ({ id: x.id, householdName: x.householdName, community: x.community }))
+	);
+
+	const write = async (entityType: string, rows: Array<{ id: string }>) => {
+		const serverRows = rows.map(
+			(r) =>
+				toServerRow(entityType, r as unknown as Record<string, unknown>) as Record<string, unknown>
+		);
+		rowsWritten += await upsert(schema[entityType as keyof typeof schema] as AnyTable, serverRows);
+	};
+
+	await write('patients', f.patients);
+	await write('encounters', f.encounters);
+	await write('vitalsRecords', f.vitalsRecords);
+	await write('queueTickets', f.queueTickets);
+	await write('pharmacyInventory', f.pharmacyInventory);
+	await write('prescriptions', f.prescriptions);
+	await write('labRequests', f.labRequests);
+	await write('restockRequests', f.restockRequests);
+	await write('reminders', f.reminders);
+	await write('appointments', f.appointments);
+	await write('pregnancyRecords', f.pregnancyRecords);
+	await write('triageRules', f.triageRules);
+
+	rowsWritten += await upsert(schema.devices as AnyTable, f.serverOnly.devices);
+	rowsWritten += await upsert(schema.smsInbox as AnyTable, f.serverOnly.smsInbox);
+	rowsWritten += await upsert(schema.auditLog as AnyTable, f.serverOnly.auditLog);
+
+	// Sync log: client-shaped payloads so a fresh Dexie can pull this data.
+	const syncRows: Array<Record<string, unknown>> = [];
+	const log = (entityType: string, rows: Array<{ id: string; updatedAt: number }>) => {
+		for (const row of rows) {
+			syncRows.push({
+				id: seedId(`syncop:${profile.slug}:${entityType}:${row.id}`),
+				phcId: f.phcId,
+				deviceId: SEED_DEVICE_ID,
+				entityType,
+				entityId: row.id,
+				operation: 'create',
+				payload: JSON.stringify(row),
+				clientUpdatedAt: new Date(row.updatedAt)
+			});
+		}
+	};
+	log('patients', f.patients);
+	log('staff', f.staff);
+	log('families', f.families);
+	log('encounters', f.encounters);
+	log('vitalsRecords', f.vitalsRecords);
+	log('queueTickets', f.queueTickets);
+	log('pharmacyInventory', f.pharmacyInventory);
+	log('prescriptions', f.prescriptions);
+	log('labRequests', f.labRequests);
+	log('restockRequests', f.restockRequests);
+	log('reminders', f.reminders);
+	log('appointments', f.appointments);
+	log('pregnancyRecords', f.pregnancyRecords);
+	log('triageRules', f.triageRules);
+
+	await db
+		.insert(schema.syncOperations)
+		.values(syncRows as any)
+		.onConflictDoNothing();
+
+	console.log(
+		`   ${f.patients.length} patients, ${f.encounters.length} encounters, ` +
+			`${f.queueTickets.length} queue tickets, ${f.pharmacyInventory.length} stock items`
+	);
+	console.log(`   ~${rowsWritten} rows upserted, ${syncRows.length} sync operations published`);
+}
+
+// ── Main ────────────────────────────────────────────────────────────────────
+
+async function seed() {
+	console.log('🌱 Seeding ClinicFlow from the shared fixture catalogue…');
+
+	const fixtures = phcArg
+		? [buildFixtures(PHC_PROFILES.find((p) => p.slug === phcArg)!)]
+		: buildAllFixtures();
+
+	if (reset) await resetSeedRows(fixtures);
+	for (const f of fixtures) await seedFixture(f);
+
+	console.log('\n✅ Seeding complete. Demo logins use password "password123".');
+}
+
+seed()
+	.then(async () => {
+		await client.end();
+		process.exit(0);
+	})
+	.catch(async (err) => {
+		console.error('Error seeding DB:', err);
+		await client.end();
+		process.exit(1);
+	});

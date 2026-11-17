@@ -1,5 +1,6 @@
 import { LocalCollection } from './local-collection.svelte';
 import { db, type LocalPregnancyRecord } from '#lib/local-db/db.ts';
+import { sessionStore } from './session.svelte.ts';
 
 class PregnancyStore extends LocalCollection<LocalPregnancyRecord> {
 	constructor() {
@@ -14,10 +15,7 @@ class PregnancyStore extends LocalCollection<LocalPregnancyRecord> {
 		parity: number | null
 	) {
 		const id = crypto.randomUUID();
-		const phcId =
-			typeof localStorage !== 'undefined'
-				? localStorage.getItem('phcId') || 'demo-phc-1'
-				: 'demo-phc-1';
+		const phcId = sessionStore.activePhcId;
 
 		const record: LocalPregnancyRecord = {
 			id,

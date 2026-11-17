@@ -158,6 +158,8 @@
 		isResetting = true;
 		try {
 			await db.delete();
+			// A fresh Dexie must re-pull from the beginning, not the old cursor.
+			localStorage.removeItem('clinicflow_sync_cursor');
 			toast.success('Local database cleared. Reloading app...');
 			setTimeout(() => {
 				window.location.href = '/login';

@@ -2,6 +2,7 @@ import { db } from '#lib/local-db/db.ts';
 import { pushOperations, pullChanges } from '../../routes/sync/sync.remote';
 import { toast } from 'svelte-sonner';
 import { settingsStore } from '#lib/state/settings.svelte.ts';
+import { toClientRow } from '#lib/seed/adapters.ts';
 
 // Generate a stable device ID for sync segregation
 function getDeviceId() {
@@ -151,35 +152,19 @@ class SyncStore {
 
 			for (const change of changes) {
 				const table = (db as any)[change.entityType];
-				if (table) {
-					const payload = change.payload;
-					payload.syncStatus = 'synced'; // Overwrite with synced state
+				if (!table) continue;
 
-					if (change.operation === 'create' || change.operation === 'update') {
-						// Format JS timestamps
-						for (const [k, v] of Object.entries(payload)) {
-							if (
-								[
-									'dob',
-									'recordedAt',
-									'calledAt',
-									'completedAt',
-									'visitDate',
-									'dueDate',
-									'sentAt',
-									'dispensedAt',
-									'createdAt'
-								].includes(k) &&
-								typeof v === 'string'
-							) {
-								payload[k] = new Date(v).getTime();
-							}
-						}
-						await table.put(payload);
-					} else if (change.operation === 'delete') {
-						await table.delete(change.entityId);
-					}
+				if (change.operation === 'delete') {
+					await table.delete(change.entityId);
+					continue;
 				}
+				if (change.operation !== 'create' && change.operation !== 'update') continue;
+
+				// Compatibility shim: server payload -> client row. See
+				// docs/data-model/client-server-field-mapping.md.
+				const payload = toClientRow(change.entityType, change.payload) as Record<string, unknown>;
+				payload.syncStatus = 'synced';
+				await table.put(payload);
 			}
 
 			if (newCursor > this.cursor) {

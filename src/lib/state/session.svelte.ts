@@ -28,6 +28,14 @@ function createSessionStore() {
 		get phcId() {
 			return state.phcId;
 		},
+		/** PHC id for record writes, with the localStorage handoff from /connect and /onboarding. */
+		get activePhcId(): string {
+			if (state.phcId) return state.phcId;
+			if (typeof localStorage !== 'undefined') {
+				return localStorage.getItem('clinicflow_phc_id') ?? '';
+			}
+			return '';
+		},
 		get permissions() {
 			return state.permissions;
 		},

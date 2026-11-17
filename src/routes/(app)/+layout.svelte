@@ -103,6 +103,10 @@
 
 	if (sessionData) {
 		sessionStore.init(sessionData);
+		if (browser && sessionStore.phcId) {
+			// Without this the sync store never pushes or pulls anything.
+			syncStore.setPhcId(sessionStore.phcId);
+		}
 	}
 
 	if (browser && !sessionData?.user) {
@@ -184,7 +188,9 @@
 			if (mod.id === 'epi-queue') badge = queueStore.epiQueue.length;
 			if (mod.id === 'reminders') badge = reminderStore.pendingReminders?.length ?? 0;
 			if (mod.id === 'inventory')
-				badge = pharmacyStore.items.filter((i: any) => i.quantity <= (i.reorderLevel ?? 5)).length;
+				badge = pharmacyStore.items.filter(
+					(i: any) => i.currentStock <= i.lowStockThreshold
+				).length;
 
 			groups[mod.category].items.push({
 				href: mod.href,
@@ -241,7 +247,9 @@
 			if (mod.id === 'epi-queue') badge = queueStore.epiQueue.length;
 			if (mod.id === 'reminders') badge = reminderStore.pendingReminders?.length ?? 0;
 			if (mod.id === 'inventory')
-				badge = pharmacyStore.items.filter((i: any) => i.quantity <= (i.reorderLevel ?? 5)).length;
+				badge = pharmacyStore.items.filter(
+					(i: any) => i.currentStock <= i.lowStockThreshold
+				).length;
 
 			items.push({
 				href: mod.href,

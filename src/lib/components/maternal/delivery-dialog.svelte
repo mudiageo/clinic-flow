@@ -21,6 +21,7 @@
 	import { appointmentStore } from '#lib/state/appointments.svelte.ts';
 	import { reminderStore } from '#lib/state/reminders.svelte.ts';
 	import { pregnancyStore } from '#lib/state/pregnancy.svelte.ts';
+	import { sessionStore } from '#lib/state/session.svelte.ts';
 
 	let { open = $bindable(false), patientId, pregnancyRecordId, onComplete } = $props();
 
@@ -53,10 +54,7 @@
 
 		try {
 			const mother = patientStore.findById(patientId);
-			const phcId =
-				typeof localStorage !== 'undefined'
-					? localStorage.getItem('phcId') || 'demo-phc-1'
-					: 'demo-phc-1';
+			const phcId = sessionStore.activePhcId;
 			const deliveryDate = new Date(deliveryDateStr).getTime();
 
 			// 1. Mark pregnancy as delivered

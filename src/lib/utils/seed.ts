@@ -1,301 +1,85 @@
-import { patientStore } from '#lib/state/patients.svelte.ts';
-import { vitalsStore } from '#lib/state/vitals.svelte.ts';
-import { queueStore } from '#lib/state/queue.svelte.ts';
-import { encounterStore } from '#lib/state/encounters.svelte.ts';
-import { prescriptionStore } from '#lib/state/prescriptions.svelte.ts';
+/**
+ * Browser-side demo data seeder, driven by the same fixture catalogue as the
+ * Postgres seeder. Writes are idempotent (`bulkPut` on deterministic ids) and
+ * scoped to the currently connected PHC.
+ */
 
-export async function seedDemoData() {
-	// 1. Create Patients
-	const p1Id = await patientStore.create({
-		clinicId: 'PHC-DEMO-001',
-		phcId: 'PHC-DEMO',
-		name: 'Amina Bello',
-		sex: 'F',
-		dob: '1995-05-12',
-		phone: '08012345678',
-		address: '14 Market Rd, Kano',
-		community: 'Kano Municipal',
-		isPregnant: true,
-		familyId: null,
-		guardianId: null,
-		nextOfKinPhone: null,
-		deleted: false
-	});
+import { db, type Table } from '#lib/local-db/db.ts';
+import { sessionStore } from '#lib/state/session.svelte.ts';
+import { buildFixtures, PHC_PROFILES, seedId } from '#lib/seed/fixtures.ts';
 
-	const p2Id = await patientStore.create({
-		clinicId: 'PHC-DEMO-002',
-		phcId: 'PHC-DEMO',
-		name: 'Chinedu Eze',
-		sex: 'M',
-		dob: '1982-11-03',
-		phone: '08087654321',
-		address: '22 Independence Layout, Enugu',
-		community: 'Independence Layout',
-		isPregnant: false,
-		familyId: null,
-		guardianId: null,
-		nextOfKinPhone: null,
-		deleted: false
-	});
+export type DemoSeedResult = {
+	phcId: string;
+	profile: string;
+	counts: Record<string, number>;
+};
 
-	const p3Id = await patientStore.create({
-		clinicId: 'PHC-DEMO-003',
-		phcId: 'PHC-DEMO',
-		name: 'Fatima Musa',
-		sex: 'F',
-		dob: '2020-02-14',
-		phone: '09011122233',
-		address: 'Sabon Gari, Kaduna',
-		community: 'Sabon Gari',
-		isPregnant: false,
-		familyId: null,
-		guardianId: null,
-		nextOfKinPhone: null,
-		deleted: false
-	});
+const LEGACY_PHC_IDS = ['PHC-DEMO', 'demo-phc-1'];
 
-	// Outbreak Cluster (Cholera) - 5 Cases to trigger threshold
-	const ob1Id = await patientStore.create({
-		clinicId: 'PHC-OB-01',
-		phcId: 'PHC-DEMO',
-		isPregnant: false,
-		familyId: null,
-		guardianId: null,
-		nextOfKinPhone: null,
-		deleted: false,
-		name: 'Yusuf Ibrahim',
-		sex: 'M',
-		dob: '2015-08-20',
-		address: 'Bakin Ruwa',
-		community: 'Bakin Ruwa'
-	});
-	const ob2Id = await patientStore.create({
-		clinicId: 'PHC-OB-02',
-		phcId: 'PHC-DEMO',
-		isPregnant: false,
-		familyId: null,
-		guardianId: null,
-		nextOfKinPhone: null,
-		deleted: false,
-		name: 'Halima Sani',
-		sex: 'F',
-		dob: '2018-01-10',
-		address: 'Bakin Ruwa',
-		community: 'Bakin Ruwa'
-	});
-	const ob3Id = await patientStore.create({
-		clinicId: 'PHC-OB-03',
-		phcId: 'PHC-DEMO',
-		isPregnant: false,
-		familyId: null,
-		guardianId: null,
-		nextOfKinPhone: null,
-		deleted: false,
-		name: 'Kabir Usman',
-		sex: 'M',
-		dob: '1990-07-25',
-		address: 'Bakin Ruwa',
-		community: 'Bakin Ruwa'
-	});
-	const ob4Id = await patientStore.create({
-		clinicId: 'PHC-OB-04',
-		phcId: 'PHC-DEMO',
-		isPregnant: false,
-		familyId: null,
-		guardianId: null,
-		nextOfKinPhone: null,
-		deleted: false,
-		name: 'Zainab Ali',
-		sex: 'F',
-		dob: '2010-04-12',
-		address: 'Bakin Ruwa',
-		community: 'Bakin Ruwa'
-	});
-	const ob5Id = await patientStore.create({
-		clinicId: 'PHC-OB-05',
-		phcId: 'PHC-DEMO',
-		isPregnant: false,
-		familyId: null,
-		guardianId: null,
-		nextOfKinPhone: null,
-		deleted: false,
-		name: 'Musa Dauda',
-		sex: 'M',
-		dob: '1985-09-30',
-		address: 'Bakin Ruwa',
-		community: 'Bakin Ruwa'
-	});
+/** Remove rows written by the old client seeder so no orphan demo data remains. */
+async function purgeLegacyDemoRows() {
+	for (const table of [
+		db.patients,
+		db.queueTickets,
+		db.vitalsRecords,
+		db.pharmacyInventory,
+		db.labRequests,
+		db.reminders,
+		db.encounters,
+		db.prescriptions,
+		db.restockRequests,
+		db.appointments,
+		db.pregnancyRecords,
+		db.triageRules,
+		db.staff
+	] as unknown as Array<Table<{ phcId: string }, string>>) {
+		await table.where('phcId').anyOf(LEGACY_PHC_IDS).delete();
+	}
+}
 
-	// 2. Add Vitals & Encounters for Outbreak
-	await vitalsStore.create({
-		patientId: ob1Id,
-		encounterId: 'enc-ob-1',
-		temperatureCelsius: 39.2,
-		pulseBpm: 120,
-		systolicBp: 90,
-		diastolicBp: 60,
-		weightKg: null,
-		spo2Percent: null,
-		triageLevel: 'red',
-		triageReason: 'Dehydration',
-		recordedAt: Date.now()
-	});
-	await encounterStore.create({
-		patientId: ob1Id,
-		phcId: 'PHC-DEMO',
-		recordedByStaffId: 'staff-demo',
-		visitDate: Date.now(),
-		chiefComplaint: 'Severe watery diarrhea, vomiting for 2 days',
-		chiefComplaintRaw: null,
-		chiefComplaintLanguage: null,
-		doctorNotes: 'Patient severely dehydrated.',
-		isNhisBillable: false
-	});
+export async function seedDemoData(): Promise<DemoSeedResult> {
+	const storedPhcId =
+		typeof localStorage !== 'undefined' ? localStorage.getItem('clinicflow_phc_id') : null;
+	const currentPhcId = sessionStore.phcId || storedPhcId;
 
-	await vitalsStore.create({
-		patientId: ob2Id,
-		encounterId: 'enc-ob-2',
-		temperatureCelsius: 38.5,
-		pulseBpm: 110,
-		systolicBp: null,
-		diastolicBp: null,
-		weightKg: null,
-		spo2Percent: null,
-		triageLevel: 'amber',
-		triageReason: 'Fever and diarrhea',
-		recordedAt: Date.now()
-	});
-	await encounterStore.create({
-		patientId: ob2Id,
-		phcId: 'PHC-DEMO',
-		recordedByStaffId: 'staff-demo',
-		visitDate: Date.now(),
-		chiefComplaint: 'Frequent watery stools, abdominal cramps',
-		chiefComplaintRaw: null,
-		chiefComplaintLanguage: null,
-		doctorNotes: 'Monitor fluid intake.',
-		isNhisBillable: false
-	});
+	const profile =
+		PHC_PROFILES.find((p) => seedId(`${p.slug}:phc`) === currentPhcId) ?? PHC_PROFILES[0];
+	const fixtures = buildFixtures(profile);
+	const phcId = currentPhcId || fixtures.phcId;
 
-	await vitalsStore.create({
-		patientId: ob3Id,
-		encounterId: 'enc-ob-3',
-		temperatureCelsius: 39.0,
-		pulseBpm: null,
-		systolicBp: null,
-		diastolicBp: null,
-		weightKg: null,
-		spo2Percent: null,
-		triageLevel: 'amber',
-		triageReason: 'Vomiting and diarrhea',
-		recordedAt: Date.now()
-	});
-	await encounterStore.create({
-		patientId: ob3Id,
-		phcId: 'PHC-DEMO',
-		recordedByStaffId: 'staff-demo',
-		visitDate: Date.now(),
-		chiefComplaint: 'Diarrhea, fatigue, muscle cramps',
-		chiefComplaintRaw: null,
-		chiefComplaintLanguage: null,
-		doctorNotes: 'Observation required',
-		isNhisBillable: false
-	});
+	const counts: Record<string, number> = {};
+	const put = async <T extends { id: string }>(
+		table: Table<T, string>,
+		rows: T[],
+		name: string
+	) => {
+		await table.bulkPut(rows);
+		counts[name] = rows.length;
+	};
+	const retag = <T extends { phcId: string }>(rows: T[]): T[] =>
+		rows.map((row) => ({ ...row, phcId }));
 
-	await vitalsStore.create({
-		patientId: ob4Id,
-		encounterId: 'enc-ob-4',
-		temperatureCelsius: 39.1,
-		pulseBpm: null,
-		systolicBp: null,
-		diastolicBp: null,
-		weightKg: null,
-		spo2Percent: null,
-		triageLevel: 'amber',
-		triageReason: 'Diarrhea',
-		recordedAt: Date.now()
-	});
-	await encounterStore.create({
-		patientId: ob4Id,
-		phcId: 'PHC-DEMO',
-		recordedByStaffId: 'staff-demo',
-		visitDate: Date.now(),
-		chiefComplaint: 'Profuse watery diarrhea',
-		chiefComplaintRaw: null,
-		chiefComplaintLanguage: null,
-		doctorNotes: 'Patient stable',
-		isNhisBillable: false
-	});
+	await purgeLegacyDemoRows();
 
-	await vitalsStore.create({
-		patientId: ob5Id,
-		encounterId: 'enc-ob-5',
-		temperatureCelsius: 38.9,
-		pulseBpm: null,
-		systolicBp: null,
-		diastolicBp: null,
-		weightKg: null,
-		spo2Percent: null,
-		triageLevel: 'amber',
-		triageReason: 'Stooling',
-		recordedAt: Date.now()
-	});
-	await encounterStore.create({
-		patientId: ob5Id,
-		phcId: 'PHC-DEMO',
-		recordedByStaffId: 'staff-demo',
-		visitDate: Date.now(),
-		chiefComplaint: 'Passing watery stool constantly',
-		chiefComplaintRaw: null,
-		chiefComplaintLanguage: null,
-		doctorNotes: 'Needs monitoring',
-		isNhisBillable: false
-	});
+	await put(db.families, fixtures.families, 'families');
+	await put(db.staff, retag(fixtures.staff), 'staff');
+	await put(db.patients, retag(fixtures.patients), 'patients');
+	await put(db.encounters, retag(fixtures.encounters), 'encounters');
+	await put(db.vitalsRecords, retag(fixtures.vitalsRecords), 'vitalsRecords');
+	await put(db.queueTickets, retag(fixtures.queueTickets), 'queueTickets');
+	await put(db.pharmacyInventory, retag(fixtures.pharmacyInventory), 'pharmacyInventory');
+	await put(db.prescriptions, retag(fixtures.prescriptions), 'prescriptions');
+	await put(db.labRequests, retag(fixtures.labRequests), 'labRequests');
+	await put(db.restockRequests, retag(fixtures.restockRequests), 'restockRequests');
+	await put(db.reminders, retag(fixtures.reminders), 'reminders');
+	await put(db.appointments, retag(fixtures.appointments), 'appointments');
+	await put(db.pregnancyRecords, retag(fixtures.pregnancyRecords), 'pregnancyRecords');
+	await put(db.triageRules, retag(fixtures.triageRules), 'triageRules');
 
-	// 3. Queue patients for the demo
-	await vitalsStore.create({
-		patientId: p1Id,
-		encounterId: 'enc-demo-1',
-		temperatureCelsius: 37.1,
-		systolicBp: 120,
-		diastolicBp: 80,
-		pulseBpm: 75,
-		triageLevel: 'green',
-		triageReason: null,
-		recordedAt: Date.now()
-	});
-	await queueStore.create({
-		patientId: p1Id,
-		phcId: 'PHC-DEMO',
-		encounterId: null,
-		ticketNumber: 1,
-		status: 'waiting',
-		triageLevel: 'green',
-		triageReason: null,
-		department: 'general',
-		createdAt: Date.now()
-	});
+	// Keep the locally cached PHC id consistent with what was seeded.
+	if (typeof localStorage !== 'undefined') {
+		localStorage.setItem('clinicflow_phc_id', phcId);
+	}
 
-	await vitalsStore.create({
-		patientId: p2Id,
-		encounterId: 'enc-demo-2',
-		temperatureCelsius: 38.8,
-		systolicBp: 140,
-		diastolicBp: 90,
-		pulseBpm: 95,
-		triageLevel: 'amber',
-		triageReason: 'Fever',
-		recordedAt: Date.now()
-	});
-	await queueStore.create({
-		patientId: p2Id,
-		phcId: 'PHC-DEMO',
-		encounterId: null,
-		ticketNumber: 2,
-		status: 'waiting',
-		triageLevel: 'amber',
-		triageReason: 'Fever',
-		department: 'general',
-		createdAt: Date.now()
-	});
+	return { phcId, profile: profile.slug, counts };
 }

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { triageRuleStore } from '#lib/state/triage-rules.svelte.ts';
+	import { sessionStore } from '#lib/state/session.svelte.ts';
 	import {
 		Card,
 		CardHeader,
@@ -85,7 +86,7 @@
 		try {
 			await triageRuleStore.create({
 				...newRule,
-				phcId: 'demo-phc-1',
+				phcId: sessionStore.activePhcId,
 				active: true,
 				version: Date.now()
 			});

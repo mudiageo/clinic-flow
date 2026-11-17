@@ -3,6 +3,7 @@
 	import { vitalsStore } from '#lib/state/vitals.svelte.ts';
 	import { queueStore } from '#lib/state/queue.svelte.ts';
 	import { triageRuleStore } from '#lib/state/triage-rules.svelte.ts';
+	import { sessionStore } from '#lib/state/session.svelte.ts';
 	import { getPatientRiskScore } from '#lib/remote/ai.remote.ts';
 	import { settingsStore } from '#lib/state/settings.svelte.ts';
 	import QrScanner from '#lib/components/QrScanner.svelte';
@@ -59,7 +60,7 @@
 	onMount(async () => {
 		try {
 			// Seed default rules if empty
-			await triageRuleStore.seedDefaults('00000000-0000-0000-0000-000000000000');
+			await triageRuleStore.seedDefaults(sessionStore.activePhcId);
 		} catch (err) {
 			console.error('Failed to initialize triage rules:', err);
 		}
