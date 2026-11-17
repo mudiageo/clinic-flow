@@ -27,7 +27,31 @@ const operationSchema = v.object({
 });
 
 export const pushOperations = command(v.array(operationSchema), async (operations) => {
-	requireAuth();
+	const locals = requireAuth();
+
+	// PHC guard: all operations must belong to the authenticated user's PHC.
+	// Prevents FK violations from stale local data after server reset/re-seed.
+	const sessionPhcId = locals.phcId;
+	if (!sessionPhcId) {
+		// User has no PHC (e.g., superadmin without assignment) — reject all writes.
+		return {
+			accepted: [],
+			conflicts: operations.map((op) => ({
+				localId: op.localId,
+				reason: 'user-has-no-phc-assignment'
+			}))
+		};
+	}
+
+	// Validate all incoming operations carry the correct PHC.
+	for (const op of operations) {
+		if (op.phcId !== sessionPhcId) {
+			// Rewrite the operation's PHC to the session's PHC instead of rejecting.
+			// This handles stale local data after server reseed.
+			op.phcId = sessionPhcId;
+		}
+	}
+
 	const accepted: number[] = [];
 	const conflicts: unknown[] = [];
 
