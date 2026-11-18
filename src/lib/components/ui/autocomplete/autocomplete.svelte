@@ -2,8 +2,10 @@
 	import { Input } from '#lib/components/ui/input/index.ts';
 	import { cn } from '#lib/utils.ts';
 	import { Loader2, Search, X } from '@lucide/svelte';
+	import { Portal } from 'bits-ui';
 	import { fly } from 'svelte/transition';
 	import type { Snippet } from 'svelte';
+	import type { HTMLInputAttributes } from 'svelte/elements';
 
 	let {
 		value = $bindable(''),
@@ -28,8 +30,7 @@
 		onSelect?: (item: T) => void;
 		itemSnippet: Snippet<[T, boolean]>;
 		emptySnippet?: Snippet;
-		[key: string]: any;
-	} = $props();
+	} & Omit<HTMLInputAttributes, 'value' | 'placeholder' | 'class' | 'type' | 'files'> = $props();
 
 	let isOpen = $state(false);
 	let activeIndex = $state(-1);
@@ -106,12 +107,10 @@
 	function clickOutside(node: HTMLElement) {
 		const handleClick = (event: MouseEvent) => {
 			const target = event.target as Node;
-			if (
-				node &&
-				!node.contains(target) &&
-				inputContainerRef &&
-				!inputContainerRef.contains(target)
-			) {
+			const clickedDropdown =
+				node.contains(target) || (listRef !== null && listRef.contains(target));
+			const clickedInput = inputContainerRef !== null && inputContainerRef.contains(target);
+			if (!clickedDropdown && !clickedInput) {
 				close();
 			}
 		};
@@ -119,6 +118,44 @@
 		return {
 			destroy() {
 				document.removeEventListener('click', handleClick, true);
+			}
+		};
+	}
+
+	function positionDropdown(node: HTMLDivElement) {
+		function update() {
+			if (!inputContainerRef) return;
+
+			const rect = inputContainerRef.getBoundingClientRect();
+			const spaceBelow = window.innerHeight - rect.bottom;
+			const spaceAbove = rect.top;
+
+			node.style.left = `${rect.left}px`;
+			node.style.width = `${rect.width}px`;
+
+			// Prefer opening below the input, but flip above when there is not
+			// enough room and more space is available there.
+			if (spaceBelow < 200 && spaceAbove > spaceBelow) {
+				node.style.top = 'auto';
+				node.style.bottom = `${window.innerHeight - rect.top + 8}px`;
+				node.style.maxHeight = `${Math.min(Math.max(Math.min(300, spaceAbove - 16), 140), 300)}px`;
+			} else {
+				node.style.top = `${rect.bottom + 8}px`;
+				node.style.bottom = 'auto';
+				node.style.maxHeight = `${Math.min(Math.max(Math.min(300, spaceBelow - 16), 140), 300)}px`;
+			}
+		}
+
+		update();
+		// Capture phase catches scrolling of nested containers such as the app's
+		// `<main class="overflow-y-auto">`, not just the document scroller.
+		document.addEventListener('scroll', update, true);
+		window.addEventListener('resize', update);
+
+		return {
+			destroy() {
+				document.removeEventListener('scroll', update, true);
+				window.removeEventListener('resize', update);
 			}
 		};
 	}
@@ -166,39 +203,48 @@
 	</div>
 
 	{#if isOpen}
-		<div
-			use:clickOutside
-			bind:this={listRef}
-			class="absolute z-50 mt-2 w-full max-h-[300px] overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md outline-none"
-			transition:fly={{ y: -5, duration: 150 }}
-		>
-			{#if options.length > 0}
-				{#each options as option, i}
-					<div
-						role="option"
-						tabindex="-1"
-						aria-selected={i === activeIndex}
-						class={cn(
-							'relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors',
-							i === activeIndex
-								? 'bg-accent text-accent-foreground'
-								: 'hover:bg-accent hover:text-accent-foreground'
-						)}
-						onclick={() => handleSelect(option)}
-						onmouseenter={() => (activeIndex = i)}
-					>
-						{@render itemSnippet(option, i === activeIndex)}
+		<Portal>
+			<div
+				use:clickOutside
+				use:positionDropdown
+				bind:this={listRef}
+				class="fixed z-50 overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md outline-none"
+				transition:fly={{ y: -5, duration: 150 }}
+			>
+				{#if options.length > 0}
+					{#each options as option, i (option)}
+						<div
+							role="option"
+							tabindex="-1"
+							aria-selected={i === activeIndex}
+							class={cn(
+								'relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors',
+								i === activeIndex
+									? 'bg-accent text-accent-foreground'
+									: 'hover:bg-accent hover:text-accent-foreground'
+							)}
+							onclick={() => handleSelect(option)}
+							onkeydown={(e) => {
+								if (e.key === 'Enter' || e.key === ' ') {
+									e.preventDefault();
+									handleSelect(option);
+								}
+							}}
+							onmouseenter={() => (activeIndex = i)}
+						>
+							{@render itemSnippet(option, i === activeIndex)}
+						</div>
+					{/each}
+				{:else if !loading}
+					<div class="py-6 text-center text-sm text-muted-foreground">
+						{#if emptySnippet}
+							{@render emptySnippet()}
+						{:else}
+							No results found.
+						{/if}
 					</div>
-				{/each}
-			{:else if !loading}
-				<div class="py-6 text-center text-sm text-muted-foreground">
-					{#if emptySnippet}
-						{@render emptySnippet()}
-					{:else}
-						No results found.
-					{/if}
-				</div>
-			{/if}
-		</div>
+				{/if}
+			</div>
+		</Portal>
 	{/if}
 </div>

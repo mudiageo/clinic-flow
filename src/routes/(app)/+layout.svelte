@@ -14,6 +14,7 @@
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/env';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 
 	import * as Sidebar from '#lib/components/ui/sidebar/index.ts';
 	import AppSidebar from '#lib/components/app-sidebar.svelte';
@@ -70,6 +71,16 @@
 	} from '@lucide/svelte';
 
 	let { children } = $props();
+
+	// Routes that provide their own padding (nested settings layout, standalone
+	// print view) opt out of the shared app-shell padding applied around children.
+	const SELF_PADDED_ROUTES = ['/settings', '/doctor/referral/print'];
+	const isSelfPadded = $derived(
+		SELF_PADDED_ROUTES.some((route) => {
+			const routeId = page.route.id;
+			return routeId === route || routeId?.startsWith(`${route}/`) === true;
+		})
+	);
 
 	setContext('session', {
 		get user() {
@@ -295,7 +306,14 @@
 			<AnnouncementBanner />
 
 			<main class="flex-1 overflow-y-auto bg-muted/10 pb-16 md:pb-0">
-				{@render children()}
+				<!-- Opt-out routes supply their own spacing; everyone else inherits the shell padding. -->
+				{#if isSelfPadded}
+					{@render children()}
+				{:else}
+					<div class="px-4 py-6 md:px-6 print:p-0">
+						{@render children()}
+					</div>
+				{/if}
 			</main>
 
 			<BottomNav items={bottomNavItems} />

@@ -17,8 +17,11 @@
 		TableHeader,
 		TableRow
 	} from '#lib/components/ui/table/index.ts';
+	import type { getPhcDetails } from '#lib/remote/superadmin.remote.ts';
 
-	let { data } = $props<{ data: { phc: any } }>();
+	type PhcDetails = NonNullable<Awaited<ReturnType<typeof getPhcDetails>>>;
+
+	let { data } = $props<{ data: { phc: PhcDetails } }>();
 	const phc = $derived(data.phc);
 </script>
 
@@ -26,7 +29,7 @@
 	<title>{phc.name} — Superadmin</title>
 </svelte:head>
 
-<div class="space-y-6 animate-fade-in max-w-6xl mx-auto py-8">
+<div class="space-y-6 animate-fade-in max-w-6xl mx-auto">
 	<div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
 		<div class="flex items-start gap-3">
 			<div class="p-3 rounded-xl bg-primary/10 text-primary">

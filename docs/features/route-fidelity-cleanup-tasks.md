@@ -76,6 +76,13 @@
 - [ ] **NW-11** `settings/notifications`: resolve "SMS Notifications (Coming Soon)"
 - [ ] Confirm marketing `pitch` stats are acceptable as static copy (DB-era decision)
 
+## Phase G — App-shell spacing & search dropdown (P1)
+
+- [x] **UI-01** Centralize responsive page padding in `(app)/+layout.svelte` (self-padded settings/print routes opt out)
+- [x] **UI-02** Remove redundant per-route `p-*`/`px-*`/`pt-*`/`py-8`/`mt-6` padding from 18 pages
+- [x] **UI-03** Portal the Autocomplete dropdown and position it relative to the input so patient results are not clipped by `Card overflow-hidden`
+- [x] **UI-04** Preserve keyboard navigation, click-outside, scroll/resize repositioning, and flip-up behavior for the portaled dropdown
+
 ## Docs & release hygiene
 
 - [ ] Create/update user-facing docs (Walkthrough/tooltips/guides) for changed flows

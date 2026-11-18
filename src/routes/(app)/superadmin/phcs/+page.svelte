@@ -42,7 +42,7 @@
 	<title>PHC Directory — ClinicFlow</title>
 </svelte:head>
 
-<div class="mx-auto max-w-6xl space-y-8 py-8 animate-fade-in">
+<div class="mx-auto max-w-6xl space-y-8 animate-fade-in">
 	<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 		<div class="flex items-start gap-3">
 			<Button variant="ghost" size="icon" href="/superadmin" aria-label="Back to Superadmin">

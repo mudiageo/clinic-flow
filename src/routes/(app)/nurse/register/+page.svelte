@@ -168,7 +168,7 @@
 	<title>Register Patient — ClinicFlow</title>
 </svelte:head>
 
-<div class="max-w-5xl mx-auto space-y-8 animate-fade-in mt-6">
+<div class="max-w-5xl mx-auto space-y-8 animate-fade-in">
 	<!-- Header -->
 	<div class="flex items-start gap-3 border-b border-border pb-6">
 		<div class="p-2.5 rounded-xl bg-primary/10 text-primary">

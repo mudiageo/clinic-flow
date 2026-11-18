@@ -31,7 +31,7 @@
 	<title>Reminders — ClinicFlow</title>
 </svelte:head>
 
-<div class="max-w-6xl mx-auto space-y-8 animate-fade-in mt-6">
+<div class="max-w-6xl mx-auto space-y-8 animate-fade-in">
 	<div
 		class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-6"
 	>

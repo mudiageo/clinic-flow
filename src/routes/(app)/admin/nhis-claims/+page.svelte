@@ -32,7 +32,7 @@
 	<title>NHIS Claims — ClinicFlow</title>
 </svelte:head>
 
-<div class="space-y-6 animate-fade-in max-w-5xl mx-auto py-8">
+<div class="space-y-6 animate-fade-in max-w-5xl mx-auto">
 	<div class="flex items-start gap-3">
 		<div class="p-2.5 rounded-xl bg-blue-500/10 text-blue-600">
 			<FileText class="size-6" />

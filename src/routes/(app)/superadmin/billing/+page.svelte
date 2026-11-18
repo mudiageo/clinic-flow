@@ -16,7 +16,7 @@
 	<title>Billing & Subscriptions — Superadmin</title>
 </svelte:head>
 
-<div class="space-y-6 animate-fade-in max-w-5xl mx-auto py-8">
+<div class="space-y-6 animate-fade-in max-w-5xl mx-auto">
 	<div class="flex items-start gap-3">
 		<div class="p-2.5 rounded-xl bg-primary/10 text-primary">
 			<CreditCard class="size-6" />

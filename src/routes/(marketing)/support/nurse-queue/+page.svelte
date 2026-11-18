@@ -25,6 +25,19 @@
 		Links containing <code>?tab=anc</code> or <code>?tab=epi</code> open the requested queue directly.
 	</p>
 
+	<h2>Find a patient</h2>
+	<ul>
+		<li>
+			Use <strong>Patient Search</strong> and type at least two characters of the name, clinic ID, or
+			phone number. All matching patients appear in a scrollable results list — scroll the list to see
+			the full set before selecting one.
+		</li>
+		<li>
+			Select a patient to review their profile, then choose a clinic/queue and route them to the
+			waiting queue. To record triage and vital signs, use <strong>Take Vitals Instead</strong>.
+		</li>
+	</ul>
+
 	<h2>Call and complete a ticket</h2>
 	<ul>
 		<li>

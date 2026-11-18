@@ -216,7 +216,7 @@
 	<title>Announcements — Superadmin</title>
 </svelte:head>
 
-<div class="mx-auto max-w-7xl space-y-6 px-4 py-8 md:px-8">
+<div class="mx-auto max-w-7xl space-y-6">
 	<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
 		<div class="flex items-start gap-3">
 			<div class="rounded-xl bg-primary/10 p-2.5 text-primary">

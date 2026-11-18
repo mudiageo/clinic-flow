@@ -34,7 +34,7 @@
 	<title>Epidemiology Map — Superadmin</title>
 </svelte:head>
 
-<div class="space-y-8 animate-fade-in max-w-6xl mx-auto py-8">
+<div class="space-y-8 animate-fade-in max-w-6xl mx-auto">
 	<div class="flex items-start justify-between">
 		<div class="flex items-start gap-3">
 			<div class="p-2.5 rounded-xl bg-destructive/10 text-destructive">

@@ -1,6 +1,6 @@
 # Route Fidelity Cleanup — Implementation Plan
 
-**Status:** Phases A–C complete (except ST-14, deferred) — Phase D next
+**Status:** Phases A–C complete (except ST-14, deferred) — Phase D next; app-shell spacing + search dropdown clipping fixed (2026-11-18)
 **Created:** 2026-11-17
 **Source audits:** Systematic read-only review of every route under `src/routes/**`, the dashboard module config, and all supporting stores/remotes. Four parallel audits covered admin, superadmin/settings, clinical, and dashboard/public routes. No code was changed by the audit.
 
@@ -217,3 +217,11 @@ Several findings involve AI or clinical data integrity. Per `AGENTS.md` §7.2, t
 3. **Deferred pages (MK-05 announcements, MK-06 billing):** implement full remote+DB now, or add an explicit "Demo — not connected" banner now and defer?
 4. **Auth backdoor (ST-14):** remove outright, or keep behind an explicit dev-only flag? (Recommended: remove.)
 5. **Order:** which phase/item IDs should I implement first? The user indicated they will choose what to work on.
+
+---
+
+## 9. App-shell spacing & search dropdown (Phase G, 2026-11-18)
+
+The authenticated `<main>` had no horizontal or top padding, so ~33 routes touched the screen edges while ~28 routes patched it locally with inconsistent `p-6` / `px-4` / `py-8` / `mt-6`. Padding is now centralized in `(app)/+layout.svelte` as `<div class="px-4 py-6 md:px-6 print:p-0">` around `{@render children()}`; 18 pages had their redundant local padding removed. Routes that already provide their own spacing (`/settings` nested layout, `/doctor/referral/print`) opt out via `page.route.id`. Full-height and print pages were deliberately left untouched.
+
+Patient search results were clipped because the Autocomplete dropdown was an `absolute` child inside shadcn `Card` (which has `overflow-hidden`) and the app shell's scroll containers. The dropdown now renders through bits-ui `Portal` to `document.body` and uses `position: fixed` anchored to the input's `getBoundingClientRect()`, with flip-up, viewport-height clamping, and scroll/resize listeners that are cleaned up on destroy. Keyboard selection, click-outside, and all consumer snippets are unchanged.

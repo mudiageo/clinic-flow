@@ -200,7 +200,7 @@
 	<title>Dashboard — ClinicFlow</title>
 </svelte:head>
 
-<div class="space-y-8 animate-fade-in px-4 md:px-8 pt-6">
+<div class="space-y-8 animate-fade-in">
 	<!-- ── Header ── -->
 	<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
 		<div class="flex items-center gap-3">
