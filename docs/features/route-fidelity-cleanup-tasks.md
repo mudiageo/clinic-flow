@@ -15,12 +15,12 @@
 
 ## Phase B — Dashboard data (P0)
 
-- [ ] **DB-01** Add `queueStore.completedToday` derived value; replace hardcoded `24`
-- [ ] **DB-02** Add `syncStore.syncHealth` derived value; replace hardcoded `89%`
-- [ ] **DB-03** Define capacity model; replace hardcoded `45%` / `<Progress value={45}>`
-- [ ] **DB-04** Replace bad low-stock filter with `pharmacyStore.lowStock`
-- [ ] **DB-05** Add `reminderStore.overdueReminders`; fix "overdue" label
-- [ ] Remove all `: any` casts from dashboard widget code
+- [x] **DB-01** Add `queueStore.completedToday` derived value; replace hardcoded `24`
+- [x] **DB-02** Add `syncStore.syncHealth` derived value; replace hardcoded `89%`
+- [x] **DB-03** Define capacity model; replace hardcoded `45%` / `<Progress value={45}>`
+- [x] **DB-04** Replace bad low-stock filter with `pharmacyStore.lowStock`
+- [x] **DB-05** Add `reminderStore.overdueReminders`; fix "overdue" label
+- [x] Remove all `: any` casts from dashboard widget code
 
 ## Phase C — Stub IDs & store wiring (P1)
 

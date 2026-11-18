@@ -135,6 +135,7 @@ export const phcs = pgTable('phcs', {
 	state: varchar('state', { length: 80 }).notNull(),
 	termiiApiKey: varchar('termii_api_key', { length: 255 }),
 	syncPollInterval: integer('sync_poll_interval').notNull().default(30),
+	dailyPatientCapacity: integer('daily_patient_capacity').notNull().default(100),
 
 	// Feature Flags
 	maternalHealthEnabled: boolean('maternal_health_enabled').notNull().default(true),

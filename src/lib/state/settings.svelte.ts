@@ -5,6 +5,7 @@ export type PhcSettings = {
 	state?: string;
 	lga?: string;
 	syncPollInterval: number;
+	dailyPatientCapacity: number;
 	maternalHealthEnabled: boolean;
 	immunizationEnabled: boolean;
 	aiVoiceEnabled: boolean;
@@ -22,6 +23,7 @@ const DEFAULT_SETTINGS: PhcSettings = {
 	state: 'Unknown',
 	lga: 'Unknown',
 	syncPollInterval: 15,
+	dailyPatientCapacity: 100,
 	maternalHealthEnabled: true,
 	immunizationEnabled: true,
 	aiVoiceEnabled: true,
@@ -67,6 +69,7 @@ class SettingsStore {
 					state: serverSettings.state,
 					lga: serverSettings.lga,
 					syncPollInterval: serverSettings.syncPollInterval,
+					dailyPatientCapacity: serverSettings.dailyPatientCapacity ?? 100,
 					maternalHealthEnabled: serverSettings.maternalHealthEnabled,
 					immunizationEnabled: serverSettings.immunizationEnabled,
 					aiVoiceEnabled: serverSettings.aiVoiceEnabled,

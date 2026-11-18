@@ -70,6 +70,7 @@ export type PhcProfile = {
 	state: string;
 	clinicPrefix: string;
 	patientCount: number;
+	dailyPatientCapacity: number;
 	familyCount: number;
 	stockLevel: 'healthy' | 'low' | 'critical';
 	outbreak: boolean;
@@ -136,6 +137,7 @@ export const PHC_PROFILES: PhcProfile[] = [
 		state: 'Edo State',
 		clinicPrefix: 'ORD',
 		patientCount: 45,
+		dailyPatientCapacity: 120,
 		familyCount: 12,
 		stockLevel: 'healthy',
 		outbreak: false,
@@ -150,6 +152,7 @@ export const PHC_PROFILES: PhcProfile[] = [
 		state: 'Edo State',
 		clinicPrefix: 'IKP',
 		patientCount: 25,
+		dailyPatientCapacity: 80,
 		familyCount: 7,
 		stockLevel: 'low',
 		outbreak: false,
@@ -171,6 +174,7 @@ export const PHC_PROFILES: PhcProfile[] = [
 		state: 'Edo State',
 		clinicPrefix: 'EGR',
 		patientCount: 15,
+		dailyPatientCapacity: 60,
 		familyCount: 4,
 		stockLevel: 'critical',
 		outbreak: true,

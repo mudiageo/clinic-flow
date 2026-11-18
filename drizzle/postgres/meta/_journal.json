@@ -99,6 +99,13 @@
       "when": 1794997934315,
       "tag": "0013_outreach-records",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1795001397628,
+      "tag": "0014_daily-patient-capacity",
+      "breakpoints": true
     }
   ]
 }

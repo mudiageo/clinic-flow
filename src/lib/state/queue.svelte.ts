@@ -1,16 +1,33 @@
 import { db, type LocalQueueTicket } from '#lib/local-db/db.ts';
 import { LocalCollection } from './local-collection.svelte';
 import { syncStore } from './sync.svelte';
+import {
+	ACTIVE_QUEUE_STATUSES,
+	isCompletedToday,
+	queueVolumeToday,
+	startOfLocalDay
+} from '#lib/dashboard/metrics.ts';
 
 class QueueStore extends LocalCollection<LocalQueueTicket> {
 	constructor() {
-		super(db.queueTickets, 'queueTickets', () =>
-			db.queueTickets.where('status').anyOf(['waiting', 'called', 'in_progress']).toArray()
-		);
+		super(db.queueTickets, 'queueTickets', () => {
+			const today = startOfLocalDay();
+			return db.queueTickets
+				.filter(
+					(ticket) =>
+						ACTIVE_QUEUE_STATUSES.includes(ticket.status) ||
+						(ticket.status === 'done' && (ticket.completedAt ?? 0) >= today)
+				)
+				.toArray();
+		});
 	}
 
+	activeQueue = $derived(
+		this.items.filter((ticket) => ACTIVE_QUEUE_STATUSES.includes(ticket.status))
+	);
+
 	sortedQueue = $derived(
-		[...this.items].sort((a, b) => {
+		[...this.activeQueue].sort((a, b) => {
 			const priority = { red: 0, amber: 1, green: 2, unassigned: 3 };
 			if (priority[a.triageLevel] !== priority[b.triageLevel]) {
 				return priority[a.triageLevel] - priority[b.triageLevel];
@@ -24,6 +41,8 @@ class QueueStore extends LocalCollection<LocalQueueTicket> {
 	epiQueue = $derived(this.sortedQueue.filter((t) => t.department === 'epi'));
 
 	nextTicket = $derived(this.sortedQueue.find((ticket) => ticket.status === 'waiting') ?? null);
+	completedToday = $derived(this.items.filter((ticket) => isCompletedToday(ticket)).length);
+	todayVolume = $derived(queueVolumeToday(this.items));
 
 	async callNext(): Promise<void> {
 		const next = this.nextTicket;

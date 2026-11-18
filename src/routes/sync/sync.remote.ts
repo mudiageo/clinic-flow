@@ -420,6 +420,8 @@ export const getQueueUpdates = query.live(
 );
 
 export const getPhcSettings = query(v.string(), async (phcId) => {
+	const locals = requireAuth();
+	if (!locals.phcId || locals.phcId !== phcId) error(403, 'PHC scope mismatch');
 	const [phc] = await database.select().from(phcs).where(eq(phcs.id, phcId)).limit(1);
 	return phc || null;
 });
@@ -428,6 +430,9 @@ export const updatePhcSettings = command(
 	v.object({
 		phcId: v.string(),
 		settings: v.object({
+			dailyPatientCapacity: v.optional(
+				v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(10_000))
+			),
 			maternalHealthEnabled: v.optional(v.boolean()),
 			immunizationEnabled: v.optional(v.boolean()),
 			aiVoiceEnabled: v.optional(v.boolean()),
@@ -440,6 +445,11 @@ export const updatePhcSettings = command(
 		})
 	}),
 	async ({ phcId, settings }) => {
+		const locals = requireAuth();
+		if (!locals.phcId || locals.phcId !== phcId) error(403, 'PHC scope mismatch');
+		if (locals.role !== 'superadmin' && !locals.permissions?.includes('manage:phc')) {
+			error(403, 'Missing PHC-management permission');
+		}
 		await database.update(phcs).set(settings).where(eq(phcs.id, phcId));
 		return true;
 	}

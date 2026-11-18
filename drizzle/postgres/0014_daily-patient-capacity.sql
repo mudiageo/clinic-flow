@@ -1,0 +1,1 @@
+ALTER TABLE "phcs" ADD COLUMN "daily_patient_capacity" integer DEFAULT 100 NOT NULL;

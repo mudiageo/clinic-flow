@@ -7,6 +7,7 @@ import { shouldApplyRemoteChange } from '#lib/sync/conflict-resolution.ts';
 import { WakeupScheduler } from '#lib/sync/wakeup-scheduler.ts';
 import { watchRealtimeSignals } from '#lib/remote/realtime-sync.remote.ts';
 import type { Table } from 'dexie';
+import { calculateSyncHealth } from '#lib/dashboard/metrics.ts';
 
 type SyncableRecord = Record<string, unknown> & {
 	id?: string;
@@ -55,6 +56,15 @@ class SyncStore {
 	conflicts = $state<{ id: string; entityType: string; reason: string }[]>([]);
 	realtimeState = $state<'idle' | 'connecting' | 'live' | 'stale' | 'offline' | 'error'>('idle');
 	lastRealtimeAt = $state<number | null>(null);
+	syncHealth = $derived(
+		calculateSyncHealth({
+			online: this.online,
+			realtimeState: this.realtimeState,
+			pendingCount: this.pendingCount,
+			conflictCount: this.conflicts.length,
+			hasSynced: this.lastSyncedAt !== null
+		})
+	);
 
 	private phcId: string | null = null;
 	private cursor = 0;

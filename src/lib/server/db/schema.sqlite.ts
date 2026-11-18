@@ -54,6 +54,7 @@ export const phcs = sqliteTable('phcs', {
 	state: text('state').notNull(),
 	termiiApiKey: text('termii_api_key'),
 	syncPollInterval: integer('sync_poll_interval').notNull().default(30),
+	dailyPatientCapacity: integer('daily_patient_capacity').notNull().default(100),
 	maternalHealthEnabled: integer('maternal_health_enabled', { mode: 'boolean' })
 		.notNull()
 		.default(true),

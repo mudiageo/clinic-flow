@@ -108,6 +108,7 @@ export const updatePhcSettings = command(
 		lgaDsoPhone: v.optional(v.string()),
 		termiiApiKey: v.nullable(v.string()),
 		syncPollInterval: v.number(),
+		dailyPatientCapacity: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(10_000)),
 		maternalHealthEnabled: v.boolean(),
 		immunizationEnabled: v.boolean(),
 		aiVoiceEnabled: v.boolean(),

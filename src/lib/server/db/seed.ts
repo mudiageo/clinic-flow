@@ -202,6 +202,7 @@ async function seedFixture(f: FixtureSet) {
 			lga: profile.lga,
 			state: profile.state,
 			lgaDsoPhone: profile.lgaDsoPhone,
+			dailyPatientCapacity: profile.dailyPatientCapacity,
 			...profile.flags
 		}
 	]);

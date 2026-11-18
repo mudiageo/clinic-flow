@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { updatePhcSettings } from '#lib/remote/admin.remote.ts';
+	import { getPhcSettings, updatePhcSettings } from '#lib/remote/admin.remote.ts';
 	import { db } from '#lib/local-db/db.ts';
 	import { Input } from '#lib/components/ui/input/index.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
@@ -34,48 +34,29 @@
 	import { Switch } from '#lib/components/ui/switch/index.ts';
 	import { settingsStore } from '#lib/state/settings.svelte.ts';
 
-	let { data } = $props<{ data: { settings: any } }>();
+	type SettingsData = Awaited<ReturnType<typeof getPhcSettings>>;
+	let { data }: { data: { settings: SettingsData } } = $props();
 
-	let phcName = $state('');
-	let phcState = $state('');
-	let phcLga = $state('');
-	let termiiApiKey = $state('');
-	let syncPollInterval = $state(15);
-	let lgaDsoPhone = $state('');
+	let phcName = $derived(data.settings?.name ?? '');
+	let phcState = $derived(data.settings?.state ?? '');
+	let phcLga = $derived(data.settings?.lga ?? '');
+	let termiiApiKey = $derived(data.settings?.termiiApiKey ?? '');
+	let syncPollInterval = $derived(data.settings?.syncPollInterval ?? 15);
+	let dailyPatientCapacity = $derived(data.settings?.dailyPatientCapacity ?? 100);
+	let lgaDsoPhone = $derived(data.settings?.lgaDsoPhone ?? '');
 
-	let maternalHealthEnabled = $state(true);
-	let immunizationEnabled = $state(true);
-	let aiVoiceEnabled = $state(true);
-	let outbreakDetectionEnabled = $state(true);
-	let twoWaySmsEnabled = $state(true);
-	let referralsEnabled = $state(true);
-	let familyHealthEnabled = $state(true);
-	let realTimeNotificationsEnabled = $state(true);
-	let nhisTrackingEnabled = $state(true);
+	let maternalHealthEnabled = $derived(data.settings?.maternalHealthEnabled ?? true);
+	let immunizationEnabled = $derived(data.settings?.immunizationEnabled ?? true);
+	let aiVoiceEnabled = $derived(data.settings?.aiVoiceEnabled ?? true);
+	let outbreakDetectionEnabled = $derived(data.settings?.outbreakDetectionEnabled ?? true);
+	let twoWaySmsEnabled = $derived(data.settings?.twoWaySmsEnabled ?? true);
+	let referralsEnabled = $derived(data.settings?.referralsEnabled ?? true);
+	let familyHealthEnabled = $derived(data.settings?.familyHealthEnabled ?? true);
+	let realTimeNotificationsEnabled = $derived(data.settings?.realTimeNotificationsEnabled ?? true);
+	let nhisTrackingEnabled = $derived(data.settings?.nhisTrackingEnabled ?? true);
 
 	let isSaving = $state(false);
 	let isResetting = $state(false);
-
-	$effect(() => {
-		if (data.settings) {
-			phcName = data.settings.name || '';
-			phcState = data.settings.state || '';
-			phcLga = data.settings.lga || '';
-			lgaDsoPhone = data.settings.lgaDsoPhone || '';
-			termiiApiKey = data.settings.termiiApiKey || '';
-			syncPollInterval = data.settings.syncPollInterval || 15;
-
-			maternalHealthEnabled = data.settings.maternalHealthEnabled ?? true;
-			immunizationEnabled = data.settings.immunizationEnabled ?? true;
-			aiVoiceEnabled = data.settings.aiVoiceEnabled ?? true;
-			outbreakDetectionEnabled = data.settings.outbreakDetectionEnabled ?? true;
-			twoWaySmsEnabled = data.settings.twoWaySmsEnabled ?? true;
-			referralsEnabled = data.settings.referralsEnabled ?? true;
-			familyHealthEnabled = data.settings.familyHealthEnabled ?? true;
-			realTimeNotificationsEnabled = data.settings.realTimeNotificationsEnabled ?? true;
-			nhisTrackingEnabled = data.settings.nhisTrackingEnabled ?? true;
-		}
-	});
 
 	async function saveSettings(e: Event) {
 		e.preventDefault();
@@ -88,6 +69,7 @@
 				lgaDsoPhone,
 				termiiApiKey,
 				syncPollInterval: Number(syncPollInterval),
+				dailyPatientCapacity: Number(dailyPatientCapacity),
 				maternalHealthEnabled,
 				immunizationEnabled,
 				aiVoiceEnabled,
@@ -105,6 +87,7 @@
 				settingsStore.updateLocal({
 					name: phcName,
 					lgaDsoPhone,
+					dailyPatientCapacity: Number(dailyPatientCapacity),
 					maternalHealthEnabled,
 					immunizationEnabled,
 					aiVoiceEnabled,
@@ -147,8 +130,8 @@
 			toast.info('Seeding demo data...');
 			await seedDemoData();
 			toast.success('Demo data injected successfully! Syncing...');
-		} catch (e: any) {
-			toast.error('Failed to seed: ' + e.message);
+		} catch (error) {
+			toast.error('Failed to seed: ' + (error instanceof Error ? error.message : 'Unknown error'));
 		} finally {
 			isSeeding = false;
 		}
@@ -212,6 +195,20 @@
 						<Label for="lga">LGA (Local Government Area)</Label>
 						<Input id="lga" bind:value={phcLga} required />
 					</div>
+				</div>
+				<div class="space-y-2 pt-2 border-t border-border">
+					<Label for="dailyPatientCapacity">Daily Patient Capacity</Label>
+					<Input
+						id="dailyPatientCapacity"
+						type="number"
+						min="1"
+						max="10000"
+						bind:value={dailyPatientCapacity}
+						required
+					/>
+					<p class="text-xs text-muted-foreground mt-1">
+						Used to calculate today's dashboard capacity from active and completed queue tickets.
+					</p>
 				</div>
 				<div class="space-y-2 pt-2 border-t border-border">
 					<Label for="lgaDsoPhone">LGA Disease Surveillance Officer (DSO) Phone</Label>

@@ -11,6 +11,11 @@ class ReminderStore extends LocalCollection<LocalReminder> {
 		return this.sortedItems.filter((r) => r.status === 'scheduled');
 	}
 
+	get overdueReminders() {
+		const now = Date.now();
+		return this.pendingReminders.filter((reminder) => reminder.dueDate < now);
+	}
+
 	get sortedItems() {
 		return [...this.items].sort((a, b) => a.dueDate - b.dueDate);
 	}

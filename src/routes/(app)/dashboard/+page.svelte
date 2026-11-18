@@ -3,7 +3,11 @@
 	import { queueStore } from '#lib/state/queue.svelte.ts';
 	import { reminderStore } from '#lib/state/reminders.svelte.ts';
 	import { pharmacyStore } from '#lib/state/pharmacy.svelte.ts';
+	import { settingsStore } from '#lib/state/settings.svelte.ts';
+	import { syncStore } from '#lib/state/sync.svelte.ts';
 	import { DASHBOARD_MODULES } from '#lib/config/dashboard-modules.ts';
+	import type { Component } from 'svelte';
+	import { calculateCapacityUsed } from '#lib/dashboard/metrics.ts';
 	import {
 		Card,
 		CardContent,
@@ -62,7 +66,7 @@
 	} from '@lucide/svelte';
 
 	// Map icon names to icon components
-	const ICONS: Record<string, any> = {
+	const ICONS: Record<string, Component> = {
 		UserPlus,
 		Search,
 		FolderOpen,
@@ -108,7 +112,7 @@
 	const visibleModules = $derived(DASHBOARD_MODULES.filter((m) => sessionStore.can(m.permission)));
 
 	// Grouping
-	const groupedModules = $derived(() => {
+	const groupedModules = $derived.by(() => {
 		const groups: Record<string, typeof DASHBOARD_MODULES> = {};
 		for (const mod of visibleModules) {
 			if (!groups[mod.category]) groups[mod.category] = [];
@@ -129,7 +133,7 @@
 		'Administration',
 		'Platform Management'
 	];
-	const orderedCategories = $derived(CATEGORY_ORDER.filter((cat) => groupedModules()[cat]?.length));
+	const orderedCategories = $derived(CATEGORY_ORDER.filter((cat) => groupedModules[cat]?.length));
 	const CATEGORY_COLORS: Record<string, string> = {
 		'Queue & Triage': 'text-blue-600 bg-blue-50 border-blue-100',
 		'Patient Care': 'text-emerald-600 bg-emerald-50 border-emerald-100',
@@ -147,12 +151,15 @@
 	const waitingGeneral = $derived(queueStore.generalQueue.length);
 	const waitingAnc = $derived(queueStore.ancQueue.length);
 	const waitingEpi = $derived(queueStore.epiQueue.length);
-	const overdueReminders = $derived(reminderStore.pendingReminders?.length ?? 0);
-
-	const lowStockItems = $derived(
-		pharmacyStore.items.filter((i: any) => i.quantity <= (i.reorderLevel ?? 5))
+	const overdueReminders = $derived(reminderStore.overdueReminders.length);
+	const lowStockItems = $derived(pharmacyStore.lowStock);
+	const redPatients = $derived(
+		queueStore.sortedQueue.filter((ticket) => ticket.triageLevel === 'red')
 	);
-	const redPatients = $derived(queueStore.sortedQueue.filter((t: any) => t.triageLevel === 'red'));
+	const dailyPatientCapacity = $derived(Math.max(1, settingsStore.current.dailyPatientCapacity));
+	const capacityUsed = $derived(
+		calculateCapacityUsed(queueStore.todayVolume, dailyPatientCapacity)
+	);
 
 	function getLiveStat(moduleId: string): string | null {
 		switch (moduleId) {
@@ -251,13 +258,15 @@
 							</p>
 						</div>
 						<div class="space-y-1">
-							<p class="text-3xl font-bold text-emerald-600">24</p>
+							<p class="text-3xl font-bold text-emerald-600">
+								{queueStore.completedToday}
+							</p>
 							<p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">
 								Completed
 							</p>
 						</div>
 						<div class="space-y-1">
-							<p class="text-3xl font-bold text-blue-600">89%</p>
+							<p class="text-3xl font-bold text-blue-600">{syncStore.syncHealth}%</p>
 							<p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">
 								Sync Health
 							</p>
@@ -265,10 +274,10 @@
 					</div>
 					<div class="mt-6 space-y-2">
 						<div class="flex justify-between text-xs text-muted-foreground">
-							<span>Clinic Capacity (Estimated)</span>
-							<span>45%</span>
+							<span>Clinic Capacity Used ({queueStore.todayVolume}/{dailyPatientCapacity})</span>
+							<span>{capacityUsed}%</span>
 						</div>
-						<Progress value={45} class="h-2" />
+						<Progress value={capacityUsed} class="h-2" />
 					</div>
 				</CardContent>
 			</Card>
@@ -381,8 +390,8 @@
 			<p class="text-sm mt-1">Ask your administrator to configure your permissions.</p>
 		</div>
 	{:else}
-		{#each orderedCategories as category}
-			{@const mods = groupedModules()[category]}
+		{#each orderedCategories as category (category)}
+			{@const mods = groupedModules[category]}
 			<section class="space-y-4 pt-4">
 				<h2
 					class="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2"
@@ -393,7 +402,7 @@
 				</h2>
 
 				<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-					{#each mods as mod}
+					{#each mods as mod (mod.id)}
 						{@const IconComponent = ICONS[mod.iconName]}
 						{@const liveStat = getLiveStat(mod.id)}
 						{@const colorClass =
