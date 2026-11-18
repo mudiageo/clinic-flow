@@ -83,6 +83,22 @@
 - [x] **UI-03** Portal the Autocomplete dropdown and position it relative to the input so patient results are not clipped by `Card overflow-hidden`
 - [x] **UI-04** Preserve keyboard navigation, click-outside, scroll/resize repositioning, and flip-up behavior for the portaled dropdown
 
+## Phase H — Patient search to vitals handoff (P1)
+
+- [x] **UI-05** Carry the selected patient from Patient Search into Vitals with `?patient=<local-id>` instead of forcing a second search
+- [x] **UI-06** Wait for the Dexie-backed registry, then pre-select the handed-off patient, advance to the vitals step, and clear stale vitals inputs
+- [x] **UI-07** Correct the shared-padding opt-out IDs to use generated route IDs that include the `(app)` group
+- [x] **UI-08** Document the handoff in the nurse queue support guide
+
+## Phase I — Sync encounter dependency repair (P0)
+
+- [x] **SY-01** Create a durable local encounter before saving vitals/queue rows in Nurse Vitals
+- [x] **SY-02** Link an existing waiting ticket to the new encounter when it has none
+- [x] **SY-03** Order pushed sync operations so `patients` and `encounters` precede dependent records
+- [x] **SY-04** Backfill a tenant-safe encounter on the server for legacy pending encounter-linked ops, recording it in the durable outbox
+- [x] **SY-05** Add regression tests for operation ordering and encounter dependency resolution
+- [ ] **SY-06** Re-run sync/type/build validation and confirm stale pending ops drain without FK errors (validation passed; live stale-op re-test requested)
+
 ## Docs & release hygiene
 
 - [ ] Create/update user-facing docs (Walkthrough/tooltips/guides) for changed flows

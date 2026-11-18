@@ -9,9 +9,14 @@ import { canWriteOutreach, normalizeOutreachPayload } from '#lib/outreach/policy
 import { appendSyncOperation } from '#lib/server/sync/outbox.ts';
 import { finalizeChangeBatch } from '#lib/sync/change-feed.ts';
 import { checkTenantScope, resolvesViaPatient } from '#lib/sync/tenant-scope.ts';
+import {
+	extractEncounterDependency,
+	orderOperationsForDependencies
+} from '#lib/sync/operation-dependencies.ts';
 
 const pharmacyInventory = getTable('pharmacyInventory');
 const patients = getTable('patients');
+const encounters = getTable('encounters');
 const queueTickets = getTable('queueTickets');
 const staff = getTable('staff');
 const syncOperations = getTable('syncOperations');
@@ -172,7 +177,9 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 	const conflicts: unknown[] = [];
 	const acceptedEntityVersions = new Map<string, number>();
 
-	for (const op of operations) {
+	// Parents first: PostgreSQL cannot satisfy a child FK from an encounter that
+	// is still queued later in the same client batch.
+	for (const op of orderOperationsForDependencies(operations)) {
 		const operationId = operationIdFor(op);
 		const duplicate = await findOperation(operationId);
 		if (duplicate) {
@@ -444,8 +451,67 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 			continue;
 		}
 
+		const encounterDependency = extractEncounterDependency(op);
+		let backfilledEncounterId: string | null = null;
+
 		try {
 			const version = await database.transaction(async (tx: typeof database) => {
+				// Legacy clients invented an encounterId without writing the encounter.
+				// Repair it in this same transaction so the child FK can be satisfied.
+				if (encounterDependency) {
+					const patientId =
+						typeof existing?.patientId === 'string'
+							? existing.patientId
+							: typeof cleanPayload.patientId === 'string'
+								? cleanPayload.patientId
+								: encounterDependency.patientId;
+					if (!patientId) {
+						throw new Error('Encounter-linked record is missing its patient');
+					}
+
+					const [encounter] = await tx
+						.select({ id: encounters.id })
+						.from(encounters)
+						.where(eq(encounters.id, encounterDependency.encounterId))
+						.limit(1);
+
+					if (!encounter) {
+						const visitDate =
+							(cleanPayload.recordedAt instanceof Date ? cleanPayload.recordedAt : null) ??
+							(cleanPayload.createdAt instanceof Date ? cleanPayload.createdAt : null) ??
+							new Date(op.timestamp);
+						const now = new Date();
+						await tx.insert(encounters).values({
+							id: encounterDependency.encounterId,
+							patientId,
+							phcId: sessionPhcId,
+							recordedByStaffId: locals.staffId,
+							visitDate,
+							updatedAt: now
+						});
+						await appendSyncOperation(tx, {
+							phcId: sessionPhcId,
+							deviceId: op.deviceId,
+							operationId: `encounter-backfill:${encounterDependency.encounterId}`,
+							entityType: 'encounters',
+							entityId: encounterDependency.encounterId,
+							operation: 'create',
+							payload: {
+								id: encounterDependency.encounterId,
+								patientId,
+								phcId: sessionPhcId,
+								recordedByStaffId: locals.staffId,
+								visitDate: visitDate.getTime(),
+								createdAt: visitDate.getTime(),
+								updatedAt: now.getTime(),
+								syncStatus: 'synced'
+							},
+							clientUpdatedAt: now
+						});
+						backfilledEncounterId = encounterDependency.encounterId;
+					}
+				}
+
 				const allocated = await appendSyncOperation(tx, {
 					phcId: op.phcId,
 					deviceId: op.deviceId,
@@ -479,6 +545,13 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 				version
 			});
 			acceptedEntityVersions.set(entityKey, version);
+			if (backfilledEncounterId) {
+				realtimeHub.publish(syncTopics.phc(op.phcId), {
+					entityType: 'encounters',
+					entityId: backfilledEncounterId,
+					operation: 'create'
+				});
+			}
 			realtimeHub.publish(syncTopics.phc(op.phcId), {
 				entityType: op.entityType,
 				entityId: op.entityId,

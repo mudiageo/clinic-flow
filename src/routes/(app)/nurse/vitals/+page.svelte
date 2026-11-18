@@ -1,9 +1,11 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { patientStore } from '#lib/state/patients.svelte.ts';
 	import { vitalsStore } from '#lib/state/vitals.svelte.ts';
 	import { queueStore } from '#lib/state/queue.svelte.ts';
 	import { triageRuleStore } from '#lib/state/triage-rules.svelte.ts';
 	import { sessionStore } from '#lib/state/session.svelte.ts';
+	import { encounterStore } from '#lib/state/encounters.svelte.ts';
 	import type { LocalPatient, LocalQueueTicket } from '#lib/local-db/db.ts';
 	import { getPatientRiskScore } from '#lib/remote/ai.remote.ts';
 	import { settingsStore } from '#lib/state/settings.svelte.ts';
@@ -55,6 +57,21 @@
 
 	let isSubmitting = $state(false);
 
+	// One-time handoff from Patient Search ("Take Vitals Instead"). The Dexie-backed registry
+	// populates asynchronously, so re-read patientStore.get() until the patient is available.
+	let handoffApplied = false;
+	$effect(() => {
+		if (handoffApplied) return;
+		const patientId = page.url.searchParams.get('patient');
+		if (!patientId) return;
+
+		const patient = patientStore.get(patientId);
+		if (!patient) return;
+
+		handoffApplied = true;
+		applyPatientSelection(patient);
+	});
+
 	// Active triage rules loaded from local store
 	const rules = $derived(triageRuleStore.activeRules);
 
@@ -83,7 +100,7 @@
 		vitalsStore.evaluateTriage(currentVitals, rules, selectedPatient?.isPregnant ?? false)
 	);
 
-	function handleSelectPatient(patient: LocalPatient) {
+	function applyPatientSelection(patient: LocalPatient) {
 		selectedPatient = patient;
 		searchQuery = '';
 		currentStep = 2; // Move to vitals step
@@ -95,6 +112,10 @@
 		pulse = undefined;
 		weight = undefined;
 		spo2 = undefined;
+	}
+
+	function handleSelectPatient(patient: LocalPatient) {
+		applyPatientSelection(patient);
 	}
 
 	function handleQrResult(clinicId: string) {
@@ -130,7 +151,18 @@
 		isSubmitting = true;
 
 		try {
-			const encounterId = crypto.randomUUID();
+			const now = Date.now();
+			const encounterId = await encounterStore.create({
+				patientId: selectedPatient.id,
+				phcId: sessionStore.activePhcId,
+				recordedByStaffId: sessionStore.staffId,
+				chiefComplaint: null,
+				chiefComplaintRaw: null,
+				chiefComplaintLanguage: null,
+				doctorNotes: null,
+				visitDate: now,
+				createdAt: now
+			});
 
 			// Save vitals to local DB
 			await vitalsStore.create({
@@ -156,6 +188,9 @@
 			if (activeTickets.length > 0) {
 				for (const ticket of activeTickets) {
 					await queueStore.applyTriageFlag(ticket.id, triageResult.level, triageResult.reason);
+					if (!ticket.encounterId) {
+						await queueStore.update(ticket.id, { encounterId });
+					}
 					savedTicketIds.push(ticket.id);
 				}
 			} else {

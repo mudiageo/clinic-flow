@@ -74,7 +74,8 @@
 
 	// Routes that provide their own padding (nested settings layout, standalone
 	// print view) opt out of the shared app-shell padding applied around children.
-	const SELF_PADDED_ROUTES = ['/settings', '/doctor/referral/print'];
+	// Generated RouteId values include the `(app)` route group.
+	const SELF_PADDED_ROUTES = ['/(app)/settings', '/(app)/doctor/referral/print'];
 	const isSelfPadded = $derived(
 		SELF_PADDED_ROUTES.some((route) => {
 			const routeId = page.route.id;

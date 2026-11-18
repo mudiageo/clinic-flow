@@ -1,6 +1,6 @@
 # Route Fidelity Cleanup — Implementation Plan
 
-**Status:** Phases A–C complete (except ST-14, deferred) — Phase D next; app-shell spacing + search dropdown clipping fixed (2026-11-18)
+**Status:** Phases A–C complete (except ST-14, deferred); Phase I sync encounter repair implemented, pending live stale-op re-test — Phase D next (2026-11-19)
 **Created:** 2026-11-17
 **Source audits:** Systematic read-only review of every route under `src/routes/**`, the dashboard module config, and all supporting stores/remotes. Four parallel audits covered admin, superadmin/settings, clinical, and dashboard/public routes. No code was changed by the audit.
 
@@ -225,3 +225,26 @@ Several findings involve AI or clinical data integrity. Per `AGENTS.md` §7.2, t
 The authenticated `<main>` had no horizontal or top padding, so ~33 routes touched the screen edges while ~28 routes patched it locally with inconsistent `p-6` / `px-4` / `py-8` / `mt-6`. Padding is now centralized in `(app)/+layout.svelte` as `<div class="px-4 py-6 md:px-6 print:p-0">` around `{@render children()}`; 18 pages had their redundant local padding removed. Routes that already provide their own spacing (`/settings` nested layout, `/doctor/referral/print`) opt out via `page.route.id`. Full-height and print pages were deliberately left untouched.
 
 Patient search results were clipped because the Autocomplete dropdown was an `absolute` child inside shadcn `Card` (which has `overflow-hidden`) and the app shell's scroll containers. The dropdown now renders through bits-ui `Portal` to `document.body` and uses `position: fixed` anchored to the input's `getBoundingClientRect()`, with flip-up, viewport-height clamping, and scroll/resize listeners that are cleaned up on destroy. Keyboard selection, click-outside, and all consumer snippets are unchanged.
+
+---
+
+## 10. Patient Search → Vitals handoff (Phase H, 2026-11-19)
+
+Nurses previously had to search for the same patient twice: once on Patient Search and again after choosing **Take Vitals Instead**. The action now links to `/nurse/vitals?patient=<local-id>` using the selected patient's local registry ID. Vitals reads `page.url.searchParams`, waits reactively for `patientStore.get(id)` (the Dexie-backed store hydrates asynchronously), then applies the shared selection helper: select the patient, clear the search box and any stale vitals inputs, and advance to step 2. A plain local guard makes this a one-time handoff; manual selection, QR scanning, and all save/triage behavior are unchanged.
+
+The shared app-shell padding opt-out was also corrected to use generated `RouteId` values that include the `(app)` group (`/(app)/settings`, `/(app)/doctor/referral/print`), so those self-padded routes are no longer double-padded. The nurse queue support guide now explains the handoff. No new global store or server state is involved; the URL remains shareable and survives refresh.
+
+---
+
+## 11. Sync encounter dependency repair (Phase I, 2026-11-19)
+
+Nurse Vitals generated a random `encounterId` and wrote it into `vitals_records` and `queue_tickets`, but never created the corresponding `encounters` row. Postgres correctly rejected those pushes with FK `23503`, so clinical observations from affected devices never reached the authoritative database.
+
+Fix, in order:
+
+1. Vitals creates the encounter through `encounterStore.create()` first and reuses the returned id for vitals and any new queue ticket; an existing waiting ticket with no encounter is linked to it.
+2. `pushOperations` stably orders `patients` before `encounters` before all dependents, so a batch that legitimately contains both cannot be applied in the wrong order.
+3. For legacy pending ops that still reference an absent encounter, the server creates a minimal encounter in the same transaction as the dependent insert/update. The patient is resolved from the existing or incoming payload, the PHC always comes from `event.locals.phcId` (never the client), and the backfill is appended to the durable outbox so other devices receive it through `pullChanges`.
+4. Regression tests cover stable ordering and the dependency decision, including the case where an encounter op is already present in the batch.
+
+No AI is involved. The change strictly improves clinical data integrity: no fabricated vitals are introduced, and every backfilled encounter remains tied to the authenticated session's PHC and the supplied patient. Existing permissions are unchanged; only authenticated users with a PHC assignment can push these records.

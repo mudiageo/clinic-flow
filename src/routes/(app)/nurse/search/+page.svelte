@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { patientStore } from '#lib/state/patients.svelte.ts';
 	import { queueStore } from '#lib/state/queue.svelte.ts';
 	import { sessionStore } from '#lib/state/session.svelte.ts';
@@ -234,7 +235,7 @@
 							<Button
 								variant="outline"
 								class="w-full h-11 btn-press border-border"
-								href="/nurse/vitals"
+								href={`${resolve('/(app)/nurse/vitals')}?patient=${encodeURIComponent(selectedPatient.id)}`}
 							>
 								Take Vitals Instead
 								<ArrowRight class="size-4 ml-2" />

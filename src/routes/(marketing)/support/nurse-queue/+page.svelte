@@ -34,7 +34,8 @@
 		</li>
 		<li>
 			Select a patient to review their profile, then choose a clinic/queue and route them to the
-			waiting queue. To record triage and vital signs, use <strong>Take Vitals Instead</strong>.
+			waiting queue. To record triage and vital signs, use <strong>Take Vitals Instead</strong> to carry
+			the selected patient into the Vitals station.
 		</li>
 	</ul>
 
