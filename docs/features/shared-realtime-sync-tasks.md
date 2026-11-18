@@ -46,7 +46,7 @@
 - [x] Apply and verify PostgreSQL and SQLite migrations
 - [x] Update the realtime sync user guide and add a Changeset
 - [x] Run formatting, targeted lint/type checks, service-worker check, tests, and production build
-- [ ] Confirm cross-device convergence end to end in two signed-in browsers after the PHC-scope fix
+- [x] Confirm cross-device convergence end to end in two signed-in browsers after the PHC-scope fix
 
 ## Documentation and validation
 

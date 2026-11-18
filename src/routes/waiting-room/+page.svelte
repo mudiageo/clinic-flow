@@ -22,15 +22,18 @@
 		AlertTriangle,
 		MonitorPlay
 	} from '@lucide/svelte';
+	import type { LocalQueueTicket } from '#lib/local-db/db.ts';
 
 	const waitingTickets = $derived(
-		queueStore.sortedQueue.filter((t: any) => t.status === 'waiting')
+		queueStore.sortedQueue.filter((t: LocalQueueTicket) => t.status === 'waiting')
 	);
 
-	const calledTickets = $derived(queueStore.sortedQueue.filter((t: any) => t.status === 'called'));
+	const calledTickets = $derived(
+		queueStore.sortedQueue.filter((t: LocalQueueTicket) => t.status === 'called')
+	);
 
-	let voices = $state<SpeechSynthesisVoice[]>([]);
-	let selectedVoiceURI = $state<string>('');
+	let voices: SpeechSynthesisVoice[] = $state([]);
+	let selectedVoiceURI = $state('');
 
 	onMount(() => {
 		const loadVoices = () => {
@@ -63,7 +66,7 @@
 		}
 	});
 
-	function announcePatient(ticket: any) {
+	function announcePatient(ticket: LocalQueueTicket) {
 		const patient = patientStore.get(ticket.patientId);
 		if (!patient) return;
 
@@ -92,7 +95,11 @@
 
 	function playChime() {
 		try {
-			const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+			const AudioContextConstructor =
+				window.AudioContext ??
+				(window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+			if (!AudioContextConstructor) return;
+			const ctx = new AudioContextConstructor();
 			const osc = ctx.createOscillator();
 			const gain = ctx.createGain();
 			osc.type = 'sine';
@@ -164,7 +171,7 @@
 						<SelectPrimitive.Value placeholder="Select Voice" />
 					</SelectTrigger>
 					<SelectContent class="bg-card border-border max-h-48 overflow-y-auto text-xs">
-						{#each voices as voice}
+						{#each voices as voice (voice.voiceURI)}
 							<SelectItem value={voice.voiceURI} class="hover:bg-muted"
 								>{voice.name} ({voice.lang})</SelectItem
 							>
@@ -186,7 +193,7 @@
 	<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0">
 		<!-- Currently Called List -->
 		<Card
-			class="bg-primary/5 border-primary/20 flex flex-col h-[400px] lg:h-full overflow-hidden card-hover"
+			class="bg-primary/5 border-primary/20 flex flex-col h-100 lg:h-full overflow-hidden card-hover"
 		>
 			<CardHeader class="bg-primary/10 border-b border-primary/20 py-4 md:py-6">
 				<CardTitle
@@ -205,8 +212,8 @@
 						<p class="text-xl md:text-2xl font-bold uppercase tracking-widest">No Active Calls</p>
 					</div>
 				{:else}
-					{#each calledTickets as ticket}
-						{@const p = patientStore.get(ticket.patientId)}
+					{#each calledTickets as ticket (ticket.id)}
+						{const p = patientStore.get(ticket.patientId)}
 						<div
 							class="bg-primary/10 border border-primary/20 p-5 md:p-6 rounded-2xl flex items-center justify-between animate-fade-in shadow-md shadow-primary/5"
 						>
@@ -233,7 +240,7 @@
 		</Card>
 
 		<!-- Up Next List -->
-		<Card class="overflow-hidden bg-card/60 flex flex-col h-[400px] lg:h-full card-hover">
+		<Card class="overflow-hidden bg-card/60 flex flex-col h-100 lg:h-full card-hover">
 			<CardHeader class="bg-muted/20 border-b border-border/60 py-4 md:py-6">
 				<CardTitle
 					class="text-foreground text-lg md:text-2xl font-extrabold text-center flex items-center justify-center gap-2"
@@ -253,8 +260,8 @@
 								<p class="text-sm font-medium">Queue is currently empty</p>
 							</div>
 						{:else}
-							{#each waitingTickets.slice(0, 10) as ticket, i}
-								{@const p = patientStore.get(ticket.patientId)}
+							{#each waitingTickets.slice(0, 10) as ticket, i (ticket.id)}
+								{const p = patientStore.get(ticket.patientId)}
 								<div
 									class="flex items-center justify-between p-4 bg-background/50 rounded-xl border border-border/60 hover:bg-muted/40 transition-colors"
 								>
