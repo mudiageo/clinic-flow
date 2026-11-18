@@ -8,10 +8,10 @@
 - [x] **BR-02** Resolve `/maternity/anc` (re-pointed to the real ANC queue tab)
 - [x] **BR-03** Resolve `/maternity/partograph` (re-pointed to the maternity workspace)
 - [x] **BR-04** Create `(app)/field/outreach/+page.svelte` backed by outreach data
-- [ ] **BR-05** Create `(app)/superadmin/phcs/+page.svelte` list from `getPhcList()`
-- [ ] **BR-06** Add `support/nurse-queue` doc page or repoint link
-- [ ] **BR-07** Add `support/pharmacy` doc page or repoint link
-- [ ] Verify all 44 `dashboard-modules.ts` hrefs resolve to a route directory
+- [x] **BR-05** Create `(app)/superadmin/phcs/+page.svelte` list from `getPhcList()`
+- [x] **BR-06** Add `support/nurse-queue` doc page or repoint link
+- [x] **BR-07** Add `support/pharmacy` doc page or repoint link
+- [x] Verify all 44 `dashboard-modules.ts` hrefs resolve to a route directory
 
 ## Phase B — Dashboard data (P0)
 

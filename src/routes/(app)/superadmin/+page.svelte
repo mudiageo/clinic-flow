@@ -15,10 +15,11 @@
 		TableHeader,
 		TableRow
 	} from '#lib/components/ui/table/index.ts';
-	import { Building2, Activity, Users, ServerCrash, ExternalLink } from '@lucide/svelte';
+	import { Building2, Activity, Users, MapPin, ExternalLink } from '@lucide/svelte';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import NumberTicker from '#lib/components/ui/number-ticker/number-ticker.svelte';
+	import { formatDate } from '#lib/utils/date.ts';
 </script>
 
 <svelte:head>
@@ -44,8 +45,9 @@
 		</div>
 	{:then phcs}
 		{@const totalPhcs = phcs.length}
-		{@const totalStaff = phcs.reduce((acc: any, phc: any) => acc + phc.staffCount, 0)}
-		{@const totalPatients = phcs.reduce((acc: any, phc: any) => acc + phc.patientCount, 0)}
+		{@const totalStaff = phcs.reduce((total, phc) => total + phc.staffCount, 0)}
+		{@const totalPatients = phcs.reduce((total, phc) => total + phc.patientCount, 0)}
+		{@const statesCovered = new Set(phcs.map((phc) => phc.state)).size}
 		<div class="grid grid-cols-1 md:grid-cols-4 gap-5">
 			<Card>
 				<CardContent class="p-6 flex items-center justify-between">
@@ -96,14 +98,14 @@
 				<CardContent class="p-6 flex items-center justify-between">
 					<div>
 						<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-							Active Today
+							States Covered
 						</p>
-						<NumberTicker value={124} class="text-3xl font-bold mt-1 block" />
+						<NumberTicker value={statesCovered} class="text-3xl font-bold mt-1 block" />
 					</div>
 					<div
 						class="size-12 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500"
 					>
-						<ServerCrash class="size-5" />
+						<MapPin class="size-5" />
 					</div>
 				</CardContent>
 			</Card>
@@ -126,7 +128,7 @@
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{#each phcs as phc}
+						{#each phcs as phc (phc.id)}
 							<TableRow>
 								<TableCell class="font-medium">
 									<a
@@ -142,9 +144,9 @@
 									<Badge variant="outline">{phc.staffCount}</Badge>
 								</TableCell>
 								<TableCell class="text-right font-mono">{phc.patientCount}</TableCell>
-								<TableCell class="text-right text-muted-foreground"
-									>{new Date(phc.createdAt).toLocaleDateString()}</TableCell
-								>
+								<TableCell class="text-right text-muted-foreground">
+									{formatDate(phc.createdAt)}
+								</TableCell>
 							</TableRow>
 						{:else}
 							<TableRow>
