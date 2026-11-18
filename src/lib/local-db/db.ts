@@ -1,4 +1,5 @@
 import Dexie, { type Table } from 'dexie';
+import type { OutreachActivityType } from '#lib/outreach/types.ts';
 
 export interface LocalPatient {
 	id: string; // UUID, generated client-side at creation time
@@ -38,6 +39,23 @@ export interface LocalFamily {
 	phcId: string;
 	householdName: string | null;
 	community: string | null;
+	syncStatus: 'synced' | 'pending' | 'conflict';
+	updatedAt: number;
+}
+
+export interface LocalOutreachRecord {
+	id: string;
+	phcId: string;
+	recordedByStaffId: string;
+	activityType: OutreachActivityType;
+	community: string;
+	occurredAt: number;
+	householdsVisited: number;
+	peopleReached: number;
+	immunizationsGiven: number;
+	bednetsDistributed: number;
+	notes: string | null;
+	createdAt: number;
 	syncStatus: 'synced' | 'pending' | 'conflict';
 	updatedAt: number;
 }
@@ -104,7 +122,8 @@ export interface LocalSyncOperation {
 		| 'restockRequests'
 		| 'reminders'
 		| 'labRequests'
-		| 'appointments';
+		| 'appointments'
+		| 'outreachRecords';
 	entityId: string;
 	operation: 'INSERT' | 'UPDATE' | 'DELETE';
 	payload: unknown;
@@ -297,6 +316,7 @@ class ClinicFlowDB extends Dexie {
 	syncLog!: Table<SyncLogEntry, number>;
 	announcements!: Table<LocalAnnouncement, string>;
 	announcementReceiptQueue!: Table<LocalAnnouncementReceiptOperation, number>;
+	outreachRecords!: Table<LocalOutreachRecord, string>;
 
 	constructor() {
 		super('clinicflow');
@@ -352,6 +372,10 @@ class ClinicFlowDB extends Dexie {
 						family.phcId ||= phcByFamily.get(family.id) ?? '';
 					});
 			});
+		this.version(9).stores({
+			outreachRecords:
+				'id, phcId, recordedByStaffId, activityType, occurredAt, syncStatus, updatedAt'
+		});
 	}
 }
 

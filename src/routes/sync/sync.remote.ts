@@ -5,6 +5,7 @@ import { and, asc, eq, gt, inArray, ne, sql } from 'drizzle-orm';
 import { database, getTable } from '#lib/server/db/queries/_core.ts';
 import { toServerRow, SYNC_ENTITY_TABLE } from '#lib/seed/adapters.ts';
 import { realtimeHub, syncTopics } from '#lib/server/realtime/hub.ts';
+import { canWriteOutreach, normalizeOutreachPayload } from '#lib/outreach/policy.ts';
 
 const pharmacyInventory = getTable('pharmacyInventory');
 const patients = getTable('patients');
@@ -27,7 +28,8 @@ const tableMap: Record<string, ReturnType<typeof getTable>> = {
 	appointments: getTable('appointments'),
 	pregnancyRecords: getTable('pregnancyRecords'),
 	staff,
-	families: getTable('families')
+	families: getTable('families'),
+	outreachRecords: getTable('outreachRecords')
 };
 
 interface ServerSyncChange {
@@ -123,6 +125,11 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 	const conflicts: unknown[] = [];
 
 	for (const op of operations) {
+		if (op.entityType === 'outreachRecords' && !canWriteOutreach(locals.role, locals.permissions)) {
+			conflicts.push({ localId: op.localId, reason: 'missing-outreach-permission' });
+			continue;
+		}
+
 		if (op.entityType === 'pharmacyInventory' && op.operation === 'delta') {
 			const payload = op.payload as Record<string, unknown>;
 			const itemId =
@@ -238,7 +245,23 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 			.where(eq(tableObj.id, op.entityId))
 			.limit(1)) as Record<string, unknown>[];
 
-		const payload = op.payload as Record<string, unknown>;
+		let payload = { ...(op.payload as Record<string, unknown>) };
+		if (op.entityType === 'outreachRecords') {
+			if (!locals.staffId) {
+				conflicts.push({ localId: op.localId, reason: 'missing-staff-identity' });
+				continue;
+			}
+			if (op.operation !== 'delete') {
+				const normalizedPayload = normalizeOutreachPayload(payload, op.operation === 'update');
+				if (!normalizedPayload) {
+					conflicts.push({ localId: op.localId, reason: 'invalid-outreach-payload' });
+					continue;
+				}
+				payload = normalizedPayload;
+			}
+			payload.phcId = sessionPhcId;
+			payload.recordedByStaffId = existing?.recordedByStaffId ?? locals.staffId;
+		}
 		// Compatibility shim: map client field names/types to the server row.
 		// See docs/data-model/client-server-field-mapping.md.
 		const cleanPayload = toServerRow(op.entityType, payload);

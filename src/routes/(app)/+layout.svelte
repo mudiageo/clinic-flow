@@ -81,6 +81,9 @@
 		get phcId() {
 			return sessionStore.phcId;
 		},
+		get staffId() {
+			return sessionStore.staffId;
+		},
 		get permissions() {
 			return sessionStore.permissions;
 		}

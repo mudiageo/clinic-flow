@@ -100,6 +100,14 @@ export const announcementStatusEnum = pgEnum('announcement_status', [
 	'published',
 	'archived'
 ]);
+export const outreachActivityTypeEnum = pgEnum('outreach_activity_type', [
+	'household_visit',
+	'health_talk',
+	'immunization',
+	'bednet_distribution',
+	'screening',
+	'other'
+]);
 
 // ─────────────────────────────────────────────────────────────
 // USERS & AUTH (Better Auth compatible core fields kept minimal here;
@@ -255,6 +263,33 @@ export const familyRelationships = pgTable(
 	},
 	(table) => ({
 		uniquePair: uniqueIndex('family_rel_unique').on(table.patientId, table.relatedPatientId)
+	})
+);
+
+export const outreachRecords = pgTable(
+	'outreach_records',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		phcId: uuid('phc_id')
+			.notNull()
+			.references(() => phcs.id),
+		recordedByStaffId: uuid('recorded_by_staff_id')
+			.notNull()
+			.references(() => staff.id),
+		activityType: outreachActivityTypeEnum('activity_type').notNull(),
+		community: varchar('community', { length: 160 }).notNull(),
+		occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull(),
+		householdsVisited: integer('households_visited').notNull().default(0),
+		peopleReached: integer('people_reached').notNull().default(0),
+		immunizationsGiven: integer('immunizations_given').notNull().default(0),
+		bednetsDistributed: integer('bednets_distributed').notNull().default(0),
+		notes: text('notes'),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(table) => ({
+		phcOccurredIdx: index('outreach_records_phc_occurred_idx').on(table.phcId, table.occurredAt),
+		recordedByIdx: index('outreach_records_recorded_by_idx').on(table.recordedByStaffId)
 	})
 );
 
@@ -688,6 +723,7 @@ export const staffRelations = relations(staff, ({ many, one }) => ({
 	permissions: many(permissions, { relationName: 'grantedPermissions' }),
 	appointments: many(appointments, { relationName: 'assignedStaff' }),
 	createdAnnouncements: many(announcements, { relationName: 'announcementCreator' }),
+	recordedOutreach: many(outreachRecords, { relationName: 'outreachRecorder' }),
 	announcementReceipts: many(announcementReceipts)
 }));
 
@@ -695,6 +731,7 @@ export const phcsRelations = relations(phcs, ({ many }) => ({
 	staff: many(staff),
 	patients: many(patients),
 	families: many(families),
+	outreachRecords: many(outreachRecords),
 	permissions: many(permissions),
 	smsMessages: many(smsInbox),
 	targetedAnnouncements: many(announcements)
@@ -786,6 +823,15 @@ export const restockRequestsRelations = relations(restockRequests, ({ one }) => 
 export const familiesRelations = relations(families, ({ one, many }) => ({
 	phc: one(phcs, { fields: [families.phcId], references: [phcs.id] }),
 	patients: many(patients)
+}));
+
+export const outreachRecordsRelations = relations(outreachRecords, ({ one }) => ({
+	phc: one(phcs, { fields: [outreachRecords.phcId], references: [phcs.id] }),
+	recordedByStaff: one(staff, {
+		fields: [outreachRecords.recordedByStaffId],
+		references: [staff.id],
+		relationName: 'outreachRecorder'
+	})
 }));
 
 export const announcementsRelations = relations(announcements, ({ one, many }) => ({

@@ -3,6 +3,10 @@
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import { syncStore } from '#lib/state/sync.svelte.ts';
+	import { outreachStore } from '#lib/state/outreach.svelte.ts';
+	import { sessionStore } from '#lib/state/session.svelte.ts';
+	import { OUTREACH_ACTIVITY_LABELS } from '#lib/outreach/types.ts';
+	import { formatDate } from '#lib/utils/date.ts';
 	import {
 		UserPlus,
 		Activity,
@@ -40,6 +44,8 @@
 			color: 'text-rose-600 bg-rose-50 border-rose-100'
 		}
 	];
+
+	const recentOutreach = $derived(outreachStore.forPhc(sessionStore.activePhcId).slice(0, 3));
 </script>
 
 <svelte:head>
@@ -78,7 +84,7 @@
 
 	<!-- Big Actions -->
 	<div class="grid grid-cols-2 gap-4">
-		{#each ACTIONS as action}
+		{#each ACTIONS as action (action.href)}
 			<a
 				href={action.href}
 				class="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border bg-card text-center transition-all active:scale-95 shadow-sm"
@@ -100,17 +106,35 @@
 			<div class="h-px flex-1 bg-border/60"></div>
 		</h2>
 
-		<Card class="border-dashed bg-muted/10 shadow-none">
-			<CardContent
-				class="p-6 flex flex-col items-center justify-center text-center text-muted-foreground"
-			>
-				<Activity class="size-8 opacity-20 mb-2" />
-				<p class="text-sm font-medium">No recent offline activity</p>
-				<p class="text-xs mt-1 max-w-[200px]">
-					Patients registered in field mode will appear here until synced.
-				</p>
-			</CardContent>
-		</Card>
+		{#each recentOutreach as record (record.id)}
+			<Card class="shadow-none">
+				<CardContent class="flex items-center justify-between gap-4 p-4">
+					<div class="min-w-0">
+						<p class="truncate text-sm font-semibold">
+							{OUTREACH_ACTIVITY_LABELS[record.activityType]}
+						</p>
+						<p class="mt-1 text-xs text-muted-foreground">
+							{record.community} · {formatDate(record.occurredAt)}
+						</p>
+					</div>
+					<Badge variant={record.syncStatus === 'conflict' ? 'destructive' : 'outline'}>
+						{record.syncStatus}
+					</Badge>
+				</CardContent>
+			</Card>
+		{:else}
+			<Card class="border-dashed bg-muted/10 shadow-none">
+				<CardContent
+					class="p-6 flex flex-col items-center justify-center text-center text-muted-foreground"
+				>
+					<Activity class="size-8 opacity-20 mb-2" />
+					<p class="text-sm font-medium">No outreach activity recorded</p>
+					<p class="text-xs mt-1 max-w-[220px]">
+						Saved outreach records will remain visible here while offline.
+					</p>
+				</CardContent>
+			</Card>
+		{/each}
 	</div>
 
 	<Card class="bg-red-50 border-red-200 mt-8">

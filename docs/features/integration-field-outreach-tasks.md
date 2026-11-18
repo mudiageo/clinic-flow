@@ -8,3 +8,14 @@
 - [x] Create user documentation: `/marketing/support/dhis2/+page.svelte`.
 - [x] Create user documentation: `/marketing/support/field-mode/+page.svelte`.
 - [x] Return to main `AI-Features-Plan.md` and check off Phase 2 Integration & Field Outreach.
+
+## Durable outreach log
+
+- [x] Define PHC-scoped PostgreSQL and SQLite `outreach_records` schemas and migrations
+- [x] Add Dexie v9 `outreachRecords` cache and typed `OutreachStore`
+- [x] Add authenticated `staffId` to client session state
+- [x] Register outreach records with push/pull sync and enforce `manage:outreach`
+- [x] Build the real `/field/outreach` aggregate log and remove the 404
+- [x] Update Field Mode user documentation with privacy and safety guidance
+- [x] Add a changeset and mark BR-04 complete in the route-fidelity tracker
+- [x] Validate migrations, tests, formatting, targeted lint/type checks, and production build

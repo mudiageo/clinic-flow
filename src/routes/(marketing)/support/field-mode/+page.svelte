@@ -52,6 +52,34 @@
 			</li>
 		</ul>
 
+		<h3>Recording an Outreach Activity</h3>
+		<ol>
+			<li>Open <strong>Field Mode → Outreach Log</strong>.</li>
+			<li>Select the activity type and date, then enter the community or settlement.</li>
+			<li>
+				Enter aggregate counts for households visited, people reached, immunizations given, or
+				bednets distributed.
+			</li>
+			<li>
+				Select <strong>Save Activity</strong>. The record is stored on the device immediately.
+			</li>
+		</ol>
+		<p>
+			A <strong>pending</strong> badge means the record is waiting to synchronize. A
+			<strong>conflict</strong> badge requires review after reconnecting. Only staff with the
+			<strong>Manage Outreach</strong> permission can use this workspace, and records are restricted to
+			the signed-in staff member's PHC.
+		</p>
+
+		<div class="my-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-900">
+			<strong>Protect patient privacy</strong>
+			<p class="m-0 mt-2 text-sm text-amber-800">
+				Outreach records are aggregate reports. Never enter a patient name, clinic ID, phone number,
+				or clinical history in the notes field. Document individual care in the patient's clinical
+				record.
+			</p>
+		</div>
+
 		<h3>Syncing Your Data</h3>
 		<p>
 			At the top of the Field Dashboard, you will see a <span

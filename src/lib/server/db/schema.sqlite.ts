@@ -119,6 +119,48 @@ export const families = sqliteTable(
 	(table) => ({ phcIdx: index('families_phc_idx').on(table.phcId) })
 );
 
+export const outreachRecords = sqliteTable(
+	'outreach_records',
+	{
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		phcId: text('phc_id')
+			.notNull()
+			.references(() => phcs.id),
+		recordedByStaffId: text('recorded_by_staff_id')
+			.notNull()
+			.references(() => staff.id),
+		activityType: text('activity_type', {
+			enum: [
+				'household_visit',
+				'health_talk',
+				'immunization',
+				'bednet_distribution',
+				'screening',
+				'other'
+			]
+		}).notNull(),
+		community: text('community').notNull(),
+		occurredAt: integer('occurred_at', { mode: 'timestamp' }).notNull(),
+		householdsVisited: integer('households_visited').notNull().default(0),
+		peopleReached: integer('people_reached').notNull().default(0),
+		immunizationsGiven: integer('immunizations_given').notNull().default(0),
+		bednetsDistributed: integer('bednets_distributed').notNull().default(0),
+		notes: text('notes'),
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.notNull()
+			.$defaultFn(() => new Date()),
+		updatedAt: integer('updated_at', { mode: 'timestamp' })
+			.notNull()
+			.$defaultFn(() => new Date())
+	},
+	(table) => ({
+		phcOccurredIdx: index('outreach_records_phc_occurred_idx').on(table.phcId, table.occurredAt),
+		recordedByIdx: index('outreach_records_recorded_by_idx').on(table.recordedByStaffId)
+	})
+);
+
 export const patients = sqliteTable(
 	'patients',
 	{
@@ -693,6 +735,7 @@ export const staffRelations = relations(staff, ({ one, many }) => ({
 	encounters: many(encounters),
 	auditEntries: many(auditLog),
 	createdAnnouncements: many(announcements, { relationName: 'announcementCreator' }),
+	recordedOutreach: many(outreachRecords, { relationName: 'outreachRecorder' }),
 	announcementReceipts: many(announcementReceipts)
 }));
 
@@ -700,6 +743,7 @@ export const phcsRelations = relations(phcs, ({ many }) => ({
 	staff: many(staff),
 	patients: many(patients),
 	families: many(families),
+	outreachRecords: many(outreachRecords),
 	devices: many(devices),
 	targetedAnnouncements: many(announcements)
 }));
@@ -718,6 +762,15 @@ export const patientsRelations = relations(patients, ({ one, many }) => ({
 export const familiesRelations = relations(families, ({ one, many }) => ({
 	phc: one(phcs, { fields: [families.phcId], references: [phcs.id] }),
 	patients: many(patients)
+}));
+
+export const outreachRecordsRelations = relations(outreachRecords, ({ one }) => ({
+	phc: one(phcs, { fields: [outreachRecords.phcId], references: [phcs.id] }),
+	recordedByStaff: one(staff, {
+		fields: [outreachRecords.recordedByStaffId],
+		references: [staff.id],
+		relationName: 'outreachRecorder'
+	})
 }));
 
 export const encountersRelations = relations(encounters, ({ one, many }) => ({

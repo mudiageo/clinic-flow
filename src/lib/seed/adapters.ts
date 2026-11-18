@@ -22,7 +22,8 @@ export const SYNC_ENTITY_TABLE: Record<string, string> = {
 	appointments: 'appointments',
 	pregnancyRecords: 'pregnancy_records',
 	staff: 'staff',
-	families: 'families'
+	families: 'families',
+	outreachRecords: 'outreach_records'
 };
 
 const PUSH_DATE_FIELDS = new Set([
@@ -39,6 +40,7 @@ const PUSH_DATE_FIELDS = new Set([
 	'eddDate',
 	'scheduledAt',
 	'resultEnteredAt',
+	'occurredAt',
 	'updatedAt',
 	'serverUpdatedAt'
 ]);
@@ -57,6 +59,7 @@ const PULL_DATE_FIELDS = new Set([
 	'eddDate',
 	'scheduledAt',
 	'resultEnteredAt',
+	'occurredAt',
 	'updatedAt',
 	'serverUpdatedAt'
 ]);

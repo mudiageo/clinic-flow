@@ -57,6 +57,7 @@ export const getCurrentSession = query(async () => {
 		user: event.locals.user ?? null,
 		session: event.locals.session ?? null,
 		phcId: event.locals.phcId ?? null,
+		staffId: event.locals.staffId ?? null,
 		role: event.locals.role ?? null,
 		permissions: event.locals.permissions ?? []
 	};

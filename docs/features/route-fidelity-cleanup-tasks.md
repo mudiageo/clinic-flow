@@ -5,9 +5,9 @@
 ## Phase A — Navigation integrity (P0)
 
 - [x] **BR-01** Create `(app)/families/+page.svelte` list (from `familyStore`); fix `familyStore` first (ST-06)
-- [ ] **BR-02** Resolve `/maternity/anc` (new route or tab re-point)
-- [ ] **BR-03** Resolve `/maternity/partograph` (new route or tab re-point)
-- [ ] **BR-04** Create `(app)/field/outreach/+page.svelte` backed by outreach data
+- [x] **BR-02** Resolve `/maternity/anc` (re-pointed to the real ANC queue tab)
+- [x] **BR-03** Resolve `/maternity/partograph` (re-pointed to the maternity workspace)
+- [x] **BR-04** Create `(app)/field/outreach/+page.svelte` backed by outreach data
 - [ ] **BR-05** Create `(app)/superadmin/phcs/+page.svelte` list from `getPhcList()`
 - [ ] **BR-06** Add `support/nurse-queue` doc page or repoint link
 - [ ] **BR-07** Add `support/pharmacy` doc page or repoint link

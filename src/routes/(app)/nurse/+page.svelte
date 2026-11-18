@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { queueStore } from '#lib/state/queue.svelte.ts';
 	import { patientStore } from '#lib/state/patients.svelte.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
@@ -30,15 +31,22 @@
 	import { flip } from 'svelte/animate';
 	import { slide } from 'svelte/transition';
 
+	type QueueTab = 'general' | 'anc' | 'epi';
+	const queueTabs: QueueTab[] = ['general', 'anc', 'epi'];
+	const activeTab = $derived.by<QueueTab>(() => {
+		const requestedTab = page.url.searchParams.get('tab');
+		return queueTabs.includes(requestedTab as QueueTab) ? (requestedTab as QueueTab) : 'general';
+	});
+
 	// Get reactive queue items
 	const sortedQueue = $derived(queueStore.sortedQueue);
 	const nextTicket = $derived(queueStore.nextTicket);
 
 	const stats = $derived({
 		total: sortedQueue.length,
-		red: sortedQueue.filter((t: any) => t.triageLevel === 'red').length,
-		amber: sortedQueue.filter((t: any) => t.triageLevel === 'amber').length,
-		green: sortedQueue.filter((t: any) => t.triageLevel === 'green').length
+		red: sortedQueue.filter((ticket) => ticket.triageLevel === 'red').length,
+		amber: sortedQueue.filter((ticket) => ticket.triageLevel === 'amber').length,
+		green: sortedQueue.filter((ticket) => ticket.triageLevel === 'green').length
 	});
 
 	async function handleCallNext() {
@@ -163,7 +171,7 @@
 			</div>
 		</CardHeader>
 
-		<Tabs value="general" class="w-full">
+		<Tabs value={activeTab} class="w-full">
 			<TabsList
 				class="mb-4 w-full justify-start overflow-x-auto bg-transparent h-12 p-0 space-x-2 border-b border-border rounded-none"
 			>
@@ -187,7 +195,7 @@
 				</TabsTrigger>
 			</TabsList>
 
-			{#each ['general', 'anc', 'epi'] as dept}
+			{#each queueTabs as dept (dept)}
 				<TabsContent value={dept}>
 					{@const queueItems =
 						dept === 'general'

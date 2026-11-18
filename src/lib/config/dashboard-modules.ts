@@ -109,7 +109,7 @@ export const DASHBOARD_MODULES: DashboardModule[] = [
 		id: 'anc-clinics',
 		label: 'ANC Clinics',
 		iconName: 'HeartHandshake',
-		href: '/maternity/anc',
+		href: '/nurse?tab=anc',
 		permission: 'view:anc',
 		category: 'Maternal Health'
 	},
@@ -125,7 +125,7 @@ export const DASHBOARD_MODULES: DashboardModule[] = [
 		id: 'partograph',
 		label: 'Partograph (Labour)',
 		iconName: 'Waves',
-		href: '/maternity/partograph',
+		href: '/maternity',
 		permission: 'manage:maternity',
 		category: 'Maternal Health'
 	},

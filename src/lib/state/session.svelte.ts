@@ -7,14 +7,16 @@ interface SessionState {
 	user: { id: string; name: string; email: string } | null;
 	role: string | null;
 	phcId: string | null;
+	staffId: string | null;
 	permissions: string[];
 }
 
 function createSessionStore() {
-	let state = $state<SessionState>({
+	const state = $state<SessionState>({
 		user: null,
 		role: null,
 		phcId: null,
+		staffId: null,
 		permissions: []
 	});
 
@@ -27,6 +29,9 @@ function createSessionStore() {
 		},
 		get phcId() {
 			return state.phcId;
+		},
+		get staffId() {
+			return state.staffId;
 		},
 		/** PHC id for record writes, with the localStorage handoff from /connect and /onboarding. */
 		get activePhcId(): string {
@@ -47,6 +52,7 @@ function createSessionStore() {
 			state.user = sessionData.user;
 			state.role = sessionData.role;
 			state.phcId = sessionData.phcId;
+			state.staffId = sessionData.staffId ?? null;
 			state.permissions = sessionData.permissions ?? [];
 		},
 
@@ -79,6 +85,7 @@ function createSessionStore() {
 			state.user = null;
 			state.role = null;
 			state.phcId = null;
+			state.staffId = null;
 			state.permissions = [];
 		}
 	};
