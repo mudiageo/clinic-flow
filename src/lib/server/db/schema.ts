@@ -88,6 +88,18 @@ export const pregnancyStatusEnum = pgEnum('pregnancy_status', [
 	'miscarriage',
 	'transferred'
 ]);
+export const announcementSeverityEnum = pgEnum('announcement_severity', [
+	'info',
+	'warning',
+	'critical'
+]);
+export const announcementAudienceEnum = pgEnum('announcement_audience', ['all', 'admins', 'phc']);
+export const announcementStatusEnum = pgEnum('announcement_status', [
+	'draft',
+	'scheduled',
+	'published',
+	'archived'
+]);
 
 // ─────────────────────────────────────────────────────────────
 // USERS & AUTH (Better Auth compatible core fields kept minimal here;
@@ -595,6 +607,59 @@ export const uplinkConfig = pgTable('uplink_config', {
 });
 
 // ─────────────────────────────────────────────────────────────
+// PLATFORM ANNOUNCEMENTS
+// ─────────────────────────────────────────────────────────────
+
+export const announcements = pgTable(
+	'announcements',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		title: varchar('title', { length: 160 }).notNull(),
+		body: text('body').notNull(),
+		severity: announcementSeverityEnum('severity').notNull().default('info'),
+		audience: announcementAudienceEnum('audience').notNull(),
+		targetPhcId: uuid('target_phc_id').references(() => phcs.id, { onDelete: 'cascade' }),
+		status: announcementStatusEnum('status').notNull().default('draft'),
+		requiresAcknowledgement: boolean('requires_acknowledgement').notNull().default(false),
+		actionLabel: varchar('action_label', { length: 80 }),
+		actionUrl: varchar('action_url', { length: 500 }),
+		scheduledFor: timestamp('scheduled_for', { withTimezone: true }),
+		publishedAt: timestamp('published_at', { withTimezone: true }),
+		expiresAt: timestamp('expires_at', { withTimezone: true }),
+		createdByStaffId: uuid('created_by_staff_id').references(() => staff.id, {
+			onDelete: 'set null'
+		}),
+		estimatedRecipients: integer('estimated_recipients').notNull().default(0),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(table) => ({
+		statusIdx: index('announcements_status_idx').on(table.status, table.scheduledFor),
+		audienceIdx: index('announcements_audience_idx').on(table.audience, table.targetPhcId),
+		createdAtIdx: index('announcements_created_at_idx').on(table.createdAt)
+	})
+);
+
+export const announcementReceipts = pgTable(
+	'announcement_receipts',
+	{
+		announcementId: uuid('announcement_id')
+			.notNull()
+			.references(() => announcements.id, { onDelete: 'cascade' }),
+		staffId: uuid('staff_id')
+			.notNull()
+			.references(() => staff.id, { onDelete: 'cascade' }),
+		readAt: timestamp('read_at', { withTimezone: true }),
+		acknowledgedAt: timestamp('acknowledged_at', { withTimezone: true }),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(table) => ({
+		pk: primaryKey({ columns: [table.announcementId, table.staffId] }),
+		staffIdx: index('announcement_receipts_staff_idx').on(table.staffId)
+	})
+);
+
+// ─────────────────────────────────────────────────────────────
 // RELATIONS
 // ─────────────────────────────────────────────────────────────
 
@@ -614,14 +679,17 @@ export const staffRelations = relations(staff, ({ many, one }) => ({
 	phc: one(phcs, { fields: [staff.phcId], references: [phcs.id] }),
 	user: one(user, { fields: [staff.authUserId], references: [user.id] }),
 	permissions: many(permissions, { relationName: 'grantedPermissions' }),
-	appointments: many(appointments, { relationName: 'assignedStaff' })
+	appointments: many(appointments, { relationName: 'assignedStaff' }),
+	createdAnnouncements: many(announcements, { relationName: 'announcementCreator' }),
+	announcementReceipts: many(announcementReceipts)
 }));
 
 export const phcsRelations = relations(phcs, ({ many }) => ({
 	staff: many(staff),
 	patients: many(patients),
 	permissions: many(permissions),
-	smsMessages: many(smsInbox)
+	smsMessages: many(smsInbox),
+	targetedAnnouncements: many(announcements)
 }));
 
 export const permissionsRelations = relations(permissions, ({ one }) => ({
@@ -709,6 +777,27 @@ export const restockRequestsRelations = relations(restockRequests, ({ one }) => 
 
 export const familiesRelations = relations(families, ({ many }) => ({
 	patients: many(patients)
+}));
+
+export const announcementsRelations = relations(announcements, ({ one, many }) => ({
+	targetPhc: one(phcs, { fields: [announcements.targetPhcId], references: [phcs.id] }),
+	createdByStaff: one(staff, {
+		fields: [announcements.createdByStaffId],
+		references: [staff.id],
+		relationName: 'announcementCreator'
+	}),
+	receipts: many(announcementReceipts)
+}));
+
+export const announcementReceiptsRelations = relations(announcementReceipts, ({ one }) => ({
+	announcement: one(announcements, {
+		fields: [announcementReceipts.announcementId],
+		references: [announcements.id]
+	}),
+	staff: one(staff, {
+		fields: [announcementReceipts.staffId],
+		references: [staff.id]
+	})
 }));
 
 // ─────────────────────────────────────────────────────────────

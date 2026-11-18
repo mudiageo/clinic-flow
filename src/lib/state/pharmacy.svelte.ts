@@ -24,7 +24,7 @@ class PharmacyStore extends LocalCollection<LocalPharmacyInventory> {
 		if (lastEntry && lastEntry.operation === 'update') {
 			await db.syncLog.update(lastEntry.localId!, {
 				operation: 'delta',
-				payload: { id, quantity: qty } // Specify the delta decrement quantity
+				payload: { itemId: id, delta: -qty }
 			});
 		}
 	}

@@ -610,6 +610,73 @@ export const uplinkConfig = sqliteTable('uplink_config', {
 });
 
 // ─────────────────────────────────────────────────────────────
+// PLATFORM ANNOUNCEMENTS
+// ─────────────────────────────────────────────────────────────
+
+export const announcements = sqliteTable(
+	'announcements',
+	{
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		title: text('title').notNull(),
+		body: text('body').notNull(),
+		severity: text('severity', { enum: ['info', 'warning', 'critical'] })
+			.notNull()
+			.default('info'),
+		audience: text('audience', { enum: ['all', 'admins', 'phc'] }).notNull(),
+		targetPhcId: text('target_phc_id').references(() => phcs.id, { onDelete: 'cascade' }),
+		status: text('status', { enum: ['draft', 'scheduled', 'published', 'archived'] })
+			.notNull()
+			.default('draft'),
+		requiresAcknowledgement: integer('requires_acknowledgement', { mode: 'boolean' })
+			.notNull()
+			.default(false),
+		actionLabel: text('action_label'),
+		actionUrl: text('action_url'),
+		scheduledFor: integer('scheduled_for', { mode: 'timestamp' }),
+		publishedAt: integer('published_at', { mode: 'timestamp' }),
+		expiresAt: integer('expires_at', { mode: 'timestamp' }),
+		createdByStaffId: text('created_by_staff_id').references(() => staff.id, {
+			onDelete: 'set null'
+		}),
+		estimatedRecipients: integer('estimated_recipients').notNull().default(0),
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.notNull()
+			.$defaultFn(() => new Date()),
+		updatedAt: integer('updated_at', { mode: 'timestamp' })
+			.notNull()
+			.$defaultFn(() => new Date())
+	},
+	(table) => ({
+		statusIdx: index('announcements_status_idx').on(table.status, table.scheduledFor),
+		audienceIdx: index('announcements_audience_idx').on(table.audience, table.targetPhcId),
+		createdAtIdx: index('announcements_created_at_idx').on(table.createdAt)
+	})
+);
+
+export const announcementReceipts = sqliteTable(
+	'announcement_receipts',
+	{
+		announcementId: text('announcement_id')
+			.notNull()
+			.references(() => announcements.id, { onDelete: 'cascade' }),
+		staffId: text('staff_id')
+			.notNull()
+			.references(() => staff.id, { onDelete: 'cascade' }),
+		readAt: integer('read_at', { mode: 'timestamp' }),
+		acknowledgedAt: integer('acknowledged_at', { mode: 'timestamp' }),
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.notNull()
+			.$defaultFn(() => new Date())
+	},
+	(table) => ({
+		pk: primaryKey({ columns: [table.announcementId, table.staffId] }),
+		staffIdx: index('announcement_receipts_staff_idx').on(table.staffId)
+	})
+);
+
+// ─────────────────────────────────────────────────────────────
 // RELATIONS (same as pg schema)
 // ─────────────────────────────────────────────────────────────
 
@@ -617,13 +684,16 @@ export const staffRelations = relations(staff, ({ one, many }) => ({
 	phc: one(phcs, { fields: [staff.phcId], references: [phcs.id] }),
 	permissions: many(permissions),
 	encounters: many(encounters),
-	auditEntries: many(auditLog)
+	auditEntries: many(auditLog),
+	createdAnnouncements: many(announcements, { relationName: 'announcementCreator' }),
+	announcementReceipts: many(announcementReceipts)
 }));
 
 export const phcsRelations = relations(phcs, ({ many }) => ({
 	staff: many(staff),
 	patients: many(patients),
-	devices: many(devices)
+	devices: many(devices),
+	targetedAnnouncements: many(announcements)
 }));
 
 export const patientsRelations = relations(patients, ({ one, many }) => ({
@@ -653,4 +723,25 @@ export const queueTicketsRelations = relations(queueTickets, ({ one }) => ({
 export const auditLogRelations = relations(auditLog, ({ one }) => ({
 	phc: one(phcs, { fields: [auditLog.phcId], references: [phcs.id] }),
 	staff: one(staff, { fields: [auditLog.staffId], references: [staff.id] })
+}));
+
+export const announcementsRelations = relations(announcements, ({ one, many }) => ({
+	targetPhc: one(phcs, { fields: [announcements.targetPhcId], references: [phcs.id] }),
+	createdByStaff: one(staff, {
+		fields: [announcements.createdByStaffId],
+		references: [staff.id],
+		relationName: 'announcementCreator'
+	}),
+	receipts: many(announcementReceipts)
+}));
+
+export const announcementReceiptsRelations = relations(announcementReceipts, ({ one }) => ({
+	announcement: one(announcements, {
+		fields: [announcementReceipts.announcementId],
+		references: [announcements.id]
+	}),
+	staff: one(staff, {
+		fields: [announcementReceipts.staffId],
+		references: [staff.id]
+	})
 }));

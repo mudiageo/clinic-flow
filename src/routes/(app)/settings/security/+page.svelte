@@ -33,7 +33,7 @@
 					: 75
 	);
 
-	async function updatePassword(form: any) {
+	function validatePassword(): boolean {
 		if (newPassword !== confirmPassword) {
 			toast.error('New passwords do not match');
 			return false;
@@ -61,7 +61,7 @@
 		</CardHeader>
 		<form
 			{...updatePasswordAction.enhance(async (form) => {
-				if (!(await updatePassword(form))) return;
+				if (!validatePassword()) return;
 				isSaving = true;
 				try {
 					if (await form.submit()) {
@@ -72,8 +72,8 @@
 							confirmPassword = '';
 						}
 					}
-				} catch (e: any) {
-					toast.error(e.message || 'Failed to update password');
+				} catch (cause) {
+					toast.error(cause instanceof Error ? cause.message : 'Failed to update password');
 				} finally {
 					isSaving = false;
 				}
@@ -202,7 +202,11 @@
 										}
 									})}
 								>
-									<input {...revokeSessionRemote.fields.sessionToken.as('hidden', session.token)} />
+									<input
+										{...revokeSessionRemote
+											.for(session.id)
+											.fields.sessionToken.as('hidden', session.token)}
+									/>
 									<Button
 										type="submit"
 										variant="outline"

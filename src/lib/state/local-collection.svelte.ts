@@ -1,4 +1,4 @@
-import { liveQuery, type Table } from 'dexie';
+import { liveQuery, type Table, type UpdateSpec } from 'dexie';
 import { db } from '#lib/local-db/db.ts';
 
 export abstract class LocalCollection<
@@ -22,41 +22,56 @@ export abstract class LocalCollection<
 
 	async create(data: Omit<T, 'id' | 'updatedAt' | 'syncStatus'>): Promise<string> {
 		const id = crypto.randomUUID();
-		const record = { ...data, id, updatedAt: Date.now(), syncStatus: 'pending' } as T;
-		await this.table.add(record);
-		await db.syncLog.add({
-			entityType: this.entityType,
-			entityId: id,
-			operation: 'create',
-			payload: record,
-			timestamp: Date.now(),
-			synced: 0
+		const timestamp = Date.now();
+		const record = { ...data, id, updatedAt: timestamp, syncStatus: 'pending' } as T;
+		await db.transaction('rw', this.table, db.syncLog, async () => {
+			await this.table.add(record);
+			await db.syncLog.add({
+				entityType: this.entityType,
+				entityId: id,
+				operation: 'create',
+				payload: record,
+				timestamp,
+				synced: 0
+			});
 		});
 		return id;
 	}
 
 	async update(id: string, changes: Partial<T>): Promise<void> {
-		const patch = { ...changes, updatedAt: Date.now(), syncStatus: 'pending' } as any;
-		await this.table.update(id, patch);
-		await db.syncLog.add({
-			entityType: this.entityType,
-			entityId: id,
-			operation: 'update',
-			payload: patch,
-			timestamp: Date.now(),
-			synced: 0
+		const timestamp = Date.now();
+		const patch = {
+			...changes,
+			updatedAt: timestamp,
+			syncStatus: 'pending'
+		} as UpdateSpec<T>;
+		await db.transaction('rw', this.table, db.syncLog, async () => {
+			const updated = await this.table.update(id, patch);
+			if (updated === 0) throw new Error(`Cannot update missing ${this.entityType} record ${id}`);
+			await db.syncLog.add({
+				entityType: this.entityType,
+				entityId: id,
+				operation: 'update',
+				payload: patch,
+				timestamp,
+				synced: 0
+			});
 		});
 	}
 
 	async delete(id: string): Promise<void> {
-		await this.table.delete(id);
-		await db.syncLog.add({
-			entityType: this.entityType,
-			entityId: id,
-			operation: 'delete',
-			payload: { id },
-			timestamp: Date.now(),
-			synced: 0
+		await db.transaction('rw', this.table, db.syncLog, async () => {
+			const record = await this.table.get(id);
+			if (!record) throw new Error(`Cannot delete missing ${this.entityType} record ${id}`);
+			await this.table.delete(id);
+			await db.syncLog.add({
+				entityType: this.entityType,
+				entityId: id,
+				operation: 'delete',
+				payload: record,
+				timestamp: Date.now(),
+				synced: 0
+			});
 		});
 	}
 }

@@ -246,6 +246,37 @@ export interface SyncLogEntry {
 	synced: 0 | 1;
 }
 
+export interface LocalAnnouncement {
+	cacheId: string;
+	userId: string;
+	announcementId: string;
+	title: string;
+	body: string;
+	severity: 'info' | 'warning' | 'critical';
+	audience: 'all' | 'admins' | 'phc';
+	targetPhcId: string | null;
+	status: 'draft' | 'scheduled' | 'published' | 'archived';
+	requiresAcknowledgement: boolean;
+	actionLabel: string | null;
+	actionUrl: string | null;
+	scheduledFor: number | null;
+	publishedAt: number | null;
+	expiresAt: number | null;
+	createdAt: number;
+	updatedAt: number;
+	readAt: number | null;
+	acknowledgedAt: number | null;
+	notifiedAt: number | null;
+}
+
+export interface LocalAnnouncementReceiptOperation {
+	localId?: number;
+	userId: string;
+	announcementId: string;
+	operation: 'read' | 'acknowledge';
+	createdAt: number;
+}
+
 class ClinicFlowDB extends Dexie {
 	patients!: Table<LocalPatient, string>;
 	queueTickets!: Table<LocalQueueTicket, string>;
@@ -263,6 +294,8 @@ class ClinicFlowDB extends Dexie {
 	families!: Table<LocalFamily, string>;
 	staff!: Table<LocalStaff, string>;
 	syncLog!: Table<SyncLogEntry, number>;
+	announcements!: Table<LocalAnnouncement, string>;
+	announcementReceiptQueue!: Table<LocalAnnouncementReceiptOperation, number>;
 
 	constructor() {
 		super('clinicflow');
@@ -292,6 +325,12 @@ class ClinicFlowDB extends Dexie {
 		});
 		this.version(6).stores({
 			families: 'id, householdName, syncStatus'
+		});
+		this.version(7).stores({
+			announcements:
+				'cacheId, userId, announcementId, [userId+announcementId], severity, readAt, acknowledgedAt, expiresAt',
+			announcementReceiptQueue:
+				'++localId, userId, announcementId, [userId+announcementId], operation, createdAt'
 		});
 	}
 }

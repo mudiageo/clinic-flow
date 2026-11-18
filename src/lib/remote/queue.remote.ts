@@ -1,6 +1,6 @@
 import { query, command } from '$app/server';
 import { getRequestEvent } from '$app/server';
-import { redirect } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import * as v from 'valibot';
 import {
 	getWaitingQueueByPhc,
@@ -12,19 +12,22 @@ import {
 
 function requireSession() {
 	const event = getRequestEvent();
-	if (!event.locals.session) redirect(302, '/login');
+	if (!event.locals.session) error(401, 'Unauthorized');
+	if (!event.locals.phcId) error(403, 'No PHC assignment');
 	return { session: event.locals.session, phcId: event.locals.phcId };
 }
 
 // ── Queries ──────────────────────────────────────────────────
 
 export const getQueue = query(v.string(), async (phcId) => {
-	requireSession();
+	const session = requireSession();
+	if (phcId !== session.phcId) error(403, 'PHC scope mismatch');
 	return await getWaitingQueueByPhc(phcId);
 });
 
 export const getTodayQueue = query(v.string(), async (phcId) => {
-	requireSession();
+	const session = requireSession();
+	if (phcId !== session.phcId) error(403, 'PHC scope mismatch');
 	return await getTodayQueueByPhc(phcId);
 });
 
@@ -39,17 +42,18 @@ export const issueTicket = command(
 		triageReason: v.optional(v.string())
 	}),
 	async (data) => {
-		requireSession();
-		return await issueQueueTicket(data);
+		const session = requireSession();
+		if (data.phcId !== session.phcId) error(403, 'PHC scope mismatch');
+		return await issueQueueTicket({ ...data, phcId: session.phcId });
 	}
 );
 
 export const callPatient = command(v.string(), async (ticketId) => {
-	requireSession();
-	return await callQueueTicket(ticketId);
+	const session = requireSession();
+	return await callQueueTicket(ticketId, session.phcId);
 });
 
 export const completeTicket = command(v.string(), async (ticketId) => {
-	requireSession();
-	return await completeQueueTicket(ticketId);
+	const session = requireSession();
+	return await completeQueueTicket(ticketId, session.phcId);
 });

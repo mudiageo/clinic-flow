@@ -4,7 +4,7 @@
 	export type NavItem = {
 		href: string;
 		label: string;
-		icon: Component<any>;
+		icon: Component;
 		badge?: number;
 	};
 
@@ -21,7 +21,8 @@
 	import SyncIndicator from '#lib/components/SyncIndicator.svelte';
 	import { signOutAction } from '#lib/remote/auth.remote.ts';
 	import { notificationStore } from '#lib/state/notifications.svelte.ts';
-	import { HeartPulse, LogOut, UserCircle, Bell, HelpCircle } from '@lucide/svelte';
+	import { announcementStore } from '#lib/state/announcements.svelte.ts';
+	import { HeartPulse, LogOut, UserCircle, Bell, HelpCircle, Megaphone } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
 	import * as Popover from '#lib/components/ui/popover/index.ts';
 	import GlobalHelpDrawer from '#lib/components/global-help-drawer.svelte';
@@ -42,6 +43,23 @@
 	let { navGroups, role, phcName, userName, userInitials }: Props = $props();
 
 	let helpDrawerOpen = $state(false);
+	let acknowledgingAnnouncementId = $state<string | null>(null);
+	const totalUnread = $derived(notificationStore.unreadCount + announcementStore.unreadCount);
+
+	async function markAllNotificationsRead(): Promise<void> {
+		notificationStore.markAllAsRead();
+		await announcementStore.markAllRead();
+	}
+
+	async function acknowledgeAnnouncement(announcementId: string): Promise<void> {
+		if (acknowledgingAnnouncementId) return;
+		acknowledgingAnnouncementId = announcementId;
+		try {
+			await announcementStore.acknowledge(announcementId);
+		} finally {
+			acknowledgingAnnouncementId = null;
+		}
+	}
 
 	onMount(() => {
 		notificationStore.setRole(role);
@@ -124,9 +142,9 @@
 							<Sidebar.MenuButton {...props}>
 								<Bell />
 								<span>Notifications</span>
-								{#if notificationStore.unreadCount > 0}
+								{#if totalUnread > 0}
 									<Sidebar.MenuBadge class="bg-primary text-primary-foreground">
-										{notificationStore.unreadCount}
+										{totalUnread > 99 ? '99+' : totalUnread}
 									</Sidebar.MenuBadge>
 								{/if}
 							</Sidebar.MenuButton>
@@ -135,25 +153,72 @@
 					<Popover.Content side="right" align="end" class="w-80 p-0">
 						<div class="flex items-center justify-between px-4 py-3 border-b">
 							<h4 class="font-semibold">Notifications</h4>
-							{#if notificationStore.unreadCount > 0}
+							{#if totalUnread > 0}
 								<Button
 									variant="ghost"
 									size="sm"
 									class="h-auto px-2 text-xs"
-									onclick={() => notificationStore.markAllAsRead()}
+									onclick={markAllNotificationsRead}
 								>
 									Mark all read
 								</Button>
 							{/if}
 						</div>
 						<ScrollArea class="h-80">
-							{#if notificationStore.items.length === 0}
+							{#if notificationStore.items.length === 0 && announcementStore.items.length === 0}
 								<div class="p-8 text-center text-muted-foreground text-sm">
 									No notifications yet
 								</div>
 							{:else}
 								<div class="flex flex-col">
-									{#each notificationStore.items as notif}
+									{#each announcementStore.items as announcement (announcement.cacheId)}
+										<div
+											class="border-b transition-colors {announcement.readAt
+												? 'opacity-70'
+												: 'bg-primary/5'}"
+										>
+											<button
+												class="flex w-full flex-col gap-1 p-4 text-left transition-colors hover:bg-muted/50"
+												onclick={() => announcementStore.open(announcement)}
+											>
+												<div class="flex w-full items-start justify-between gap-2">
+													<span class="flex items-center gap-1.5 text-sm font-semibold">
+														<Megaphone class="size-3.5 text-primary" />
+														{announcement.title}
+													</span>
+													<span class="whitespace-nowrap text-[10px] text-muted-foreground">
+														{formatDistanceToNow(
+															announcement.publishedAt ??
+																announcement.scheduledFor ??
+																announcement.createdAt
+														)}
+													</span>
+												</div>
+												<span class="line-clamp-2 text-sm text-muted-foreground">
+													{announcement.body}
+												</span>
+											</button>
+											{#if announcement.requiresAcknowledgement && !announcement.acknowledgedAt}
+												<div class="flex items-center justify-between gap-2 px-4 pb-3">
+													<span class="text-[10px] font-medium text-destructive">
+														Acknowledgement required
+													</span>
+													<Button
+														variant="outline"
+														size="sm"
+														class="h-7 text-xs"
+														disabled={acknowledgingAnnouncementId === announcement.announcementId}
+														onclick={() => acknowledgeAnnouncement(announcement.announcementId)}
+													>
+														{acknowledgingAnnouncementId === announcement.announcementId
+															? 'Saving…'
+															: 'Acknowledge'}
+													</Button>
+												</div>
+											{/if}
+										</div>
+									{/each}
+									{#each notificationStore.items as notif (notif.id)}
 										<button
 											class="flex flex-col gap-1 p-4 text-left hover:bg-muted/50 transition-colors border-b last:border-0 {notif.read
 												? 'opacity-70'

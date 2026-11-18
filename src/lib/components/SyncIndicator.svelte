@@ -5,7 +5,17 @@
 	import { onMount, onDestroy } from 'svelte';
 
 	let timeAgo = $state('just now');
-	let interval: any;
+	let interval: ReturnType<typeof setInterval> | null = null;
+
+	const connectionLabel = $derived.by(() => {
+		if (!syncStore.online || syncStore.realtimeState === 'offline') return 'Offline';
+		if (syncStore.realtimeState === 'live') return 'Live';
+		if (syncStore.realtimeState === 'connecting') return 'Connecting';
+		if (syncStore.realtimeState === 'stale' || syncStore.realtimeState === 'error') {
+			return 'Stale';
+		}
+		return 'Connected';
+	});
 
 	function updateTimeAgo() {
 		if (!syncStore.lastSyncedAt) {
@@ -31,7 +41,7 @@
 
 <div class="flex flex-col items-start gap-2">
 	<div class="flex items-center gap-2">
-		{#if syncStore.online}
+		{#if syncStore.online && syncStore.realtimeState !== 'offline'}
 			{#if syncStore.isSyncing}
 				<Badge
 					variant="outline"
@@ -40,18 +50,29 @@
 					<Loader2 class="size-3 animate-spin" />
 					Syncing...
 				</Badge>
+			{:else if syncStore.realtimeState === 'stale' || syncStore.realtimeState === 'error'}
+				<Badge
+					variant="outline"
+					class="flex cursor-pointer items-center gap-1.5 border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-amber-500 transition-colors hover:bg-amber-500/20"
+					onclick={() => void syncStore.flush()}
+				>
+					<AlertCircle class="size-3" />
+					{connectionLabel}
+					{syncStore.pendingCount > 0 ? `(${syncStore.pendingCount})` : ''}
+				</Badge>
 			{:else}
 				<Badge
 					variant="outline"
 					class="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 flex items-center gap-1.5 px-2.5 py-1 hover:bg-emerald-500/20 cursor-pointer transition-colors"
-					onclick={() => syncStore.flush()}
+					onclick={() => void syncStore.flush()}
 				>
 					<span
 						class="w-2 h-2 rounded-full bg-emerald-500 {syncStore.pendingCount > 0
 							? 'animate-pulse'
 							: ''}"
 					></span>
-					Connected {syncStore.pendingCount > 0 ? `(${syncStore.pendingCount})` : ''}
+					{connectionLabel}
+					{syncStore.pendingCount > 0 ? `(${syncStore.pendingCount})` : ''}
 				</Badge>
 			{/if}
 		{:else}

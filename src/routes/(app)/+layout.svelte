@@ -6,15 +6,18 @@
 	import { queueStore } from '#lib/state/queue.svelte.ts';
 	import { reminderStore } from '#lib/state/reminders.svelte.ts';
 	import { pharmacyStore } from '#lib/state/pharmacy.svelte.ts';
+	import { announcementStore } from '#lib/state/announcements.svelte.ts';
 	import { Skeleton } from '#lib/components/ui/skeleton/index.ts';
 	import { ModeWatcher } from 'mode-watcher';
-	import { setContext, onMount, onDestroy } from 'svelte';
+	import { setContext, onMount, type Component } from 'svelte';
 
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/env';
+	import { resolve } from '$app/paths';
 
 	import * as Sidebar from '#lib/components/ui/sidebar/index.ts';
 	import AppSidebar from '#lib/components/app-sidebar.svelte';
+	import AnnouncementBanner from '#lib/components/announcement-banner.svelte';
 	import BottomNav, { type BottomNavItem } from '#lib/components/bottom-nav.svelte';
 	import { DASHBOARD_MODULES } from '#lib/config/dashboard-modules.ts';
 	import type { NavGroup } from '#lib/components/app-sidebar.svelte';
@@ -83,23 +86,25 @@
 		}
 	});
 
-	let sessionData: any;
-	try {
-		sessionData = await getCurrentSession();
-		if (browser && sessionData?.user) {
-			localStorage.setItem('clinicflow_offline_session', JSON.stringify(sessionData));
-		}
-	} catch (error) {
-		console.error('Failed to fetch session (offline):', error);
-		if (browser) {
-			const cached = localStorage.getItem('clinicflow_offline_session');
-			if (cached) {
-				sessionData = JSON.parse(cached);
-			} else {
-				goto('/login');
+	async function loadSessionData() {
+		try {
+			const data = await getCurrentSession();
+			if (browser && data?.user) {
+				localStorage.setItem('clinicflow_offline_session', JSON.stringify(data));
 			}
+			return data;
+		} catch (error) {
+			console.error('Failed to fetch session (offline):', error);
+			if (browser) {
+				const cached = localStorage.getItem('clinicflow_offline_session');
+				if (cached) return JSON.parse(cached);
+				goto(resolve('/login'));
+			}
+			return null;
 		}
 	}
+
+	const sessionData = await loadSessionData();
 
 	if (sessionData) {
 		sessionStore.init(sessionData);
@@ -110,14 +115,21 @@
 	}
 
 	if (browser && !sessionData?.user) {
-		goto('/login');
+		goto(resolve('/login'));
 	}
 
 	onMount(() => {
-		settingsStore.fetchFromServer();
+		void settingsStore.fetchFromServer();
+		if (sessionStore.user?.id) void announcementStore.connect(sessionStore.user.id);
+		if (sessionStore.phcId) syncStore.connect(sessionStore.phcId);
+
+		return () => {
+			announcementStore.disconnect();
+			syncStore.disconnect();
+		};
 	});
 
-	const ICONS: Record<string, any> = {
+	const ICONS: Record<string, Component> = {
 		UserPlus,
 		Search,
 		FolderOpen,
@@ -188,9 +200,7 @@
 			if (mod.id === 'epi-queue') badge = queueStore.epiQueue.length;
 			if (mod.id === 'reminders') badge = reminderStore.pendingReminders?.length ?? 0;
 			if (mod.id === 'inventory')
-				badge = pharmacyStore.items.filter(
-					(i: any) => i.currentStock <= i.lowStockThreshold
-				).length;
+				badge = pharmacyStore.items.filter((i) => i.currentStock <= i.lowStockThreshold).length;
 
 			groups[mod.category].items.push({
 				href: mod.href,
@@ -247,9 +257,7 @@
 			if (mod.id === 'epi-queue') badge = queueStore.epiQueue.length;
 			if (mod.id === 'reminders') badge = reminderStore.pendingReminders?.length ?? 0;
 			if (mod.id === 'inventory')
-				badge = pharmacyStore.items.filter(
-					(i: any) => i.currentStock <= i.lowStockThreshold
-				).length;
+				badge = pharmacyStore.items.filter((i) => i.currentStock <= i.lowStockThreshold).length;
 
 			items.push({
 				href: mod.href,
@@ -280,6 +288,8 @@
 				<Sidebar.Trigger />
 				<h1 class="font-bold">ClinicFlow</h1>
 			</header>
+
+			<AnnouncementBanner />
 
 			<main class="flex-1 overflow-y-auto bg-muted/10 pb-16 md:pb-0">
 				{@render children()}

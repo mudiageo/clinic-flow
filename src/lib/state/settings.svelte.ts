@@ -1,11 +1,10 @@
 import { getPhcSettings } from '../../routes/sync/sync.remote';
-import { get } from 'svelte/store';
-import { untrack } from 'svelte';
 
 export type PhcSettings = {
 	name?: string;
 	state?: string;
 	lga?: string;
+	syncPollInterval: number;
 	maternalHealthEnabled: boolean;
 	immunizationEnabled: boolean;
 	aiVoiceEnabled: boolean;
@@ -22,6 +21,7 @@ const DEFAULT_SETTINGS: PhcSettings = {
 	name: 'Demo PHC',
 	state: 'Unknown',
 	lga: 'Unknown',
+	syncPollInterval: 15,
 	maternalHealthEnabled: true,
 	immunizationEnabled: true,
 	aiVoiceEnabled: true,
@@ -43,7 +43,9 @@ class SettingsStore {
 			if (cached) {
 				try {
 					this.#settings = { ...DEFAULT_SETTINGS, ...JSON.parse(cached) };
-				} catch (e) {}
+				} catch {
+					// Ignore malformed cached settings and keep the safe defaults.
+				}
 			}
 		}
 	}
@@ -64,6 +66,7 @@ class SettingsStore {
 					name: serverSettings.name,
 					state: serverSettings.state,
 					lga: serverSettings.lga,
+					syncPollInterval: serverSettings.syncPollInterval,
 					maternalHealthEnabled: serverSettings.maternalHealthEnabled,
 					immunizationEnabled: serverSettings.immunizationEnabled,
 					aiVoiceEnabled: serverSettings.aiVoiceEnabled,

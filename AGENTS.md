@@ -53,7 +53,164 @@ Do not use `date-fns` for formatting dates. Always use the native `Intl` API, pr
 **CRITICAL:** Do NOT use `+page.server.ts` or `+layout.server.ts` for server-side logic and data fetching. We use a Client-Server architecture utilizing SvelteKit's experimental **remote functions** (`import { query, command, form } from '$app/server'`).
 All server-side queries and mutations MUST be defined in `#lib/remote/*.remote.ts` files, and imported directly into `+page.svelte` components. If you need data, write a `query` remote function. If you need mutations, write a `command` or a `form` remote function as appropriate.
 
-### 7. Feature Implementation Protocol
+### 7. Realtime Data Architecture
+
+**CRITICAL:** Realtime delivery is an accelerator, never the source of truth. For durable data, the authoritative state MUST remain in the server database and, where offline access is required, in the appropriate IndexedDB store. A `query.live` stream only projects the latest server state to connected clients.
+
+Official reference: <https://svelte.dev/docs/kit/remote-functions#query.live>
+
+#### Choosing the Data Pattern
+
+Use the least complex pattern that meets the requirement:
+
+| Requirement                                                         | Required pattern                                       |
+| ------------------------------------------------------------------- | ------------------------------------------------------ |
+| Data changes only on navigation or explicit user action             | Normal `query`                                         |
+| Durable offline-first CRUD where a 15–30 second delay is acceptable | Existing push/pull sync                                |
+| Ephemeral, non-critical state such as presence or progress          | `query.live` may be used alone                         |
+| Durable data that must update connected clients quickly             | **Hybrid: database + local cache/sync + `query.live`** |
+
+Clinical alerts, queue state, announcements, stock warnings, device status, and other operationally important data MUST use the hybrid pattern. They must never exist only in a live stream.
+
+#### Application-Wide Near-Realtime Sync
+
+**Do not create a separate `query.live` stream for every table or ordinary CRUD feature.** The default for patients, encounters, vitals, prescriptions, inventory, appointments, reminders, labs, families, and other replicated domain records is one multiplexed wake-up stream per authenticated client plus the existing cursor-based sync engine.
+
+```text
+local mutation
+  -> IndexedDB + local sync log
+  -> request an immediate sync (debounced)
+  -> pushOperations
+
+server mutation
+  -> domain row + durable sync/outbox row in one transaction
+  -> commit
+  -> publish { scope, cursor/version } to phc:<phcId>:sync
+
+single client watchRealtimeSignals query.live
+  -> receives only a lightweight wake-up signal
+  -> tells syncStore to pullChanges(lastCursor)
+  -> syncStore applies batches to IndexedDB
+  -> existing Dexie-backed domain stores update reactively
+
+fallback
+  -> configured 15–30 second sync polling and reconnect catch-up
+```
+
+Rules for the application-wide stream:
+
+1. There should normally be **one** `watchRealtimeSignals` connection per signed-in client, not one connection per entity type. It may subscribe server-side to the authenticated user's PHC, platform-announcement, session/permission, and other authorized control topics.
+2. The stream carries only invalidation metadata such as channel, entity type, cursor/version, and timestamp. Actual records are fetched through `pullChanges` or an authorized normal `query`.
+3. Every durable server mutation must append a sync/outbox record in the same database transaction as the domain write. Publishing a live signal without a durable change record is forbidden.
+4. After commit, publish one PHC-scoped wake-up signal. The client debounces bursts into one sync run; if a signal arrives during sync, set a `syncAgain` flag and pull again after the current batch.
+5. Local mutations request an immediate debounced flush instead of waiting for the polling interval. `BroadcastChannel` may wake other tabs on the same device.
+6. `pullChanges` remains cursor-based, idempotent, batched, and authoritative. It must drain all available batches and advance a monotonic cursor only after each batch is safely applied.
+7. The polling interval remains mandatory as recovery for missed live signals, server restarts, multi-instance propagation delays, and offline devices.
+8. A dedicated feature `query.live` is an exception reserved for genuinely high-frequency projections, non-durable ephemeral state, or special audience semantics that cannot use the shared PHC change feed. Document the reason in the feature plan.
+
+Recommended handling by data class:
+
+| Data class                                                                                      | Delivery pattern                                                                          |
+| ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Patients, encounters, vitals, labs, prescriptions, inventory, appointments, reminders, families | Shared realtime wake-up → regular cursor sync                                             |
+| Settings, permissions, staff status, device approval                                            | Shared control signal → refresh the specific authorized query/session, plus durable audit |
+| Queue calling/active waiting-room projection                                                    | Durable sync plus a dedicated live projection only when sub-second UI latency is required |
+| Platform announcements and critical alerts                                                      | Durable records plus audience-aware live delivery and regular catch-up                    |
+| Reports, dashboards, historical analytics                                                       | Normal query with explicit/server-driven refresh; not live by default                     |
+| Presence, typing indicators, transient progress                                                 | Live-only is allowed because loss is acceptable                                           |
+
+#### Canonical Realtime Flow
+
+```text
+form/command
+  -> validate + authorize
+  -> database transaction + audit/sync record
+  -> commit
+  -> publish a minimal invalidation to the shared realtime hub
+
+query.live
+  -> validate + authorize
+  -> yield an initial authorized database snapshot
+  -> subscribe to the authorized hub topic
+  -> on invalidation, re-query authoritative data
+  -> yield the new snapshot/version
+
+domain state store
+  -> exposes connection/freshness state
+  -> updates its IndexedDB cache when required
+  -> supplies reactive data to components
+
+regular sync/catch-up query
+  -> reconciles anything missed while disconnected
+```
+
+#### Remote Function Rules
+
+1. Define new live functions in `#lib/remote/<domain>.remote.ts` using `query.live`. Name them `watch<Domain>` or `watch<Domain>Updates` so they are clearly distinguishable from ordinary queries.
+2. Validate every client argument with Valibot. Run authentication, permission checks, and tenant scoping **inside the live query before its first yield**.
+3. Derive `phcId`, `staffId`, role, and permissions from `getRequestEvent().locals`. Never trust a client-supplied PHC, user, role, audience, or topic.
+4. Every live query MUST yield an initial value for SSR/hydration, then clean up all subscriptions/timers in `finally` when the client disconnects.
+5. Treat live values as snapshots, not events. SvelteKit keeps only the latest pending value; `query.live` is explicitly **not an event log**. Anything that must never be missed belongs in the database/sync log.
+6. For small bounded datasets, yield the complete authorized snapshot. For large or unbounded datasets, yield a lightweight version/cursor/invalidation and use an incremental normal `query` to retrieve changes.
+7. Bound result sizes and use stable, validated cache-key arguments. Prefer one stream per domain/scope, not one stream per row.
+8. Live queries have `connected` and `reconnect()`, but no `refresh()`. Use the correct API.
+9. A mutation-time `.reconnect()` is a single-flight update delivered with that mutation response; it is useful for the **calling client**, but it is not cross-client pub/sub. Other devices must be notified through the shared realtime hub or eventually through regular sync.
+10. When the mutation knows the exact active query key, reconnect it server-side after the commit. When query instances are selected dynamically by the client, use `.updates(...)` with server-side `requested(...)` and a strict finite limit.
+
+#### Shared Realtime Hub
+
+All cross-client invalidation MUST go through a provider-neutral server abstraction in `#lib/server/realtime/`; do not create ad-hoc `EventEmitter`, WebSocket, SSE, or database-listener implementations inside feature files.
+
+- The hub contract is conceptually `publish(topic, signal)` plus an abortable `subscribe(topic)` async iterable.
+- The local single-server provider may use an in-process hub.
+- Multi-instance cloud deployments MUST use a distributed provider such as Redis/pub-sub or a database notification adapter.
+- Feature code must not depend directly on PostgreSQL `LISTEN/NOTIFY`, because ClinicFlow also supports libSQL/SQLite.
+- Topic names must be server-generated and tenant-scoped, for example `phc:<phcId>:queue`, `phc:<phcId>:announcements`, or `platform:announcements`.
+- Signals must be minimal and contain no patient-identifiable or clinical data. Prefer `{ entityType, entityId, operation, version, occurredAt }`; the live query then re-reads authorized data from the database.
+- Publish only **after** the database transaction commits. Coalesce bursty invalidations before re-querying.
+
+#### Polling Policy
+
+Do not implement tight `while (true)` database polling as the default realtime mechanism. It creates one repeating database workload per active live-query cache key.
+
+- Prefer hub-driven invalidation plus regular sync reconciliation.
+- Poll only when the upstream source cannot publish changes.
+- A polling exception must document its latency requirement, query cost, indexes, interval, and expected connection count.
+- No interval below five seconds without explicit approval. Reconciliation polling should normally be 30 seconds or longer, use backoff/jitter, emit only changed versions, and stop immediately when the iterator is cancelled.
+
+Existing polling-based live code is legacy and MUST NOT be copied into new features; migrate it to this pattern when that area is modified.
+
+#### Client State and Offline Behaviour
+
+1. Shared realtime domain data belongs in a typed class-based store under `#lib/state/`; components must not open their own sockets, access Dexie directly, or implement polling timers.
+2. The store owns the live-query handle, cache/cursor, deduplication, and `connect()`/`disconnect()` lifecycle. It must disconnect on logout, PHC change, or when its owning layout/feature is destroyed.
+3. Expose explicit freshness state such as `idle | connecting | live | stale | offline | error`, together with `lastUpdatedAt`. Do not infer server connectivity from `navigator.onLine` alone; use the live resource's `connected` state.
+4. For hybrid data, render the local IndexedDB snapshot first, merge live snapshots idempotently, and run cursor-based catch-up on reconnect. Queue offline mutations/read receipts through the normal sync mechanism.
+5. `BroadcastChannel` is allowed only for same-device cross-tab coordination. It is not a substitute for server-to-device realtime delivery.
+6. When a stream disconnects, keep safe cached data visible but mark it stale. Clinical or operational screens must make stale/disconnected state obvious and must not imply that cached values are current.
+
+#### Security, Safety, and Reliability
+
+- Recheck authorization before each protected database re-read/emission for long-running streams, or terminate/reconnect the stream when session, role, permission, staff status, or PHC membership changes.
+- Never leak one PHC's data through stream arguments, topic names, snapshots, logs, or error messages.
+- Critical clinical alerts and platform announcements must be durable, auditable, replayable after reconnect, and explicitly acknowledged where required. They may not rely on transient toast delivery.
+- AI-generated realtime alerts remain advisory and must follow the project's AI disclaimer and human-in-the-loop rules. Realtime speed must never bypass clinical review.
+- Service workers MUST NOT cache live-query responses. Preserve and honor `Cache-Control: no-store`; exclude streaming remote-function requests from runtime caching rules.
+- Implement error handling, reconnect/backoff behaviour, duplicate suppression, and bounded payloads. Never assume each emitted value will be observed.
+
+#### Required Tests for Every Realtime Feature
+
+- Initial authorized snapshot and SSR/hydration behaviour.
+- Two connected clients receive a committed update.
+- A client in another PHC or without permission receives nothing.
+- Disconnect, offline mutation where applicable, reconnect, and catch-up with no lost durable data.
+- Duplicate and burst invalidations remain idempotent and coalesced.
+- Stream subscriptions/timers are cleaned up after navigation/logout.
+- Permission revocation or staff deactivation stops future protected data.
+- Live responses are not cached by the service worker.
+- Regular sync/catch-up succeeds even when the live transport is unavailable.
+
+### 8. Feature Implementation Protocol
 
 **CRITICAL:** Before implementing ANY new feature, the agent MUST follow this exact workflow:
 

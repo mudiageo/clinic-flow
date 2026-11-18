@@ -23,7 +23,7 @@ class QueueStore extends LocalCollection<LocalQueueTicket> {
 	ancQueue = $derived(this.sortedQueue.filter((t) => t.department === 'anc'));
 	epiQueue = $derived(this.sortedQueue.filter((t) => t.department === 'epi'));
 
-	nextTicket = $derived(this.sortedQueue[0] ?? null);
+	nextTicket = $derived(this.sortedQueue.find((ticket) => ticket.status === 'waiting') ?? null);
 
 	async callNext(): Promise<void> {
 		const next = this.nextTicket;
