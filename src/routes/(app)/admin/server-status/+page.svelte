@@ -233,20 +233,35 @@
 				>
 			</CardHeader>
 			<CardContent class="space-y-3">
-				<div
-					class="flex items-center gap-3 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20"
-				>
-					<CheckCircle2 class="size-5 text-emerald-500 shrink-0" />
-					<div>
-						<p class="text-sm font-semibold text-foreground">mDNS Active</p>
-						<p class="text-xs text-muted-foreground font-mono">clinicflow-server.local</p>
-					</div>
-					<Badge
-						variant="outline"
-						class="ml-auto border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
-						>Broadcasting</Badge
+				{#if status.mdns?.active}
+					<div
+						class="flex items-center gap-3 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20"
 					>
-				</div>
+						<CheckCircle2 class="size-5 text-emerald-500 shrink-0" />
+						<div>
+							<p class="text-sm font-semibold text-foreground">mDNS Active</p>
+							<p class="text-xs text-muted-foreground font-mono">
+								{status.mdns.hostname}{status.mdns.port ? `:${status.mdns.port}` : ''}
+							</p>
+						</div>
+						<Badge
+							variant="outline"
+							class="ml-auto border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+							>Broadcasting</Badge
+						>
+					</div>
+				{:else}
+					<div class="flex items-center gap-3 p-3 rounded-lg bg-muted/40 border border-border">
+						<Wifi class="size-5 text-muted-foreground shrink-0" />
+						<div>
+							<p class="text-sm font-semibold text-foreground">mDNS Not Available</p>
+							<p class="text-xs text-muted-foreground">
+								Local discovery broadcasts only run on an on-premise master server. Tablets on this
+								deployment connect using the configured server address.
+							</p>
+						</div>
+					</div>
+				{/if}
 			</CardContent>
 		</Card>
 

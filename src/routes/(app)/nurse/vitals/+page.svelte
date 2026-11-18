@@ -164,7 +164,7 @@
 					patientId: selectedPatient.id,
 					phcId: sessionStore.activePhcId,
 					encounterId,
-					ticketNumber: 0,
+					ticketNumber: queueStore.allocateTicketNumber(sessionStore.activePhcId),
 					status: 'waiting',
 					triageLevel: triageResult.level,
 					triageReason: triageResult.reason,
@@ -199,7 +199,7 @@
 			getPatientRiskScore({
 				vitals: vitalsPayload,
 				patient: p,
-				chiefComplaint: p.reasonForVisit || triageResult.reason || 'Routine Checkup',
+				chiefComplaint: triageResult.reason || 'Routine Checkup',
 				pastVitals
 			})
 				.then(async (aiRes) => {

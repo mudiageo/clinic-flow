@@ -24,19 +24,19 @@
 
 ## Phase C — Stub IDs & store wiring (P1)
 
-- [ ] **ST-01** `pharmacy/inventory/new`: `phcId` → `sessionStore.phcId`
-- [ ] **ST-02** `nurse/register`: deterministic clinic ID, session PHC, real ticket number
-- [ ] **ST-03** `nurse/search`: `phcId` → `sessionStore.phcId`
-- [ ] **ST-04** `nurse/vitals`: `phcId` → `sessionStore.phcId`, real ticket number
+- [x] **ST-01** `pharmacy/inventory/new`: `phcId` → `sessionStore.phcId`
+- [x] **ST-02** `nurse/register`: deterministic clinic ID, session PHC, real ticket number
+- [x] **ST-03** `nurse/search`: `phcId` → `sessionStore.phcId`
+- [x] **ST-04** `nurse/vitals`: `phcId` → `sessionStore.phcId`, real ticket number
 - [x] **ST-05** `patients/[id]` + child panels: `findById()` → `get()`
 - [x] **ST-06** `families.svelte.ts`: proper `FamilyStore extends LocalCollection`
 - [x] **ST-07** `families/[id]`: wire `familyStore`, remove stale comment/unused `queueStore`
 - [x] **ST-08** Replace `javascript:history.back()` with a safe history handler (patients + families)
-- [ ] **ST-09** Add `email` to `getAllStaffUsers()` select
-- [ ] **ST-10** Align reminder `type` union with select options
-- [ ] **ST-11** `pharmacy/+page`: real `requestedByStaffId` + configured reorder default
-- [ ] **ST-12** Remove fake identity fallbacks in `superadmin/settings`
-- [ ] **ST-13** Remove/realize mDNS card in `admin/server-status`
+- [x] **ST-09** Add `email` to `getAllStaffUsers()` select
+- [x] **ST-10** Align reminder `type` union with select options
+- [x] **ST-11** `pharmacy/+page`: real `requestedByStaffId` + configured reorder default
+- [x] **ST-12** Remove fake identity fallbacks in `superadmin/settings`
+- [x] **ST-13** Remove/realize mDNS card in `admin/server-status`
 - [ ] **ST-14** Remove `pin === '0000'` auth backdoor
 - [x] **ST-15** Route `admin/sync` through `syncStore` instead of direct Dexie
 

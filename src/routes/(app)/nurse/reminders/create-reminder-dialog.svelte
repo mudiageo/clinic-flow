@@ -8,6 +8,7 @@
 	import { toast } from 'svelte-sonner';
 	import { patientStore } from '#lib/state/patients.svelte.ts';
 	import { reminderStore } from '#lib/state/reminders.svelte.ts';
+	import type { LocalPatient } from '#lib/local-db/db.ts';
 	import { Calendar, User, Clock } from '@lucide/svelte';
 
 	import { getContext } from 'svelte';
@@ -17,7 +18,7 @@
 	let { open = $bindable(false) } = $props();
 
 	let searchQuery = $state('');
-	let selectedPatient = $state<any>(null);
+	let selectedPatient = $state<LocalPatient | null>(null);
 	let dueDateStr = $state('');
 	let dueTimeStr = $state('09:00');
 	let type = $state<'follow_up' | 'immunization' | 'antenatal'>('follow_up');
@@ -35,7 +36,7 @@
 		label = '';
 	}
 
-	function handleSelect(patient: any) {
+	function handleSelect(patient: LocalPatient) {
 		selectedPatient = patient;
 		searchQuery = patient.name;
 	}
@@ -73,8 +74,10 @@
 			toast.success('Reminder scheduled successfully!');
 			open = false;
 			resetForm();
-		} catch (err: any) {
-			toast.error(`Failed to schedule reminder: ${err.message}`);
+		} catch (err) {
+			toast.error(
+				`Failed to schedule reminder: ${err instanceof Error ? err.message : String(err)}`
+			);
 		} finally {
 			isSubmitting = false;
 		}
@@ -103,7 +106,7 @@
 					placeholder="Search patient..."
 					onSelect={handleSelect}
 				>
-					{#snippet itemSnippet(patient: any, isActive: boolean)}
+					{#snippet itemSnippet(patient: LocalPatient, isActive: boolean)}
 						<div class="flex flex-col w-full py-1">
 							<div class="font-medium text-foreground text-sm">
 								<AutocompleteHighlight text={patient.name} query={searchQuery} />
@@ -126,9 +129,8 @@
 					class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					<option value="follow_up">Follow Up</option>
-					<option value="appointment">Appointment</option>
-					<option value="medication">Medication Refill</option>
-					<option value="vaccination">Vaccination</option>
+					<option value="immunization">Immunization</option>
+					<option value="antenatal">Antenatal</option>
 				</select>
 			</div>
 

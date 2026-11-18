@@ -30,6 +30,7 @@
 	} from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { restockStore } from '#lib/state/restock-requests.svelte.ts';
+	import { sessionStore } from '#lib/state/session.svelte.ts';
 	import type { LocalPharmacyInventory } from '#lib/local-db/db.ts';
 
 	let searchQuery = $state('');
@@ -46,9 +47,9 @@
 		try {
 			await restockStore.create({
 				inventoryItemId: item.id,
-				phcId: item.phcId,
-				requestedByStaffId: null, // Typically comes from session
-				quantityRequested: Math.max(100, item.lowStockThreshold * 2), // Default bulk request
+				phcId: sessionStore.activePhcId,
+				requestedByStaffId: sessionStore.staffId,
+				quantityRequested: Math.max(1, item.lowStockThreshold * 3),
 				status: 'pending',
 				createdAt: Date.now()
 			});

@@ -1,4 +1,5 @@
 import { db, type LocalPatient } from '#lib/local-db/db.ts';
+import { nextClinicId } from '#lib/sync/id-allocation.ts';
 import { LocalCollection } from './local-collection.svelte';
 
 class PatientStore extends LocalCollection<LocalPatient> {
@@ -25,6 +26,14 @@ class PatientStore extends LocalCollection<LocalPatient> {
 
 	findByClinicId(clinicId: string): LocalPatient | undefined {
 		return this.items.find((p) => p.clinicId.toLowerCase() === clinicId.toLowerCase());
+	}
+
+	/** Allocate a unique, deterministic clinic ID for a new patient. */
+	allocateClinicId(prefix: string): string {
+		return nextClinicId(
+			prefix,
+			this.items.map((patient) => patient.clinicId)
+		);
 	}
 
 	familyMembers(familyId: string): LocalPatient[] {

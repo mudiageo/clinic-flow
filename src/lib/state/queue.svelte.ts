@@ -7,6 +7,7 @@ import {
 	queueVolumeToday,
 	startOfLocalDay
 } from '#lib/dashboard/metrics.ts';
+import { nextTicketNumber } from '#lib/sync/id-allocation.ts';
 
 class QueueStore extends LocalCollection<LocalQueueTicket> {
 	constructor() {
@@ -39,6 +40,11 @@ class QueueStore extends LocalCollection<LocalQueueTicket> {
 	generalQueue = $derived(this.sortedQueue.filter((t) => t.department === 'general'));
 	ancQueue = $derived(this.sortedQueue.filter((t) => t.department === 'anc'));
 	epiQueue = $derived(this.sortedQueue.filter((t) => t.department === 'epi'));
+
+	/** Allocate the next sequential ticket number for a PHC on the local day. */
+	allocateTicketNumber(phcId: string): number {
+		return nextTicketNumber(phcId, this.items);
+	}
 
 	nextTicket = $derived(this.sortedQueue.find((ticket) => ticket.status === 'waiting') ?? null);
 	completedToday = $derived(this.items.filter((ticket) => isCompletedToday(ticket)).length);

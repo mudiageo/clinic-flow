@@ -1,6 +1,6 @@
 # Route Fidelity Cleanup — Implementation Plan
 
-**Status:** Phases A–B complete — Phase C next
+**Status:** Phases A–C complete (except ST-14, deferred) — Phase D next
 **Created:** 2026-11-17
 **Source audits:** Systematic read-only review of every route under `src/routes/**`, the dashboard module config, and all supporting stores/remotes. Four parallel audits covered admin, superadmin/settings, clinical, and dashboard/public routes. No code was changed by the audit.
 

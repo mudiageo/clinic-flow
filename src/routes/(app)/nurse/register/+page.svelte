@@ -109,14 +109,13 @@
 		isSubmitting = true;
 
 		try {
-			// Auto-generate Clinic ID format OR-XXXX-01
+			// Deterministic Clinic ID format OR-XXXX-01, unique within local records.
 			const initialParts = form.name.toUpperCase().split(' ');
 			const prefix = initialParts
 				.map((p) => p[0] || '')
 				.join('')
 				.slice(0, 4);
-			const rand = Math.floor(10 + Math.random() * 90);
-			const clinicId = `OR-${prefix}-${rand}`;
+			const clinicId = patientStore.allocateClinicId(prefix);
 
 			const id = await patientStore.create({
 				clinicId,
@@ -142,7 +141,7 @@
 				patientId: id,
 				phcId: sessionStore.activePhcId,
 				encounterId: null,
-				ticketNumber: 0, // Auto-computed sequentially in state
+				ticketNumber: queueStore.allocateTicketNumber(sessionStore.activePhcId),
 				status: 'waiting',
 				triageLevel: 'green',
 				triageReason: 'New Registration',

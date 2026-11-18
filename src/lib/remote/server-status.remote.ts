@@ -1,9 +1,10 @@
-import { query, form, command } from '$app/server';
+import { query, command } from '$app/server';
 import { getRequestEvent } from '$app/server';
 import * as v from 'valibot';
 import { randomBytes } from 'node:crypto';
 import { getDeviceCountsByPhc, registerPendingDevice } from '#lib/server/db/queries/devices.ts';
 import { DATABASE_URL } from '$app/env/private';
+import { getMdnsBroadcast } from '#lib/server/mdns.ts';
 
 // ─────────────────────────────────────────────────────────────
 // SERVER STATUS
@@ -25,7 +26,8 @@ export const getServerStatus = query(async () => {
 		activeDevices: counts.activeCount,
 		pendingDevices: counts.pendingCount,
 		isMasterServer:
-			DATABASE_URL?.startsWith('file:') || DATABASE_URL?.startsWith('libsql:') || false
+			DATABASE_URL?.startsWith('file:') || DATABASE_URL?.startsWith('libsql:') || false,
+		mdns: getMdnsBroadcast()
 	};
 });
 

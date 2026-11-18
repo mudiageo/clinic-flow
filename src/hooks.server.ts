@@ -9,6 +9,7 @@ import { startSmsWorker } from '#lib/server/sms/worker.ts';
 import { DATABASE_URL, PORT } from '$app/env/private';
 import { ROLE_DEFAULTS } from '#lib/config/role-defaults.ts';
 import { DASHBOARD_MODULES } from '#lib/config/dashboard-modules.ts';
+import { setMdnsBroadcast } from '#lib/server/mdns.ts';
 
 if (!building) {
 	startSmsWorker();
@@ -35,11 +36,18 @@ if (!building) {
 					txt: { version: '1', app: 'clinicflow' }
 				});
 
-				console.log(`[mDNS] Broadcasting as "clinicflow-server.local" on port ${port}`);
+				setMdnsBroadcast({ active: true, hostname: 'clinicflow.local', port });
+				console.log(`[mDNS] Broadcasting as "clinicflow.local" on port ${port}`);
 
 				// Graceful shutdown
-				process.on('SIGTERM', () => bonjour.destroy());
-				process.on('SIGINT', () => bonjour.destroy());
+				process.on('SIGTERM', () => {
+					bonjour.destroy();
+					setMdnsBroadcast({ active: false, hostname: null, port: null });
+				});
+				process.on('SIGINT', () => {
+					bonjour.destroy();
+					setMdnsBroadcast({ active: false, hostname: null, port: null });
+				});
 			})
 			.catch((e) => console.warn('[mDNS] bonjour-service unavailable:', e.message));
 	}
@@ -128,7 +136,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 				| 'chew'
 				| 'jchew'
 				| 'eho') ??
-			(session.session as any).role ??
+			(session.session as { role?: string } | null)?.role ??
 			null;
 
 		// Calculate active permissions

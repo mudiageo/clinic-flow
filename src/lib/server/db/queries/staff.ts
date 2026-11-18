@@ -18,31 +18,42 @@ export async function getStaffByPhc(phcId: string) {
 export async function getAllStaffUsers() {
 	const staff = getTable('staff');
 	const phcs = getTable('phcs');
+	// The Better Auth `user` table is only present in the PostgreSQL schema;
+	// the local SQLite schema has no auth-user table. Guard the join so the
+	// superadmin directory works on both dialects.
+	const users = getTable('user');
 
-	return await database
+	let query = database
 		.select({
 			id: staff.id,
 			name: staff.fullName,
 			role: staff.role,
 			active: staff.active,
 			lastLogin: staff.createdAt,
-			phcName: phcs.name
+			phcName: phcs.name,
+			email: users ? users.email : null
 		})
 		.from(staff)
 		.leftJoin(phcs, eq(staff.phcId, phcs.id));
+
+	if (users) {
+		query = query.leftJoin(users, eq(staff.authUserId, users.id));
+	}
+
+	return await query;
 }
 
-export async function createStaff(data: any) {
+export async function createStaff(data: Record<string, unknown>) {
 	const staff = getTable('staff');
 	return await database.insert(staff).values(data).returning();
 }
 
-export async function updateStaffProfile(staffId: string, data: any) {
+export async function updateStaffProfile(staffId: string, data: Record<string, unknown>) {
 	const staff = getTable('staff');
 	return await database.update(staff).set(data).where(eq(staff.id, staffId));
 }
 
-export async function updateStaffPreferences(staffId: string, preferences: any) {
+export async function updateStaffPreferences(staffId: string, preferences: unknown) {
 	const staff = getTable('staff');
 	return await database
 		.update(staff)

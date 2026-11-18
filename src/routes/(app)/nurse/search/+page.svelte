@@ -59,7 +59,7 @@
 				patientId: selectedPatient.id,
 				phcId: sessionStore.activePhcId,
 				encounterId: null,
-				ticketNumber: 0,
+				ticketNumber: queueStore.allocateTicketNumber(sessionStore.activePhcId),
 				status: 'waiting',
 				triageLevel: 'unassigned', // Will be assessed at vitals
 				triageReason: null,

@@ -19,9 +19,9 @@
 
 	let { data } = $props();
 
-	// Profile State
-	let fullName = $state(data.profile?.name ?? 'Super Admin');
-	let emailAddress = $state(data.profile?.email ?? 'admin@clinicflow.org');
+	// Profile State — no fake identity fallbacks; show an explicit unavailable state.
+	let fullName = $state(data.profile?.name ?? '');
+	let emailAddress = $state(data.profile?.email ?? '');
 	let currentPassword = $state('');
 	let newPassword = $state('');
 	let confirmPassword = $state('');
@@ -37,7 +37,7 @@
 	let isSavingSecurity = $state(false);
 	let isSavingPrefs = $state(false);
 
-	async function handleUpdatePassword(form: any) {
+	async function handleUpdatePassword() {
 		if (newPassword !== confirmPassword) {
 			toast.error('New passwords do not match');
 			return false;
@@ -99,14 +99,19 @@
 									toast.success('Profile updated successfully');
 								}
 							}
-						} catch (e: any) {
-							toast.error(e.message || 'Failed to update profile');
+						} catch (e) {
+							toast.error(e instanceof Error ? e.message : 'Failed to update profile');
 						} finally {
 							isSavingProfile = false;
 						}
 					})}
 				>
 					<CardContent class="space-y-4">
+						{#if !data.profile}
+							<p class="text-sm text-muted-foreground rounded-md bg-muted/40 p-3">
+								Profile unavailable. Sign in with a superadmin account to manage your details.
+							</p>
+						{/if}
 						<div class="space-y-2">
 							<Label for="fullName">Full Name</Label>
 							<Input {...updateProfile.fields.name.as('text', fullName)} required />
@@ -117,7 +122,7 @@
 						</div>
 					</CardContent>
 					<CardFooter class="bg-muted/10 border-t flex justify-end p-4">
-						<Button type="submit" disabled={isSavingProfile}>
+						<Button type="submit" disabled={isSavingProfile || !data.profile}>
 							{#if isSavingProfile}
 								<Settings class="size-4 mr-2 animate-spin" />
 								Saving...
@@ -145,7 +150,7 @@
 				</CardHeader>
 				<form
 					{...updatePassword.enhance(async (form) => {
-						if (!(await handleUpdatePassword(form))) return;
+						if (!(await handleUpdatePassword())) return;
 						isSavingSecurity = true;
 						try {
 							if (await form.submit()) {
@@ -156,8 +161,8 @@
 									confirmPassword = '';
 								}
 							}
-						} catch (e: any) {
-							toast.error(e.message || 'Failed to update password');
+						} catch (e) {
+							toast.error(e instanceof Error ? e.message : 'Failed to update password');
 						} finally {
 							isSavingSecurity = false;
 						}

@@ -23,14 +23,23 @@
 
 	let searchTerm = $state('');
 
-	function filterUsers(users: any[]) {
+	type DirectoryUser = {
+		id: string;
+		name: string;
+		email: string | null;
+		role: string;
+		active: boolean;
+		phcName?: string | null;
+	};
+
+	function filterUsers(users: DirectoryUser[]) {
 		if (!searchTerm) return users;
 		const lower = searchTerm.toLowerCase();
 		return users.filter(
 			(u) =>
 				u.name.toLowerCase().includes(lower) ||
-				u.email.toLowerCase().includes(lower) ||
-				u.phcName?.toLowerCase().includes(lower) ||
+				(u.email ?? '').toLowerCase().includes(lower) ||
+				(u.phcName ?? '').toLowerCase().includes(lower) ||
 				u.role.toLowerCase().includes(lower)
 		);
 	}
@@ -85,10 +94,10 @@
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{#each filtered as user}
+						{#each filtered as user (user.id)}
 							<TableRow>
 								<TableCell class="font-medium">{user.name}</TableCell>
-								<TableCell class="text-muted-foreground">{user.email}</TableCell>
+								<TableCell class="text-muted-foreground">{user.email ?? '—'}</TableCell>
 								<TableCell>
 									<Badge
 										variant={user.role === 'admin' ? 'default' : 'secondary'}
