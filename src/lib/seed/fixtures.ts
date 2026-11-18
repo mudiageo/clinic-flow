@@ -575,6 +575,7 @@ export function buildFixtures(profile: PhcProfile, now = Date.now()): FixtureSet
 
 	const families: LocalFamily[] = Array.from({ length: profile.familyCount }, (_, i) => ({
 		id: sid(`family:${i}`),
+		phcId,
 		householdName: `${['Ighodaro', 'Osagie', 'Idahosa', 'Igbinosa', 'Imasuen', 'Bello', 'Eze', 'Obi', 'Adeyemi', 'Musa', 'Ehiwe', 'Uwa'][i % 12]} Family`,
 		community: COMMUNITIES[i % COMMUNITIES.length],
 		syncStatus: 'synced',

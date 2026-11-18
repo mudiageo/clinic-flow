@@ -12,7 +12,7 @@ import {
 	uniqueIndex,
 	primaryKey
 } from 'drizzle-orm/pg-core';
-import { relations, sql } from 'drizzle-orm';
+import { relations } from 'drizzle-orm';
 import { user } from './auth.schema';
 
 // ─────────────────────────────────────────────────────────────
@@ -170,12 +170,19 @@ export const permissions = pgTable(
 // PATIENTS
 // ─────────────────────────────────────────────────────────────
 
-export const families = pgTable('families', {
-	id: uuid('id').primaryKey().defaultRandom(),
-	householdName: varchar('household_name', { length: 160 }),
-	community: varchar('community', { length: 160 }),
-	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
-});
+export const families = pgTable(
+	'families',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		phcId: uuid('phc_id')
+			.notNull()
+			.references(() => phcs.id),
+		householdName: varchar('household_name', { length: 160 }),
+		community: varchar('community', { length: 160 }),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(table) => ({ phcIdx: index('families_phc_idx').on(table.phcId) })
+);
 
 export const patients = pgTable(
 	'patients',
@@ -687,6 +694,7 @@ export const staffRelations = relations(staff, ({ many, one }) => ({
 export const phcsRelations = relations(phcs, ({ many }) => ({
 	staff: many(staff),
 	patients: many(patients),
+	families: many(families),
 	permissions: many(permissions),
 	smsMessages: many(smsInbox),
 	targetedAnnouncements: many(announcements)
@@ -775,7 +783,8 @@ export const restockRequestsRelations = relations(restockRequests, ({ one }) => 
 	})
 }));
 
-export const familiesRelations = relations(families, ({ many }) => ({
+export const familiesRelations = relations(families, ({ one, many }) => ({
+	phc: one(phcs, { fields: [families.phcId], references: [phcs.id] }),
 	patients: many(patients)
 }));
 

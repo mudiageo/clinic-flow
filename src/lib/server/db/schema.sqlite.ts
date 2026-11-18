@@ -101,16 +101,23 @@ export const permissions = sqliteTable('permissions', {
 // PATIENTS
 // ─────────────────────────────────────────────────────────────
 
-export const families = sqliteTable('families', {
-	id: text('id')
-		.primaryKey()
-		.$defaultFn(() => crypto.randomUUID()),
-	householdName: text('household_name'),
-	community: text('community'),
-	createdAt: integer('created_at', { mode: 'timestamp' })
-		.notNull()
-		.$defaultFn(() => new Date())
-});
+export const families = sqliteTable(
+	'families',
+	{
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		phcId: text('phc_id')
+			.notNull()
+			.references(() => phcs.id),
+		householdName: text('household_name'),
+		community: text('community'),
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.notNull()
+			.$defaultFn(() => new Date())
+	},
+	(table) => ({ phcIdx: index('families_phc_idx').on(table.phcId) })
+);
 
 export const patients = sqliteTable(
 	'patients',
@@ -692,6 +699,7 @@ export const staffRelations = relations(staff, ({ one, many }) => ({
 export const phcsRelations = relations(phcs, ({ many }) => ({
 	staff: many(staff),
 	patients: many(patients),
+	families: many(families),
 	devices: many(devices),
 	targetedAnnouncements: many(announcements)
 }));
@@ -705,6 +713,11 @@ export const patientsRelations = relations(patients, ({ one, many }) => ({
 	reminders: many(reminders),
 	pregnancyRecords: many(pregnancyRecords),
 	appointments: many(appointments)
+}));
+
+export const familiesRelations = relations(families, ({ one, many }) => ({
+	phc: one(phcs, { fields: [families.phcId], references: [phcs.id] }),
+	patients: many(patients)
 }));
 
 export const encountersRelations = relations(encounters, ({ one, many }) => ({

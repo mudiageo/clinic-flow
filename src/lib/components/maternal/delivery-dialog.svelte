@@ -23,7 +23,14 @@
 	import { pregnancyStore } from '#lib/state/pregnancy.svelte.ts';
 	import { sessionStore } from '#lib/state/session.svelte.ts';
 
-	let { open = $bindable(false), patientId, pregnancyRecordId, onComplete } = $props();
+	interface Props {
+		open?: boolean;
+		patientId: string;
+		pregnancyRecordId: string;
+		onComplete?: () => void;
+	}
+
+	let { open = $bindable(false), patientId, pregnancyRecordId, onComplete }: Props = $props();
 
 	let babyName = $state('');
 	let babySex = $state<'male' | 'female' | 'other' | ''>('');
@@ -48,26 +55,30 @@
 		{ label: 'PNC 3 (6 Weeks)', daysOffset: 42 }
 	];
 
+	function handleBabySexChange(value: string) {
+		if (value === 'male' || value === 'female' || value === 'other') babySex = value;
+	}
+
 	async function handleFinalizeDelivery() {
 		if (!babyName || !babySex || !deliveryDateStr) return;
 		isProcessing = true;
 
 		try {
-			const mother = patientStore.findById(patientId);
+			const mother = patientStore.get(patientId);
 			const phcId = sessionStore.activePhcId;
 			const deliveryDate = new Date(deliveryDateStr).getTime();
+			const newbornSex = babySex;
 
 			// 1. Mark pregnancy as delivered
 			await pregnancyStore.updateRecordStatus(pregnancyRecordId, 'delivered');
-			await patientStore.update(patientId, { isPregnant: false, updatedAt: Date.now() });
+			await patientStore.update(patientId, { isPregnant: false });
 
 			// 2. Generate Mother's Postnatal Care (PNC) Schedule
 			for (const visit of PNC_SCHEDULE) {
 				const scheduleDate = deliveryDate + visit.daysOffset * 24 * 60 * 60 * 1000;
 
 				// Create Appointment
-				await appointmentStore.insert({
-					id: crypto.randomUUID(),
+				await appointmentStore.create({
 					patientId: patientId,
 					phcId,
 					assignedStaffId: null,
@@ -77,15 +88,12 @@
 					notes: visit.label,
 					status: 'scheduled',
 					smsReminderSent: false,
-					createdAt: Date.now(),
-					updatedAt: Date.now(),
-					syncStatus: 'pending'
+					createdAt: Date.now()
 				});
 
 				// Create SMS Reminder
 				if (mother?.phone) {
-					await reminderStore.insert({
-						id: crypto.randomUUID(),
+					await reminderStore.create({
 						patientId: patientId,
 						phcId,
 						type: 'antenatal',
@@ -96,20 +104,16 @@
 						sentAt: null,
 						provider: null,
 						providerMessageId: null,
-						createdAt: Date.now(),
-						updatedAt: Date.now(),
-						syncStatus: 'pending'
+						createdAt: Date.now()
 					});
 				}
 			}
 
 			// 3. Register Baby
-			const babyId = crypto.randomUUID();
 			const clinicIdBase = Math.floor(100000 + Math.random() * 900000).toString();
 			const babyClinicId = `CF-BB-${clinicIdBase}`;
 
-			await patientStore.insert({
-				id: babyId,
+			const babyId = await patientStore.create({
 				clinicId: babyClinicId,
 				phcId,
 				familyId: mother?.familyId || null,
@@ -117,14 +121,11 @@
 				name: babyName,
 				phone: mother?.phone || null,
 				dob: deliveryDateStr,
-				sex: babySex as any,
+				sex: newbornSex,
 				address: mother?.address || null,
 				community: mother?.community || null,
-				nextOfKinName: mother?.name || null,
 				nextOfKinPhone: mother?.phone || null,
 				isPregnant: false,
-				syncStatus: 'pending',
-				updatedAt: Date.now(),
 				serverUpdatedAt: null,
 				deleted: false
 			});
@@ -134,8 +135,7 @@
 				const scheduleDate = deliveryDate + vax.daysOffset * 24 * 60 * 60 * 1000;
 
 				// Appointment
-				await appointmentStore.insert({
-					id: crypto.randomUUID(),
+				await appointmentStore.create({
 					patientId: babyId,
 					phcId,
 					assignedStaffId: null,
@@ -145,15 +145,12 @@
 					notes: `Vaccination: ${vax.label}`,
 					status: 'scheduled',
 					smsReminderSent: false,
-					createdAt: Date.now(),
-					updatedAt: Date.now(),
-					syncStatus: 'pending'
+					createdAt: Date.now()
 				});
 
 				// SMS Reminder (Send to mother's phone)
 				if (mother?.phone) {
-					await reminderStore.insert({
-						id: crypto.randomUUID(),
+					await reminderStore.create({
 						patientId: babyId,
 						phcId,
 						type: 'immunization',
@@ -164,9 +161,7 @@
 						sentAt: null,
 						provider: null,
 						providerMessageId: null,
-						createdAt: Date.now(),
-						updatedAt: Date.now(),
-						syncStatus: 'pending'
+						createdAt: Date.now()
 					});
 				}
 			}
@@ -208,7 +203,7 @@
 			<div class="grid grid-cols-2 gap-4">
 				<div class="space-y-2">
 					<Label>Sex</Label>
-					<Select type="single" value={babySex} onValueChange={(v) => (babySex = v as any)}>
+					<Select type="single" value={babySex} onValueChange={handleBabySexChange}>
 						<SelectTrigger class="capitalize">
 							{babySex || 'Select Sex'}
 						</SelectTrigger>

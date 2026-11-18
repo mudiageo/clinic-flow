@@ -22,6 +22,10 @@
 			? patientStore.familyMembers(patient.familyId).filter((p) => p.id !== patient?.id)
 			: []
 	);
+
+	function goBack() {
+		history.back();
+	}
 </script>
 
 <svelte:head>
@@ -30,7 +34,7 @@
 
 <div class="max-w-5xl mx-auto space-y-6 animate-fade-in">
 	<div class="flex items-center gap-4">
-		<Button variant="ghost" size="icon" href="javascript:history.back()">
+		<Button variant="ghost" size="icon" onclick={goBack} aria-label="Go back">
 			<ArrowLeft class="size-5" />
 		</Button>
 		<div>
@@ -110,7 +114,7 @@
 				<CardContent>
 					{#if familyMembers.length > 0}
 						<div class="space-y-3 mt-4">
-							{#each familyMembers as relative}
+							{#each familyMembers as relative (relative.id)}
 								<div class="flex flex-col gap-1 p-2 rounded-lg bg-muted/40 border border-border">
 									<a
 										href="/patients/{relative.clinicId}"

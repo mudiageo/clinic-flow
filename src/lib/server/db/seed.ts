@@ -225,7 +225,12 @@ async function seedFixture(f: FixtureSet) {
 
 	rowsWritten += await upsert(
 		schema.families as AnyTable,
-		f.families.map((x) => ({ id: x.id, householdName: x.householdName, community: x.community }))
+		f.families.map((x) => ({
+			id: x.id,
+			phcId: x.phcId,
+			householdName: x.householdName,
+			community: x.community
+		}))
 	);
 
 	const write = async (entityType: string, rows: Array<{ id: string }>) => {

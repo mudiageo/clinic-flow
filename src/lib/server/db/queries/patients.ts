@@ -1,7 +1,24 @@
 import { database, getTable } from './_core';
 import { eq, or, ilike, and, asc } from 'drizzle-orm';
 
-export async function searchPatientsList(search?: string) {
+interface CreatePatientRecordInput {
+	id?: string;
+	clinicId: string;
+	phcId: string;
+	familyId?: string | null;
+	fullName: string;
+	phone?: string | null;
+	dob?: string | null;
+	estimatedAge?: number | null;
+	sex: 'male' | 'female' | 'other';
+	address?: string | null;
+	community?: string | null;
+	nextOfKinName?: string | null;
+	nextOfKinPhone?: string | null;
+	isPregnant?: boolean;
+}
+
+export async function searchPatientsList(phcId: string, search?: string) {
 	const patients = getTable('patients');
 	if (search) {
 		const pattern = `%${search}%`;
@@ -10,6 +27,7 @@ export async function searchPatientsList(search?: string) {
 			.from(patients)
 			.where(
 				and(
+					eq(patients.phcId, phcId),
 					eq(patients.deleted, false),
 					or(
 						ilike(patients.fullName, pattern),
@@ -20,25 +38,35 @@ export async function searchPatientsList(search?: string) {
 			)
 			.limit(50);
 	}
-	return await database.select().from(patients).where(eq(patients.deleted, false)).limit(100);
+	return await database
+		.select()
+		.from(patients)
+		.where(and(eq(patients.phcId, phcId), eq(patients.deleted, false)))
+		.limit(100);
 }
 
-export async function getPatientByClinicIdRecord(clinicId: string) {
+export async function getPatientByClinicIdRecord(phcId: string, clinicId: string) {
 	const patients = getTable('patients');
 	const results = await database
 		.select()
 		.from(patients)
-		.where(and(eq(patients.clinicId, clinicId), eq(patients.deleted, false)))
+		.where(
+			and(eq(patients.phcId, phcId), eq(patients.clinicId, clinicId), eq(patients.deleted, false))
+		)
 		.limit(1);
 	return results[0] ?? null;
 }
 
-export async function getFamiliesList() {
+export async function getFamiliesList(phcId: string) {
 	const families = getTable('families');
-	return await database.select().from(families).orderBy(asc(families.householdName));
+	return await database
+		.select()
+		.from(families)
+		.where(eq(families.phcId, phcId))
+		.orderBy(asc(families.householdName));
 }
 
-export async function createPatientRecord(data: any) {
+export async function createPatientRecord(data: CreatePatientRecordInput) {
 	const patients = getTable('patients');
 	const [patient] = await database
 		.insert(patients)
@@ -63,7 +91,11 @@ export async function createPatientRecord(data: any) {
 	return patient;
 }
 
-export async function createFamilyRecord(data: { householdName: string; community?: string }) {
+export async function createFamilyRecord(data: {
+	phcId: string;
+	householdName: string;
+	community?: string;
+}) {
 	const families = getTable('families');
 	const [family] = await database.insert(families).values(data).returning();
 	return family;

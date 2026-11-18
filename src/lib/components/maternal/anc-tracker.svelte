@@ -19,7 +19,7 @@
 	let { patientId }: { patientId: string } = $props();
 
 	let activePregnancy = $derived(pregnancyStore.getActiveRecordForPatient(patientId));
-	let patient = $derived(patientStore.findById(patientId));
+	let patient = $derived(patientStore.get(patientId));
 
 	let showNewPregnancyForm = $state(false);
 	let lmpDateStr = $state('');
@@ -34,8 +34,7 @@
 	function calculateEDD() {
 		if (lmpDateStr) {
 			const lmp = new Date(lmpDateStr);
-			const edd = new Date(lmp);
-			edd.setDate(edd.getDate() + 280); // 40 weeks
+			const edd = new Date(lmp.getTime() + 280 * 24 * 60 * 60 * 1000); // 40 weeks
 			eddDateStr = edd.toISOString().split('T')[0];
 		}
 	}
@@ -59,7 +58,7 @@
 
 		// Ensure patient is marked as pregnant for triage rules
 		if (!patient?.isPregnant) {
-			await patientStore.update(patientId, { isPregnant: true, updatedAt: Date.now() });
+			await patientStore.update(patientId, { isPregnant: true });
 		}
 
 		showNewPregnancyForm = false;

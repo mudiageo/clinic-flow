@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { familyStore } from '#lib/state/families.svelte.ts';
 	import { patientStore } from '#lib/state/patients.svelte.ts';
 	import { reminderStore } from '#lib/state/reminders.svelte.ts';
-	import { queueStore } from '#lib/state/queue.svelte.ts'; // No appointments local store yet, we use queue for demo
+	import { appointmentStore } from '#lib/state/appointments.svelte.ts';
+	import { sessionStore } from '#lib/state/session.svelte.ts';
+	import { formatDateTime } from '#lib/utils/date.ts';
 	import {
 		Card,
 		CardContent,
@@ -16,15 +19,31 @@
 	import { toast } from 'svelte-sonner';
 
 	let familyId = $derived(page.params.id);
+	let family = $derived.by(() => {
+		const record = familyId ? familyStore.get(familyId) : undefined;
+		return record?.phcId === sessionStore.activePhcId ? record : undefined;
+	});
 
-	// Fetch all members with this familyId
-	let members = $derived(familyId ? patientStore.items.filter((p) => p.familyId === familyId) : []);
+	// Never render members from a family outside the active PHC, including stale
+	// records that may remain in the offline cache after switching clinics.
+	let members = $derived(
+		family
+			? patientStore.items.filter(
+					(patient) => patient.familyId === family.id && patient.phcId === family.phcId
+				)
+			: []
+	);
 
 	let memberIds = $derived(members.map((m) => m.id));
 
 	// Fetch reminders for all family members
 	let familyReminders = $derived(
 		reminderStore.pendingReminders.filter((r) => memberIds.includes(r.patientId))
+	);
+	let familyAppointments = $derived(
+		appointmentStore.upcoming
+			.filter((appointment) => memberIds.includes(appointment.patientId))
+			.sort((a, b) => a.scheduledAt - b.scheduledAt)
 	);
 
 	function getMemberName(id: string) {
@@ -33,6 +52,10 @@
 
 	function handleRegisterNewborn() {
 		toast.success('Newborn registration form (linked to mother) will open here.');
+	}
+
+	function goBack() {
+		history.back();
 	}
 </script>
 
@@ -43,14 +66,18 @@
 <div class="max-w-6xl mx-auto space-y-6 animate-fade-in pb-10">
 	<div class="flex items-center justify-between">
 		<div class="flex items-center gap-4">
-			<Button variant="ghost" size="icon" href="javascript:history.back()">
+			<Button variant="ghost" size="icon" onclick={goBack} aria-label="Go back">
 				<ArrowLeft class="size-5" />
 			</Button>
 			<div>
 				<h1 class="text-2xl font-bold tracking-tight flex items-center gap-2">
-					<Users class="size-6 text-primary" /> Family Health Dashboard
+					<Users class="size-6 text-primary" />
+					{family?.householdName || 'Family Health Dashboard'}
 				</h1>
-				<p class="text-muted-foreground font-mono mt-1 text-sm">Family ID: {familyId}</p>
+				<p class="text-muted-foreground mt-1 text-sm">
+					{family?.community || 'Community not recorded'} ·
+					<span class="font-mono">{familyId}</span>
+				</p>
 			</div>
 		</div>
 		<div class="flex gap-3">
@@ -72,7 +99,7 @@
 			</CardHeader>
 			<CardContent>
 				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-					{#each members as member}
+					{#each members as member (member.id)}
 						<a
 							href={`/patients/${member.clinicId}`}
 							class="block p-4 border rounded-xl hover:border-primary/50 transition-colors bg-card shadow-sm hover:shadow-md"
@@ -118,7 +145,7 @@
 				</CardHeader>
 				<CardContent>
 					<div class="space-y-3">
-						{#each familyReminders as reminder}
+						{#each familyReminders as reminder (reminder.id)}
 							<div class="flex flex-col p-3 rounded-lg bg-muted/40 border border-border">
 								<div class="flex items-center justify-between mb-1">
 									<Badge variant="secondary" class="text-xs uppercase"
@@ -146,7 +173,7 @@
 				</CardContent>
 			</Card>
 
-			<!-- Family Appointments (Mocked using queue or static text since we don't sync appointments locally yet) -->
+			<!-- Family Appointments -->
 			<Card>
 				<CardHeader class="pb-3">
 					<CardTitle class="text-lg flex items-center gap-2">
@@ -154,10 +181,24 @@
 					</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<div
-						class="text-sm text-muted-foreground text-center py-4 border-dashed border-2 rounded-lg bg-muted/20"
-					>
-						No upcoming visits scheduled for this family.
+					<div class="space-y-3">
+						{#each familyAppointments as appointment (appointment.id)}
+							<div class="rounded-lg border bg-muted/20 p-3">
+								<div class="flex items-center justify-between gap-2">
+									<p class="text-sm font-semibold">{getMemberName(appointment.patientId)}</p>
+									<Badge variant="outline" class="capitalize">{appointment.type}</Badge>
+								</div>
+								<p class="mt-1 text-xs text-muted-foreground">
+									{formatDateTime(appointment.scheduledAt)}
+								</p>
+							</div>
+						{:else}
+							<div
+								class="rounded-lg border-2 border-dashed bg-muted/20 py-4 text-center text-sm text-muted-foreground"
+							>
+								No upcoming visits scheduled for this family.
+							</div>
+						{/each}
 					</div>
 				</CardContent>
 			</Card>

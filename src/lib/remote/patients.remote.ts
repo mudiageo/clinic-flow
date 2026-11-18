@@ -1,6 +1,6 @@
 import { query, command } from '$app/server';
 import { getRequestEvent } from '$app/server';
-import { redirect } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import * as v from 'valibot';
 import {
 	searchPatientsList,
@@ -12,8 +12,18 @@ import {
 
 function requireSession() {
 	const event = getRequestEvent();
-	if (!event.locals.session) redirect(302, '/login');
+	if (!event.locals.session) error(401, 'Unauthorized');
+	if (!event.locals.phcId) error(403, 'No PHC assignment');
 	return { session: event.locals.session, phcId: event.locals.phcId };
+}
+
+function requireFamilyAccess() {
+	const context = requireSession();
+	const { locals } = getRequestEvent();
+	if (locals.role !== 'superadmin' && !locals.permissions?.includes('manage:families')) {
+		error(403, 'Missing family-management permission');
+	}
+	return context;
 }
 
 // ── Queries ──────────────────────────────────────────────────
@@ -21,20 +31,20 @@ function requireSession() {
 export const getPatients = query(
 	v.optional(v.object({ search: v.optional(v.string()) })),
 	async (args) => {
-		requireSession();
+		const { phcId } = requireSession();
 		const search = args?.search?.trim();
-		return await searchPatientsList(search);
+		return await searchPatientsList(phcId, search);
 	}
 );
 
 export const getPatientByClinicId = query(v.string(), async (clinicId) => {
-	requireSession();
-	return await getPatientByClinicIdRecord(clinicId);
+	const { phcId } = requireSession();
+	return await getPatientByClinicIdRecord(phcId, clinicId);
 });
 
 export const getFamilies = query(async () => {
-	requireSession();
-	return await getFamiliesList();
+	const { phcId } = requireFamilyAccess();
+	return await getFamiliesList(phcId);
 });
 
 // ── Commands ─────────────────────────────────────────────────
@@ -57,14 +67,15 @@ const createPatientSchema = v.object({
 });
 
 export const createPatient = command(createPatientSchema, async (data) => {
-	requireSession();
-	return await createPatientRecord(data);
+	const { phcId } = requireSession();
+	if (data.phcId !== phcId) error(403, 'PHC scope mismatch');
+	return await createPatientRecord({ ...data, phcId });
 });
 
 export const createFamily = command(
 	v.object({ householdName: v.string(), community: v.optional(v.string()) }),
 	async (data) => {
-		requireSession();
-		return await createFamilyRecord(data);
+		const { phcId } = requireFamilyAccess();
+		return await createFamilyRecord({ ...data, phcId });
 	}
 );

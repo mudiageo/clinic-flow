@@ -15,6 +15,13 @@
       "when": 1794922140464,
       "tag": "0001_platform-announcements",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1794991182705,
+      "tag": "0002_family-phc-scope",
+      "breakpoints": true
     }
   ]
 }

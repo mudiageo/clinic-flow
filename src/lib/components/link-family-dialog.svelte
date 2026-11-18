@@ -35,36 +35,35 @@
 		// Extract unique families
 		const familyIds = [...new Set(matchingPatients.map((p) => p.familyId))];
 		return familyIds
-			.map((id) => familyStore.items.find((f) => f.id === id))
+			.map((id) =>
+				familyStore.items.find((family) => family.id === id && family.phcId === patient.phcId)
+			)
 			.filter(Boolean) as LocalFamily[];
 	});
 
 	async function createAndLinkFamily() {
 		if (!newFamilyName) return;
 		try {
-			const familyId = crypto.randomUUID();
-			await familyStore.create({
-				id: familyId,
+			const familyId = await familyStore.create({
+				phcId: patient.phcId,
 				householdName: newFamilyName,
-				community: patient.community,
-				syncStatus: 'pending',
-				updatedAt: Date.now()
+				community: patient.community
 			});
 
-			await patientStore.update(patient.id, { familyId, updatedAt: Date.now() });
+			await patientStore.update(patient.id, { familyId });
 			toast.success('New family group created and linked.');
 			open = false;
-		} catch (e) {
+		} catch {
 			toast.error('Failed to create family group.');
 		}
 	}
 
 	async function linkToExisting(familyId: string) {
 		try {
-			await patientStore.update(patient.id, { familyId, updatedAt: Date.now() });
+			await patientStore.update(patient.id, { familyId });
 			toast.success('Patient linked to family successfully.');
 			open = false;
-		} catch (e) {
+		} catch {
 			toast.error('Failed to link family.');
 		}
 	}

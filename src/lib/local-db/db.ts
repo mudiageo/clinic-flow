@@ -35,6 +35,7 @@ export interface LocalStaff {
 
 export interface LocalFamily {
 	id: string;
+	phcId: string;
 	householdName: string | null;
 	community: string | null;
 	syncStatus: 'synced' | 'pending' | 'conflict';
@@ -106,7 +107,7 @@ export interface LocalSyncOperation {
 		| 'appointments';
 	entityId: string;
 	operation: 'INSERT' | 'UPDATE' | 'DELETE';
-	payload: any;
+	payload: unknown;
 	status: 'pending' | 'processing' | 'failed' | 'completed';
 	createdAt: number;
 	retryCount: number;
@@ -332,6 +333,25 @@ class ClinicFlowDB extends Dexie {
 			announcementReceiptQueue:
 				'++localId, userId, announcementId, [userId+announcementId], operation, createdAt'
 		});
+		this.version(8)
+			.stores({
+				families: 'id, phcId, householdName, syncStatus'
+			})
+			.upgrade(async (transaction) => {
+				const patients = (await transaction.table('patients').toArray()) as LocalPatient[];
+				const phcByFamily = new Map<string, string>();
+				for (const patient of patients) {
+					if (patient.familyId && !phcByFamily.has(patient.familyId)) {
+						phcByFamily.set(patient.familyId, patient.phcId);
+					}
+				}
+				await transaction
+					.table('families')
+					.toCollection()
+					.modify((family: LocalFamily) => {
+						family.phcId ||= phcByFamily.get(family.id) ?? '';
+					});
+			});
 	}
 }
 

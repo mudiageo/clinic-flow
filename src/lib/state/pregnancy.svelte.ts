@@ -4,7 +4,7 @@ import { sessionStore } from './session.svelte.ts';
 
 class PregnancyStore extends LocalCollection<LocalPregnancyRecord> {
 	constructor() {
-		super(db.pregnancyRecords, 'pregnancyRecords');
+		super(db.pregnancyRecords, 'pregnancyRecords', () => db.pregnancyRecords.toArray());
 	}
 
 	async createRecord(
@@ -14,11 +14,9 @@ class PregnancyStore extends LocalCollection<LocalPregnancyRecord> {
 		gravida: number | null,
 		parity: number | null
 	) {
-		const id = crypto.randomUUID();
 		const phcId = sessionStore.activePhcId;
 
-		const record: LocalPregnancyRecord = {
-			id,
+		return this.create({
 			patientId,
 			phcId,
 			lmpDate,
@@ -26,20 +24,15 @@ class PregnancyStore extends LocalCollection<LocalPregnancyRecord> {
 			status: 'active',
 			gravida,
 			parity,
-			createdAt: Date.now(),
-			updatedAt: Date.now(),
-			syncStatus: 'pending'
-		};
-
-		await this.insert(record);
-		return id;
+			createdAt: Date.now()
+		});
 	}
 
 	async updateRecordStatus(
 		id: string,
 		status: 'active' | 'delivered' | 'miscarriage' | 'transferred'
 	) {
-		await this.update(id, { status, updatedAt: Date.now() });
+		await this.update(id, { status });
 	}
 
 	getActiveRecordForPatient(patientId: string) {

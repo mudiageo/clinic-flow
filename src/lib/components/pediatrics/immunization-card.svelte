@@ -11,10 +11,11 @@
 	import { Shield, Printer, CheckCircle2, Clock, AlertCircle } from '@lucide/svelte';
 	import { appointmentStore } from '#lib/state/appointments.svelte.ts';
 	import { patientStore } from '#lib/state/patients.svelte.ts';
+	import type { LocalAppointment } from '#lib/local-db/db.ts';
 
 	let { patientId }: { patientId: string } = $props();
 
-	let patient = $derived(patientStore.findById(patientId));
+	let patient = $derived(patientStore.get(patientId));
 
 	// Fetch all immunization appointments for this patient
 	let immunizationAppts = $derived(
@@ -24,7 +25,7 @@
 			.sort((a, b) => a.scheduledAt - b.scheduledAt)
 	);
 
-	function getStatus(appt: any) {
+	function getStatus(appt: LocalAppointment) {
 		if (appt.status === 'completed') return 'given';
 
 		const now = Date.now();
@@ -37,10 +38,7 @@
 	}
 
 	async function markAsGiven(apptId: string) {
-		await appointmentStore.update(apptId, {
-			status: 'completed',
-			updatedAt: Date.now()
-		});
+		await appointmentStore.update(apptId, { status: 'completed' });
 	}
 
 	function handlePrint() {
@@ -49,7 +47,7 @@
 </script>
 
 <!-- Only display if they have immunization records or if they are a child (age < 5) -->
-{#if immunizationAppts.length > 0 || (patient?.estimatedAge && patient.estimatedAge < 5) || (patient?.dob && Date.now() - new Date(patient.dob).getTime() < 5 * 365 * 24 * 60 * 60 * 1000)}
+{#if immunizationAppts.length > 0 || (patient?.dob && Date.now() - new Date(patient.dob).getTime() < 5 * 365 * 24 * 60 * 60 * 1000)}
 	<div class="print-section">
 		<Card class="mt-6 overflow-hidden border-triage-green/20">
 			<CardHeader class="bg-triage-green/5 pb-4">
@@ -90,7 +88,7 @@
 						</div>
 					{:else}
 						<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-							{#each immunizationAppts as appt}
+							{#each immunizationAppts as appt (appt.id)}
 								{@const status = getStatus(appt)}
 								<div class="flex flex-col justify-between p-4 rounded-xl border bg-card">
 									<div class="flex justify-between items-start mb-3">
@@ -163,7 +161,7 @@
 			height: 100%;
 			background: white;
 		}
-		.no-print {
+		:global(.no-print) {
 			display: none !important;
 		}
 	}

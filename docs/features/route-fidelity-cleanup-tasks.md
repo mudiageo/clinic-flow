@@ -4,7 +4,7 @@
 
 ## Phase A — Navigation integrity (P0)
 
-- [ ] **BR-01** Create `(app)/families/+page.svelte` list (from `familyStore`); fix `familyStore` first (ST-06)
+- [x] **BR-01** Create `(app)/families/+page.svelte` list (from `familyStore`); fix `familyStore` first (ST-06)
 - [ ] **BR-02** Resolve `/maternity/anc` (new route or tab re-point)
 - [ ] **BR-03** Resolve `/maternity/partograph` (new route or tab re-point)
 - [ ] **BR-04** Create `(app)/field/outreach/+page.svelte` backed by outreach data
@@ -28,10 +28,10 @@
 - [ ] **ST-02** `nurse/register`: deterministic clinic ID, session PHC, real ticket number
 - [ ] **ST-03** `nurse/search`: `phcId` → `sessionStore.phcId`
 - [ ] **ST-04** `nurse/vitals`: `phcId` → `sessionStore.phcId`, real ticket number
-- [ ] **ST-05** `patients/[id]` + child panels: `findById()` → `get()`
-- [ ] **ST-06** `families.svelte.ts`: proper `FamilyStore extends LocalCollection`
-- [ ] **ST-07** `families/[id]`: wire `familyStore`, remove stale comment/unused `queueStore`
-- [ ] **ST-08** Replace `javascript:history.back()` with `goto(-1)` (patients + families)
+- [x] **ST-05** `patients/[id]` + child panels: `findById()` → `get()`
+- [x] **ST-06** `families.svelte.ts`: proper `FamilyStore extends LocalCollection`
+- [x] **ST-07** `families/[id]`: wire `familyStore`, remove stale comment/unused `queueStore`
+- [x] **ST-08** Replace `javascript:history.back()` with a safe history handler (patients + families)
 - [ ] **ST-09** Add `email` to `getAllStaffUsers()` select
 - [ ] **ST-10** Align reminder `type` union with select options
 - [ ] **ST-11** `pharmacy/+page`: real `requestedByStaffId` + configured reorder default

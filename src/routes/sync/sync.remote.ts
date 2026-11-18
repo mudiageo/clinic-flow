@@ -77,8 +77,8 @@ async function resolveOperationPhc(
 		return patient?.phcId ?? null;
 	}
 
-	// Families currently have no tenant column in the server schema and cannot
-	// be safely accepted through the PHC-scoped sync boundary.
+	// Entities without a direct PHC or patient relationship cannot be safely
+	// accepted through the PHC-scoped sync boundary.
 	return null;
 }
 
