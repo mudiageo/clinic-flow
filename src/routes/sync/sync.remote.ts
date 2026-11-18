@@ -1,11 +1,14 @@
 import { query, command, getRequestEvent } from '$app/server';
 import { error } from '@sveltejs/kit';
 import * as v from 'valibot';
-import { and, asc, eq, gt, inArray, ne, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, inArray, lte, sql } from 'drizzle-orm';
 import { database, getTable } from '#lib/server/db/queries/_core.ts';
-import { toServerRow, SYNC_ENTITY_TABLE } from '#lib/seed/adapters.ts';
+import { toClientRow, toServerRow, SYNC_ENTITY_TABLE } from '#lib/seed/adapters.ts';
 import { realtimeHub, syncTopics } from '#lib/server/realtime/hub.ts';
 import { canWriteOutreach, normalizeOutreachPayload } from '#lib/outreach/policy.ts';
+import { appendSyncOperation } from '#lib/server/sync/outbox.ts';
+import { finalizeChangeBatch } from '#lib/sync/change-feed.ts';
+import { checkTenantScope, resolvesViaPatient } from '#lib/sync/tenant-scope.ts';
 
 const pharmacyInventory = getTable('pharmacyInventory');
 const patients = getTable('patients');
@@ -36,6 +39,8 @@ interface ServerSyncChange {
 	id: string;
 	phcId: string;
 	deviceId: string;
+	operationId: string;
+	version: number;
 	entityType: string;
 	entityId: string;
 	operation: string;
@@ -62,38 +67,78 @@ function toTimestamp(value: unknown): number {
 	return 0;
 }
 
-async function resolveOperationPhc(
-	entityType: string,
-	record: Record<string, unknown>
+/**
+ * Patient-linked entities (vitals, prescriptions) have no phcId column; their
+ * tenant comes from the patient. Prefer an existing record's patient so a sync
+ * write cannot reassign a record to another patient.
+ */
+async function resolvePatientPhc(
+	cleanPayload: Record<string, unknown>,
+	existing: Record<string, unknown> | undefined
 ): Promise<string | null> {
-	if (typeof record.phcId === 'string') return record.phcId;
-
-	if (entityType === 'vitalsRecords' || entityType === 'prescriptions') {
-		const patientId = record.patientId;
-		if (typeof patientId !== 'string') return null;
-		const [patient] = await database
-			.select({ phcId: patients.phcId })
-			.from(patients)
-			.where(eq(patients.id, patientId))
-			.limit(1);
-		return patient?.phcId ?? null;
-	}
-
-	// Entities without a direct PHC or patient relationship cannot be safely
-	// accepted through the PHC-scoped sync boundary.
-	return null;
+	const patientId =
+		typeof existing?.patientId === 'string'
+			? existing.patientId
+			: typeof cleanPayload.patientId === 'string'
+				? cleanPayload.patientId
+				: null;
+	if (!patientId) return null;
+	const [patient] = await database
+		.select({ phcId: patients.phcId })
+		.from(patients)
+		.where(eq(patients.id, patientId))
+		.limit(1);
+	return patient?.phcId ?? null;
 }
 
 const operationSchema = v.object({
 	localId: v.number(),
+	operationId: v.optional(v.pipe(v.string(), v.maxLength(160))),
 	entityType: v.string(),
 	entityId: v.string(),
 	operation: v.picklist(['create', 'update', 'delete', 'delta']),
 	payload: v.any(),
 	timestamp: v.number(),
+	baseVersion: v.optional(v.pipe(v.number(), v.integer(), v.minValue(0))),
 	deviceId: v.string(),
 	phcId: v.string()
 });
+
+interface AcceptedVersion {
+	localId: number;
+	entityType: string;
+	entityId: string;
+	version: number;
+}
+
+function operationIdFor(op: v.InferOutput<typeof operationSchema>): string {
+	return op.operationId ?? `${op.deviceId}:${op.localId}:${op.timestamp}`;
+}
+
+async function findOperation(operationId: string) {
+	const [existing] = await database
+		.select({ version: syncOperations.version })
+		.from(syncOperations)
+		.where(eq(syncOperations.operationId, operationId))
+		.limit(1);
+	return existing ?? null;
+}
+
+async function latestEntityVersion(phcId: string, entityType: string, entityId: string) {
+	const [latest] = await database
+		.select({ version: syncOperations.version })
+		.from(syncOperations)
+		.where(
+			and(
+				eq(syncOperations.phcId, phcId),
+				eq(syncOperations.entityType, entityType),
+				eq(syncOperations.entityId, entityId)
+			)
+		)
+		.orderBy(desc(syncOperations.version))
+		.limit(1);
+	return Number(latest?.version ?? 0);
+}
 
 export const pushOperations = command(v.array(operationSchema), async (operations) => {
 	const locals = requireAuth();
@@ -105,6 +150,7 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 		// User has no PHC (e.g., superadmin without assignment) — reject all writes.
 		return {
 			accepted: [],
+			acceptedVersions: [],
 			conflicts: operations.map((op) => ({
 				localId: op.localId,
 				reason: 'user-has-no-phc-assignment'
@@ -122,9 +168,24 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 	}
 
 	const accepted: number[] = [];
+	const acceptedVersions: AcceptedVersion[] = [];
 	const conflicts: unknown[] = [];
+	const acceptedEntityVersions = new Map<string, number>();
 
 	for (const op of operations) {
+		const operationId = operationIdFor(op);
+		const duplicate = await findOperation(operationId);
+		if (duplicate) {
+			accepted.push(op.localId);
+			acceptedVersions.push({
+				localId: op.localId,
+				entityType: op.entityType,
+				entityId: op.entityId,
+				version: Number(duplicate.version)
+			});
+			continue;
+		}
+
 		if (op.entityType === 'outreachRecords' && !canWriteOutreach(locals.role, locals.permissions)) {
 			conflicts.push({ localId: op.localId, reason: 'missing-outreach-permission' });
 			continue;
@@ -160,23 +221,52 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 
 			if (itemId && Number.isFinite(delta) && delta !== 0) {
 				const normalizedPayload = { itemId, delta };
-				await database.transaction(async (tx: typeof database) => {
-					await tx
-						.update(pharmacyInventory)
-						.set({ currentStock: sql`${pharmacyInventory.currentStock} + ${delta}` })
-						.where(eq(pharmacyInventory.id, itemId));
-
-					await tx.insert(syncOperations).values({
-						phcId: op.phcId,
-						deviceId: op.deviceId,
-						entityType: op.entityType,
-						entityId: itemId,
-						operation: 'delta',
-						payload: JSON.stringify(normalizedPayload),
-						clientUpdatedAt: new Date(op.timestamp)
+				let version: number;
+				try {
+					version = await database.transaction(async (tx: typeof database) => {
+						const allocated = await appendSyncOperation(tx, {
+							phcId: op.phcId,
+							deviceId: op.deviceId,
+							operationId,
+							entityType: op.entityType,
+							entityId: itemId,
+							operation: 'delta',
+							payload: normalizedPayload,
+							clientUpdatedAt: op.timestamp
+						});
+						const [updatedInventory] = await tx
+							.update(pharmacyInventory)
+							.set({ currentStock: sql`${pharmacyInventory.currentStock} + ${delta}` })
+							.where(eq(pharmacyInventory.id, itemId))
+							.returning({ currentStock: pharmacyInventory.currentStock });
+						if (!updatedInventory) throw new Error('Inventory item disappeared during sync');
+						await tx
+							.update(syncOperations)
+							.set({
+								payload: JSON.stringify({
+									...normalizedPayload,
+									currentStock: Number(updatedInventory.currentStock)
+								})
+							})
+							.where(eq(syncOperations.operationId, operationId));
+						return allocated;
 					});
-				});
+				} catch (cause) {
+					const existingOperation = await findOperation(operationId);
+					if (!existingOperation) {
+						console.error('Inventory delta sync failed:', cause);
+						conflicts.push({ localId: op.localId, reason: 'db-error' });
+						continue;
+					}
+					version = Number(existingOperation.version);
+				}
 				accepted.push(op.localId);
+				acceptedVersions.push({
+					localId: op.localId,
+					entityType: op.entityType,
+					entityId: itemId,
+					version
+				});
 				realtimeHub.publish(syncTopics.phc(op.phcId), {
 					entityType: op.entityType,
 					entityId: itemId,
@@ -236,6 +326,7 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 			console.warn(
 				`Unknown entity type: ${op.entityType} (expected one of ${Object.keys(SYNC_ENTITY_TABLE).join(', ')})`
 			);
+			conflicts.push({ localId: op.localId, reason: 'unknown-entity-type' });
 			continue;
 		}
 
@@ -265,26 +356,75 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 		// Compatibility shim: map client field names/types to the server row.
 		// See docs/data-model/client-server-field-mapping.md.
 		const cleanPayload = toServerRow(op.entityType, payload);
-		const operationPhc = await resolveOperationPhc(op.entityType, {
-			...cleanPayload,
-			...existing
+
+		const viaPatient = resolvesViaPatient(op.entityType);
+		const patientPhcId = viaPatient ? await resolvePatientPhc(cleanPayload, existing) : null;
+		const scopeResult = checkTenantScope({
+			entityType: op.entityType,
+			existingPhcId: typeof existing?.phcId === 'string' ? existing.phcId : undefined,
+			patientPhcId,
+			sessionPhcId
 		});
-		if (operationPhc !== sessionPhcId) {
-			conflicts.push({ localId: op.localId, reason: 'tenant-scope-mismatch' });
+		if (scopeResult !== 'ok') {
+			conflicts.push({ localId: op.localId, reason: scopeResult });
 			continue;
 		}
 
-		if (existing && op.timestamp < toTimestamp(existing.updatedAt)) {
+		// The authenticated session is the only authority for tenant scope. Never
+		// trust a client-supplied phcId; force every written record under the
+		// session PHC. The outbox payload is rewritten too so other devices cache
+		// the correct PHC.
+		if (!viaPatient) {
+			payload.phcId = sessionPhcId;
+			cleanPayload.phcId = sessionPhcId;
+		}
+
+		const entityKey = `${op.entityType}:${op.entityId}`;
+		const chainedVersion = acceptedEntityVersions.get(entityKey);
+		const serverVersion =
+			chainedVersion ?? (await latestEntityVersion(sessionPhcId, op.entityType, op.entityId));
+		const effectiveBaseVersion = chainedVersion ?? op.baseVersion;
+		const serverRecord = existing ? toClientRow(op.entityType, existing) : null;
+
+		if (existing && effectiveBaseVersion !== undefined && effectiveBaseVersion !== serverVersion) {
+			conflicts.push({
+				localId: op.localId,
+				reason: 'server-version-conflict',
+				serverVersion,
+				serverRecord
+			});
+			continue;
+		}
+		if (
+			existing &&
+			effectiveBaseVersion === undefined &&
+			op.timestamp < toTimestamp(existing.updatedAt)
+		) {
 			conflicts.push({
 				localId: op.localId,
 				reason: 'timestamp-conflict',
-				serverVersion: existing
+				serverVersion,
+				serverRecord
 			});
 			continue;
 		}
 
 		if (!existing && op.operation === 'update') {
-			conflicts.push({ localId: op.localId, reason: 'missing-server-record' });
+			conflicts.push({
+				localId: op.localId,
+				reason: 'missing-server-record',
+				serverVersion,
+				serverRecord: null
+			});
+			continue;
+		}
+		if (existing && op.operation === 'create') {
+			conflicts.push({
+				localId: op.localId,
+				reason: 'record-already-exists',
+				serverVersion,
+				serverRecord
+			});
 			continue;
 		}
 
@@ -298,13 +438,26 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 			conflicts.push({
 				localId: op.localId,
 				reason: 'urgency-override-blocked',
-				serverVersion: existing
+				serverVersion,
+				serverRecord
 			});
 			continue;
 		}
 
 		try {
-			await database.transaction(async (tx: typeof database) => {
+			const version = await database.transaction(async (tx: typeof database) => {
+				const allocated = await appendSyncOperation(tx, {
+					phcId: op.phcId,
+					deviceId: op.deviceId,
+					operationId,
+					entityType: op.entityType,
+					entityId: op.entityId,
+					operation: op.operation,
+					// Preserve the original client payload so other devices get the
+					// client-shaped patch they expect.
+					payload,
+					clientUpdatedAt: op.timestamp
+				});
 				if (op.operation === 'delete') {
 					if (existing) await tx.delete(tableObj).where(eq(tableObj.id, op.entityId));
 				} else if (existing) {
@@ -315,21 +468,17 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 				} else {
 					await tx.insert(tableObj).values({ ...cleanPayload, id: op.entityId });
 				}
-
-				await tx.insert(syncOperations).values({
-					phcId: op.phcId,
-					deviceId: op.deviceId,
-					entityType: op.entityType,
-					entityId: op.entityId,
-					operation: op.operation,
-					// Preserve the original client payload so other devices get the
-					// client-shaped row they expect (no shim needed on pull).
-					payload: JSON.stringify(payload),
-					clientUpdatedAt: new Date(op.timestamp)
-				});
+				return allocated;
 			});
 
 			accepted.push(op.localId);
+			acceptedVersions.push({
+				localId: op.localId,
+				entityType: op.entityType,
+				entityId: op.entityId,
+				version
+			});
+			acceptedEntityVersions.set(entityKey, version);
 			realtimeHub.publish(syncTopics.phc(op.phcId), {
 				entityType: op.entityType,
 				entityId: op.entityId,
@@ -341,33 +490,62 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 							: 'update'
 			});
 		} catch (cause) {
-			console.error(`Push Error for ${op.entityType}:`, cause);
-			conflicts.push({ localId: op.localId, reason: 'db-error' });
+			const existingOperation = await findOperation(operationId);
+			if (existingOperation) {
+				const version = Number(existingOperation.version);
+				accepted.push(op.localId);
+				acceptedVersions.push({
+					localId: op.localId,
+					entityType: op.entityType,
+					entityId: op.entityId,
+					version
+				});
+				acceptedEntityVersions.set(entityKey, version);
+			} else {
+				console.error(`Push Error for ${op.entityType}:`, cause);
+				conflicts.push({ localId: op.localId, reason: 'db-error' });
+			}
 		}
 	}
 
-	return { accepted, conflicts };
+	return { accepted, acceptedVersions, conflicts };
 });
 
 export const pullChanges = query(
-	v.object({ phcId: v.string(), deviceId: v.string(), since: v.number() }),
-	async ({ phcId, deviceId, since }) => {
+	v.object({
+		phcId: v.string(),
+		since: v.pipe(v.number(), v.integer(), v.minValue(0))
+	}),
+	async ({ phcId, since }) => {
 		const locals = requireAuth();
 		if (!locals.phcId || locals.phcId !== phcId) error(403, 'PHC scope mismatch');
-		// Only fetch changes made by OTHER devices for this PHC
+		const [scope] = await database
+			.select({ syncVersion: phcs.syncVersion })
+			.from(phcs)
+			.where(eq(phcs.id, phcId))
+			.limit(1);
+		if (!scope) error(404, 'PHC not found');
+		const highWatermark = Number(scope.syncVersion);
+		if (!Number.isSafeInteger(highWatermark) || highWatermark < since) {
+			error(409, 'Invalid sync cursor state');
+		}
+
+		// Include the requesting device's operations. Creates/updates are idempotent,
+		// and inventory deltas carry their authoritative resulting stock. Replaying
+		// every version is required to bootstrap server-version metadata safely.
 		const changes = (await database
 			.select()
 			.from(syncOperations)
 			.where(
 				and(
 					eq(syncOperations.phcId, phcId),
-					ne(syncOperations.deviceId, deviceId),
-					gt(syncOperations.serverReceivedAt, new Date(since))
+					gt(syncOperations.version, since),
+					lte(syncOperations.version, highWatermark)
 				)
 			)
-			.orderBy(asc(syncOperations.serverReceivedAt))
+			.orderBy(asc(syncOperations.version))
 			.limit(500)) as ServerSyncChange[];
-		const newCursor = toTimestamp(changes.at(-1)?.serverReceivedAt) || since;
+		const batch = finalizeChangeBatch(changes, { since, highWatermark });
 
 		// Parse payloads
 		const parsedChanges = changes.map((c) => ({
@@ -375,7 +553,7 @@ export const pullChanges = query(
 			payload: JSON.parse(c.payload)
 		}));
 
-		return { changes: parsedChanges, newCursor };
+		return { ...batch, changes: parsedChanges };
 	}
 );
 

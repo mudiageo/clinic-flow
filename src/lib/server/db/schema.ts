@@ -4,6 +4,7 @@ import {
 	varchar,
 	text,
 	integer,
+	bigint,
 	real,
 	boolean,
 	timestamp,
@@ -136,6 +137,7 @@ export const phcs = pgTable('phcs', {
 	termiiApiKey: varchar('termii_api_key', { length: 255 }),
 	syncPollInterval: integer('sync_poll_interval').notNull().default(30),
 	dailyPatientCapacity: integer('daily_patient_capacity').notNull().default(100),
+	syncVersion: bigint('sync_version', { mode: 'number' }).notNull().default(0),
 
 	// Feature Flags
 	maternalHealthEnabled: boolean('maternal_health_enabled').notNull().default(true),
@@ -616,6 +618,8 @@ export const syncOperations = pgTable(
 			.notNull()
 			.references(() => phcs.id),
 		deviceId: varchar('device_id', { length: 80 }).notNull(),
+		operationId: varchar('operation_id', { length: 160 }).notNull(),
+		version: bigint('version', { mode: 'number' }).notNull(),
 		entityType: varchar('entity_type', { length: 40 }).notNull(),
 		entityId: uuid('entity_id').notNull(),
 		operation: varchar('operation', { length: 10 }).notNull(), // 'create' | 'update' | 'delete' | 'delta'
@@ -624,8 +628,10 @@ export const syncOperations = pgTable(
 		serverReceivedAt: timestamp('server_received_at', { withTimezone: true }).notNull().defaultNow()
 	},
 	(table) => ({
+		operationIdIdx: uniqueIndex('sync_ops_operation_id_idx').on(table.operationId),
+		versionIdx: uniqueIndex('sync_ops_phc_version_idx').on(table.phcId, table.version),
 		entityIdx: index('sync_ops_entity_idx').on(table.entityType, table.entityId),
-		cursorIdx: index('sync_ops_cursor_idx').on(table.serverReceivedAt)
+		cursorIdx: index('sync_ops_cursor_idx').on(table.phcId, table.version)
 	})
 );
 

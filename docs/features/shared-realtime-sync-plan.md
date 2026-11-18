@@ -1,11 +1,25 @@
 # Shared Realtime Sync Plan
 
-**Status:** Completed
+**Status:** Reliability remediation in progress
 **Feature:** Application-wide near-realtime wake-up stream
 
 ## Objective
 
 Deliver durable PHC data changes to connected clients within seconds without opening a separate `query.live` connection for every table. The live channel carries only invalidation metadata; the existing cursor-based sync engine remains authoritative for records and offline catch-up.
+
+## Reliability remediation (2026-11-18)
+
+Two independently cached clients in the same PHC can currently remain divergent while both signal streams show `Live`. The remediation treats connection health and data freshness as separate concerns and hardens the authoritative catch-up path:
+
+- force every ordinary `pullChanges` query to refresh rather than reuse a cached result;
+- replace timestamp cursors with PHC-scoped, server-assigned monotonic versions;
+- make mutation retries idempotent with durable operation IDs, including inventory deltas;
+- persist each applied cursor in IndexedDB in the same transaction as its batch;
+- trigger immediate debounced sync after every `LocalCollection` mutation;
+- reset legacy timestamp cursors once and replay the durable outbox to repair existing drift;
+- expose `current | syncing | stale | error | offline` data freshness independently of the live-stream connection state.
+
+No IndexedDB cache may be cleared automatically. Pending local writes remain queued and are pushed before catch-up. The universal offline PIN is outside this work and remains unchanged by explicit user direction.
 
 ## Permissions and tenant boundaries
 
@@ -69,6 +83,9 @@ syncStore
 - Coalesce bursts to prevent one pull per mutation.
 - Keep cached records visible while offline; expose connection and freshness state through the sync store.
 - Live remote responses remain excluded from service-worker runtime caching.
+- `Live` means only that the wake-up stream is connected; it must never imply that durable records are caught up.
+- Operation IDs are unique across retries so a lost response cannot apply a stock delta or other mutation twice.
+- A cursor version is allocated under the PHC row lock in the same transaction as the domain mutation and outbox row, preserving commit-visible ordering per PHC.
 
 ## Files
 
@@ -92,3 +109,8 @@ syncStore
 - Stale remote snapshots never revive a completed or no-show queue ticket.
 - Subscriptions are cleaned up on logout/navigation.
 - Service worker does not cache the live response.
+- Repeating a pull at an unchanged cursor performs a fresh server request and sees newly committed rows.
+- Two isolated same-PHC clients converge without reload after queue, patient, reminder, and inventory writes.
+- Retrying the same operation ID applies its domain mutation exactly once.
+- More than 500 changes drain across deterministic version-ordered batches without gaps.
+- Legacy timestamp cursors replay safely from version zero and repair existing cached drift.

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { pharmacyStore } from '#lib/state/pharmacy.svelte.ts';
+	import { sessionStore } from '#lib/state/session.svelte.ts';
 	import {
 		Card,
 		CardContent,
@@ -31,7 +32,7 @@
 
 		try {
 			await pharmacyStore.create({
-				phcId: 'placeholder-phc-id', // Should come from session
+				phcId: sessionStore.activePhcId,
 				itemName,
 				category,
 				currentStock,
@@ -41,8 +42,8 @@
 			});
 			toast.success('Inventory item added successfully.');
 			goto('/pharmacy');
-		} catch (err: any) {
-			toast.error('Failed to add item: ' + err.message);
+		} catch (err) {
+			toast.error('Failed to add item: ' + (err instanceof Error ? err.message : String(err)));
 		}
 	}
 </script>

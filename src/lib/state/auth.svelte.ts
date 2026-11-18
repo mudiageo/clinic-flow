@@ -11,13 +11,13 @@ class AuthStore {
 		role: string;
 		phcName: string;
 	} | null>(null);
-	preferences = $state<any>(null);
+	preferences = $state<unknown>(null);
 	isLoaded = $state(false);
 
 	constructor() {
 		if (typeof window !== 'undefined') {
 			this.loadFromCache();
-			this.syncWithServer();
+			void this.syncWithServer();
 		}
 	}
 
@@ -26,14 +26,18 @@ class AuthStore {
 		if (cachedProfile) {
 			try {
 				this.profile = JSON.parse(cachedProfile);
-			} catch (e) {}
+			} catch {
+				// Ignore a malformed optional cache and refresh from the server.
+			}
 		}
 
 		const cachedPrefs = localStorage.getItem('clinicflow_prefs');
 		if (cachedPrefs) {
 			try {
 				this.preferences = JSON.parse(cachedPrefs);
-			} catch (e) {}
+			} catch {
+				// Ignore a malformed optional cache and refresh from the server.
+			}
 		}
 
 		if (this.profile) this.isLoaded = true;
@@ -74,14 +78,16 @@ class AuthStore {
 		// Queue background sync
 		try {
 			await db.syncLog.add({
+				operationId: crypto.randomUUID(),
 				entityType: 'profile',
 				entityId: this.profile.staffId,
 				operation: 'update',
 				payload: { name },
 				timestamp: Date.now(),
+				baseVersion: 0,
 				synced: 0
 			});
-			syncStore.flush(); // Manually trigger sync
+			void syncStore.flush(); // Manually trigger sync
 			toast.success('Profile updated');
 		} catch (e) {
 			console.error(e);
@@ -89,7 +95,7 @@ class AuthStore {
 		}
 	}
 
-	async updatePreferences(prefs: any) {
+	async updatePreferences(prefs: unknown) {
 		if (!this.profile) return;
 
 		// Optimistic update
@@ -99,14 +105,16 @@ class AuthStore {
 		// Queue background sync
 		try {
 			await db.syncLog.add({
+				operationId: crypto.randomUUID(),
 				entityType: 'preferences',
 				entityId: this.profile.staffId,
 				operation: 'update',
 				payload: prefs,
 				timestamp: Date.now(),
+				baseVersion: 0,
 				synced: 0
 			});
-			syncStore.flush(); // Manually trigger sync
+			void syncStore.flush(); // Manually trigger sync
 			toast.success('Preferences updated');
 		} catch (e) {
 			console.error(e);

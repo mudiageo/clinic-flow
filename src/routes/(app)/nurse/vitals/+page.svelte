@@ -4,6 +4,7 @@
 	import { queueStore } from '#lib/state/queue.svelte.ts';
 	import { triageRuleStore } from '#lib/state/triage-rules.svelte.ts';
 	import { sessionStore } from '#lib/state/session.svelte.ts';
+	import type { LocalPatient, LocalQueueTicket } from '#lib/local-db/db.ts';
 	import { getPatientRiskScore } from '#lib/remote/ai.remote.ts';
 	import { settingsStore } from '#lib/state/settings.svelte.ts';
 	import QrScanner from '#lib/components/QrScanner.svelte';
@@ -40,7 +41,7 @@
 
 	let showScanner = $state(false);
 	let searchQuery = $state('');
-	let selectedPatient = $state<any>(null);
+	let selectedPatient = $state<LocalPatient | null>(null);
 	let currentStep = $state(1);
 	let showDuplicateWarning = $state(false);
 
@@ -82,7 +83,7 @@
 		vitalsStore.evaluateTriage(currentVitals, rules, selectedPatient?.isPregnant ?? false)
 	);
 
-	function handleSelectPatient(patient: any) {
+	function handleSelectPatient(patient: LocalPatient) {
 		selectedPatient = patient;
 		searchQuery = '';
 		currentStep = 2; // Move to vitals step
@@ -110,7 +111,7 @@
 	function preSaveVitals() {
 		if (!selectedPatient) return;
 		const activeTickets = queueStore.items.filter(
-			(t: any) => t.patientId === selectedPatient.id && t.status === 'waiting'
+			(t) => t.patientId === selectedPatient?.id && t.status === 'waiting'
 		);
 		if (activeTickets.length > 0) {
 			showDuplicateWarning = true;
@@ -148,7 +149,7 @@
 
 			// Find if patient has an active ticket in the queue, update it
 			const activeTickets = queueStore.items.filter(
-				(t: any) => t.patientId === selectedPatient.id && t.status === 'waiting'
+				(t) => t.patientId === selectedPatient?.id && t.status === 'waiting'
 			);
 
 			let savedTicketIds = [];
@@ -159,11 +160,9 @@
 				}
 			} else {
 				// Issue new ticket if none active
-				const newTicketId = crypto.randomUUID();
-				await queueStore.create({
-					id: newTicketId,
+				const newTicketId = await queueStore.create({
 					patientId: selectedPatient.id,
-					phcId: crypto.randomUUID(),
+					phcId: sessionStore.activePhcId,
 					encounterId,
 					ticketNumber: 0,
 					status: 'waiting',
@@ -205,7 +204,7 @@
 			})
 				.then(async (aiRes) => {
 					for (const tId of savedTicketIds) {
-						const updatePayload: any = {
+						const updatePayload: Partial<LocalQueueTicket> = {
 							aiRiskScore: aiRes.score,
 							aiRiskRationale: aiRes.rationale
 						};
@@ -229,8 +228,8 @@
 			selectedPatient = null;
 			currentStep = 1;
 			isSubmitting = false;
-		} catch (e: any) {
-			toast.error(`Error saving vitals: ${e.message}`);
+		} catch (e) {
+			toast.error(`Error saving vitals: ${e instanceof Error ? e.message : String(e)}`);
 			isSubmitting = false;
 		}
 	}
@@ -355,7 +354,7 @@
 								<div
 									class="space-y-2 mt-4 max-h-60 overflow-y-auto no-scrollbar border rounded-lg p-2 bg-muted/20"
 								>
-									{#each searchResults as patient}
+									{#each searchResults as patient (patient.id)}
 										<button
 											class="w-full text-left p-3 bg-background border rounded-lg hover:border-primary/50 transition-colors flex items-center justify-between group"
 											onclick={() => handleSelectPatient(patient)}

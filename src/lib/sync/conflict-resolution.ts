@@ -1,5 +1,7 @@
 type LocalSyncVersion = {
 	updatedAt?: unknown;
+	serverVersion?: unknown;
+	syncStatus?: unknown;
 };
 
 function toEpochMilliseconds(value: unknown): number | null {
@@ -19,9 +21,17 @@ function toEpochMilliseconds(value: unknown): number | null {
  */
 export function shouldApplyRemoteChange(
 	local: LocalSyncVersion | undefined,
-	remoteUpdatedAt: unknown
+	remoteVersion: unknown,
+	remoteUpdatedAt?: unknown
 ): boolean {
 	if (!local) return true;
+	if (local.syncStatus === 'pending') return false;
+
+	const localVersion = Number(local.serverVersion ?? 0);
+	const incomingVersion = Number(remoteVersion);
+	if (Number.isSafeInteger(incomingVersion) && incomingVersion > 0) {
+		return !Number.isSafeInteger(localVersion) || incomingVersion >= localVersion;
+	}
 
 	const localTimestamp = toEpochMilliseconds(local.updatedAt);
 	const remoteTimestamp = toEpochMilliseconds(remoteUpdatedAt);

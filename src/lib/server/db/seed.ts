@@ -263,10 +263,13 @@ async function seedFixture(f: FixtureSet) {
 	const syncRows: Array<Record<string, unknown>> = [];
 	const log = (entityType: string, rows: Array<{ id: string; updatedAt: number }>) => {
 		for (const row of rows) {
+			const operationKey = `${profile.slug}:${entityType}:${row.id}`;
 			syncRows.push({
-				id: seedId(`syncop:${profile.slug}:${entityType}:${row.id}`),
+				id: seedId(`syncop:${operationKey}`),
 				phcId: f.phcId,
 				deviceId: SEED_DEVICE_ID,
+				operationId: `seed:${operationKey}`,
+				version: syncRows.length + 1,
 				entityType,
 				entityId: row.id,
 				operation: 'create',
@@ -294,6 +297,10 @@ async function seedFixture(f: FixtureSet) {
 		.insert(schema.syncOperations)
 		.values(syncRows as any)
 		.onConflictDoNothing();
+	await db
+		.update(schema.phcs)
+		.set({ syncVersion: sql`GREATEST(${schema.phcs.syncVersion}, ${syncRows.length})` })
+		.where(eq(schema.phcs.id, f.phcId));
 
 	console.log(
 		`   ${f.patients.length} patients, ${f.encounters.length} encounters, ` +

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { patientStore } from '#lib/state/patients.svelte.ts';
 	import { queueStore } from '#lib/state/queue.svelte.ts';
+	import { sessionStore } from '#lib/state/session.svelte.ts';
 	import QrScanner from '#lib/components/QrScanner.svelte';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Input } from '#lib/components/ui/input/index.ts';
@@ -119,7 +120,7 @@
 
 			const id = await patientStore.create({
 				clinicId,
-				phcId: crypto.randomUUID(), // Stub or current PHC
+				phcId: sessionStore.activePhcId,
 				familyId: null,
 				guardianId: null,
 				name: form.name,
@@ -139,7 +140,7 @@
 			// Auto-issue a waiting ticket in the queue
 			await queueStore.create({
 				patientId: id,
-				phcId: crypto.randomUUID(),
+				phcId: sessionStore.activePhcId,
 				encounterId: null,
 				ticketNumber: 0, // Auto-computed sequentially in state
 				status: 'waiting',
@@ -157,8 +158,8 @@
 			isSubmitting = false;
 			currentStep = 4; // Move to Success state
 			showQrDialog = true;
-		} catch (e: any) {
-			toast.error(`Failed to register: ${e.message}`);
+		} catch (e) {
+			toast.error(`Failed to register: ${e instanceof Error ? e.message : String(e)}`);
 			isSubmitting = false;
 		}
 	}
@@ -225,7 +226,7 @@
 					<!-- Search Results List -->
 					{#if searchResults.length > 0}
 						<div class="space-y-2 mt-4 max-h-60 overflow-y-auto pr-1 no-scrollbar animate-stagger">
-							{#each searchResults as patient}
+							{#each searchResults as patient (patient.id)}
 								<a
 									href="/patients/{patient.clinicId}"
 									class="block p-3 bg-muted/40 border border-border rounded-xl transition-all hover:bg-muted/80"

@@ -15,6 +15,7 @@ export type PhcSettings = {
 	familyHealthEnabled: boolean;
 	realTimeNotificationsEnabled: boolean;
 	nhisTrackingEnabled: boolean;
+	aiAutoTriageEscalation?: boolean;
 	lgaDsoPhone?: string;
 };
 
@@ -32,7 +33,8 @@ const DEFAULT_SETTINGS: PhcSettings = {
 	referralsEnabled: true,
 	familyHealthEnabled: true,
 	realTimeNotificationsEnabled: true,
-	nhisTrackingEnabled: true
+	nhisTrackingEnabled: true,
+	aiAutoTriageEscalation: false
 };
 
 class SettingsStore {

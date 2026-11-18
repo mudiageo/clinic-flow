@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { db } from '#lib/local-db/db.ts';
 	import { syncStore } from '#lib/state/sync.svelte.ts';
+	import { formatDateTime } from '#lib/utils/date.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import {
 		Card,
@@ -9,78 +9,38 @@
 		CardContent,
 		CardDescription
 	} from '#lib/components/ui/card/index.ts';
-	import { onMount } from 'svelte';
 	import {
 		AlertTriangle,
 		CheckCircle,
 		RefreshCcw,
 		Wifi,
 		WifiOff,
-		Activity,
 		ShieldCheck,
 		Database
 	} from '@lucide/svelte';
 	import { SpotlightCard } from '#lib/components/ui/spotlight-card/index.ts';
 	import { ScrollArea } from '#lib/components/ui/scroll-area/index.ts';
 
-	let conflicts = $state<{ table: string; id: string; record: any }[]>([]);
+	const conflicts = $derived(syncStore.conflicts);
 	let refreshing = $state(false);
+	let reconciling = $state(false);
 
 	async function loadConflicts() {
 		refreshing = true;
-		const tables = [
-			'patients',
-			'queueTickets',
-			'vitalsRecords',
-			'pharmacyInventory',
-			'reminders',
-			'triageRules',
-			'prescriptions'
-		];
-		const found: any[] = [];
-
-		for (const t of tables) {
-			const tableObj = (db as any)[t];
-			if (tableObj) {
-				const records = await tableObj.where('syncStatus').equals('conflict').toArray();
-				for (const r of records) {
-					found.push({ table: t, id: r.id, record: r });
-				}
-			}
+		try {
+			await syncStore.refreshConflicts();
+		} finally {
+			refreshing = false;
 		}
-
-		conflicts = found;
-		refreshing = false;
 	}
 
-	onMount(() => {
-		loadConflicts();
-		const interval = setInterval(loadConflicts, 5000);
-		return () => clearInterval(interval);
-	});
-
-	async function forceLocal(table: string, id: string, record: any) {
-		const tableObj = (db as any)[table];
-
-		await db.syncLog.add({
-			entityType: table,
-			entityId: id,
-			operation: 'update',
-			payload: record,
-			timestamp: Date.now(),
-			synced: 0
-		});
-
-		await tableObj.update(id, { syncStatus: 'pending', updatedAt: Date.now() });
-		await syncStore.flush();
-		loadConflicts();
-	}
-
-	async function forceRemote(table: string, id: string) {
-		const tableObj = (db as any)[table];
-		await tableObj.update(id, { syncStatus: 'synced' });
-		await syncStore.flush();
-		loadConflicts();
+	async function reconcileAll() {
+		reconciling = true;
+		try {
+			await syncStore.reconcileFromBeginning();
+		} finally {
+			reconciling = false;
+		}
 	}
 </script>
 
@@ -89,16 +49,22 @@
 </svelte:head>
 
 <div class="space-y-8 animate-fade-in">
-	<div class="flex items-start gap-3">
-		<div class="p-2.5 rounded-xl bg-primary/10 text-primary">
-			<RefreshCcw class="size-6" />
+	<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+		<div class="flex items-start gap-3">
+			<div class="p-2.5 rounded-xl bg-primary/10 text-primary">
+				<RefreshCcw class="size-6" />
+			</div>
+			<div>
+				<h1 class="text-2xl font-bold text-foreground tracking-tight">Sync Engine</h1>
+				<p class="text-muted-foreground text-sm mt-0.5 font-medium">
+					Monitor local-first synchronization and resolve conflicts
+				</p>
+			</div>
 		</div>
-		<div>
-			<h1 class="text-2xl font-bold text-foreground tracking-tight">Sync Engine</h1>
-			<p class="text-muted-foreground text-sm mt-0.5 font-medium">
-				Monitor local-first synchronization and resolve conflicts
-			</p>
-		</div>
+		<Button variant="outline" onclick={reconcileAll} disabled={reconciling}>
+			<RefreshCcw class="mr-2 size-4 {reconciling ? 'animate-spin' : ''}" />
+			Reconcile All Data
+		</Button>
 	</div>
 
 	<div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3 animate-stagger">
@@ -144,24 +110,41 @@
 			</CardContent>
 		</SpotlightCard>
 
-		<!-- Last Synced Date Card -->
+		<!-- Data freshness card -->
 		<SpotlightCard class="card-hover cursor-default">
 			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
 				<CardTitle class="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
-					>Last Synced</CardTitle
+					>Data Freshness</CardTitle
 				>
 				<ShieldCheck class="h-4.5 w-4.5 text-primary" />
 			</CardHeader>
 			<CardContent>
-				<div class="text-2xl font-extrabold text-foreground">
+				<div class="text-2xl font-extrabold capitalize text-foreground">
+					{syncStore.dataState}
+				</div>
+				<p class="mt-1.5 text-xs font-medium text-muted-foreground">
+					Durable data freshness; connection state is {syncStore.realtimeState}
+				</p>
+			</CardContent>
+		</SpotlightCard>
+
+		<SpotlightCard class="card-hover cursor-default">
+			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+				<CardTitle class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+					Last Successful Sync
+				</CardTitle>
+				<ShieldCheck class="h-4.5 w-4.5 text-primary" />
+			</CardHeader>
+			<CardContent>
+				<div class="text-xl font-extrabold text-foreground">
 					{#if syncStore.lastSyncedAt}
-						{new Date(syncStore.lastSyncedAt).toLocaleTimeString()}
+						{formatDateTime(syncStore.lastSyncedAt)}
 					{:else}
 						Never
 					{/if}
 				</div>
 				<p class="text-xs text-muted-foreground mt-1.5 font-medium">
-					Time of last successful push or pull session
+					Completed push and authoritative catch-up
 				</p>
 			</CardContent>
 		</SpotlightCard>
@@ -174,9 +157,7 @@
 		>
 			<div>
 				<CardTitle class="text-base font-semibold">Sync Conflicts</CardTitle>
-				<CardDescription
-					>Records that could not be automatically merged using LWW (Last-Write-Wins) rules.</CardDescription
-				>
+				<CardDescription>Rejected local edits preserved beside the server version.</CardDescription>
 			</div>
 			<Button
 				variant="outline"
@@ -204,7 +185,7 @@
 				</div>
 			{:else}
 				<div class="space-y-4">
-					{#each conflicts as conflict}
+					{#each conflicts as conflict (conflict.id)}
 						<div
 							class="p-5 border border-border bg-triage-red/5 rounded-xl flex flex-col md:flex-row md:items-start md:justify-between gap-4 animate-fade-in"
 						>
@@ -212,16 +193,21 @@
 								<AlertTriangle class="h-5 w-5 text-triage-red shrink-0 mt-0.5" />
 								<div class="flex-1 min-w-0">
 									<div class="font-bold text-triage-red text-sm capitalize">
-										{conflict.table} Record Conflict
+										{conflict.entityType} Record Conflict
 									</div>
-									<div class="text-xs font-mono text-muted-foreground mt-1">ID: {conflict.id}</div>
+									<div class="mt-1 text-xs font-mono text-muted-foreground">
+										ID: {conflict.entityId} · {conflict.reason}
+									</div>
 
 									<!-- Pretty JSON View -->
 									<ScrollArea
 										class="h-40 w-full mt-3 border border-border rounded-lg bg-background/80 p-3"
 									>
 										<pre class="text-[11px] font-mono text-foreground">{JSON.stringify(
-												conflict.record,
+												{
+													localEdit: conflict.localPayload,
+													serverVersion: conflict.serverRecord
+												},
 												null,
 												2
 											)}</pre>
@@ -233,15 +219,15 @@
 									variant="default"
 									size="sm"
 									class="w-full bg-primary text-primary-foreground hover:bg-primary/95 btn-press text-xs h-9"
-									onclick={() => forceLocal(conflict.table, conflict.id, conflict.record)}
+									onclick={() => syncStore.retryLocalVersion(conflict.id)}
 								>
-									Force Local Win
+									Retry Local Edit
 								</Button>
 								<Button
 									variant="outline"
 									size="sm"
 									class="w-full border-border btn-press text-xs h-9"
-									onclick={() => forceRemote(conflict.table, conflict.id)}
+									onclick={() => syncStore.acceptServerVersion(conflict.id)}
 								>
 									Discard Local
 								</Button>

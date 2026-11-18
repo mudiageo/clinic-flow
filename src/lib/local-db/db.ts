@@ -14,6 +14,7 @@ export interface LocalPatient {
 	address: string | null;
 	community: string | null;
 	nextOfKinPhone: string | null;
+	nextOfKinName?: string | null;
 	isPregnant: boolean;
 	isNhis?: boolean;
 	syncStatus: 'synced' | 'pending' | 'conflict';
@@ -258,12 +259,34 @@ export interface LocalPregnancyRecord {
 
 export interface SyncLogEntry {
 	localId?: number; // auto-increment
+	operationId: string;
 	entityType: string;
 	entityId: string;
 	operation: 'create' | 'update' | 'delete' | 'delta';
 	payload: unknown;
 	timestamp: number;
+	baseVersion: number;
 	synced: 0 | 1;
+}
+
+export interface LocalSyncMetadata {
+	key: string;
+	cursor: number;
+	updatedAt: number;
+}
+
+export interface LocalSyncConflict {
+	id: string;
+	operationId: string;
+	entityType: string;
+	entityId: string;
+	operation: 'create' | 'update' | 'delete' | 'delta';
+	reason: string;
+	localPayload: unknown;
+	serverRecord: unknown;
+	serverVersion: number;
+	createdAt: number;
+	resolvedAt: number | null;
 }
 
 export interface LocalAnnouncement {
@@ -314,6 +337,8 @@ class ClinicFlowDB extends Dexie {
 	families!: Table<LocalFamily, string>;
 	staff!: Table<LocalStaff, string>;
 	syncLog!: Table<SyncLogEntry, number>;
+	syncMetadata!: Table<LocalSyncMetadata, string>;
+	syncConflicts!: Table<LocalSyncConflict, string>;
 	announcements!: Table<LocalAnnouncement, string>;
 	announcementReceiptQueue!: Table<LocalAnnouncementReceiptOperation, number>;
 	outreachRecords!: Table<LocalOutreachRecord, string>;
@@ -376,6 +401,23 @@ class ClinicFlowDB extends Dexie {
 			outreachRecords:
 				'id, phcId, recordedByStaffId, activityType, occurredAt, syncStatus, updatedAt'
 		});
+		this.version(10)
+			.stores({
+				syncLog:
+					'++localId, &operationId, entityType, entityId, operation, timestamp, baseVersion, synced',
+				syncMetadata: 'key, updatedAt',
+				syncConflicts:
+					'id, &operationId, entityType, entityId, createdAt, resolvedAt, [entityType+entityId]'
+			})
+			.upgrade(async (transaction) => {
+				await transaction
+					.table('syncLog')
+					.toCollection()
+					.modify((entry: SyncLogEntry) => {
+						entry.operationId ||= crypto.randomUUID();
+						entry.baseVersion ??= 0;
+					});
+			});
 	}
 }
 

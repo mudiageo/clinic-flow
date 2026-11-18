@@ -55,6 +55,7 @@ export const phcs = sqliteTable('phcs', {
 	termiiApiKey: text('termii_api_key'),
 	syncPollInterval: integer('sync_poll_interval').notNull().default(30),
 	dailyPatientCapacity: integer('daily_patient_capacity').notNull().default(100),
+	syncVersion: integer('sync_version').notNull().default(0),
 	maternalHealthEnabled: integer('maternal_health_enabled', { mode: 'boolean' })
 		.notNull()
 		.default(true),
@@ -586,23 +587,34 @@ export const appointments = sqliteTable('appointments', {
 // SYNC INFRASTRUCTURE
 // ─────────────────────────────────────────────────────────────
 
-export const syncOperations = sqliteTable('sync_operations', {
-	id: text('id')
-		.primaryKey()
-		.$defaultFn(() => crypto.randomUUID()),
-	phcId: text('phc_id')
-		.notNull()
-		.references(() => phcs.id),
-	deviceId: text('device_id').notNull(),
-	entityType: text('entity_type').notNull(),
-	entityId: text('entity_id').notNull(),
-	operation: text('operation').notNull(),
-	payload: text('payload').notNull(),
-	clientUpdatedAt: integer('client_updated_at', { mode: 'timestamp' }).notNull(),
-	serverReceivedAt: integer('server_received_at', { mode: 'timestamp' })
-		.notNull()
-		.$defaultFn(() => new Date())
-});
+export const syncOperations = sqliteTable(
+	'sync_operations',
+	{
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		phcId: text('phc_id')
+			.notNull()
+			.references(() => phcs.id),
+		deviceId: text('device_id').notNull(),
+		operationId: text('operation_id').notNull(),
+		version: integer('version').notNull(),
+		entityType: text('entity_type').notNull(),
+		entityId: text('entity_id').notNull(),
+		operation: text('operation').notNull(),
+		payload: text('payload').notNull(),
+		clientUpdatedAt: integer('client_updated_at', { mode: 'timestamp' }).notNull(),
+		serverReceivedAt: integer('server_received_at', { mode: 'timestamp' })
+			.notNull()
+			.$defaultFn(() => new Date())
+	},
+	(table) => ({
+		operationIdIdx: uniqueIndex('sync_ops_operation_id_idx').on(table.operationId),
+		versionIdx: uniqueIndex('sync_ops_phc_version_idx').on(table.phcId, table.version),
+		entityIdx: index('sync_ops_entity_idx').on(table.entityType, table.entityId),
+		cursorIdx: index('sync_ops_cursor_idx').on(table.phcId, table.version)
+	})
+);
 
 // ─────────────────────────────────────────────────────────────
 // AUDIT LOG

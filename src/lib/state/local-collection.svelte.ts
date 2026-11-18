@@ -1,8 +1,9 @@
 import { liveQuery, type Table, type UpdateSpec } from 'dexie';
 import { db } from '#lib/local-db/db.ts';
+import { requestImmediateSync } from '#lib/sync/sync-trigger.ts';
 
 export abstract class LocalCollection<
-	T extends { id: string; updatedAt: number; syncStatus: string }
+	T extends { id: string; updatedAt: number; syncStatus: string; serverVersion?: number }
 > {
 	items = $state<T[]>([]);
 
@@ -27,14 +28,17 @@ export abstract class LocalCollection<
 		await db.transaction('rw', this.table, db.syncLog, async () => {
 			await this.table.add(record);
 			await db.syncLog.add({
+				operationId: crypto.randomUUID(),
 				entityType: this.entityType,
 				entityId: id,
 				operation: 'create',
 				payload: record,
 				timestamp,
+				baseVersion: 0,
 				synced: 0
 			});
 		});
+		requestImmediateSync();
 		return id;
 	}
 
@@ -46,17 +50,22 @@ export abstract class LocalCollection<
 			syncStatus: 'pending'
 		} as UpdateSpec<T>;
 		await db.transaction('rw', this.table, db.syncLog, async () => {
+			const current = await this.table.get(id);
+			if (!current) throw new Error(`Cannot update missing ${this.entityType} record ${id}`);
 			const updated = await this.table.update(id, patch);
 			if (updated === 0) throw new Error(`Cannot update missing ${this.entityType} record ${id}`);
 			await db.syncLog.add({
+				operationId: crypto.randomUUID(),
 				entityType: this.entityType,
 				entityId: id,
 				operation: 'update',
 				payload: patch,
 				timestamp,
+				baseVersion: current.serverVersion ?? 0,
 				synced: 0
 			});
 		});
+		requestImmediateSync();
 	}
 
 	async delete(id: string): Promise<void> {
@@ -65,13 +74,16 @@ export abstract class LocalCollection<
 			if (!record) throw new Error(`Cannot delete missing ${this.entityType} record ${id}`);
 			await this.table.delete(id);
 			await db.syncLog.add({
+				operationId: crypto.randomUUID(),
 				entityType: this.entityType,
 				entityId: id,
 				operation: 'delete',
 				payload: record,
 				timestamp: Date.now(),
+				baseVersion: record.serverVersion ?? 0,
 				synced: 0
 			});
 		});
+		requestImmediateSync();
 	}
 }

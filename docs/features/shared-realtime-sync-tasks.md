@@ -31,6 +31,23 @@
 - [x] Mark accepted local records as synced when no newer operation remains
 - [x] Add cross-PHC, burst, reconnect, and cleanup tests
 
+## Cross-device reliability remediation
+
+- [x] Add PHC-scoped monotonic outbox versions and backfill existing operations
+- [x] Add durable operation IDs and make mutation retries idempotent
+- [x] Refresh every ordinary cursor pull to bypass SvelteKit query reuse
+- [x] Persist applied records and cursor atomically in IndexedDB
+- [x] Replay from the new version cursor without deleting pending local work
+- [x] Trigger immediate debounced sync for every local collection mutation
+- [x] Separate live-stream connection state from durable-data freshness
+- [x] Reconcile rejected conflicts with the authoritative server version
+- [x] Scope client creates to the session PHC and make the server authoritative for tenant scope
+- [x] Add fresh-pull, pagination, retry, two-client, reconnect, and tenant-isolation tests
+- [x] Apply and verify PostgreSQL and SQLite migrations
+- [x] Update the realtime sync user guide and add a Changeset
+- [x] Run formatting, targeted lint/type checks, service-worker check, tests, and production build
+- [ ] Confirm cross-device convergence end to end in two signed-in browsers after the PHC-scope fix
+
 ## Documentation and validation
 
 - [x] Create `docs/user-guides/realtime-sync.md`

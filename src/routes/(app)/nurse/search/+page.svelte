@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { patientStore } from '#lib/state/patients.svelte.ts';
 	import { queueStore } from '#lib/state/queue.svelte.ts';
+	import { sessionStore } from '#lib/state/session.svelte.ts';
+	import type { LocalPatient } from '#lib/local-db/db.ts';
 	import { Autocomplete, AutocompleteHighlight } from '#lib/components/ui/autocomplete/index.js';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import {
@@ -24,14 +26,14 @@
 	} from '@lucide/svelte';
 
 	let searchQuery = $state('');
-	let selectedPatient = $state<any>(null);
+	let selectedPatient = $state<LocalPatient | null>(null);
 	let isAddingToQueue = $state(false);
 	let selectedDepartment = $state('general');
 
 	// Reactive search powered by Dexie via patientStore
 	const searchResults = $derived(searchQuery.length >= 2 ? patientStore.search(searchQuery) : []);
 
-	function handleSelect(patient: any) {
+	function handleSelect(patient: LocalPatient) {
 		selectedPatient = patient;
 	}
 
@@ -42,7 +44,7 @@
 		try {
 			// Check if already in queue
 			const activeTickets = queueStore.items.filter(
-				(t: any) => t.patientId === selectedPatient.id && t.status === 'waiting'
+				(t) => t.patientId === selectedPatient?.id && t.status === 'waiting'
 			);
 
 			if (activeTickets.length > 0) {
@@ -55,7 +57,7 @@
 
 			await queueStore.create({
 				patientId: selectedPatient.id,
-				phcId: crypto.randomUUID(), // Stub or auth store
+				phcId: sessionStore.activePhcId,
 				encounterId: null,
 				ticketNumber: 0,
 				status: 'waiting',
@@ -68,8 +70,8 @@
 			});
 
 			toast.success(`${selectedPatient.name} has been added to the queue!`);
-		} catch (e: any) {
-			toast.error(`Failed to add to queue: ${e.message}`);
+		} catch (e) {
+			toast.error(`Failed to add to queue: ${e instanceof Error ? e.message : String(e)}`);
 		} finally {
 			isAddingToQueue = false;
 		}
@@ -111,7 +113,7 @@
 							class="h-12 text-base"
 							onSelect={handleSelect}
 						>
-							{#snippet itemSnippet(patient: any, isActive: boolean)}
+							{#snippet itemSnippet(patient: LocalPatient, isActive: boolean)}
 								<div class="flex flex-col w-full py-1">
 									<div class="font-medium text-foreground text-base">
 										<AutocompleteHighlight text={patient.name} query={searchQuery} />

@@ -70,5 +70,15 @@ describe('dashboard metrics', () => {
 				hasSynced: true
 			})
 		).toBe(0);
+		expect(
+			calculateSyncHealth({
+				online: true,
+				realtimeState: 'live',
+				dataState: 'error',
+				pendingCount: 0,
+				conflictCount: 0,
+				hasSynced: true
+			})
+		).toBe(40);
 	});
 });

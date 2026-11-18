@@ -38,7 +38,7 @@
 - [ ] **ST-12** Remove fake identity fallbacks in `superadmin/settings`
 - [ ] **ST-13** Remove/realize mDNS card in `admin/server-status`
 - [ ] **ST-14** Remove `pin === '0000'` auth backdoor
-- [ ] **ST-15** Route `admin/sync` through `syncStore` instead of direct Dexie
+- [x] **ST-15** Route `admin/sync` through `syncStore` instead of direct Dexie
 
 ## Phase D — Mocked clinical modules (P0/P1)
 

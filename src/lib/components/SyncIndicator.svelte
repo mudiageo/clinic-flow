@@ -17,6 +17,15 @@
 		return 'Connected';
 	});
 
+	const freshnessLabel = $derived.by(() => {
+		if (syncStore.dataState === 'syncing') return 'Syncing';
+		if (syncStore.dataState === 'current') return 'Current';
+		if (syncStore.dataState === 'error') return 'Sync error';
+		if (syncStore.dataState === 'offline') return 'Cached';
+		if (syncStore.dataState === 'stale') return 'Stale data';
+		return 'Not synced';
+	});
+
 	function updateTimeAgo() {
 		if (!syncStore.lastSyncedAt) {
 			timeAgo = 'never';
@@ -41,49 +50,44 @@
 
 <div class="flex flex-col items-start gap-2">
 	<div class="flex items-center gap-2">
-		{#if syncStore.online && syncStore.realtimeState !== 'offline'}
-			{#if syncStore.isSyncing}
-				<Badge
-					variant="outline"
-					class="bg-blue-500/10 text-blue-500 border-blue-500/30 flex items-center gap-1.5 px-2.5 py-1"
-				>
-					<Loader2 class="size-3 animate-spin" />
-					Syncing...
-				</Badge>
-			{:else if syncStore.realtimeState === 'stale' || syncStore.realtimeState === 'error'}
-				<Badge
-					variant="outline"
-					class="flex cursor-pointer items-center gap-1.5 border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-amber-500 transition-colors hover:bg-amber-500/20"
-					onclick={() => void syncStore.flush()}
-				>
-					<AlertCircle class="size-3" />
-					{connectionLabel}
-					{syncStore.pendingCount > 0 ? `(${syncStore.pendingCount})` : ''}
-				</Badge>
-			{:else}
-				<Badge
-					variant="outline"
-					class="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 flex items-center gap-1.5 px-2.5 py-1 hover:bg-emerald-500/20 cursor-pointer transition-colors"
-					onclick={() => void syncStore.flush()}
-				>
-					<span
-						class="w-2 h-2 rounded-full bg-emerald-500 {syncStore.pendingCount > 0
-							? 'animate-pulse'
-							: ''}"
-					></span>
-					{connectionLabel}
-					{syncStore.pendingCount > 0 ? `(${syncStore.pendingCount})` : ''}
-				</Badge>
-			{/if}
-		{:else}
+		<Badge
+			variant="outline"
+			class={syncStore.realtimeState === 'live'
+				? 'flex items-center gap-1.5 border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-emerald-500'
+				: 'flex items-center gap-1.5 border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-amber-500'}
+			title="Wake-up stream connection"
+		>
+			<span
+				class="size-2 rounded-full {syncStore.realtimeState === 'live'
+					? 'bg-emerald-500'
+					: 'bg-amber-500'}"
+			></span>
+			{connectionLabel}
+		</Badge>
+
+		<button
+			type="button"
+			class="rounded-md"
+			onclick={() => void syncStore.flush()}
+			title={syncStore.lastSyncError ?? 'Durable record freshness — click to reconcile'}
+		>
 			<Badge
 				variant="outline"
-				class="bg-amber-500/10 text-amber-400 border-amber-500/30 flex items-center gap-1.5 px-2.5 py-1"
+				class={syncStore.dataState === 'current'
+					? 'flex cursor-pointer items-center gap-1.5 border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-emerald-500'
+					: syncStore.dataState === 'error'
+						? 'flex cursor-pointer items-center gap-1.5 border-destructive/30 bg-destructive/10 px-2.5 py-1 text-destructive'
+						: 'flex cursor-pointer items-center gap-1.5 border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-amber-500'}
 			>
-				<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-				Offline ({syncStore.pendingCount} pending)
+				{#if syncStore.isSyncing}
+					<Loader2 class="size-3 animate-spin" />
+				{:else if syncStore.dataState === 'error' || syncStore.dataState === 'stale'}
+					<AlertCircle class="size-3" />
+				{/if}
+				{freshnessLabel}
+				{syncStore.pendingCount > 0 ? `(${syncStore.pendingCount})` : ''}
 			</Badge>
-		{/if}
+		</button>
 
 		{#if syncStore.conflicts.length > 0}
 			<a

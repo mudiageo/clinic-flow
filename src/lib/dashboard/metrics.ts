@@ -43,11 +43,12 @@ export function calculateCapacityUsed(todayVolume: number, dailyCapacity: number
 export function calculateSyncHealth(input: {
 	online: boolean;
 	realtimeState: RealtimeFreshnessState;
+	dataState?: 'idle' | 'syncing' | 'current' | 'stale' | 'offline' | 'error';
 	pendingCount: number;
 	conflictCount: number;
 	hasSynced: boolean;
 }): number {
-	if (!input.online || input.realtimeState === 'offline') return 0;
+	if (!input.online || input.realtimeState === 'offline' || input.dataState === 'offline') return 0;
 
 	let score =
 		input.realtimeState === 'error'
@@ -58,6 +59,9 @@ export function calculateSyncHealth(input: {
 					? 85
 					: 100;
 	if (!input.hasSynced) score -= 15;
+	if (input.dataState === 'error') score = Math.min(score, 40);
+	if (input.dataState === 'stale') score = Math.min(score, 70);
+	if (input.dataState === 'syncing') score = Math.min(score, 90);
 	score -= Math.min(40, Math.max(0, input.pendingCount) * 2);
 	score -= Math.min(40, Math.max(0, input.conflictCount) * 10);
 	return Math.max(0, Math.min(100, score));
