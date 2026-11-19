@@ -1,25 +1,17 @@
 <script lang="ts">
-	import { Card, CardHeader, CardTitle, CardContent } from '#lib/components/ui/card/index.ts';
+	import { Card, CardContent } from '#lib/components/ui/card/index.ts';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
-	import {
-		Thermometer,
-		ThermometerSnowflake,
-		AlertTriangle,
-		CheckCircle2,
-		Activity
-	} from '@lucide/svelte';
+	import { Thermometer, ThermometerSnowflake, AlertTriangle, Activity } from '@lucide/svelte';
+	import { pharmacyStore } from '#lib/state/pharmacy.svelte.ts';
 
-	// Mock data
-	const fridgeTemp = 4.2; // Celsius
-	const status = fridgeTemp >= 2 && fridgeTemp <= 8 ? 'optimal' : 'warning';
+	const vaccineStock = $derived(
+		pharmacyStore.items.filter((item) => item.category?.toLowerCase() === 'vaccine')
+	);
 
-	const vaccines = [
-		{ name: 'BCG', stock: 120, expires: 'Oct 2026', type: 'Live Attenuated' },
-		{ name: 'OPV (Polio)', stock: 350, expires: 'Dec 2026', type: 'Live Attenuated' },
-		{ name: 'Pentavalent', stock: 45, expires: 'Next Month', type: 'Inactivated', warning: true },
-		{ name: 'Measles', stock: 80, expires: 'Jan 2027', type: 'Live Attenuated' }
-	];
+	function isLowStock(item: (typeof vaccineStock)[number]): boolean {
+		return item.currentStock <= item.lowStockThreshold || item.isCritical;
+	}
 </script>
 
 <svelte:head>
@@ -39,7 +31,7 @@
 				</p>
 			</div>
 		</div>
-		<Button variant="outline">
+		<Button variant="outline" disabled title="Not available — no temperature log data source yet">
 			<Activity class="size-4 mr-2" />
 			Log Temperature
 		</Button>
@@ -51,45 +43,28 @@
 			<div class="flex items-center gap-6">
 				<div class="relative">
 					<div
-						class="size-20 rounded-full border-4 flex items-center justify-center {status ===
-						'optimal'
-							? 'border-sky-500 text-sky-600'
-							: 'border-amber-500 text-amber-600'}"
+						class="size-20 rounded-full border-4 border-muted flex items-center justify-center text-muted-foreground"
 					>
-						<span class="text-2xl font-bold">{fridgeTemp}°</span>
+						<span class="text-2xl font-bold">—</span>
 					</div>
 					<div
-						class="absolute -bottom-2 -right-2 p-1.5 rounded-full bg-white shadow-sm {status ===
-						'optimal'
-							? 'text-emerald-500'
-							: 'text-amber-500'}"
+						class="absolute -bottom-2 -right-2 p-1.5 rounded-full bg-white shadow-sm text-muted-foreground"
 					>
-						{#if status === 'optimal'}
-							<CheckCircle2 class="size-5" />
-						{:else}
-							<AlertTriangle class="size-5" />
-						{/if}
+						<Thermometer class="size-5" />
 					</div>
 				</div>
 				<div>
 					<h3 class="text-lg font-bold">Solar Direct Drive Refrigerator</h3>
 					<p class="text-sm text-muted-foreground flex items-center gap-2 mt-1">
 						Status:
-						<Badge
-							variant={status === 'optimal' ? 'outline' : 'destructive'}
-							class={status === 'optimal' ? 'border-sky-200 text-sky-700 bg-white' : ''}
-						>
-							{status === 'optimal' ? 'Optimal Range (2-8°C)' : 'Check Required'}
+						<Badge variant="outline" class="border-muted text-muted-foreground bg-white">
+							No temperature data
 						</Badge>
 					</p>
+					<p class="text-sm text-muted-foreground mt-1">
+						No temperature logs recorded. Temperature monitoring is not yet connected.
+					</p>
 				</div>
-			</div>
-			<div class="text-right hidden md:block">
-				<p class="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">
-					Last Logged
-				</p>
-				<p class="font-medium text-sm">Today, 08:00 AM</p>
-				<p class="text-xs text-muted-foreground">by Nurse Joy</p>
 			</div>
 		</CardContent>
 	</Card>
@@ -98,40 +73,51 @@
 	<div class="space-y-4">
 		<h2 class="text-lg font-bold tracking-tight">Sensitive Stock</h2>
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-			{#each vaccines as v}
-				<Card class="card-hover {v.warning ? 'border-amber-200 bg-amber-50/30' : ''}">
+			{#if vaccineStock.length === 0}
+				<Card class="md:col-span-2 lg:col-span-4">
+					<CardContent class="p-8 text-center text-muted-foreground">
+						No vaccine stock recorded in pharmacy inventory.
+					</CardContent>
+				</Card>
+			{/if}
+
+			{#each vaccineStock as item (item.id)}
+				{@const lowStock = isLowStock(item)}
+				<Card class="card-hover {lowStock ? 'border-amber-200 bg-amber-50/30' : ''}">
 					<CardContent class="p-5 flex flex-col h-full">
 						<div class="flex justify-between items-start mb-4">
 							<Badge
 								variant="outline"
-								class="text-[10px] uppercase font-bold tracking-wider {v.type === 'Live Attenuated'
-									? 'text-rose-600 border-rose-200 bg-rose-50'
-									: 'text-sky-600 border-sky-200 bg-sky-50'}"
+								class="text-[10px] uppercase font-bold tracking-wider text-sky-600 border-sky-200 bg-sky-50"
 							>
-								{v.type}
+								Vaccine
 							</Badge>
-							{#if v.warning}
-								<AlertTriangle class="size-4 text-amber-500" />
+							{#if lowStock}
+								<Badge variant="outline" class="text-amber-600 border-amber-200 bg-amber-50 gap-1">
+									<AlertTriangle class="size-3" />
+									Low stock
+								</Badge>
 							{/if}
 						</div>
 
-						<h3 class="text-xl font-bold mb-1">{v.name}</h3>
+						<h3 class="text-xl font-bold mb-1">{item.itemName}</h3>
 
 						<div class="mt-auto pt-4 space-y-2">
 							<div class="flex justify-between items-end">
 								<span class="text-xs text-muted-foreground">Stock</span>
-								<span class="font-bold {v.stock < 50 ? 'text-red-600' : ''}">{v.stock} vials</span>
-							</div>
-							<div class="flex justify-between items-end">
-								<span class="text-xs text-muted-foreground">Expires</span>
-								<span class="text-sm font-medium {v.warning ? 'text-amber-600' : ''}"
-									>{v.expires}</span
-								>
+								<span class="font-bold {lowStock ? 'text-red-600' : ''}">
+									{item.currentStock}
+									{item.unit}
+								</span>
 							</div>
 						</div>
 					</CardContent>
 				</Card>
 			{/each}
 		</div>
+		<p class="text-xs text-muted-foreground">
+			Temperature and expiry tracking are not yet connected. Stock figures come from pharmacy
+			inventory.
+		</p>
 	</div>
 </div>
