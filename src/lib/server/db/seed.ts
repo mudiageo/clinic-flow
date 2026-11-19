@@ -6,16 +6,13 @@
  *   pnpm db:seed -- --phc=egor         seed only Egor
  *   pnpm db:seed -- --phc=oredo --reset
  *
- * The data itself lives in `src/lib/seed/fixtures.ts`; this file only writes it
- * to Postgres through the same `toServerRow()` shim used by the sync endpoint.
+ * The data itself lives in `src/lib/seed/fixtures.ts`; this file writes it
+ * to PostgreSQL or SQLite through the same `toServerRow()` shim used by the sync endpoint.
  * Re-running never duplicates rows: every id is derived from a stable key.
  */
 
-import { drizzle } from 'drizzle-orm/postgres-js';
 import { eq, inArray, sql } from 'drizzle-orm';
-import postgres from 'postgres';
 import { hashPassword } from 'better-auth/crypto';
-import * as schema from './schema.js';
 import {
 	buildAllFixtures,
 	buildFixtures,
@@ -45,8 +42,10 @@ if (!dbUrl) {
 	throw new Error('DATABASE_URL is not set. Run with --env-file=.env (pnpm db:seed does this).');
 }
 
+const isLibSql = dbUrl.startsWith('file:') || dbUrl.startsWith('libsql:') || dbUrl.endsWith('.db');
+
 // Refuse to write to a non-local database unless explicitly overridden.
-if (!forceRemote) {
+if (!forceRemote && !isLibSql) {
 	let host = 'unknown';
 	try {
 		host = new URL(dbUrl).hostname;
@@ -60,8 +59,25 @@ if (!forceRemote) {
 	}
 }
 
-const client = postgres(dbUrl);
-const db = drizzle(client, { schema });
+// ── Driver connection (Postgres or SQLite/libsql) ───────────────────────────
+
+let client: any;
+let db: any;
+let schema: any;
+
+if (isLibSql) {
+	const { drizzle } = await import('drizzle-orm/libsql');
+	const { createClient } = await import('@libsql/client');
+	schema = await import('./schema.sqlite.js');
+	client = createClient({ url: dbUrl });
+	db = drizzle(client, { schema });
+} else {
+	const { drizzle } = await import('drizzle-orm/postgres-js');
+	const { default: postgres } = await import('postgres');
+	schema = await import('./schema.js');
+	client = postgres(dbUrl);
+	db = drizzle(client, { schema });
+}
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -179,7 +195,7 @@ async function resetSeedRows(fixtures: FixtureSet[]) {
 
 	// Auth accounts are keyed by email, not by PHC.
 	const seededUsers = await db.select().from(schema.user).where(inArray(schema.user.email, emails));
-	const userIds = seededUsers.map((u) => u.id);
+	const userIds = seededUsers.map((u: any) => u.id);
 	if (userIds.length) {
 		await db.delete(schema.account).where(inArray(schema.account.userId, userIds));
 		await db.delete(schema.session).where(inArray(schema.session.userId, userIds));
@@ -297,9 +313,14 @@ async function seedFixture(f: FixtureSet) {
 		.insert(schema.syncOperations)
 		.values(syncRows as any)
 		.onConflictDoNothing();
+
+	const syncVersionSql = isLibSql
+		? sql`MAX(${schema.phcs.syncVersion}, ${syncRows.length})`
+		: sql`GREATEST(${schema.phcs.syncVersion}, ${syncRows.length})`;
+
 	await db
 		.update(schema.phcs)
-		.set({ syncVersion: sql`GREATEST(${schema.phcs.syncVersion}, ${syncRows.length})` })
+		.set({ syncVersion: syncVersionSql })
 		.where(eq(schema.phcs.id, f.phcId));
 
 	console.log(
@@ -310,6 +331,16 @@ async function seedFixture(f: FixtureSet) {
 }
 
 // ── Main ────────────────────────────────────────────────────────────────────
+
+async function closeClient() {
+	if (client) {
+		if (typeof client.close === 'function') {
+			client.close();
+		} else if (typeof client.end === 'function') {
+			await client.end();
+		}
+	}
+}
 
 async function seed() {
 	console.log('🌱 Seeding ClinicFlow from the shared fixture catalogue…');
@@ -326,11 +357,11 @@ async function seed() {
 
 seed()
 	.then(async () => {
-		await client.end();
+		await closeClient();
 		process.exit(0);
 	})
 	.catch(async (err) => {
 		console.error('Error seeding DB:', err);
-		await client.end();
+		await closeClient();
 		process.exit(1);
 	});

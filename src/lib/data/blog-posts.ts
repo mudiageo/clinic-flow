@@ -17,7 +17,8 @@ export const blogPosts: BlogPost[] = [
 	{
 		slug: 'why-cloud-emrs-fail-rural-clinics-nigeria',
 		title: 'Why Traditional Cloud EMRs Fail Rural Primary Health Centres in Nigeria',
-		summary: 'A critical analysis of imported health software assumptions versus the everyday electrical and connectivity realities of rural Nigerian clinics.',
+		summary:
+			'A critical analysis of imported health software assumptions versus the everyday electrical and connectivity realities of rural Nigerian clinics.',
 		date: '14 November 2026',
 		readTime: '6 min read',
 		category: 'Public Health & Infrastructure',
@@ -36,7 +37,8 @@ export const blogPosts: BlogPost[] = [
 	{
 		slug: 'offline-first-architecture-dexie-sqlite-mdns',
 		title: 'Architecting for Blackouts: How ClinicFlow Achieves Zero-Downtime Offline Sync',
-		summary: 'A deep technical dive into SvelteKit 5, Dexie IndexedDB, edge SQLite, and mDNS zero-configuration networking in low-resource environments.',
+		summary:
+			'A deep technical dive into SvelteKit 5, Dexie IndexedDB, edge SQLite, and mDNS zero-configuration networking in low-resource environments.',
 		date: '28 October 2026',
 		readTime: '8 min read',
 		category: 'Engineering & Architecture',
@@ -56,7 +58,8 @@ export const blogPosts: BlogPost[] = [
 	{
 		slug: 'ai-clinical-decision-safety-dr-assist-rxbrain',
 		title: 'Guardrails First: How Dr. Assist and RxBrain Bring Safe AI to Frontline CHEWs',
-		summary: 'Balancing generative AI decision support with strict clinical boundaries to protect patients in under-staffed health clinics.',
+		summary:
+			'Balancing generative AI decision support with strict clinical boundaries to protect patients in under-staffed health clinics.',
 		date: '10 October 2026',
 		readTime: '7 min read',
 		category: 'AI & Clinical Safety',

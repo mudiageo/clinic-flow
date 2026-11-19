@@ -22,22 +22,24 @@ No AI features in the marketing site. N/A.
 ## 3. Current State Audit
 
 ### What exists
-| Route | Status | Notes |
-|---|---|---|
-| `/` | ✅ Exists | Hero + 3-card features + 4-step how-it-works. Generic SaaS template feel. No social proof, no pricing, no AI section, no Mudiageo branding. Footer says "ClinicFlow Open Source Initiative" (wrong). |
-| `/download` | ✅ Exists | Functional — pulls from GitHub Releases API. Good quality. |
-| `/releases` | ✅ Exists | Functional changelog. Good quality. |
-| `/register` | ✅ Exists | Clinic registration flow. |
-| `/support` | ✅ Exists | 6 guide sub-pages (Dr. Assist, RxBrain, Outbreak Radar, DHIS2, Field Mode, Getting Started). |
-| `/features` | ❌ Missing | No dedicated features page |
-| `/pricing` | ❌ Missing | No pricing page |
-| `/privacy` | ❌ Missing | **Required by law (NDPA/NDPR)** |
-| `/terms` | ❌ Missing | **Required for any SaaS** |
-| `/security` | ❌ Missing | Important for health data trust |
-| `/contact` | ❌ Missing | No contact route |
-| `/about` | ❌ Missing | No about/company page |
+
+| Route       | Status     | Notes                                                                                                                                                                                                |
+| ----------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`         | ✅ Exists  | Hero + 3-card features + 4-step how-it-works. Generic SaaS template feel. No social proof, no pricing, no AI section, no Mudiageo branding. Footer says "ClinicFlow Open Source Initiative" (wrong). |
+| `/download` | ✅ Exists  | Functional — pulls from GitHub Releases API. Good quality.                                                                                                                                           |
+| `/releases` | ✅ Exists  | Functional changelog. Good quality.                                                                                                                                                                  |
+| `/register` | ✅ Exists  | Clinic registration flow.                                                                                                                                                                            |
+| `/support`  | ✅ Exists  | 6 guide sub-pages (Dr. Assist, RxBrain, Outbreak Radar, DHIS2, Field Mode, Getting Started).                                                                                                         |
+| `/features` | ❌ Missing | No dedicated features page                                                                                                                                                                           |
+| `/pricing`  | ❌ Missing | No pricing page                                                                                                                                                                                      |
+| `/privacy`  | ❌ Missing | **Required by law (NDPA/NDPR)**                                                                                                                                                                      |
+| `/terms`    | ❌ Missing | **Required for any SaaS**                                                                                                                                                                            |
+| `/security` | ❌ Missing | Important for health data trust                                                                                                                                                                      |
+| `/contact`  | ❌ Missing | No contact route                                                                                                                                                                                     |
+| `/about`    | ❌ Missing | No about/company page                                                                                                                                                                                |
 
 ### What needs overhaul
+
 - **Layout (`+layout.svelte`):** Nav has no mobile menu, no `/features` or `/pricing` links, footer is incomplete and misbranded.
 - **Home page (`+page.svelte`):** Missing: social proof/traction, AI features section, pricing teaser, Mudiageo Tech credit, competition wins, proper CTA flow.
 
@@ -80,6 +82,7 @@ src/routes/(marketing)/
 ### `/` — Home Page (Overhaul)
 
 **Sections (in order):**
+
 1. **Nav** (from layout) — updated
 2. **Hero** — Bold headline, subheadline, 2 CTAs (Get Started / Download), social proof badge (NextGen Top 5 + 3MTT 2nd)
 3. **Problem Strip** — 4 stat tiles from verified data (0/10 medical records officers, 76% cite power failures, 34 avg registers/PHC, 10hrs DHIS2 re-entry/month)
@@ -97,6 +100,7 @@ src/routes/(marketing)/
 ### `/features` — Features Deep Dive (New)
 
 Full breakdown of every module:
+
 - Patient Registration & Queue Management
 - Vitals & Automated Triage (RAG system)
 - Doctor Consultation Interface
@@ -118,12 +122,13 @@ Full breakdown of every module:
 ### `/pricing` — Pricing (New)
 
 **Tiers:**
-| Tier | Price | For |
-|---|---|---|
-| Pilot | Free | Approved partner PHCs during grant pilot period |
-| Public PHC | ₦30,000/facility/month | State/LGA agency contract (EDSPHCDA) |
-| Private Clinic | Contact us | Higher rate; direct billing |
-| NGO/Donor Programme | Contact us | Custom deployment & support |
+
+| Tier                | Price                  | For                                             |
+| ------------------- | ---------------------- | ----------------------------------------------- |
+| Pilot               | Free                   | Approved partner PHCs during grant pilot period |
+| Public PHC          | ₦30,000/facility/month | State/LGA agency contract (EDSPHCDA)            |
+| Private Clinic      | Contact us             | Higher rate; direct billing                     |
+| NGO/Donor Programme | Contact us             | Custom deployment & support                     |
 
 FAQ section: What's included? Who owns the data? What happens if internet is down? Can we self-host?
 
@@ -132,6 +137,7 @@ FAQ section: What's included? Who owns the data? What happens if internet is dow
 ### `/privacy` — Privacy Policy (New)
 
 NDPA (Nigeria Data Protection Act 2023) compliant. Must cover:
+
 - What data is collected (patient demographics, clinical notes, vitals, prescriptions)
 - Where it is stored (IndexedDB locally on device; PostgreSQL cloud on sync)
 - Who can access it (role-based; clinic staff only; no third-party sale)
@@ -191,12 +197,15 @@ NDPA (Nigeria Data Protection Act 2023) compliant. Must cover:
 ## 6. Layout Overhaul Spec
 
 ### Nav (desktop)
+
 Logo | Features | Pricing | Support | Download | Releases | About | [Sign In] [Get Started →]
 
 ### Nav (mobile)
+
 Hamburger → slide-in drawer with same links + Sign In + Get Started
 
 ### Footer (full)
+
 **Column 1:** ClinicFlow logo + tagline + Mudiageo Technologies credit  
 **Column 2:** Product links (Features, Pricing, Download, Releases)  
 **Column 3:** Company links (About, Contact, Support)  
@@ -219,20 +228,20 @@ Hamburger → slide-in drawer with same links + Sign In + Get Started
 
 ## 8. Files to Create / Modify
 
-| File | Action |
-|---|---|
-| `src/routes/(marketing)/+layout.svelte` | Overhaul — mobile nav, full footer |
-| `src/routes/(marketing)/+page.svelte` | Overhaul — 11-section home |
-| `src/routes/(marketing)/features/+page.svelte` | New |
-| `src/routes/(marketing)/pricing/+page.svelte` | New |
-| `src/routes/(marketing)/privacy/+page.svelte` | New |
-| `src/routes/(marketing)/terms/+page.svelte` | New |
-| `src/routes/(marketing)/security/+page.svelte` | New |
-| `src/routes/(marketing)/about/+page.svelte` | New |
-| `src/routes/(marketing)/contact/+page.svelte` | New |
-| `src/lib/remote/contact.remote.ts` | New — form submission handler |
+| File                                              | Action                               |
+| ------------------------------------------------- | ------------------------------------ |
+| `src/routes/(marketing)/+layout.svelte`           | Overhaul — mobile nav, full footer   |
+| `src/routes/(marketing)/+page.svelte`             | Overhaul — 11-section home           |
+| `src/routes/(marketing)/features/+page.svelte`    | New                                  |
+| `src/routes/(marketing)/pricing/+page.svelte`     | New                                  |
+| `src/routes/(marketing)/privacy/+page.svelte`     | New                                  |
+| `src/routes/(marketing)/terms/+page.svelte`       | New                                  |
+| `src/routes/(marketing)/security/+page.svelte`    | New                                  |
+| `src/routes/(marketing)/about/+page.svelte`       | New                                  |
+| `src/routes/(marketing)/contact/+page.svelte`     | New                                  |
+| `src/lib/remote/contact.remote.ts`                | New — form submission handler        |
 | `src/lib/components/marketing/award-badge.svelte` | New — reusable competition win badge |
-| `src/lib/components/marketing/stat-tile.svelte` | New — problem stat display component |
+| `src/lib/components/marketing/stat-tile.svelte`   | New — problem stat display component |
 
 ---
 

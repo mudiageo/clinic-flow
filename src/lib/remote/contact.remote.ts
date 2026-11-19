@@ -8,7 +8,12 @@ export const submitInquiry = command(
 		phone: v.optional(v.string(), ''),
 		organization: v.pipe(v.string(), v.nonEmpty('Please enter your facility or organization name')),
 		state: v.pipe(v.string(), v.nonEmpty('Please specify your state')),
-		inquiryType: v.picklist(['pilot_application', 'state_procurement', 'ngo_partnership', 'general']),
+		inquiryType: v.picklist([
+			'pilot_application',
+			'state_procurement',
+			'ngo_partnership',
+			'general'
+		]),
 		message: v.pipe(v.string(), v.nonEmpty('Please enter a brief message'))
 	}),
 	async (data) => {
@@ -24,7 +29,8 @@ export const submitInquiry = command(
 
 		return {
 			success: true,
-			message: 'Thank you! Your inquiry has been received. Our team will contact you within 24 to 48 hours.'
+			message:
+				'Thank you! Your inquiry has been received. Our team will contact you within 24 to 48 hours.'
 		};
 	}
 );

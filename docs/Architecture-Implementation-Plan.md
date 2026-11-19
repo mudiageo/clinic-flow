@@ -4,14 +4,14 @@ This document details the technical implementation of our Multi-Tiered "Edge-to-
 
 ## 1. The Architectural Hierarchy
 
-*   **Tier 1: Master Discovery Node (ClinicFlow HQ)**
-    *   *Role:* A lightweight registry mapping `provisioning_codes` to specific Client Nodes. Holds zero patient data (PII).
-*   **Tier 2: Client Node (e.g., FMoH Cloud Server)**
-    *   *Role:* The main PostgreSQL database for a specific client. Hosts the Superadmin dashboard (Outbreak Radar, DHIS2 export).
-*   **Tier 3: Local Clinic Server (The Edge Hub)**
-    *   *Role:* A local machine running a Bun-compiled standalone executable or a Tauri Sidecar. It uses a lightweight **SQLite** database to act as the "mini-cloud" for that specific clinic.
-*   **Tier 4: The Client PWA (Tablets)**
-    *   *Role:* The SvelteKit frontend installed on Android tablets using IndexedDB (Dexie).
+- **Tier 1: Master Discovery Node (ClinicFlow HQ)**
+  - _Role:_ A lightweight registry mapping `provisioning_codes` to specific Client Nodes. Holds zero patient data (PII).
+- **Tier 2: Client Node (e.g., FMoH Cloud Server)**
+  - _Role:_ The main PostgreSQL database for a specific client. Hosts the Superadmin dashboard (Outbreak Radar, DHIS2 export).
+- **Tier 3: Local Clinic Server (The Edge Hub)**
+  - _Role:_ A local machine running a Bun-compiled standalone executable or a Tauri Sidecar. It uses a lightweight **SQLite** database to act as the "mini-cloud" for that specific clinic.
+- **Tier 4: The Client PWA (Tablets)**
+  - _Role:_ The SvelteKit frontend installed on Android tablets using IndexedDB (Dexie).
 
 ---
 
@@ -27,12 +27,15 @@ We cannot expect rural clinic IT staff to configure Node.js or PostgreSQL. We sh
 ## 3. Zero-Config Networking & Device Enrollment
 
 ### mDNS & IP Fallback
+
 Tablets must find the Local Server without manual configuration. The Local Server broadcasts itself over the clinic's Wi-Fi router using **mDNS (Multicast DNS)** (e.g., `http://clinicflow.local`). The PWA automatically detects this. If the router's mDNS fails, the UI provides a fallback to manually type the direct IP address (e.g., `192.168.1.100`).
 
 ### The Setup & Enrollment Flow
-When a clinic is first set up, the router is connected to the internet. 
+
+When a clinic is first set up, the router is connected to the internet.
+
 1.  **Provisioning:** The admin opens the newly installed Local Server and enters a 6-digit Provisioning Code.
-2.  **Partial Replication:** The Local Server connects to the Client Node (Cloud) and downloads *only* the data relevant to that specific PHC into its local SQLite database (preventing data bloat).
+2.  **Partial Replication:** The Local Server connects to the Client Node (Cloud) and downloads _only_ the data relevant to that specific PHC into its local SQLite database (preventing data bloat).
 3.  **Tablet Lockdown:** Tablets connect to the Local Server via Wi-Fi. The Welcome screen locks them to the clinic, downloading the encrypted staff roster. Authentication is now 100% local.
 
 ---

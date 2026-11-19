@@ -824,3 +824,6 @@ export const announcementReceiptsRelations = relations(announcementReceipts, ({ 
 		references: [staff.id]
 	})
 }));
+
+// Better Auth tables integration
+export * from './auth.schema.sqlite';

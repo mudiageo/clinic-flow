@@ -5,7 +5,9 @@
 	import { Button } from '#lib/components/ui/button';
 
 	let post = $derived(getBlogPost(page.params.slug ?? ''));
-	let relatedPosts = $derived(blogPosts.filter((p) => p.slug !== (page.params.slug ?? '')).slice(0, 2));
+	let relatedPosts = $derived(
+		blogPosts.filter((p) => p.slug !== (page.params.slug ?? '')).slice(0, 2)
+	);
 
 	let copied = $state(false);
 
@@ -28,7 +30,10 @@
 <div class="container mx-auto px-4 md:px-8 max-w-3xl py-16 md:py-24 space-y-12">
 	<!-- Back link -->
 	<div>
-		<a href="/blog" class="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
+		<a
+			href="/blog"
+			class="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+		>
 			<ArrowLeft class="size-4" /> Back to all articles
 		</a>
 	</div>
@@ -41,11 +46,13 @@
 					{post.category}
 				</span>
 				<span class="flex items-center gap-1">
-					<Calendar class="size-3.5" /> {post.date}
+					<Calendar class="size-3.5" />
+					{post.date}
 				</span>
 				<span>·</span>
 				<span class="flex items-center gap-1">
-					<Clock class="size-3.5" /> {post.readTime}
+					<Clock class="size-3.5" />
+					{post.readTime}
 				</span>
 			</div>
 
@@ -60,7 +67,9 @@
 			<!-- Author bar -->
 			<div class="flex items-center justify-between pt-4">
 				<div class="flex items-center gap-3">
-					<div class="size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
+					<div
+						class="size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm"
+					>
 						MA
 					</div>
 					<div>
@@ -80,7 +89,9 @@
 		</header>
 
 		<!-- Article Body -->
-		<article class="prose prose-sm md:prose-base dark:prose-invert max-w-none space-y-6 leading-relaxed">
+		<article
+			class="prose prose-sm md:prose-base dark:prose-invert max-w-none space-y-6 leading-relaxed"
+		>
 			{#each post.content as paragraph}
 				<p class="text-muted-foreground text-base md:text-lg leading-relaxed">
 					{paragraph}
@@ -94,7 +105,10 @@
 			<div class="space-y-2">
 				<p class="font-bold text-lg text-foreground">{post.author.name}</p>
 				<p class="text-sm text-muted-foreground leading-relaxed">
-					Mudiaga is a 500-level Computer Engineering student at the University of Benin (UNIBEN) and the founder of Mudiageo Technologies. He built ClinicFlow alone over 2.5 months, winning 2nd place at the 3MTT/IdentArk AI Hackathon and achieving Top 5 Finalist status at the NextGen Knowledge Showcase in partnership with Stripe.
+					Mudiaga is a 500-level Computer Engineering student at the University of Benin (UNIBEN)
+					and the founder of Mudiageo Technologies. He built ClinicFlow alone over 2.5 months,
+					winning 2nd place at the 3MTT/IdentArk AI Hackathon and achieving Top 5 Finalist status at
+					the NextGen Knowledge Showcase in partnership with Stripe.
 				</p>
 			</div>
 		</section>
@@ -110,7 +124,9 @@
 							class="p-6 rounded-2xl border border-border bg-card hover:border-primary/50 transition-colors space-y-2 group block"
 						>
 							<span class="text-xs text-primary font-semibold">{rel.category}</span>
-							<h4 class="font-bold text-base text-foreground group-hover:text-primary transition-colors">
+							<h4
+								class="font-bold text-base text-foreground group-hover:text-primary transition-colors"
+							>
 								{rel.title}
 							</h4>
 							<p class="text-xs text-muted-foreground line-clamp-2">{rel.summary}</p>

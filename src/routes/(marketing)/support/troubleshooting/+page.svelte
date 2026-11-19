@@ -5,12 +5,14 @@
 	const issues = [
 		{
 			title: 'Tablets cannot find clinicflow.local on the Wi-Fi network',
-			cause: 'The clinic Wi-Fi router may have "AP Isolation" or "Client Isolation" turned on in its settings, preventing connected devices from talking to one another.',
+			cause:
+				'The clinic Wi-Fi router may have "AP Isolation" or "Client Isolation" turned on in its settings, preventing connected devices from talking to one another.',
 			fix: 'Log into your Wi-Fi router admin page (usually 192.168.1.1 or 192.168.0.1) and disable "Client Isolation" or "Guest Mode". All clinic tablets must be on the same subnet.'
 		},
 		{
 			title: 'Records are saved locally but cloud sync indicator shows "Disconnected"',
-			cause: 'The clinic does not currently have active internet uplink connectivity to reach the central cloud server.',
+			cause:
+				'The clinic does not currently have active internet uplink connectivity to reach the central cloud server.',
 			fix: 'This is expected behavior. ClinicFlow continues to operate normally in local-first mode. Once an internet connection (e.g. mobile hotspot or modem) is re-established, the sync engine will automatically upload all pending operations.'
 		},
 		{
@@ -19,8 +21,9 @@
 			fix: 'A designated facility Administrator can log into the Admin portal under "Staff Management" to generate a temporary reset PIN for the affected worker.'
 		},
 		{
-			title: 'Tablet screen is locked in Kiosk Mode and won\'t return to Android home',
-			cause: 'Tauri Kiosk Mode is configured to prevent staff from accidentally closing clinical workflows or opening non-work apps.',
+			title: "Tablet screen is locked in Kiosk Mode and won't return to Android home",
+			cause:
+				'Tauri Kiosk Mode is configured to prevent staff from accidentally closing clinical workflows or opening non-work apps.',
 			fix: 'Triple-tap the ClinicFlow logo in the top-left navigation bar and enter your facility Admin Master PIN to unlock system settings.'
 		}
 	];
@@ -37,7 +40,9 @@
 <div class="container mx-auto px-4 md:px-8 max-w-4xl py-16 md:py-24 space-y-16">
 	<!-- Header -->
 	<div class="text-center max-w-2xl mx-auto space-y-4">
-		<div class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary">
+		<div
+			class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary"
+		>
 			Diagnostics
 		</div>
 		<h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
@@ -53,7 +58,9 @@
 		{#each issues as item}
 			<div class="rounded-3xl border border-border bg-card p-8 space-y-4 shadow-sm">
 				<div class="flex items-start gap-3">
-					<div class="size-8 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0 mt-0.5">
+					<div
+						class="size-8 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0 mt-0.5"
+					>
 						<AlertTriangle class="size-4" />
 					</div>
 					<h3 class="text-lg font-bold text-foreground">{item.title}</h3>

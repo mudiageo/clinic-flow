@@ -11,11 +11,15 @@ const isTauri = process.env.TAURI === '1';
 export default defineConfig({
 	server: {
 		host: true,
-		allowedHosts: true
+		allowedHosts: [
+			'clinicflow.local',
+			'.local',
+			...(process.env.ALLOWED_HOSTS ? process.env.ALLOWED_HOSTS.split(',') : [])
+		]
 	},
 	preview: {
 		host: true,
-		allowedHosts: true
+		allowedHosts: ['clinicflow.local', '.local']
 	},
 	staged: {
 		// Pre-commit only formats: the repository still carries pre-existing

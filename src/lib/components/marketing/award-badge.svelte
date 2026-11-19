@@ -19,7 +19,9 @@
 </script>
 
 <div
-	class="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold {styles[variant]}"
+	class="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold {styles[
+		variant
+	]}"
 >
 	<Trophy class="size-3.5 shrink-0" />
 	<span>{label}</span>

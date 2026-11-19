@@ -2,7 +2,8 @@ import {
 	ORIGIN,
 	BETTER_AUTH_SECRET,
 	GITHUB_CLIENT_ID,
-	GITHUB_CLIENT_SECRET
+	GITHUB_CLIENT_SECRET,
+	DATABASE_URL
 } from '$app/env/private';
 
 import { betterAuth } from 'better-auth/minimal';
@@ -11,10 +12,15 @@ import { sveltekitCookies } from 'better-auth/svelte-kit';
 import { getRequestEvent } from '$app/server';
 import { db } from '#lib/server/db/index.ts';
 
+const isLibSql =
+	DATABASE_URL?.startsWith('file:') ||
+	DATABASE_URL?.startsWith('libsql:') ||
+	DATABASE_URL?.endsWith('.db');
+
 export const auth = betterAuth({
 	baseURL: ORIGIN,
 	secret: BETTER_AUTH_SECRET,
-	database: drizzleAdapter(db, { provider: 'pg' }),
+	database: drizzleAdapter(db, { provider: isLibSql ? 'sqlite' : 'pg' }),
 	emailAndPassword: { enabled: true },
 	socialProviders: {
 		github: {

@@ -123,17 +123,24 @@
 <div class="py-16 md:py-24 space-y-24">
 	<!-- Hero Header -->
 	<section class="container mx-auto px-4 md:px-8 max-w-5xl text-center space-y-6">
-		<div class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary">
+		<div
+			class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary"
+		>
 			Complete Feature Catalog
 		</div>
 		<h1 class="text-4xl md:text-6xl font-extrabold tracking-tight text-foreground">
 			Every tool required to run a modern, digital Primary Health Centre.
 		</h1>
 		<p class="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-			Built ground-up for low-resource environments. ClinicFlow combines the depth of an enterprise hospital information system with the resilience of a standalone offline utility.
+			Built ground-up for low-resource environments. ClinicFlow combines the depth of an enterprise
+			hospital information system with the resilience of a standalone offline utility.
 		</p>
 		<div class="flex flex-wrap justify-center gap-4 pt-4">
-			<Button href="/welcome" size="lg" class="rounded-full px-8 font-bold bg-primary text-primary-foreground shadow-lg shadow-primary/20">
+			<Button
+				href="/welcome"
+				size="lg"
+				class="rounded-full px-8 font-bold bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+			>
 				Try Live Prototype <ArrowRight class="ml-2 size-4" />
 			</Button>
 			<Button href="/download" variant="outline" size="lg" class="rounded-full px-8 font-semibold">
@@ -153,9 +160,13 @@
 				</div>
 				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 					{#each group.items as item}
-						<div class="rounded-2xl border border-border bg-card p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+						<div
+							class="rounded-2xl border border-border bg-card p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between"
+						>
 							<div class="space-y-4">
-								<div class="size-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+								<div
+									class="size-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center"
+								>
 									<item.icon class="size-6" />
 								</div>
 								<h3 class="text-lg font-bold text-foreground">{item.title}</h3>
@@ -172,13 +183,18 @@
 	<section class="container mx-auto px-4 md:px-8 max-w-5xl">
 		<div class="rounded-3xl border border-border bg-muted/30 p-8 md:p-12 space-y-6">
 			<div class="flex items-center gap-3">
-				<div class="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
+				<div
+					class="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold"
+				>
 					AI
 				</div>
 				<h3 class="text-2xl font-bold text-foreground">Safety-First Clinical Intelligence</h3>
 			</div>
 			<p class="text-muted-foreground leading-relaxed">
-				All artificial intelligence features within ClinicFlow are intentionally engineered to augment health workers, not replace them. Diagnostic flags, adverse interaction warnings, and epidemiological pattern detections remain strictly advisory suggestions requiring clinical validation.
+				All artificial intelligence features within ClinicFlow are intentionally engineered to
+				augment health workers, not replace them. Diagnostic flags, adverse interaction warnings,
+				and epidemiological pattern detections remain strictly advisory suggestions requiring
+				clinical validation.
 			</p>
 			<AiDisclaimer />
 		</div>
@@ -187,12 +203,17 @@
 	<!-- CTA -->
 	<section class="border-t border-border/40 bg-muted/20 py-20 text-center">
 		<div class="container mx-auto px-4 max-w-3xl space-y-6">
-			<h2 class="text-3xl font-bold tracking-tight text-foreground">Ready to test in your facility?</h2>
+			<h2 class="text-3xl font-bold tracking-tight text-foreground">
+				Ready to test in your facility?
+			</h2>
 			<p class="text-muted-foreground text-lg">
 				Deploy ClinicFlow on any existing Android tablet or Windows laptop in minutes.
 			</p>
 			<div class="flex justify-center gap-4">
-				<Button href="/demo" class="rounded-full px-8 font-bold bg-primary text-primary-foreground shadow-md shadow-primary/20">
+				<Button
+					href="/demo"
+					class="rounded-full px-8 font-bold bg-primary text-primary-foreground shadow-md shadow-primary/20"
+				>
 					Request Pilot Deployment
 				</Button>
 				<Button href="/pricing" variant="outline" class="rounded-full px-8 font-semibold">

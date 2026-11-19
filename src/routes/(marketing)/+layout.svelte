@@ -72,7 +72,10 @@
 	>
 		<div class="container flex h-16 items-center justify-between mx-auto px-4 md:px-8 max-w-7xl">
 			<!-- Logo -->
-			<a href="/" class="flex items-center gap-2 font-extrabold text-lg hover:text-primary transition-colors shrink-0">
+			<a
+				href="/"
+				class="flex items-center gap-2 font-extrabold text-lg hover:text-primary transition-colors shrink-0"
+			>
 				<HeartPulse class="size-6 text-primary" />
 				<span class="tracking-tight">ClinicFlow</span>
 			</a>
@@ -124,11 +127,7 @@
 				>
 					Sign In
 				</Button>
-				<Button
-					href="/demo"
-					variant="outline"
-					class="text-sm font-semibold rounded-full px-5"
-				>
+				<Button href="/demo" variant="outline" class="text-sm font-semibold rounded-full px-5">
 					Request Demo
 				</Button>
 				<Button
@@ -162,7 +161,9 @@
 					{#each navLinks as link}
 						{#if link.children}
 							<div class="py-1">
-								<p class="px-3 py-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+								<p
+									class="px-3 py-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground"
+								>
 									{link.label}
 								</p>
 								{#each link.children as child}
@@ -221,7 +222,10 @@
 			<div class="grid grid-cols-2 md:grid-cols-5 gap-10">
 				<!-- Brand column -->
 				<div class="col-span-2 md:col-span-1 space-y-4">
-					<a href="/" class="flex items-center gap-2 font-extrabold text-base hover:text-primary transition-colors">
+					<a
+						href="/"
+						class="flex items-center gap-2 font-extrabold text-base hover:text-primary transition-colors"
+					>
 						<HeartPulse class="size-5 text-primary" />
 						<span>ClinicFlow</span>
 					</a>
@@ -247,7 +251,10 @@
 					<ul class="space-y-2.5">
 						{#each footerProduct as link}
 							<li>
-								<a href={link.href} class="text-sm text-muted-foreground hover:text-foreground transition-colors">
+								<a
+									href={link.href}
+									class="text-sm text-muted-foreground hover:text-foreground transition-colors"
+								>
 									{link.label}
 								</a>
 							</li>
@@ -261,7 +268,10 @@
 					<ul class="space-y-2.5">
 						{#each footerCompany as link}
 							<li>
-								<a href={link.href} class="text-sm text-muted-foreground hover:text-foreground transition-colors">
+								<a
+									href={link.href}
+									class="text-sm text-muted-foreground hover:text-foreground transition-colors"
+								>
 									{link.label}
 								</a>
 							</li>
@@ -275,7 +285,10 @@
 					<ul class="space-y-2.5">
 						{#each footerSupport as link}
 							<li>
-								<a href={link.href} class="text-sm text-muted-foreground hover:text-foreground transition-colors">
+								<a
+									href={link.href}
+									class="text-sm text-muted-foreground hover:text-foreground transition-colors"
+								>
 									{link.label}
 								</a>
 							</li>
@@ -289,7 +302,10 @@
 					<ul class="space-y-2.5">
 						{#each footerLegal as link}
 							<li>
-								<a href={link.href} class="text-sm text-muted-foreground hover:text-foreground transition-colors">
+								<a
+									href={link.href}
+									class="text-sm text-muted-foreground hover:text-foreground transition-colors"
+								>
 									{link.label}
 								</a>
 							</li>
@@ -307,7 +323,12 @@
 				<p>© {new Date().getFullYear()} Mudiageo Technologies. All rights reserved.</p>
 				<div class="flex items-center gap-4">
 					<span>🇳🇬 Built in Nigeria</span>
-					<a href="https://github.com/mudiageo/clinic-flow" target="_blank" rel="noopener" class="hover:text-foreground transition-colors">
+					<a
+						href="https://github.com/mudiageo/clinic-flow"
+						target="_blank"
+						rel="noopener"
+						class="hover:text-foreground transition-colors"
+					>
 						GitHub
 					</a>
 					<a href="/sitemap.xml" class="hover:text-foreground transition-colors">Sitemap</a>

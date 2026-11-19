@@ -14,14 +14,17 @@
 <div class="container mx-auto px-4 md:px-8 max-w-4xl py-16 md:py-24 space-y-16">
 	<!-- Header -->
 	<div class="text-center max-w-2xl mx-auto space-y-4">
-		<div class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary">
+		<div
+			class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary"
+		>
 			Community & Transparency
 		</div>
 		<h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
 			Built in the open.
 		</h1>
 		<p class="text-lg text-muted-foreground leading-relaxed">
-			We believe core public health infrastructure must be transparent, auditable, and extensible by African software developers.
+			We believe core public health infrastructure must be transparent, auditable, and extensible by
+			African software developers.
 		</p>
 		<div class="pt-2">
 			<Button
@@ -40,25 +43,34 @@
 	<div class="rounded-3xl border border-border bg-card p-8 md:p-10 space-y-6 shadow-sm">
 		<h2 class="text-2xl font-bold text-foreground">The Modern Local-First Tech Stack</h2>
 		<p class="text-muted-foreground text-sm md:text-base leading-relaxed">
-			ClinicFlow leverages cutting-edge web and edge capabilities to achieve deterministic performance without cloud dependencies:
+			ClinicFlow leverages cutting-edge web and edge capabilities to achieve deterministic
+			performance without cloud dependencies:
 		</p>
 
 		<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
 			<div class="p-4 rounded-2xl border border-border/80 bg-muted/30 space-y-1">
 				<p class="font-bold text-sm text-foreground">SvelteKit 5 + Svelte 5 Runes</p>
-				<p class="text-xs text-muted-foreground">Reactive class-based domain stores without boilerplate or memory leaks.</p>
+				<p class="text-xs text-muted-foreground">
+					Reactive class-based domain stores without boilerplate or memory leaks.
+				</p>
 			</div>
 			<div class="p-4 rounded-2xl border border-border/80 bg-muted/30 space-y-1">
 				<p class="font-bold text-sm text-foreground">Dexie & IndexedDB Edge</p>
-				<p class="text-xs text-muted-foreground">Full local CRUD data isolation guaranteeing sub-millisecond query responses.</p>
+				<p class="text-xs text-muted-foreground">
+					Full local CRUD data isolation guaranteeing sub-millisecond query responses.
+				</p>
 			</div>
 			<div class="p-4 rounded-2xl border border-border/80 bg-muted/30 space-y-1">
 				<p class="font-bold text-sm text-foreground">Tauri v2 Kiosk Packaging</p>
-				<p class="text-xs text-muted-foreground">Native lightweight Android APK and Windows binaries with zero Chromium overhead.</p>
+				<p class="text-xs text-muted-foreground">
+					Native lightweight Android APK and Windows binaries with zero Chromium overhead.
+				</p>
 			</div>
 			<div class="p-4 rounded-2xl border border-border/80 bg-muted/30 space-y-1">
 				<p class="font-bold text-sm text-foreground">Drizzle ORM & PostgreSQL</p>
-				<p class="text-xs text-muted-foreground">Type-safe schema migrations and reliable multi-tenant synchronization.</p>
+				<p class="text-xs text-muted-foreground">
+					Type-safe schema migrations and reliable multi-tenant synchronization.
+				</p>
 			</div>
 		</div>
 	</div>
@@ -67,7 +79,8 @@
 	<div class="rounded-3xl border border-border bg-muted/20 p-8 md:p-10 space-y-6">
 		<h3 class="text-xl font-bold text-foreground">Contributing & Deploying</h3>
 		<p class="text-sm text-muted-foreground leading-relaxed">
-			Whether you want to build custom DHIS2 adapters, localize clinical language models, or test hardware compatibility, we welcome community pull requests and issue reports.
+			Whether you want to build custom DHIS2 adapters, localize clinical language models, or test
+			hardware compatibility, we welcome community pull requests and issue reports.
 		</p>
 
 		<div class="flex flex-wrap gap-4">

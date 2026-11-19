@@ -20,11 +20,19 @@
 			{eyebrow}
 		</div>
 	{/if}
-	<h2 class="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground {align === 'center' ? 'max-w-2xl mx-auto' : ''}">
+	<h2
+		class="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground {align === 'center'
+			? 'max-w-2xl mx-auto'
+			: ''}"
+	>
 		{heading}
 	</h2>
 	{#if subheading}
-		<p class="mt-4 text-muted-foreground text-lg leading-relaxed {align === 'center' ? 'max-w-2xl mx-auto' : 'max-w-2xl'}">
+		<p
+			class="mt-4 text-muted-foreground text-lg leading-relaxed {align === 'center'
+				? 'max-w-2xl mx-auto'
+				: 'max-w-2xl'}"
+		>
 			{subheading}
 		</p>
 	{/if}

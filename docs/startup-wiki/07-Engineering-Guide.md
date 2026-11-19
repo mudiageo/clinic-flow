@@ -1,6 +1,7 @@
 # ClinicFlow Engineering Guide
-*Part of the Startup Foundation documentation. Living document — update as the architecture evolves.*
-*Audience: new engineers, contractors, the founder reviewing their own decisions, grant/investor due diligence.*
+
+_Part of the Startup Foundation documentation. Living document — update as the architecture evolves._
+_Audience: new engineers, contractors, the founder reviewing their own decisions, grant/investor due diligence._
 
 ---
 
@@ -8,11 +9,11 @@
 
 ClinicFlow is a **local-first, multi-device clinical workflow system** that runs primarily on a fleet of Android tablets inside a clinic's local Wi-Fi network. It has three runtime targets that share one codebase:
 
-| Target | Runtime | Database | Who uses it |
-|---|---|---|---|
-| **PWA on tablets** | Browser (WebView via Tauri) | Dexie (IndexedDB) — local | CHEWs, nurses, doctors, pharmacy |
-| **Edge server (local)** | Node.js / Bun binary | SQLite via `bun:sqlite` or `better-sqlite3` | One per clinic; tablets point to it |
-| **Cloud node** | Node.js on Vercel | PostgreSQL (Neon / Supabase) | Sync, backup, superadmin |
+| Target                  | Runtime                     | Database                                    | Who uses it                         |
+| ----------------------- | --------------------------- | ------------------------------------------- | ----------------------------------- |
+| **PWA on tablets**      | Browser (WebView via Tauri) | Dexie (IndexedDB) — local                   | CHEWs, nurses, doctors, pharmacy    |
+| **Edge server (local)** | Node.js / Bun binary        | SQLite via `bun:sqlite` or `better-sqlite3` | One per clinic; tablets point to it |
+| **Cloud node**          | Node.js on Vercel           | PostgreSQL (Neon / Supabase)                | Sync, backup, superadmin            |
 
 The same SvelteKit application serves all three. The runtime environment is detected via `DATABASE_URL` (file path = edge/SQLite; postgres:// = cloud/PG) and `$env/static/private` flags.
 
@@ -93,16 +94,17 @@ The Dexie database is initialised in `src/lib/local-db/db.ts`. All table schemas
 
 The server database is accessed via **Drizzle ORM** with a dialect-switching connection layer:
 
-| `DATABASE_URL` prefix | Dialect | Driver | Used in |
-|---|---|---|---|
-| `file:` or `.db` suffix | SQLite | `bun:sqlite` (or `better-sqlite3`) | Edge server binary, local dev |
-| `postgres://` or `libsql:` | PostgreSQL | `pg` (or `@neondatabase/serverless`) | Vercel cloud, production |
+| `DATABASE_URL` prefix      | Dialect    | Driver                               | Used in                       |
+| -------------------------- | ---------- | ------------------------------------ | ----------------------------- |
+| `file:` or `.db` suffix    | SQLite     | `bun:sqlite` (or `better-sqlite3`)   | Edge server binary, local dev |
+| `postgres://` or `libsql:` | PostgreSQL | `pg` (or `@neondatabase/serverless`) | Vercel cloud, production      |
 
 The schema in `src/lib/server/db/schema.ts` is shared. Drizzle generates dialect-specific SQL at query time. **Never write raw SQL.** All queries go through Drizzle.
 
 ### 3.3 Sync Engine
 
 The sync engine lives in `src/lib/state/sync.svelte.ts`. It:
+
 1. Keeps a local **operation log** in IndexedDB (every create/update/delete is appended)
 2. On a timer (default 15s, configurable in settings) or on `window.online` event, calls `pushOperations` to the server
 3. Calls `pullChanges` to receive server-side changes since the last cursor
@@ -121,50 +123,50 @@ Current limitation: the sync pushes only to the **cloud node** (Vercel). The loc
 import { query, command } from '$app/server';
 
 export const getPatient = query(async (id: string) => {
-  // runs on the server, result is sent to the client
-  return db.select().from(patients).where(eq(patients.id, id));
+	// runs on the server, result is sent to the client
+	return db.select().from(patients).where(eq(patients.id, id));
 });
 
 export const updatePatient = command(async (data: PatientUpdate) => {
-  // mutation — runs on server, returns void or result
-  await db.update(patients).set(data).where(eq(patients.id, data.id));
+	// mutation — runs on server, returns void or result
+	await db.update(patients).set(data).where(eq(patients.id, data.id));
 });
 ```
 
 ```svelte
 <!-- In +page.svelte -->
 <script lang="ts">
-  import { getPatient } from '$lib/remote/patients.remote';
-  const patient = await getPatient(params.id);  // top-level await in Svelte 5
+	import { getPatient } from '$lib/remote/patients.remote';
+	const patient = await getPatient(params.id); // top-level await in Svelte 5
 </script>
 ```
 
 Remote files by domain:
 
-| File | Covers |
-|---|---|
-| `admin.remote.ts` | PHC settings, staff management |
-| `ai.remote.ts` | Server-side AI calls (when client AI unavailable) |
-| `audit.remote.ts` | Audit log reads |
-| `auth.remote.ts` | Login, session, password |
-| `cloud-uplink.remote.ts` | Cloud sync triggers |
-| `devices.remote.ts` | Device enrolment |
-| `encounters.remote.ts` | Doctor consultations, diagnoses |
-| `epidemiology.remote.ts` | Outbreak pattern queries (superadmin) |
-| `export.remote.ts` | Data export (CSV, DHIS2) |
-| `kiosk.remote.ts` | Waiting room display data |
-| `lab-requests.remote.ts` | Lab orders and results |
-| `patients.remote.ts` | Patient CRUD, search |
-| `permissions.remote.ts` | Role and permission management |
-| `pharmacy.remote.ts` | Dispensing, inventory, restock |
-| `queue.remote.ts` | Queue operations (admit, call, complete) |
-| `releases.remote.ts` | Version/release info |
-| `reminders.remote.ts` | Appointment reminder CRUD |
-| `server-status.remote.ts` | Health check, sync status |
-| `settings.remote.ts` | System-wide settings |
-| `setup.remote.ts` | First-run onboarding |
-| `staff.remote.ts` | Staff profiles, invites |
-| `superadmin.remote.ts` | Cross-PHC admin operations |
+| File                      | Covers                                            |
+| ------------------------- | ------------------------------------------------- |
+| `admin.remote.ts`         | PHC settings, staff management                    |
+| `ai.remote.ts`            | Server-side AI calls (when client AI unavailable) |
+| `audit.remote.ts`         | Audit log reads                                   |
+| `auth.remote.ts`          | Login, session, password                          |
+| `cloud-uplink.remote.ts`  | Cloud sync triggers                               |
+| `devices.remote.ts`       | Device enrolment                                  |
+| `encounters.remote.ts`    | Doctor consultations, diagnoses                   |
+| `epidemiology.remote.ts`  | Outbreak pattern queries (superadmin)             |
+| `export.remote.ts`        | Data export (CSV, DHIS2)                          |
+| `kiosk.remote.ts`         | Waiting room display data                         |
+| `lab-requests.remote.ts`  | Lab orders and results                            |
+| `patients.remote.ts`      | Patient CRUD, search                              |
+| `permissions.remote.ts`   | Role and permission management                    |
+| `pharmacy.remote.ts`      | Dispensing, inventory, restock                    |
+| `queue.remote.ts`         | Queue operations (admit, call, complete)          |
+| `releases.remote.ts`      | Version/release info                              |
+| `reminders.remote.ts`     | Appointment reminder CRUD                         |
+| `server-status.remote.ts` | Health check, sync status                         |
+| `settings.remote.ts`      | System-wide settings                              |
+| `setup.remote.ts`         | First-run onboarding                              |
+| `staff.remote.ts`         | Staff profiles, invites                           |
+| `superadmin.remote.ts`    | Cross-PHC admin operations                        |
 
 ---
 
@@ -173,12 +175,14 @@ Remote files by domain:
 Authentication uses **Better Auth** (`src/lib/server/auth.ts`). Session management is server-side. The client reads the session via `src/lib/state/auth.svelte.ts`.
 
 Role hierarchy (lowest to highest trust):
+
 ```
 JCHEW < CHEW < CHO < Nurse < Midwife < Doctor < Pharmacist < Lab < EHO
 < Admin (PHC-level) < Superadmin (platform-wide)
 ```
 
 Permission checks happen at two levels:
+
 1. **Server:** in remote functions (check session role before returning data)
 2. **Client:** in the `(app)` layout, which redirects unauthenticated users and hides role-specific nav items
 
@@ -211,11 +215,11 @@ When the server detects it is running against a local database (`DATABASE_URL` s
 
 ```ts
 bonjour.publish({
-  name: 'ClinicFlow Master Server',
-  type: 'http',
-  port,
-  host: 'clinicflow.local',
-  txt: { version: '1', app: 'clinicflow' }
+	name: 'ClinicFlow Master Server',
+	type: 'http',
+	port,
+	host: 'clinicflow.local',
+	txt: { version: '1', app: 'clinicflow' }
 });
 ```
 
@@ -228,9 +232,11 @@ CORS is configured in `hooks.server.ts` to allow requests from Tauri origins (`t
 ## 8. CI/CD Pipeline
 
 ### Build workflow (`.github/workflows/build.yml`)
+
 Triggered by: version tags (`v*`), manual dispatch (with `prerelease` and `tag` inputs).
 
 Steps:
+
 1. Setup Bun, pnpm, Java, Android SDK
 2. `pnpm install`
 3. Build SvelteKit (`pnpm build`)
@@ -240,16 +246,18 @@ Steps:
 7. `update-nightly-pointer` job: downloads assets from the new timestamped release, recreates the static `nightly` tag/release to always point to the latest build
 
 ### Nightly workflow (`.github/workflows/nightly.yml`)
+
 Runs on a schedule. Pushes a `nightly-YYYYMMDD` tag to trigger the build workflow. Retention: 7 days (older nightly releases are deleted automatically).
 
 ### Secrets required
-| Secret | Used for |
-|---|---|
-| `ANDROID_KEYSTORE` | APK signing (base64-encoded keystore) |
-| `ANDROID_KEY_ALIAS` | APK signing |
-| `ANDROID_KEY_PASSWORD` | APK signing |
-| `ANDROID_STORE_PASSWORD` | APK signing |
-| `RELEASE_PAT` | Cross-workflow dispatch (needs `repo` + `workflow` scope) |
+
+| Secret                   | Used for                                                  |
+| ------------------------ | --------------------------------------------------------- |
+| `ANDROID_KEYSTORE`       | APK signing (base64-encoded keystore)                     |
+| `ANDROID_KEY_ALIAS`      | APK signing                                               |
+| `ANDROID_KEY_PASSWORD`   | APK signing                                               |
+| `ANDROID_STORE_PASSWORD` | APK signing                                               |
+| `RELEASE_PAT`            | Cross-workflow dispatch (needs `repo` + `workflow` scope) |
 
 ---
 
@@ -281,18 +289,18 @@ pnpm test
 
 ## 10. Engineering Conventions
 
-| Rule | Detail |
-|---|---|
-| Component file names | kebab-case only: `patient-card.svelte`, not `PatientCard.svelte` |
-| Icons | `@lucide/svelte` exclusively. Never `lucide-svelte`. |
-| Date formatting | Use `$lib/utils/date.ts` (Intl API). Never `date-fns`. |
-| Database access from components | Never use Dexie directly. Always use stores from `$lib/state/`. |
-| Server logic | Always in `$lib/remote/*.remote.ts`. Never in `+page.server.ts`. |
-| Svelte 5 dynamic components | Use `<variable.Component />` not `<svelte:component this={...}>` |
-| State | Svelte 5 runes only (`$state`, `$derived`, `$effect`). No Svelte 4 stores. |
-| AI output | Always gated by a human confirmation step. Always show `<AiDisclaimer>`. |
-| UI components | Use `shadcn-svelte` and `more-shadcn-svelte` before building custom. |
-| New features | Must follow the Feature Implementation Protocol in `AGENTS.md` (permissions → AI safety → plan.md + tasks.md). |
+| Rule                            | Detail                                                                                                         |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Component file names            | kebab-case only: `patient-card.svelte`, not `PatientCard.svelte`                                               |
+| Icons                           | `@lucide/svelte` exclusively. Never `lucide-svelte`.                                                           |
+| Date formatting                 | Use `$lib/utils/date.ts` (Intl API). Never `date-fns`.                                                         |
+| Database access from components | Never use Dexie directly. Always use stores from `$lib/state/`.                                                |
+| Server logic                    | Always in `$lib/remote/*.remote.ts`. Never in `+page.server.ts`.                                               |
+| Svelte 5 dynamic components     | Use `<variable.Component />` not `<svelte:component this={...}>`                                               |
+| State                           | Svelte 5 runes only (`$state`, `$derived`, `$effect`). No Svelte 4 stores.                                     |
+| AI output                       | Always gated by a human confirmation step. Always show `<AiDisclaimer>`.                                       |
+| UI components                   | Use `shadcn-svelte` and `more-shadcn-svelte` before building custom.                                           |
+| New features                    | Must follow the Feature Implementation Protocol in `AGENTS.md` (permissions → AI safety → plan.md + tasks.md). |
 
 ---
 
@@ -314,11 +322,11 @@ pnpm test
 
 ## 12. Known Technical Debt
 
-| Item | Priority | Notes |
-|---|---|---|
-| LAN sync path | High | Sync currently goes cloud-only. Local edge server sync is planned. |
-| NHIS API integration | Medium | UI exists, real API call not implemented. |
-| DHIS2 push | Medium | Route exists, export not wired up. |
-| TypeScript `any` in Drizzle queries | Low | Pre-existing; several query destructuring patterns have implicit `any`. |
-| Test coverage | High | No Playwright test suite exists yet. |
-| Local AI fallback model download UX | Medium | First-time WebLLM download is ~1–4GB with no progress UI. |
+| Item                                | Priority | Notes                                                                   |
+| ----------------------------------- | -------- | ----------------------------------------------------------------------- |
+| LAN sync path                       | High     | Sync currently goes cloud-only. Local edge server sync is planned.      |
+| NHIS API integration                | Medium   | UI exists, real API call not implemented.                               |
+| DHIS2 push                          | Medium   | Route exists, export not wired up.                                      |
+| TypeScript `any` in Drizzle queries | Low      | Pre-existing; several query destructuring patterns have implicit `any`. |
+| Test coverage                       | High     | No Playwright test suite exists yet.                                    |
+| Local AI fallback model download UX | Medium   | First-time WebLLM download is ~1–4GB with no progress UI.               |

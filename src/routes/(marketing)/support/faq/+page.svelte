@@ -68,14 +68,17 @@
 
 <div class="container mx-auto px-4 md:px-8 max-w-4xl py-16 md:py-24 space-y-16">
 	<div class="text-center max-w-2xl mx-auto space-y-4">
-		<div class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary">
+		<div
+			class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary"
+		>
 			Knowledge Base
 		</div>
 		<h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
 			Frequently Asked Questions
 		</h1>
 		<p class="text-lg text-muted-foreground leading-relaxed">
-			Everything you need to know about implementing ClinicFlow in rural and urban Primary Health Centres.
+			Everything you need to know about implementing ClinicFlow in rural and urban Primary Health
+			Centres.
 		</p>
 	</div>
 
@@ -106,10 +109,14 @@
 	<div class="rounded-3xl border border-border bg-muted/30 p-8 md:p-10 text-center space-y-4">
 		<h3 class="text-2xl font-bold text-foreground">Have more questions about your clinic setup?</h3>
 		<p class="text-sm text-muted-foreground max-w-md mx-auto">
-			Our deployment engineers are happy to walk through your clinic’s power, tablet, and staffing setup.
+			Our deployment engineers are happy to walk through your clinic’s power, tablet, and staffing
+			setup.
 		</p>
 		<div class="flex justify-center gap-3 pt-2">
-			<Button href="/contact" class="rounded-full px-6 font-bold bg-primary text-primary-foreground">
+			<Button
+				href="/contact"
+				class="rounded-full px-6 font-bold bg-primary text-primary-foreground"
+			>
 				Speak with Our Team <ArrowRight class="ml-2 size-4" />
 			</Button>
 			<Button href="/support" variant="outline" class="rounded-full font-semibold">

@@ -99,14 +99,17 @@
 <div class="py-16 md:py-24 space-y-24">
 	<!-- Header -->
 	<section class="container mx-auto px-4 md:px-8 max-w-4xl text-center space-y-6">
-		<div class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary">
+		<div
+			class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary"
+		>
 			Predictable, Institutional Pricing
 		</div>
 		<h1 class="text-4xl md:text-6xl font-extrabold tracking-tight text-foreground">
 			Affordable for government agencies. Free for pilot clinics.
 		</h1>
 		<p class="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-			Designed to fit within public health budgets without recurring per-patient fees or predatory SaaS lock-in.
+			Designed to fit within public health budgets without recurring per-patient fees or predatory
+			SaaS lock-in.
 		</p>
 	</section>
 
@@ -114,9 +117,15 @@
 	<section class="container mx-auto px-4 md:px-8 max-w-7xl">
 		<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
 			{#each tiers as tier}
-				<div class="rounded-3xl border {tier.highlight ? 'border-primary ring-2 ring-primary/20 shadow-xl bg-card' : 'border-border bg-card/60 shadow-sm'} p-8 flex flex-col justify-between relative overflow-hidden">
+				<div
+					class="rounded-3xl border {tier.highlight
+						? 'border-primary ring-2 ring-primary/20 shadow-xl bg-card'
+						: 'border-border bg-card/60 shadow-sm'} p-8 flex flex-col justify-between relative overflow-hidden"
+				>
 					{#if tier.highlight}
-						<div class="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-bold px-4 py-1 rounded-bl-xl uppercase tracking-wider">
+						<div
+							class="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-bold px-4 py-1 rounded-bl-xl uppercase tracking-wider"
+						>
 							{tier.badge}
 						</div>
 					{/if}
@@ -127,12 +136,16 @@
 						</div>
 
 						<div class="flex items-baseline gap-2">
-							<span class="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">{tier.price}</span>
+							<span class="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground"
+								>{tier.price}</span
+							>
 							<span class="text-sm text-muted-foreground">{tier.period}</span>
 						</div>
 
 						<div class="border-t border-border/60 pt-6 space-y-3">
-							<p class="text-xs font-bold uppercase tracking-widest text-foreground">What’s included:</p>
+							<p class="text-xs font-bold uppercase tracking-widest text-foreground">
+								What’s included:
+							</p>
 							<ul class="space-y-2.5 text-sm text-muted-foreground">
 								{#each tier.features as feat}
 									<li class="flex items-start gap-2.5">
@@ -148,7 +161,9 @@
 						<Button
 							href={tier.ctaHref}
 							variant={tier.ctaVariant}
-							class="w-full rounded-full h-12 font-bold {tier.highlight ? 'bg-primary text-primary-foreground hover:bg-primary/95 shadow-lg shadow-primary/20' : ''}"
+							class="w-full rounded-full h-12 font-bold {tier.highlight
+								? 'bg-primary text-primary-foreground hover:bg-primary/95 shadow-lg shadow-primary/20'
+								: ''}"
 						>
 							{tier.cta}
 						</Button>
@@ -183,11 +198,18 @@
 	<!-- Contact CTA -->
 	<section class="border-t border-border/40 bg-muted/20 py-20 text-center">
 		<div class="container mx-auto px-4 max-w-3xl space-y-6">
-			<h2 class="text-3xl font-bold tracking-tight text-foreground">Need a formal procurement proposal?</h2>
+			<h2 class="text-3xl font-bold tracking-tight text-foreground">
+				Need a formal procurement proposal?
+			</h2>
 			<p class="text-muted-foreground text-lg">
-				We prepare customized implementation schedules and technical capability briefs for State Ministries of Health and LGA authorities.
+				We prepare customized implementation schedules and technical capability briefs for State
+				Ministries of Health and LGA authorities.
 			</p>
-			<Button href="/contact" size="lg" class="rounded-full px-8 font-bold bg-primary text-primary-foreground shadow-md shadow-primary/20">
+			<Button
+				href="/contact"
+				size="lg"
+				class="rounded-full px-8 font-bold bg-primary text-primary-foreground shadow-md shadow-primary/20"
+			>
 				Contact Institutional Sales <ArrowRight class="ml-2 size-4" />
 			</Button>
 		</div>

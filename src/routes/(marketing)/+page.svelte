@@ -55,7 +55,11 @@
 		<!-- Award badges -->
 		<div class="flex flex-wrap justify-center gap-2 mb-8">
 			<AwardBadge label="NextGen Knowledge Showcase" sublabel="Top 5 Finalist" variant="gold" />
-			<AwardBadge label="3MTT × IdentArk.io" sublabel="2nd Place — National AI Hackathon" variant="silver" />
+			<AwardBadge
+				label="3MTT × IdentArk.io"
+				sublabel="2nd Place — National AI Hackathon"
+				variant="silver"
+			/>
 		</div>
 
 		<h1
@@ -107,7 +111,9 @@
 ════════════════════════════════════════════ -->
 <section class="border-y border-border/40 bg-muted/30 py-14">
 	<div class="container mx-auto px-4 md:px-8 max-w-7xl">
-		<p class="text-center text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-8">
+		<p
+			class="text-center text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-8"
+		>
 			The state of Nigeria's 30,000 public Primary Health Centres
 		</p>
 		<div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
@@ -149,12 +155,7 @@
 
 		<!-- Role flow -->
 		<div class="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-0 mt-10">
-			{#each [
-				{ label: 'Nurse', sub: 'Register & Triage', icon: Activity, color: 'bg-primary/10 text-primary border-primary/20' },
-				{ label: 'Doctor', sub: 'Consult & Prescribe', icon: Stethoscope, color: 'bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400' },
-				{ label: 'Pharmacy', sub: 'Dispense & Stock', icon: FlaskConical, color: 'bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400' },
-				{ label: 'Admin', sub: 'Reports & Oversight', icon: ClipboardList, color: 'bg-violet-500/10 text-violet-600 border-violet-500/20 dark:text-violet-400' }
-			] as role, i}
+			{#each [{ label: 'Nurse', sub: 'Register & Triage', icon: Activity, color: 'bg-primary/10 text-primary border-primary/20' }, { label: 'Doctor', sub: 'Consult & Prescribe', icon: Stethoscope, color: 'bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400' }, { label: 'Pharmacy', sub: 'Dispense & Stock', icon: FlaskConical, color: 'bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400' }, { label: 'Admin', sub: 'Reports & Oversight', icon: ClipboardList, color: 'bg-violet-500/10 text-violet-600 border-violet-500/20 dark:text-violet-400' }] as role, i}
 				<div class="flex md:flex-col items-center gap-3 md:gap-0">
 					<div class="flex flex-col items-center gap-3">
 						<div
@@ -175,9 +176,12 @@
 			{/each}
 		</div>
 
-		<div class="mt-10 inline-flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-full px-4 py-2 border border-border/40">
+		<div
+			class="mt-10 inline-flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-full px-4 py-2 border border-border/40"
+		>
 			<Wifi class="size-4 text-primary" />
-			Tablets auto-connect via <code class="font-mono text-xs text-foreground">clinicflow.local</code> — no IP address, no IT setup
+			Tablets auto-connect via
+			<code class="font-mono text-xs text-foreground">clinicflow.local</code> — no IP address, no IT setup
 		</div>
 	</div>
 </section>
@@ -194,13 +198,7 @@
 		/>
 
 		<div class="relative pl-4 md:pl-0">
-			{#each [
-				{ n: 1, color: 'bg-primary text-primary-foreground', title: 'Patient Arrives — CHEW Registers', body: 'The nurse or CHEW opens the app on a tablet and registers the patient in under a minute. The record is saved locally on the device immediately — no internet required, no waiting.' },
-				{ n: 2, color: 'bg-blue-600 text-white', title: 'Vitals Recorded — Smart Triage Fires', body: 'Blood pressure, temperature, SpO₂, and other vitals are entered. The rules engine instantly assigns a Red / Amber / Green triage level, automatically elevating urgent patients to the top of the doctor queue.' },
-				{ n: 3, color: 'bg-amber-500 text-white', title: 'Doctor Consults — AI Assists', body: 'The doctor sees the prioritized live queue on their own tablet. They review vitals, document clinical notes, and issue a digital prescription. AI tools flag dangerous drug interactions before the prescription is confirmed.' },
-				{ n: 4, color: 'bg-violet-600 text-white', title: 'Pharmacy Dispenses — Stock Updates', body: 'The prescription appears instantly on the pharmacy screen. The pharmacist fulfills the order and stock levels are automatically decremented from local inventory.' },
-				{ n: 5, color: 'bg-emerald-600 text-white', title: 'Internet Returns — Everything Syncs', body: 'All of the above happened on the local Wi-Fi network with zero cloud dependency. When an internet connection is detected, records sync encrypted to the cloud for regional oversight and backup.' }
-			] as step, i}
+			{#each [{ n: 1, color: 'bg-primary text-primary-foreground', title: 'Patient Arrives — CHEW Registers', body: 'The nurse or CHEW opens the app on a tablet and registers the patient in under a minute. The record is saved locally on the device immediately — no internet required, no waiting.' }, { n: 2, color: 'bg-blue-600 text-white', title: 'Vitals Recorded — Smart Triage Fires', body: 'Blood pressure, temperature, SpO₂, and other vitals are entered. The rules engine instantly assigns a Red / Amber / Green triage level, automatically elevating urgent patients to the top of the doctor queue.' }, { n: 3, color: 'bg-amber-500 text-white', title: 'Doctor Consults — AI Assists', body: 'The doctor sees the prioritized live queue on their own tablet. They review vitals, document clinical notes, and issue a digital prescription. AI tools flag dangerous drug interactions before the prescription is confirmed.' }, { n: 4, color: 'bg-violet-600 text-white', title: 'Pharmacy Dispenses — Stock Updates', body: 'The prescription appears instantly on the pharmacy screen. The pharmacist fulfills the order and stock levels are automatically decremented from local inventory.' }, { n: 5, color: 'bg-emerald-600 text-white', title: 'Internet Returns — Everything Syncs', body: 'All of the above happened on the local Wi-Fi network with zero cloud dependency. When an internet connection is detected, records sync encrypted to the cloud for regional oversight and backup.' }] as step, i}
 				<div class="relative pb-10 md:pb-14 flex gap-6 md:gap-8 {i === 4 ? 'pb-0' : ''}">
 					<div class="flex flex-col items-center">
 						<div
@@ -305,35 +303,54 @@
 				</div>
 				<h3 class="font-bold text-lg">Dr. Assist</h3>
 				<p class="text-sm text-muted-foreground leading-relaxed">
-					Surfaces unusual symptom combinations and flags potential diagnoses during the consultation — particularly valuable in facilities where a doctor may not always be present.
+					Surfaces unusual symptom combinations and flags potential diagnoses during the
+					consultation — particularly valuable in facilities where a doctor may not always be
+					present.
 				</p>
-				<a href="/support/dr-assist" class="text-sm text-primary font-medium hover:underline inline-flex items-center gap-1">
+				<a
+					href="/support/dr-assist"
+					class="text-sm text-primary font-medium hover:underline inline-flex items-center gap-1"
+				>
 					Learn more <ChevronRight class="size-3.5" />
 				</a>
 			</div>
 
 			<div class="rounded-2xl border border-border bg-card p-7 space-y-3">
-				<div class="size-11 rounded-xl bg-accent/20 text-accent-foreground flex items-center justify-center">
+				<div
+					class="size-11 rounded-xl bg-accent/20 text-accent-foreground flex items-center justify-center"
+				>
 					<FlaskConical class="size-6" />
 				</div>
 				<h3 class="font-bold text-lg">RxBrain</h3>
 				<p class="text-sm text-muted-foreground leading-relaxed">
-					Checks every prescription against the patient's existing medications and flags dangerous drug interactions before the pharmacist dispenses — a critical safety net where specialist oversight is rare.
+					Checks every prescription against the patient's existing medications and flags dangerous
+					drug interactions before the pharmacist dispenses — a critical safety net where specialist
+					oversight is rare.
 				</p>
-				<a href="/support/rxbrain" class="text-sm text-primary font-medium hover:underline inline-flex items-center gap-1">
+				<a
+					href="/support/rxbrain"
+					class="text-sm text-primary font-medium hover:underline inline-flex items-center gap-1"
+				>
 					Learn more <ChevronRight class="size-3.5" />
 				</a>
 			</div>
 
 			<div class="rounded-2xl border border-border bg-card p-7 space-y-3">
-				<div class="size-11 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+				<div
+					class="size-11 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center"
+				>
 					<Radar class="size-6" />
 				</div>
 				<h3 class="font-bold text-lg">Outbreak Radar</h3>
 				<p class="text-sm text-muted-foreground leading-relaxed">
-					Continuously monitors patient data for unusual epidemiological signals — clustering symptoms, age groups, or geographic patterns — and alerts administrators before a potential outbreak escalates.
+					Continuously monitors patient data for unusual epidemiological signals — clustering
+					symptoms, age groups, or geographic patterns — and alerts administrators before a
+					potential outbreak escalates.
 				</p>
-				<a href="/support/outbreak-radar" class="text-sm text-primary font-medium hover:underline inline-flex items-center gap-1">
+				<a
+					href="/support/outbreak-radar"
+					class="text-sm text-primary font-medium hover:underline inline-flex items-center gap-1"
+				>
 					Learn more <ChevronRight class="size-3.5" />
 				</a>
 			</div>
@@ -348,27 +365,13 @@
 ════════════════════════════════════════════ -->
 <section class="py-24">
 	<div class="container mx-auto px-4 md:px-8 max-w-7xl">
-		<SectionHeader
-			eyebrow="Clinical Coverage"
-			heading="Every module a PHC needs"
-		/>
+		<SectionHeader eyebrow="Clinical Coverage" heading="Every module a PHC needs" />
 
 		<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-			{#each [
-				{ icon: Activity, label: 'Queue & Triage' },
-				{ icon: Stethoscope, label: 'Consultations' },
-				{ icon: FlaskConical, label: 'Prescriptions' },
-				{ icon: Syringe, label: 'Immunisation' },
-				{ icon: Baby, label: 'ANC / Maternity' },
-				{ icon: Users, label: 'Family Records' },
-				{ icon: Radar, label: 'Outbreak Radar' },
-				{ icon: ClipboardList, label: 'DHIS2 Reports' },
-				{ icon: Bell, label: 'SMS Reminders' },
-				{ icon: ShieldCheck, label: 'Role-Based Access' },
-				{ icon: Smartphone, label: 'Android Kiosk' },
-				{ icon: Wifi, label: 'LAN Sync' }
-			] as module}
-				<div class="flex flex-col items-center gap-2 rounded-xl border border-border bg-card p-4 text-center hover:border-primary/30 hover:bg-primary/5 transition-colors">
+			{#each [{ icon: Activity, label: 'Queue & Triage' }, { icon: Stethoscope, label: 'Consultations' }, { icon: FlaskConical, label: 'Prescriptions' }, { icon: Syringe, label: 'Immunisation' }, { icon: Baby, label: 'ANC / Maternity' }, { icon: Users, label: 'Family Records' }, { icon: Radar, label: 'Outbreak Radar' }, { icon: ClipboardList, label: 'DHIS2 Reports' }, { icon: Bell, label: 'SMS Reminders' }, { icon: ShieldCheck, label: 'Role-Based Access' }, { icon: Smartphone, label: 'Android Kiosk' }, { icon: Wifi, label: 'LAN Sync' }] as module}
+				<div
+					class="flex flex-col items-center gap-2 rounded-xl border border-border bg-card p-4 text-center hover:border-primary/30 hover:bg-primary/5 transition-colors"
+				>
 					<module.icon class="size-5 text-muted-foreground" />
 					<span class="text-xs font-medium text-foreground leading-tight">{module.label}</span>
 				</div>
@@ -382,36 +385,41 @@
 ════════════════════════════════════════════ -->
 <section class="py-24 bg-muted/20 border-y border-border/40">
 	<div class="container mx-auto px-4 md:px-8 max-w-5xl text-center">
-		<SectionHeader
-			eyebrow="Traction"
-			heading="Built. Working. Independently validated."
-		/>
+		<SectionHeader eyebrow="Traction" heading="Built. Working. Independently validated." />
 
 		<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
 			<div class="rounded-2xl border border-border bg-card p-7 space-y-3">
 				<div class="text-4xl font-extrabold text-primary">2.5<span class="text-2xl"> mo</span></div>
-				<p class="text-sm text-muted-foreground">From first commit to fully working prototype with 8 clinical modules, CI/CD, and nightly Android APK builds.</p>
+				<p class="text-sm text-muted-foreground">
+					From first commit to fully working prototype with 8 clinical modules, CI/CD, and nightly
+					Android APK builds.
+				</p>
 			</div>
 			<div class="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-7 space-y-3">
 				<AwardBadge label="NextGen Knowledge Showcase" sublabel="Top 5 Finalist" variant="gold" />
-				<p class="text-sm text-muted-foreground">Selected from a nationwide pool of Nigerian student innovators. Pitching at the Stripe Community Pitch Day, November 2026.</p>
+				<p class="text-sm text-muted-foreground">
+					Selected from a nationwide pool of Nigerian student innovators. Pitching at the Stripe
+					Community Pitch Day, November 2026.
+				</p>
 			</div>
 			<div class="rounded-2xl border border-border bg-card p-7 space-y-3">
-				<AwardBadge label="3MTT × IdentArk.io" sublabel="2nd Place — National AI Hackathon" variant="silver" />
-				<p class="text-sm text-muted-foreground">Ranked 2nd from a national pool of AI projects. Pitch Day: September 19, 2026 — judged by an independent technical panel.</p>
+				<AwardBadge
+					label="3MTT × IdentArk.io"
+					sublabel="2nd Place — National AI Hackathon"
+					variant="silver"
+				/>
+				<p class="text-sm text-muted-foreground">
+					Ranked 2nd from a national pool of AI projects. Pitch Day: September 19, 2026 — judged by
+					an independent technical panel.
+				</p>
 			</div>
 		</div>
 
 		<div class="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
-			{#each [
-				'SvelteKit 5 + Svelte 5',
-				'Dexie IndexedDB',
-				'Drizzle ORM + PostgreSQL',
-				'Gemini API + WebLLM',
-				'Tauri v2 (Android + Windows)',
-				'GitHub Actions CI'
-			] as tech}
-				<span class="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1 font-mono text-xs">
+			{#each ['SvelteKit 5 + Svelte 5', 'Dexie IndexedDB', 'Drizzle ORM + PostgreSQL', 'Gemini API + WebLLM', 'Tauri v2 (Android + Windows)', 'GitHub Actions CI'] as tech}
+				<span
+					class="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1 font-mono text-xs"
+				>
 					<CheckCircle2 class="size-3 text-primary" />
 					{tech}
 				</span>
@@ -435,18 +443,30 @@
 			<div class="rounded-2xl border border-border bg-card p-6 space-y-2">
 				<p class="text-xs font-bold uppercase tracking-widest text-muted-foreground">Pilot PHCs</p>
 				<p class="text-3xl font-extrabold text-foreground">Free</p>
-				<p class="text-sm text-muted-foreground">For approved partner Primary Health Centres during the grant pilot period.</p>
+				<p class="text-sm text-muted-foreground">
+					For approved partner Primary Health Centres during the grant pilot period.
+				</p>
 			</div>
-			<div class="rounded-2xl border border-primary/30 bg-primary/5 p-6 space-y-2 relative overflow-hidden">
+			<div
+				class="rounded-2xl border border-primary/30 bg-primary/5 p-6 space-y-2 relative overflow-hidden"
+			>
 				<div class="absolute top-0 inset-x-0 h-1 bg-primary rounded-t-2xl"></div>
 				<p class="text-xs font-bold uppercase tracking-widest text-primary">Public PHCs</p>
-				<p class="text-3xl font-extrabold text-foreground">₦30k<span class="text-lg font-normal text-muted-foreground">/facility/mo</span></p>
-				<p class="text-sm text-muted-foreground">Billed as an annual contract to the State Primary Health Care Development Agency.</p>
+				<p class="text-3xl font-extrabold text-foreground">
+					₦30k<span class="text-lg font-normal text-muted-foreground">/facility/mo</span>
+				</p>
+				<p class="text-sm text-muted-foreground">
+					Billed as an annual contract to the State Primary Health Care Development Agency.
+				</p>
 			</div>
 			<div class="rounded-2xl border border-border bg-card p-6 space-y-2">
-				<p class="text-xs font-bold uppercase tracking-widest text-muted-foreground">Private & NGO</p>
+				<p class="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+					Private & NGO
+				</p>
 				<p class="text-3xl font-extrabold text-foreground">Custom</p>
-				<p class="text-sm text-muted-foreground">Tailored pricing for private clinics, hospitals, and international health NGOs.</p>
+				<p class="text-sm text-muted-foreground">
+					Tailored pricing for private clinics, hospitals, and international health NGOs.
+				</p>
 			</div>
 		</div>
 
