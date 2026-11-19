@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Button } from '#lib/components/ui/button';
-	import { Github, Code2, GitFork, Star, CheckCircle2, ExternalLink } from '@lucide/svelte';
+	import { GitBranch, Code2, GitFork, Star, CheckCircle2, ExternalLink } from '@lucide/svelte';
 </script>
 
 <svelte:head>
@@ -31,7 +31,7 @@
 				size="lg"
 				class="rounded-full px-8 font-bold bg-foreground text-background hover:bg-foreground/90 shadow-lg"
 			>
-				<Github class="mr-2 size-5" /> View on GitHub
+				<GitBranch class="mr-2 size-5" /> View on GitHub
 			</Button>
 		</div>
 	</div>

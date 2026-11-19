@@ -1,6 +1,6 @@
 <script lang="ts">
 	import AwardBadge from '#lib/components/marketing/award-badge.svelte';
-	import { MapPin, GraduationCap, Github, ExternalLink } from '@lucide/svelte';
+	import { MapPin, GraduationCap, GitBranch, ExternalLink } from '@lucide/svelte';
 	import { Button } from '#lib/components/ui/button';
 </script>
 
@@ -61,7 +61,7 @@
 				<span>Benin City, Edo State, Nigeria</span>
 			</div>
 			<div class="flex items-center gap-3 text-sm text-muted-foreground">
-				<Github class="size-5 text-primary shrink-0" />
+				<GitBranch class="size-5 text-primary shrink-0" />
 				<a href="https://github.com/mudiageo" target="_blank" rel="noopener" class="hover:text-foreground transition-colors">
 					github.com/mudiageo
 				</a>
