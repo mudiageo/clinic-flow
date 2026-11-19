@@ -57,6 +57,10 @@
 - [x] `/support/faq` — comprehensive operational and governance FAQ
 - [x] `/support/installation` — 3-step facility installation playbook
 - [x] `/support/troubleshooting` — diagnostic guide for local Wi-Fi, mDNS, and kiosk mode
+- [x] `/partners` — deployment partners, NGO integrators, and clinical advisory board
+- [x] `/press` — media kit assets, brand palette, founder profile, and award news
+- [x] `/blog` — thought leadership blog on offline-first health tech, PHC realities, and AI clinical safety
+- [x] `/blog/[slug]` — reader article view with typography, author profile, and related articles
 
 ---
 
