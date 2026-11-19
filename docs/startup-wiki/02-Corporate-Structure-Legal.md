@@ -46,7 +46,7 @@ Handling Patient Identifiable Information (PII) makes ClinicFlow subject to seve
 To pass the NDPA Security Audit (budgeted in Phase 3), the software must mathematically prove data security:
 
 - **Encryption at Rest (The Edge):** The local SQLite database running on the clinic's Bun server must use AES-256 encryption (via `sqlcipher` or encrypted `libSQL`). If a tablet or the local server is physically stolen from a rural clinic, the data remains unreadable.
-- **Encryption in Transit:** All CRDT sync payloads traveling from the Local Server to the Cloud Node must be secured via TLS 1.3.
+- **Encryption in Transit:** All sync payloads traveling from the Local Server to the Cloud Node must be secured via TLS 1.3. (The planned design uses CRDT sync payloads — see `docs/Architecture-Implementation-Plan.md`, Part B; current sync transmits versioned JSON records over TLS.)
 - **Zero-Knowledge AI:** When using Cloud APIs (Gemini) in Phase 1, all PII (names, phone numbers) must be scrubbed by the local server _before_ the payload is sent to Google. When transitioning to Phase 2 (Local MedGemma models), 100% of the data remains on-premise, guaranteeing compliance.
 
 ---

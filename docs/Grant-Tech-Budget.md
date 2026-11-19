@@ -8,7 +8,7 @@ ClinicFlow is engineered specifically to bypass the two greatest hurdles in rura
 
 - **Frontend & PWA:** Built with SvelteKit 5 and compiled as an installable Progressive Web App (PWA).
 - **Offline-First Database:** We utilize **Dexie.js (IndexedDB)** for instantaneous local reads and writes. The app functions flawlessly with zero internet connectivity.
-- **LAN Synchronization:** Devices within the clinic synchronize data locally over a standard Wi-Fi router (which does not need an active internet uplink) using CRDT-inspired conflict resolution.
+- **LAN Synchronization:** Devices within the clinic synchronize data locally over a standard Wi-Fi router (which does not need an active internet uplink) using a durable outbox, monotonic server-assigned versions, and explicit conflict recovery. **Planned:** CRDT-inspired conflict resolution is the target design — see `docs/Architecture-Implementation-Plan.md`, Part B.
 - **AI Integrations (Dr. Assist & RxBrain):** When internet _is_ available (even briefly via a mobile hotspot), ClinicFlow securely interfaces with the **Google Gemini API** to provide clinical decision support and drug safety checks.
 
 ---

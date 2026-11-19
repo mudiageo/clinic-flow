@@ -247,4 +247,4 @@ Hamburger → slide-in drawer with same links + Sign In + Get Started
 
 ## 9. No Server-Side Pages
 
-Per architecture rules: **no `+page.server.ts`**. All data fetching via remote functions in `$lib/remote/`. The contact form uses a `form` remote function.
+Per architecture rules: **no `+page.server.ts`**. All data fetching via remote functions in `#lib/remote/`. The contact form uses a `form` remote function.

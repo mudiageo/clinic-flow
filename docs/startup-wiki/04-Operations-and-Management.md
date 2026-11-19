@@ -22,7 +22,7 @@ Deploying to a new PHC (Primary Health Centre) must be a repeatable, military-gr
 - **Version Control:** All code is housed on GitHub. The `main` branch is locked. All features are built on `feature/` branches and merged via Pull Requests.
 - **CI/CD Pipeline:**
   - When a release is tagged, GitHub Actions automatically builds the Cloud Node (deploying to Vercel).
-  - Simultaneously, it compiles the `bun:sqlite` standalone binary for local servers and the Tauri Desktop apps for Windows/Linux.
+  - Simultaneously, it builds the cross-platform Tauri Desktop apps for Windows, macOS and Linux (current). **Planned:** compiling a standalone `bun:sqlite` local-server binary — not yet shipped; see `docs/Architecture-Implementation-Plan.md`, Part B.
 - **OTA (Over-The-Air) Updates:** Pushing an update that changes the database schema is dangerous. The Cloud Node will flag the schema change, forcing the local clinic servers to pause syncing until the OIC clicks "Download Update" on their dashboard.
 
 ## 3. Financial Operations & Burn Rate Management

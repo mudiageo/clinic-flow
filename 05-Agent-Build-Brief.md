@@ -288,7 +288,9 @@ TERMII_API_KEY=            # server-only
 TERMII_SENDER_ID=
 AFRICASTALKING_API_KEY=    # server-only, fallback provider
 AFRICASTALKING_USERNAME=
-PUBLIC_SYNC_SERVER_URL=    # the LAN/cloud server the Tauri app calls for /api/*
+# No PUBLIC_SYNC_SERVER_URL env var: the Tauri/PWA client stores the selected
+# clinic server URL as `clinicflow_server_url` in localStorage via the /connect
+# page (see docs/LAN-Setup-Guide.md). Remote calls use /_app/remote/, not /api/*.
 ```
 
 ---
@@ -332,7 +334,7 @@ Before marking any module in `04-Timeline.md` complete, the agent should verify 
 - **Never hardcode triage thresholds in component logic** — always read from the `triageRules` table.
 - **Never call Gemini or Termii/Africa's Talking directly from client code** — server-side remote functions (`command`/`query`) only, keys never shipped to the browser bundle.
 - **Never let a write path assume connectivity** — every mutation goes through a class store's `create`/`update` method, which writes to Dexie first, full stop, per `02-Architecture.md` §1.3 and §3.2.
-- **Never import `#lib/local-db/db` or call Dexie's `liveQuery()` from a component or route** — only the class store files in `$lib/state/*.svelte.ts` may do so, per `02-Architecture.md` §0 and §3.1.
+- **Never import `#lib/local-db/db` or call Dexie's `liveQuery()` from a component or route** — only the class store files in `#lib/state/*.svelte.ts` may do so, per `02-Architecture.md` §0 and §3.1.
 - **Never overwrite `pharmacy_inventory.current_stock` via naive last-write-wins** — delta-based only, via the `pushOperations` command's `delta` operation type, per `02-Architecture.md` §2.4.
 - **Never hand-edit generated shadcn-svelte component files** in `#lib/components/ui/` for one-off sizing — override via className at the call site so `shadcn-svelte update` stays safe.
 - **Never assume the Tauri build has a working server** — remote function calls (`sync.remote.ts` and friends) resolve to fetch wrappers targeting a separately-deployed Node-adapter SvelteKit instance, not the static Tauri bundle itself.

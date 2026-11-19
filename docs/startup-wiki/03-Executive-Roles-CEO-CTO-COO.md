@@ -14,7 +14,7 @@ A startup fails if everyone tries to do everything. The founding team must have 
 
 **Primary Metric:** 100% Uptime, Zero Data Loss, AI Accuracy.
 
-- **Architecture:** Building the edge-to-cloud CRDT sync engine, configuring the mDNS, and managing the SQLite-to-Postgres abstraction.
+- **Architecture:** Maintaining the implemented edge-to-cloud sync engine, mDNS discovery, and the SQLite-to-Postgres abstraction (see `docs/startup-wiki/07-Engineering-Guide.md`). **Planned:** the CRDT sync engine is the target design (see `docs/Architecture-Implementation-Plan.md`, Part B); current sync uses monotonic server versions.
 - **AI Infrastructure:** Running the Central AI Lab. The CTO is responsible for fine-tuning MedGemma and ensuring the WebGPU local LLM doesn't crash the clinical tablets.
 - **Security:** Enforcing NDPA encryption standards and managing the tablet MDM (Kiosk mode) fleet. The CTO decides _how_ we build it.
 
