@@ -9,6 +9,14 @@ import { sveltekit } from '@sveltejs/kit/vite';
 const isTauri = process.env.TAURI === '1';
 
 export default defineConfig({
+	server: {
+		host: true,
+		allowedHosts: true
+	},
+	preview: {
+		host: true,
+		allowedHosts: true
+	},
 	staged: {
 		// Pre-commit only formats: the repository still carries pre-existing
 		// lint/type debt that would otherwise block unrelated commits.
