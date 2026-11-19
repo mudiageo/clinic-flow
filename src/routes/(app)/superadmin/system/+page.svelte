@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { getServerStatus } from '#lib/remote/server-status.remote.ts';
 	import {
 		Card,
 		CardContent,
@@ -6,23 +7,21 @@
 		CardTitle,
 		CardDescription
 	} from '#lib/components/ui/card/index.ts';
-	import { ServerCrash, Database, RefreshCw, MessageSquare, Clock } from '@lucide/svelte';
+	import { ServerCrash, Database, RefreshCw, Users, Clock } from '@lucide/svelte';
 
-	// Mocking system health data since we don't have real metric collectors in this demo
-	let uptime = $state('14 days, 5 hours, 23 minutes');
-	let dbStatus = $state('Healthy (34ms ping)');
-	let syncPending = $state(42);
-	let smsSent = $state(1243);
-	let smsFailed = $state(12);
+	// Point-in-time snapshot from the server. No fabricated or random metrics.
+	const status = await getServerStatus();
 
-	$effect(() => {
-		// Mock live updates
-		const interval = setInterval(() => {
-			syncPending = Math.max(0, syncPending + Math.floor(Math.random() * 5) - 2);
-			if (Math.random() > 0.8) smsSent += 1;
-		}, 3000);
-		return () => clearInterval(interval);
-	});
+	function formatUptime(totalSeconds: number): string {
+		const days = Math.floor(totalSeconds / 86_400);
+		const hours = Math.floor((totalSeconds % 86_400) / 3_600);
+		const minutes = Math.floor((totalSeconds % 3_600) / 60);
+		const parts: string[] = [];
+		if (days > 0) parts.push(`${days}d`);
+		if (hours > 0) parts.push(`${hours}h`);
+		if (minutes > 0 || parts.length === 0) parts.push(`${minutes}m`);
+		return parts.join(' ');
+	}
 </script>
 
 <svelte:head>
@@ -36,11 +35,21 @@
 		</div>
 		<div>
 			<h1 class="text-2xl font-bold text-foreground tracking-tight">System Health</h1>
-			<p class="text-muted-foreground text-sm mt-0.5">
-				Real-time telemetry and infrastructure metrics.
-			</p>
+			<p class="text-muted-foreground text-sm mt-0.5">Server status and infrastructure metrics.</p>
 		</div>
 	</div>
+
+	{#if !status}
+		<div
+			class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200"
+		>
+			<p class="font-semibold">Status unavailable</p>
+			<p class="mt-0.5">
+				No server metrics could be loaded for this account. Values below are unavailable rather than
+				live.
+			</p>
+		</div>
+	{/if}
 
 	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
 		<Card>
@@ -49,12 +58,20 @@
 					<div class="p-2 bg-green-50 text-green-600 rounded-lg">
 						<Database class="size-5" />
 					</div>
-					<span class="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full"
-						>Online</span
-					>
+					{#if status}
+						<span class="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full"
+							>Online</span
+						>
+					{/if}
 				</div>
-				<p class="text-sm font-medium text-muted-foreground">PostgreSQL Database</p>
-				<p class="text-xl font-bold text-foreground mt-1">{dbStatus}</p>
+				<p class="text-sm font-medium text-muted-foreground">
+					{#if status}
+						{status.isMasterServer ? 'Local SQLite (libSQL)' : 'PostgreSQL Database'}
+					{:else}
+						Database (unavailable)
+					{/if}
+				</p>
+				<p class="text-xl font-bold text-foreground mt-1">{status ? 'Connected' : '—'}</p>
 			</CardContent>
 		</Card>
 
@@ -65,11 +82,14 @@
 						<RefreshCw class="size-5" />
 					</div>
 					<span class="text-xs font-semibold text-muted-foreground bg-muted px-2 py-1 rounded-full"
-						>Live</span
+						>Snapshot</span
 					>
 				</div>
-				<p class="text-sm font-medium text-muted-foreground">Global Sync Queue</p>
-				<p class="text-xl font-bold text-foreground mt-1">{syncPending} pending ops</p>
+				<p class="text-sm font-medium text-muted-foreground">Active Devices</p>
+				<p class="text-xl font-bold text-foreground mt-1">
+					{status ? status.activeDevices : '—'}
+				</p>
+				<p class="text-xs text-muted-foreground mt-1">devices active in this PHC</p>
 			</CardContent>
 		</Card>
 
@@ -77,14 +97,19 @@
 			<CardContent class="p-6">
 				<div class="flex items-center justify-between mb-4">
 					<div class="p-2 bg-purple-50 text-purple-600 rounded-lg">
-						<MessageSquare class="size-5" />
+						<Users class="size-5" />
 					</div>
-					<span class="text-xs font-semibold text-red-600 bg-red-50 px-2 py-1 rounded-full"
-						>{smsFailed} failed</span
-					>
+					{#if status && status.pendingDevices > 0}
+						<span class="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-1 rounded-full"
+							>Approval required</span
+						>
+					{/if}
 				</div>
-				<p class="text-sm font-medium text-muted-foreground">SMS Gateway (24h)</p>
-				<p class="text-xl font-bold text-foreground mt-1">{smsSent.toLocaleString()} sent</p>
+				<p class="text-sm font-medium text-muted-foreground">Pending Devices</p>
+				<p class="text-xl font-bold text-foreground mt-1">
+					{status ? status.pendingDevices : '—'}
+				</p>
+				<p class="text-xs text-muted-foreground mt-1">devices pending approval</p>
 			</CardContent>
 		</Card>
 
@@ -96,35 +121,32 @@
 					</div>
 				</div>
 				<p class="text-sm font-medium text-muted-foreground">Server Uptime</p>
-				<p class="text-xl font-bold text-foreground mt-1">{uptime}</p>
+				<p class="text-xl font-bold text-foreground mt-1">
+					{status ? formatUptime(status.uptimeSeconds) : '—'}
+				</p>
+				{#if status}
+					<p class="text-xs text-muted-foreground mt-1">
+						{status.nodeVersion} · {status.memoryMb} MB RSS
+					</p>
+				{/if}
 			</CardContent>
 		</Card>
 	</div>
 
+	<p class="text-xs text-muted-foreground">
+		Metrics are a point-in-time server snapshot. Reload this page to refresh.
+	</p>
+
 	<Card>
 		<CardHeader>
 			<CardTitle>Recent Error Logs</CardTitle>
-			<CardDescription>Latest unhandled exceptions across all services.</CardDescription>
+			<CardDescription>No live log stream is configured.</CardDescription>
 		</CardHeader>
 		<CardContent>
-			<div class="rounded-md bg-muted p-4 font-mono text-sm space-y-2 h-64 overflow-y-auto">
-				<div class="text-muted-foreground">
-					[2023-11-04 14:32:11] INFO: App started on port 3000
-				</div>
-				<div class="text-muted-foreground">[2023-11-04 15:10:02] INFO: Sync worker initialized</div>
-				<div class="text-orange-600">
-					[2023-11-04 16:45:33] WARN: Termii API rate limit approached (95%)
-				</div>
-				<div class="text-red-600">
-					[2023-11-05 09:12:05] ERROR: Failed to process offline queue from PHC-8821: Invalid
-					payload format
-				</div>
-				<div class="text-muted-foreground">
-					[2023-11-05 09:12:10] INFO: Retrying PHC-8821 queue... Success.
-				</div>
-				<div class="text-muted-foreground">
-					[2023-11-05 11:30:00] INFO: Daily backup completed successfully.
-				</div>
+			<div
+				class="flex items-center justify-center rounded-md bg-muted p-4 text-sm text-muted-foreground min-h-24"
+			>
+				No live log stream is configured.
 			</div>
 		</CardContent>
 	</Card>

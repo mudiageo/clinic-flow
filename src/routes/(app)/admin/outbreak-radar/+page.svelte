@@ -33,10 +33,12 @@
 		Printer,
 		MessageSquare,
 		Send,
-		Info
+		Info,
+		FileSignature
 	} from '@lucide/svelte';
 	import { page } from '$app/state';
 	import { toast } from 'svelte-sonner';
+	import { sendOutbreakAlertSms } from '#lib/remote/sms.remote.ts';
 
 	let lgaDsoPhone = $state(settingsStore.current?.lgaDsoPhone || '');
 	let sendingSms = $state(false);
@@ -68,8 +70,15 @@
 
 		sendingSms = true;
 		try {
-			await new Promise((resolve) => setTimeout(resolve, 1500));
-			toast.success(`Alert SMS sent to ${lgaDsoPhone}`);
+			const result = await sendOutbreakAlertSms({
+				phone: lgaDsoPhone,
+				message: ai.lgaSummary
+			});
+			if (!result.ok) {
+				toast.error(result.error);
+			} else {
+				toast.success('Alert SMS sent');
+			}
 		} catch (err) {
 			toast.error('Failed to send SMS');
 		} finally {
@@ -171,7 +180,7 @@
 					<Siren class="size-5" />
 					Active Threshold Alerts (Rule-Based)
 				</h2>
-				{#each outbreakEngine.alerts as outbreak}
+				{#each outbreakEngine.alerts as outbreak (`${outbreak.disease}-${outbreak.community}`)}
 					<Alert
 						variant="destructive"
 						class="border-destructive/30 bg-destructive/10 text-destructive"
@@ -245,7 +254,7 @@
 							</CardHeader>
 							<CardContent>
 								<div class="space-y-4">
-									{#each bundle.diseaseGroups.sort((a, b) => b.totalCases - a.totalCases) as dg}
+									{#each bundle.diseaseGroups.sort((a, b) => b.totalCases - a.totalCases) as dg (dg.disease)}
 										<div>
 											<div class="flex justify-between text-sm mb-1.5">
 												<span class="font-medium">{dg.disease}</span>
@@ -414,7 +423,7 @@
 								</h3>
 
 								<div class="grid gap-4">
-									{#each ai.outbreaks as outbreak}
+									{#each ai.outbreaks as outbreak (`${outbreak.disease}-${outbreak.affectedCommunities?.join(',') ?? ''}`)}
 										<Card
 											class="border-l-4 overflow-hidden {outbreak.severity === 'critical'
 												? 'border-l-destructive'
@@ -510,7 +519,7 @@
 								</h3>
 
 								<div class="grid md:grid-cols-2 gap-4">
-									{#each ai.preAlerts as preAlert}
+									{#each ai.preAlerts as preAlert (`${preAlert.disease}-${preAlert.affectedCommunities?.join(',') ?? ''}`)}
 										<Card
 											class="border-blue-200 dark:border-blue-900 shadow-sm bg-blue-50/30 dark:bg-blue-950/10"
 										>
@@ -558,7 +567,7 @@
 								</CardHeader>
 								<CardContent class="p-0">
 									<div class="divide-y divide-border">
-										{#each ai.interventions as intervention}
+										{#each ai.interventions as intervention (intervention.action)}
 											<div class="p-4 space-y-2 hover:bg-muted/30 transition-colors">
 												<div class="flex justify-between items-start gap-2">
 													<p class="text-sm font-semibold leading-snug">{intervention.action}</p>
@@ -606,7 +615,7 @@
 								</CardHeader>
 								<CardContent class="text-sm pb-4">
 									<div class="space-y-3">
-										{#each ai.stockImpactForecast.filter((s: any) => s.willRunOut) as stock}
+										{#each ai.stockImpactForecast.filter((s: any) => s.willRunOut) as stock (stock.drug)}
 											<div
 												class="flex justify-between items-center bg-white dark:bg-black/20 p-2 rounded border border-amber-100 dark:border-amber-900/50"
 											>
@@ -669,7 +678,10 @@
 											{/if}
 										</Button>
 									</div>
-									<p class="text-[10px] text-muted-foreground">Uses Termii SMS integration.</p>
+									<p class="text-[10px] text-muted-foreground">
+										Sends via the clinic's configured SMS provider (Termii). Clinics without a
+										configured provider receive an error.
+									</p>
 								</div>
 							</CardContent>
 						</Card>
@@ -716,7 +728,7 @@
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{#each ai.idsr.notifiableDiseases as ds}
+							{#each ai.idsr.notifiableDiseases as ds (ds.disease)}
 								<TableRow>
 									<TableCell class="font-medium">{ds.disease}</TableCell>
 									<TableCell class="text-right">{ds.suspectedCases}</TableCell>

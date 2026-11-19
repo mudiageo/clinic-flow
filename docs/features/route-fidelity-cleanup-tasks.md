@@ -52,17 +52,17 @@
 
 ## Phase E — Mocked superadmin/admin pages (P0/P1)
 
-- [ ] **MK-04** `superadmin/system`: use `getServerStatus`; remove Math.random + fake error log
-- [ ] **MK-05** `superadmin/billing`: implement remote/DB or add explicit "Demo" banner
+- [x] **MK-04** `superadmin/system`: use `getServerStatus`; remove Math.random + fake error log
+- [x] **MK-05** `superadmin/billing`: implement remote/DB or add explicit "Demo" banner
 - [x] **MK-06** `superadmin/announcements`: implement broadcast remote/DB or add explicit "Demo" banner
 - [ ] **MK-07** `superadmin/releases`: use `getReleases`; wire Publish; remove video placeholder
-- [ ] **MK-08** `epidemiology.remote.ts`: replace `Math.random()` case data with real aggregation; add demo disclaimer until fixed
+- [x] **MK-08** `epidemiology.remote.ts`: replace `Math.random()` case data with real aggregation; add demo disclaimer until fixed
 - [ ] **MK-09** `admin/sync-health`: derive device log from sync state
 - [ ] **MK-10** `admin/reports/dhis2`: configurable UIDs with documented defaults
 - [ ] **NW-01** `admin/nhis-claims`: real submit remote; real claim status
-- [ ] **NW-02** `admin/outbreak-radar`: real SMS remote; fix `FileSignature` import; remove false "Uses Termii" claim
+- [x] **NW-02** `admin/outbreak-radar`: real SMS remote; fix `FileSignature` import; remove false "Uses Termii" claim
 - [ ] **NW-03** `admin/settings`: real SMS-test remote
-- [ ] **NW-04** `admin/audit`: implement `getAuditLog`; wire data + Filter button
+- [x] **NW-04** `admin/audit`: implement `getAuditLog`; wire data + Filter button
 - [ ] **NW-05** `admin/devices`: wire Add Manually
 - [ ] **NW-06** `superadmin/users`: reset-password + deactivate remotes
 - [ ] **NW-07** `superadmin/phcs/[id]`: sync status + deactivate + reset-data remotes

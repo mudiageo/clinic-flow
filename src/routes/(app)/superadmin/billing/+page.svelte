@@ -10,6 +10,7 @@
 	import { CreditCard, CheckCircle2, AlertCircle, ArrowUpRight } from '@lucide/svelte';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { Alert, AlertTitle, AlertDescription } from '#lib/components/ui/alert/index.ts';
 </script>
 
 <svelte:head>
@@ -29,11 +30,24 @@
 		</div>
 	</div>
 
+	<Alert
+		class="border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200"
+	>
+		<AlertCircle class="size-4" />
+		<AlertTitle>Demo data</AlertTitle>
+		<AlertDescription>
+			Billing and subscriptions are not connected. Figures below are illustrative only.
+		</AlertDescription>
+	</Alert>
+
 	<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 		<div class="md:col-span-2 space-y-6">
 			<Card>
 				<CardHeader>
-					<CardTitle>Subscription Status by PHC</CardTitle>
+					<CardTitle class="flex items-center gap-2">
+						Subscription Status by PHC
+						<Badge variant="secondary">Demo</Badge>
+					</CardTitle>
 					<CardDescription>Overview of active, trial, and suspended accounts.</CardDescription>
 				</CardHeader>
 				<CardContent>
@@ -66,7 +80,12 @@
 							</div>
 							<div class="text-right">
 								<p class="text-sm font-medium">Action Required</p>
-								<Button variant="link" class="p-0 h-auto text-primary">Send Reminder</Button>
+								<Button
+									variant="link"
+									class="p-0 h-auto text-primary"
+									disabled
+									title="Not implemented (demo)">Send Reminder</Button
+								>
 							</div>
 						</div>
 
@@ -94,6 +113,7 @@
 					<CardTitle class="text-base flex items-center gap-2">
 						<CreditCard class="size-4 text-muted-foreground" />
 						Monthly Revenue
+						<Badge variant="secondary">Demo</Badge>
 					</CardTitle>
 				</CardHeader>
 				<CardContent>
@@ -110,11 +130,21 @@
 					<CardTitle class="text-base">Quick Actions</CardTitle>
 				</CardHeader>
 				<CardContent class="space-y-2">
-					<Button variant="outline" class="w-full justify-start">
+					<Button
+						variant="outline"
+						class="w-full justify-start"
+						disabled
+						title="Not implemented (demo)"
+					>
 						<CheckCircle2 class="size-4 mr-2 text-green-600" />
 						Approve Offline Payment
 					</Button>
-					<Button variant="outline" class="w-full justify-start">
+					<Button
+						variant="outline"
+						class="w-full justify-start"
+						disabled
+						title="Not implemented (demo)"
+					>
 						<AlertCircle class="size-4 mr-2 text-orange-600" />
 						Generate Invoices
 					</Button>

@@ -60,74 +60,87 @@
 			Compiling surveillance data...
 		</div>
 	{:then data}
-		<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-			<Card class="md:col-span-2">
-				<CardHeader>
-					<CardTitle>LGA-Level Outbreak Heatmap</CardTitle>
-					<CardDescription>Consolidated reports mapped by Local Government Area</CardDescription>
-				</CardHeader>
-				<CardContent class="p-0">
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Location (LGA)</TableHead>
-								<TableHead class="text-right">Malaria/Fever</TableHead>
-								<TableHead class="text-right">Cholera/Diarrhea</TableHead>
-								<TableHead class="text-right">Measles</TableHead>
-								<TableHead class="text-right">Typhoid</TableHead>
-								<TableHead class="text-right">Risk Level</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{#each data as lga}
-								<TableRow>
-									<TableCell class="font-medium">
-										{lga.lga}, {lga.state}
-									</TableCell>
-									<TableCell class="text-right font-mono text-sm">{lga.cases.malaria}</TableCell>
-									<TableCell class="text-right font-mono text-sm">{lga.cases.cholera}</TableCell>
-									<TableCell class="text-right font-mono text-sm">{lga.cases.measles}</TableCell>
-									<TableCell class="text-right font-mono text-sm">{lga.cases.typhoid}</TableCell>
-									<TableCell class="text-right">
-										{#if lga.riskLevel === 'High'}
-											<Badge class="bg-destructive hover:bg-destructive text-destructive-foreground"
-												>HIGH</Badge
-											>
-										{:else if lga.riskLevel === 'Medium'}
-											<Badge class="bg-amber-500 hover:bg-amber-600 text-white">MEDIUM</Badge>
-										{:else}
-											<Badge class="bg-green-500 hover:bg-green-600 text-white">LOW</Badge>
-										{/if}
-									</TableCell>
-								</TableRow>
-							{/each}
-						</TableBody>
-					</Table>
+		{#if data.length === 0}
+			<Card>
+				<CardContent class="p-8 text-center text-muted-foreground">
+					No encounter data recorded in the last 30 days.
 				</CardContent>
 			</Card>
-
-			<div class="space-y-6">
-				<Card>
-					<CardHeader class="pb-3">
-						<CardTitle class="text-base flex items-center gap-2 text-destructive">
-							<AlertTriangle class="size-4" /> Active Alerts
-						</CardTitle>
+		{:else}
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+				<Card class="md:col-span-2">
+					<CardHeader>
+						<CardTitle>LGA-Level Outbreak Heatmap</CardTitle>
+						<CardDescription>Consolidated reports mapped by Local Government Area</CardDescription>
 					</CardHeader>
-					<CardContent class="space-y-4">
-						{#each data.filter((d) => d.riskLevel === 'High') as alert}
-							<div class="p-3 border border-destructive/20 bg-destructive/5 rounded-lg text-sm">
-								<p class="font-bold text-destructive mb-1">{alert.lga}, {alert.state}</p>
-								<p class="text-muted-foreground">
-									Elevated risk of transmission. Monitoring recommended.
-								</p>
-							</div>
-						{/each}
-						{#if data.filter((d) => d.riskLevel === 'High').length === 0}
-							<p class="text-sm text-muted-foreground text-center py-4">No high-risk LGAs.</p>
-						{/if}
+					<CardContent class="p-0">
+						<p class="px-6 pt-4 pb-2 text-xs text-muted-foreground">
+							Counts are indicative keyword matches from encounter notes over the last 30 days, not
+							diagnoses.
+						</p>
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>Location (LGA)</TableHead>
+									<TableHead class="text-right">Malaria/Fever</TableHead>
+									<TableHead class="text-right">Cholera/Diarrhea</TableHead>
+									<TableHead class="text-right">Measles</TableHead>
+									<TableHead class="text-right">Typhoid</TableHead>
+									<TableHead class="text-right">Risk Level</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{#each data as lga (lga.lga)}
+									<TableRow>
+										<TableCell class="font-medium">
+											{lga.lga}, {lga.state}
+										</TableCell>
+										<TableCell class="text-right font-mono text-sm">{lga.cases.malaria}</TableCell>
+										<TableCell class="text-right font-mono text-sm">{lga.cases.cholera}</TableCell>
+										<TableCell class="text-right font-mono text-sm">{lga.cases.measles}</TableCell>
+										<TableCell class="text-right font-mono text-sm">{lga.cases.typhoid}</TableCell>
+										<TableCell class="text-right">
+											{#if lga.riskLevel === 'High'}
+												<Badge
+													class="bg-destructive hover:bg-destructive text-destructive-foreground"
+													>HIGH</Badge
+												>
+											{:else if lga.riskLevel === 'Medium'}
+												<Badge class="bg-amber-500 hover:bg-amber-600 text-white">MEDIUM</Badge>
+											{:else}
+												<Badge class="bg-green-500 hover:bg-green-600 text-white">LOW</Badge>
+											{/if}
+										</TableCell>
+									</TableRow>
+								{/each}
+							</TableBody>
+						</Table>
 					</CardContent>
 				</Card>
+
+				<div class="space-y-6">
+					<Card>
+						<CardHeader class="pb-3">
+							<CardTitle class="text-base flex items-center gap-2 text-destructive">
+								<AlertTriangle class="size-4" /> Active Alerts
+							</CardTitle>
+						</CardHeader>
+						<CardContent class="space-y-4">
+							{#each data.filter((d) => d.riskLevel === 'High') as alert (alert.lga)}
+								<div class="p-3 border border-destructive/20 bg-destructive/5 rounded-lg text-sm">
+									<p class="font-bold text-destructive mb-1">{alert.lga}, {alert.state}</p>
+									<p class="text-muted-foreground">
+										Elevated risk of transmission. Monitoring recommended.
+									</p>
+								</div>
+							{/each}
+							{#if data.filter((d) => d.riskLevel === 'High').length === 0}
+								<p class="text-sm text-muted-foreground text-center py-4">No high-risk LGAs.</p>
+							{/if}
+						</CardContent>
+					</Card>
+				</div>
 			</div>
-		</div>
+		{/if}
 	{/await}
 </div>
