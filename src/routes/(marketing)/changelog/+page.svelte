@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Tag, Calendar, Download, Sparkles, CheckCircle2 } from '@lucide/svelte';
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '#lib/components/ui/button';
 
 	const logEntries = [
 		{

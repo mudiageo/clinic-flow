@@ -1,5 +1,5 @@
 <script lang="ts">
-	import SectionHeader from '$lib/components/marketing/section-header.svelte';
+	import SectionHeader from '#lib/components/marketing/section-header.svelte';
 	import { ShieldCheck, Lock, HardDrive, KeyRound, EyeOff, FileText, CheckCircle2 } from '@lucide/svelte';
 </script>
 

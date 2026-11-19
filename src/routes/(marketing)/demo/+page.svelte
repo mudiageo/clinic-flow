@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Textarea } from '$lib/components/ui/textarea';
-	import { Label } from '$lib/components/ui/label';
-	import { submitInquiry } from '$lib/remote/contact.remote';
+	import { Button } from '#lib/components/ui/button';
+	import { Input } from '#lib/components/ui/input';
+	import { Textarea } from '#lib/components/ui/textarea';
+	import { Label } from '#lib/components/ui/label';
+	import { submitInquiry } from '#lib/remote/contact.remote';
 	import { CheckCircle2, Building2, Stethoscope, ShieldCheck, Sparkles, Send } from '@lucide/svelte';
 
 	let name = $state('');

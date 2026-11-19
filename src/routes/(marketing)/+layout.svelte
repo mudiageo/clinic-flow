@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '#lib/components/ui/button';
 	import { HeartPulse, Menu, X, ChevronDown } from '@lucide/svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 
 	let { children } = $props();
 
@@ -61,7 +61,7 @@
 	];
 
 	function isActive(href: string) {
-		return $page.url.pathname === href || $page.url.pathname.startsWith(href + '/');
+		return page.url.pathname === href || page.url.pathname.startsWith(href + '/');
 	}
 </script>
 

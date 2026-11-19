@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import SectionHeader from '$lib/components/marketing/section-header.svelte';
-	import AiDisclaimer from '$lib/components/ui/ai-disclaimer.svelte';
+	import { Button } from '#lib/components/ui/button';
+	import SectionHeader from '#lib/components/marketing/section-header.svelte';
+	import AiDisclaimer from '#lib/components/ui/ai-disclaimer.svelte';
 	import {
 		Activity,
 		Stethoscope,

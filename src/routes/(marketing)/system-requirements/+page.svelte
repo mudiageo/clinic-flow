@@ -1,7 +1,7 @@
 <script lang="ts">
-	import SectionHeader from '$lib/components/marketing/section-header.svelte';
+	import SectionHeader from '#lib/components/marketing/section-header.svelte';
 	import { Smartphone, Monitor, Wifi, Sun, CheckCircle2, AlertCircle } from '@lucide/svelte';
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '#lib/components/ui/button';
 </script>
 
 <svelte:head>

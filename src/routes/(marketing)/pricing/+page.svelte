@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import SectionHeader from '$lib/components/marketing/section-header.svelte';
+	import { Button } from '#lib/components/ui/button';
+	import SectionHeader from '#lib/components/marketing/section-header.svelte';
 	import { Check, HelpCircle, ArrowRight, ShieldCheck, Zap } from '@lucide/svelte';
 
 	const tiers = [

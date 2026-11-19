@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { AlertTriangle, Wifi, RotateCcw, ShieldAlert, CheckCircle2 } from '@lucide/svelte';
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '#lib/components/ui/button';
 
 	const issues = [
 		{

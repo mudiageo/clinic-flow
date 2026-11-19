@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Smartphone, Monitor, Wifi, CheckCircle2, Download, ArrowRight } from '@lucide/svelte';
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '#lib/components/ui/button';
 </script>
 
 <svelte:head>

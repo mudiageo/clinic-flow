@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import AwardBadge from '$lib/components/marketing/award-badge.svelte';
-	import StatTile from '$lib/components/marketing/stat-tile.svelte';
-	import SectionHeader from '$lib/components/marketing/section-header.svelte';
-	import FeatureCard from '$lib/components/marketing/feature-card.svelte';
-	import AiDisclaimer from '$lib/components/ui/ai-disclaimer.svelte';
+	import { Button } from '#lib/components/ui/button';
+	import AwardBadge from '#lib/components/marketing/award-badge.svelte';
+	import StatTile from '#lib/components/marketing/stat-tile.svelte';
+	import SectionHeader from '#lib/components/marketing/section-header.svelte';
+	import FeatureCard from '#lib/components/marketing/feature-card.svelte';
+	import AiDisclaimer from '#lib/components/ui/ai-disclaimer.svelte';
 	import {
 		ArrowRight,
 		WifiOff,

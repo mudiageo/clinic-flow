@@ -1,5 +1,5 @@
 <script lang="ts">
-	import ComingSoon from "$lib/components/marketing/coming-soon.svelte";
+	import ComingSoon from "#lib/components/marketing/coming-soon.svelte";
 </script>
 
 <svelte:head>

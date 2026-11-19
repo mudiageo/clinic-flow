@@ -1,5 +1,5 @@
 <script lang="ts">
-	import SectionHeader from '$lib/components/marketing/section-header.svelte';
+	import SectionHeader from '#lib/components/marketing/section-header.svelte';
 </script>
 
 <svelte:head>

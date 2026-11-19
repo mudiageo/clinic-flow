@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '#lib/components/ui/button';
 	import { Stethoscope, DollarSign, Clock, ShieldCheck, Zap, ArrowRight } from '@lucide/svelte';
 </script>
 

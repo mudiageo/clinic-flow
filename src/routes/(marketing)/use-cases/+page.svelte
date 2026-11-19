@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Syringe, Stethoscope, Building2, Baby, ArrowRight, CheckCircle2 } from '@lucide/svelte';
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '#lib/components/ui/button';
 
 	const useCases = [
 		{

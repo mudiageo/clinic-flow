@@ -1,7 +1,7 @@
 <script lang="ts">
-	import AwardBadge from '$lib/components/marketing/award-badge.svelte';
+	import AwardBadge from '#lib/components/marketing/award-badge.svelte';
 	import { MapPin, GraduationCap, Github, ExternalLink } from '@lucide/svelte';
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '#lib/components/ui/button';
 </script>
 
 <svelte:head>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '#lib/components/ui/button';
 	import { Globe2, FileCheck2, BarChart2, Shield, HeartHandshake, ArrowRight } from '@lucide/svelte';
 </script>
 
