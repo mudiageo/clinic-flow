@@ -1,5 +1,7 @@
 # ClinicFlow: Technical Implementation Roadmap
 
+> **Status:** aspirational phase plan — last verified 2026-11-19. Every item below is **Planned / not yet implemented** unless explicitly stated otherwise. The parts that are live today (the dual-dialect server, LAN discovery/routing, and durable versioned sync with a single shared realtime wake-up stream) are documented in `docs/Architecture-Implementation-Plan.md` and `docs/startup-wiki/07-Engineering-Guide.md`. This roadmap is preserved in full as the target design — nothing has been removed.
+
 This document outlines the step-by-step engineering plan to build the Multi-Tier Edge-to-Cloud architecture, incorporating the zero-config local server, CRDT sync, and SQLite edge storage.
 
 ## Phase 1: The Local Server Executable & SQLite
