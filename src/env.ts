@@ -23,6 +23,18 @@ export const variables = defineEnvVars({
 		description: 'Optional GitHub OAuth Application Client Secret credentials',
 		schema: v.optional(v.string())
 	},
+	GITHUB_TOKEN: {
+		description: 'Optional GitHub token used by the release publish adapter',
+		schema: v.optional(v.string())
+	},
+	NHIS_API_URL: {
+		description: 'Optional NHIS claims API base URL',
+		schema: v.optional(v.string())
+	},
+	NHIS_API_KEY: {
+		description: 'Optional NHIS claims API key',
+		schema: v.optional(v.string())
+	},
 	GEMINI_API_KEY: {
 		description: 'Google Gemini API Key for AI Voice Intake',
 		schema: v.optional(v.string())

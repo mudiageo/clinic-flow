@@ -1,4 +1,8 @@
-import { query } from '$app/server';
+import { command, getRequestEvent, query } from '$app/server';
+import * as v from 'valibot';
+import { requirePermission } from '#lib/server/permissions.ts';
+import { database, getTable } from '#lib/server/db/queries/_core.ts';
+import { publishRelease } from '#lib/server/integrations/github-provider.ts';
 
 const GITHUB_REPO = 'mudiageo/clinic-flow';
 const GITHUB_API = `https://api.github.com/repos/${GITHUB_REPO}/releases`;
@@ -131,3 +135,63 @@ export const getReleases = query(async () => {
 		};
 	}
 });
+
+/**
+ * Publishes a release through the GitHub adapter. The adapter reports its mode
+ * explicitly so the UI never presents a console-mode dry run as a real publish.
+ */
+export const publishAppRelease = command(
+	v.object({
+		tag: v.pipe(v.string(), v.minLength(1), v.maxLength(80)),
+		name: v.pipe(v.string(), v.minLength(1), v.maxLength(120)),
+		body: v.pipe(v.string(), v.maxLength(5000)),
+		prerelease: v.boolean(),
+		draft: v.boolean()
+	}),
+	async ({ tag, name, body, prerelease, draft }) => {
+		await requirePermission('manage:platform');
+
+		const result = await publishRelease({ tag, name, body, prerelease, draft });
+		if (!result.ok) throw new Error(result.error);
+
+		if (result.mode === 'live') {
+			// A real release was created; the next read must fetch fresh data.
+			cache = null;
+		}
+
+		const event = getRequestEvent();
+		if (event.locals.phcId) {
+			await database.insert(getTable('auditLog')).values({
+				phcId: event.locals.phcId,
+				staffId: event.locals.staffId ?? null,
+				action: 'release.publish',
+				entityType: 'release',
+				entityId: null,
+				metadata: JSON.stringify({
+					tag,
+					mode: result.mode,
+					reference: result.data.reference,
+					reason: result.mode === 'console' ? result.reason : null
+				}),
+				ip: null
+			});
+		} else {
+			// Platform-level actors have no PHC; keep an honest server-side trace.
+			console.info('[audit] release.publish', {
+				tag,
+				mode: result.mode,
+				reference: result.data.reference,
+				staffId: event.locals.staffId ?? null
+			});
+		}
+
+		return {
+			ok: true as const,
+			mode: result.mode,
+			tag: result.data.tag,
+			reference: result.data.reference,
+			url: result.data.url,
+			...(result.mode === 'console' ? { reason: result.reason } : {})
+		};
+	}
+);

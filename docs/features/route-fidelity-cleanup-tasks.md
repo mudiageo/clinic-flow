@@ -55,19 +55,19 @@
 - [x] **MK-04** `superadmin/system`: use `getServerStatus`; remove Math.random + fake error log
 - [x] **MK-05** `superadmin/billing`: implement remote/DB or add explicit "Demo" banner
 - [x] **MK-06** `superadmin/announcements`: implement broadcast remote/DB or add explicit "Demo" banner
-- [ ] **MK-07** `superadmin/releases`: use `getReleases`; wire Publish; remove video placeholder
+- [x] **MK-07** `superadmin/releases`: use `getReleases`; wire Publish; remove video placeholder
 - [x] **MK-08** `epidemiology.remote.ts`: replace `Math.random()` case data with real aggregation; add demo disclaimer until fixed
-- [ ] **MK-09** `admin/sync-health`: derive device log from sync state
+- [x] **MK-09** `admin/sync-health`: derive device log from sync state
 - [ ] **MK-10** `admin/reports/dhis2`: configurable UIDs with documented defaults
 - [ ] **NW-01** `admin/nhis-claims`: real submit remote; real claim status
 - [x] **NW-02** `admin/outbreak-radar`: real SMS remote; fix `FileSignature` import; remove false "Uses Termii" claim
 - [ ] **NW-03** `admin/settings`: real SMS-test remote
 - [x] **NW-04** `admin/audit`: implement `getAuditLog`; wire data + Filter button
-- [ ] **NW-05** `admin/devices`: wire Add Manually
+- [x] **NW-05** `admin/devices`: wire Add Manually
 - [ ] **NW-06** `superadmin/users`: reset-password + deactivate remotes
 - [ ] **NW-07** `superadmin/phcs/[id]`: sync status + deactivate + reset-data remotes
 - [ ] **NW-14** `admin/reminders`: replace `dispatchReminders` stub with real SMS dispatch
-- [ ] **NW-15** `superadmin/releases`: Publish + ExternalLink buttons
+- [x] **NW-15** `superadmin/releases`: Publish + ExternalLink buttons
 
 ## Phase F — Auth/onboarding/marketing polish (P1/P2)
 

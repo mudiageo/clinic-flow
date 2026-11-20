@@ -1,6 +1,6 @@
 <script lang="ts">
 	import SupportArticle from '#lib/components/ui/support-article.svelte';
-	import { ArrowRight, BookOpen, Stethoscope, Pill, Users } from '@lucide/svelte';
+	import { BookOpen, MonitorCog, Stethoscope, Pill, Users } from '@lucide/svelte';
 </script>
 
 <svelte:head>
@@ -63,6 +63,18 @@
 			<h3 class="font-semibold mb-2">Outbreak Radar</h3>
 			<p class="text-sm text-muted-foreground">
 				Understand multi-signal epidemiology forecasting and automated IDSR reporting.
+			</p>
+		</a>
+		<a
+			href="/support/admin-operations"
+			class="group relative rounded-lg border p-6 hover:bg-muted transition-colors"
+		>
+			<div class="mb-3 rounded-full bg-primary/10 w-fit p-2.5 text-primary">
+				<MonitorCog class="size-5" />
+			</div>
+			<h3 class="font-semibold mb-2">Admin &amp; Superadmin Operations</h3>
+			<p class="text-sm text-muted-foreground">
+				Publish releases, review real sync health, and register devices without demo data.
 			</p>
 		</a>
 	</div>

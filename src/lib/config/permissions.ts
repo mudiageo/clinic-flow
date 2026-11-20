@@ -60,6 +60,7 @@ export type PermissionKey =
 	| 'manage:triage_rules'
 	| 'manage:nhis'
 	| 'view:sms_inbox'
+	| 'view:sync_health'
 	// Global Platform
 	| 'manage:platform';
 

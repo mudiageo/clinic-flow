@@ -20,6 +20,10 @@
 				{ title: 'Doctor Consultation', href: '/support/dr-assist' },
 				{ title: 'Pharmacy Inventory', href: '/support/pharmacy' }
 			]
+		},
+		{
+			title: 'Administration',
+			links: [{ title: 'Admin & Superadmin Operations', href: '/support/admin-operations' }]
 		}
 	];
 </script>
@@ -32,11 +36,11 @@
 	>
 		<ScrollArea class="h-full py-6 pr-6 lg:py-8">
 			<div class="w-full">
-				{#each supportLinks as group}
+				{#each supportLinks as group (group.title)}
 					<div class="pb-4">
 						<h4 class="mb-1 rounded-md px-2 py-1 text-sm font-semibold">{group.title}</h4>
 						<div class="grid grid-flow-row auto-rows-max text-sm">
-							{#each group.links as link}
+							{#each group.links as link (link.href)}
 								<a
 									href={link.href}
 									class="group flex w-full items-center rounded-md border border-transparent px-2 py-1 hover:underline text-muted-foreground {page

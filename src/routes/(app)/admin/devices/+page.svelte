@@ -1,5 +1,10 @@
 <script lang="ts">
-	import { getDevices, updateDevice, removeDevice } from '#lib/remote/devices.remote.ts';
+	import {
+		getDevices,
+		registerDevice,
+		updateDevice,
+		removeDevice
+	} from '#lib/remote/devices.remote.ts';
 	import {
 		Card,
 		CardHeader,
@@ -9,6 +14,9 @@
 	} from '#lib/components/ui/card/index.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import * as Dialog from '#lib/components/ui/dialog/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
 	import {
 		Select,
 		SelectContent,
@@ -41,8 +49,20 @@
 		lastSyncAt: Date | string | null;
 	};
 
+	type DeviceRole = 'kiosk' | 'triage' | 'doctor_tablet' | 'pharmacy_terminal';
+
+	const deviceRoles: { value: DeviceRole; label: string }[] = [
+		{ value: 'kiosk', label: 'Kiosk' },
+		{ value: 'triage', label: 'Triage' },
+		{ value: 'doctor_tablet', label: 'Doctor tablet' },
+		{ value: 'pharmacy_terminal', label: 'Pharmacy terminal' }
+	];
+
 	let devices: Device[] = $state([]);
 	let isLoading = $state(true);
+	let registerDialogOpen = $state(false);
+	let registering = $state(false);
+	let newDeviceRole = $state<DeviceRole>('kiosk');
 
 	async function loadDevices() {
 		isLoading = true;
@@ -125,6 +145,33 @@
 				return 'bg-slate-500/20 text-slate-600 border-slate-500/50';
 		}
 	}
+
+	async function handleRegister(form: {
+		submit: () => Promise<boolean>;
+		element: HTMLFormElement;
+	}): Promise<void> {
+		registering = true;
+		try {
+			if (await form.submit()) {
+				if (registerDevice.result?.success) {
+					toast.success('Device registered and awaiting approval.');
+					registerDialogOpen = false;
+					form.element.reset();
+					registerDevice.fields.set({ name: '', role: 'kiosk' });
+					newDeviceRole = 'kiosk';
+					await loadDevices();
+				} else {
+					toast.error('The device could not be registered.');
+				}
+			} else {
+				toast.error('Enter a device name and select a role.');
+			}
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Failed to register device.');
+		} finally {
+			registering = false;
+		}
+	}
 </script>
 
 <svelte:head>
@@ -144,7 +191,7 @@
 			<Button variant="outline" class="w-full sm:w-auto" onclick={loadDevices}>
 				<RefreshCw class="size-4 mr-2 {isLoading ? 'animate-spin' : ''}" /> Refresh
 			</Button>
-			<Button class="w-full sm:w-auto">
+			<Button class="w-full sm:w-auto" onclick={() => (registerDialogOpen = true)}>
 				<Plus class="size-4 mr-2" /> Add Manually
 			</Button>
 		</div>
@@ -169,7 +216,7 @@
 	<!-- Devices List -->
 	<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
 		{#if isLoading && devices.length === 0}
-			{#each [1, 2, 3] as i}
+			{#each [1, 2, 3] as i (i)}
 				<Card class="opacity-50">
 					<CardHeader><div class="h-6 w-1/2 bg-muted rounded animate-pulse"></div></CardHeader>
 					<CardContent><div class="h-20 bg-muted rounded animate-pulse"></div></CardContent>
@@ -297,3 +344,63 @@
 		{/if}
 	</div>
 </div>
+
+<Dialog.Root bind:open={registerDialogOpen}>
+	<Dialog.Content class="sm:max-w-md">
+		<Dialog.Header>
+			<Dialog.Title>Add device manually</Dialog.Title>
+			<Dialog.Description>
+				Register a device without a pairing token. It will remain pending until you approve it.
+			</Dialog.Description>
+		</Dialog.Header>
+
+		<form class="space-y-4" {...registerDevice.enhance(handleRegister)}>
+			<div class="space-y-2">
+				<Label for="device-name">Device name</Label>
+				<Input
+					{...registerDevice.fields.name.as('text')}
+					id="device-name"
+					placeholder="Reception tablet"
+					maxlength={80}
+					required
+				/>
+				{#each registerDevice.fields.name.issues() ?? [] as issue (issue.message)}
+					<p class="text-xs text-destructive">{issue.message}</p>
+				{/each}
+			</div>
+			<div class="space-y-2">
+				<Label for="device-role">Role</Label>
+				<Select
+					type="single"
+					bind:value={newDeviceRole}
+					name={registerDevice.fields.role.as('select').name}
+				>
+					<SelectTrigger id="device-role" class="w-full">
+						{deviceRoles.find((role) => role.value === newDeviceRole)?.label ?? 'Select a role'}
+					</SelectTrigger>
+					<SelectContent>
+						{#each deviceRoles as role (role.value)}
+							<SelectItem value={role.value}>{role.label}</SelectItem>
+						{/each}
+					</SelectContent>
+				</Select>
+				{#each registerDevice.fields.role.issues() ?? [] as issue (issue.message)}
+					<p class="text-xs text-destructive">{issue.message}</p>
+				{/each}
+			</div>
+			<Dialog.Footer>
+				<Button
+					type="button"
+					variant="outline"
+					disabled={registering}
+					onclick={() => (registerDialogOpen = false)}
+				>
+					Cancel
+				</Button>
+				<Button type="submit" disabled={registering}>
+					{registering ? 'Adding…' : 'Add device'}
+				</Button>
+			</Dialog.Footer>
+		</form>
+	</Dialog.Content>
+</Dialog.Root>
