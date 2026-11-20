@@ -142,6 +142,7 @@ export const phcs = pgTable('phcs', {
 	// Feature Flags
 	maternalHealthEnabled: boolean('maternal_health_enabled').notNull().default(true),
 	immunizationEnabled: boolean('immunization_enabled').notNull().default(true),
+	coldChainEnabled: boolean('cold_chain_enabled').notNull().default(true),
 	aiVoiceEnabled: boolean('ai_voice_enabled').notNull().default(true),
 	outbreakDetectionEnabled: boolean('outbreak_detection_enabled').notNull().default(true),
 	twoWaySmsEnabled: boolean('two_way_sms_enabled').notNull().default(true),
@@ -475,6 +476,8 @@ export const pharmacyInventory = pgTable(
 		itemName: varchar('item_name', { length: 160 }).notNull(),
 		category: varchar('category', { length: 60 }), // 'antimalarial' | 'arv' | 'vaccine' | 'family_planning' | 'other'
 		unit: varchar('unit', { length: 30 }).notNull(), // 'tablet' | 'vial' | 'dose' | 'sachet'
+		batchNumber: varchar('batch_number', { length: 80 }),
+		expiryDate: timestamp('expiry_date', { mode: 'date' }),
 		currentStock: integer('current_stock').notNull().default(0),
 		lowStockThreshold: integer('low_stock_threshold').notNull().default(10),
 		isCritical: boolean('is_critical').notNull().default(false),
@@ -606,6 +609,61 @@ export const appointments = pgTable(
 	})
 );
 
+export const immunizationRecords = pgTable(
+	'immunization_records',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		phcId: uuid('phc_id')
+			.notNull()
+			.references(() => phcs.id),
+		patientId: uuid('patient_id')
+			.notNull()
+			.references(() => patients.id),
+		appointmentId: uuid('appointment_id').references(() => appointments.id),
+		vaccineName: varchar('vaccine_name', { length: 120 }).notNull(),
+		doseNumber: integer('dose_number').notNull(),
+		administeredAt: timestamp('administered_at', { withTimezone: true }).notNull(),
+		batchNumber: varchar('batch_number', { length: 80 }),
+		expiryDate: timestamp('expiry_date', { mode: 'date' }),
+		route: varchar('route', { length: 40 }),
+		recordedByStaffId: uuid('recorded_by_staff_id')
+			.notNull()
+			.references(() => staff.id),
+		correctionOf: uuid('correction_of'),
+		notes: text('notes'),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(table) => ({
+		phcIdx: index('immunization_records_phc_idx').on(table.phcId),
+		patientIdx: index('immunization_records_patient_idx').on(table.patientId),
+		administeredAtIdx: index('immunization_records_administered_at_idx').on(table.administeredAt)
+	})
+);
+
+export const temperatureLogs = pgTable(
+	'temperature_logs',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		phcId: uuid('phc_id')
+			.notNull()
+			.references(() => phcs.id),
+		fridgeLabel: varchar('fridge_label', { length: 80 }).notNull(),
+		temperatureCelsius: real('temperature_celsius').notNull(),
+		recordedAt: timestamp('recorded_at', { withTimezone: true }).notNull(),
+		recordedByStaffId: uuid('recorded_by_staff_id')
+			.notNull()
+			.references(() => staff.id),
+		notes: text('notes'),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(table) => ({
+		phcIdx: index('temperature_logs_phc_idx').on(table.phcId),
+		recordedAtIdx: index('temperature_logs_recorded_at_idx').on(table.recordedAt)
+	})
+);
+
 // ─────────────────────────────────────────────────────────────
 // SYNC INFRASTRUCTURE (server-side mirror of client syncLog concept)
 // ─────────────────────────────────────────────────────────────
@@ -721,6 +779,7 @@ export const patientsRelations = relations(patients, ({ one, many }) => ({
 	reminders: many(reminders),
 	appointments: many(appointments),
 	pregnancyRecords: many(pregnancyRecords),
+	immunizationRecords: many(immunizationRecords),
 	smsMessages: many(smsInbox)
 }));
 
@@ -731,6 +790,8 @@ export const staffRelations = relations(staff, ({ many, one }) => ({
 	appointments: many(appointments, { relationName: 'assignedStaff' }),
 	createdAnnouncements: many(announcements, { relationName: 'announcementCreator' }),
 	recordedOutreach: many(outreachRecords, { relationName: 'outreachRecorder' }),
+	recordedImmunizations: many(immunizationRecords),
+	recordedTemperatures: many(temperatureLogs),
 	announcementReceipts: many(announcementReceipts)
 }));
 
@@ -741,7 +802,9 @@ export const phcsRelations = relations(phcs, ({ many }) => ({
 	outreachRecords: many(outreachRecords),
 	permissions: many(permissions),
 	smsMessages: many(smsInbox),
-	targetedAnnouncements: many(announcements)
+	targetedAnnouncements: many(announcements),
+	immunizationRecords: many(immunizationRecords),
+	temperatureLogs: many(temperatureLogs)
 }));
 
 export const permissionsRelations = relations(permissions, ({ one }) => ({
@@ -776,6 +839,27 @@ export const appointmentsRelations = relations(appointments, ({ one }) => ({
 		fields: [appointments.assignedStaffId],
 		references: [staff.id],
 		relationName: 'assignedStaff'
+	})
+}));
+
+export const immunizationRecordsRelations = relations(immunizationRecords, ({ one }) => ({
+	patient: one(patients, { fields: [immunizationRecords.patientId], references: [patients.id] }),
+	phc: one(phcs, { fields: [immunizationRecords.phcId], references: [phcs.id] }),
+	appointment: one(appointments, {
+		fields: [immunizationRecords.appointmentId],
+		references: [appointments.id]
+	}),
+	recordedBy: one(staff, {
+		fields: [immunizationRecords.recordedByStaffId],
+		references: [staff.id]
+	})
+}));
+
+export const temperatureLogsRelations = relations(temperatureLogs, ({ one }) => ({
+	phc: one(phcs, { fields: [temperatureLogs.phcId], references: [phcs.id] }),
+	recordedBy: one(staff, {
+		fields: [temperatureLogs.recordedByStaffId],
+		references: [staff.id]
 	})
 }));
 

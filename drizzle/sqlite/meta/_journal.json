@@ -43,6 +43,13 @@
       "when": 1795007696715,
       "tag": "0005_cross-device-sync-reliability",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1795160044661,
+      "tag": "0006_magenta_domino",
+      "breakpoints": true
     }
   ]
 }

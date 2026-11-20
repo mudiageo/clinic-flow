@@ -70,4 +70,26 @@ describe('tenant scope', () => {
 			})
 		).toBe('tenant-scope-mismatch');
 	});
+
+	it('rejects cross-PHC writes for clinical records', () => {
+		for (const entityType of ['immunizationRecords', 'temperatureLogs']) {
+			expect(resolvesViaPatient(entityType)).toBe(false);
+			expect(
+				checkTenantScope({
+					entityType,
+					existingPhcId: 'other-phc',
+					patientPhcId: null,
+					sessionPhcId
+				})
+			).toBe('tenant-scope-mismatch');
+			expect(
+				checkTenantScope({
+					entityType,
+					existingPhcId: undefined,
+					patientPhcId: null,
+					sessionPhcId
+				})
+			).toBe('ok');
+		}
+	});
 });

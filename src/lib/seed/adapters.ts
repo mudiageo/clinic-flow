@@ -23,12 +23,16 @@ export const SYNC_ENTITY_TABLE: Record<string, string> = {
 	pregnancyRecords: 'pregnancy_records',
 	staff: 'staff',
 	families: 'families',
-	outreachRecords: 'outreach_records'
+	outreachRecords: 'outreach_records',
+	immunizationRecords: 'immunization_records',
+	temperatureLogs: 'temperature_logs'
 };
 
 const PUSH_DATE_FIELDS = new Set([
 	'dob',
 	'recordedAt',
+	'administeredAt',
+	'expiryDate',
 	'calledAt',
 	'completedAt',
 	'visitDate',
@@ -48,6 +52,8 @@ const PUSH_DATE_FIELDS = new Set([
 const PULL_DATE_FIELDS = new Set([
 	'dob',
 	'recordedAt',
+	'administeredAt',
+	'expiryDate',
 	'calledAt',
 	'completedAt',
 	'visitDate',

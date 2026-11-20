@@ -44,7 +44,7 @@
 
 - [x] **MK-01** `maternity`: remove fake admissions; wire `pregnancyStore`/`patientStore`; wire Admit/Vitals actions
 - [x] **MK-02** `immunization`: remove fake roster; bind search; wire Record action
-- [ ] **MK-03** `pharmacy/cold-chain`: fake temps/vaccines removed and real vaccine stock wired; cold-chain store/remote + Log Temperature still pending (see the clinical data models feature)
+- [x] **MK-03** `pharmacy/cold-chain`: fake temps/vaccines removed; real vaccine stock, temperature log store/remote, Log Temperature, batch/expiry and excursion warnings wired (see the clinical data models feature)
 - [ ] **NW-08** `families/[id]`: implement Register Newborn + Add Relative
 - [ ] **NW-09** `doctor/consult`: wire referral-tab Generate Referral; fix mobile pane placeholder
 - [ ] **NW-10** `doctor/referral/print`: real SMS remote + session-based signature

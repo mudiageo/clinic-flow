@@ -111,6 +111,7 @@ export const updatePhcSettings = command(
 		dailyPatientCapacity: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(10_000)),
 		maternalHealthEnabled: v.boolean(),
 		immunizationEnabled: v.boolean(),
+		coldChainEnabled: v.boolean(),
 		aiVoiceEnabled: v.boolean(),
 		outbreakDetectionEnabled: v.boolean(),
 		twoWaySmsEnabled: v.boolean(),

@@ -47,6 +47,7 @@
 
 	let maternalHealthEnabled = $derived(data.settings?.maternalHealthEnabled ?? true);
 	let immunizationEnabled = $derived(data.settings?.immunizationEnabled ?? true);
+	let coldChainEnabled = $derived(data.settings?.coldChainEnabled ?? true);
 	let aiVoiceEnabled = $derived(data.settings?.aiVoiceEnabled ?? true);
 	let outbreakDetectionEnabled = $derived(data.settings?.outbreakDetectionEnabled ?? true);
 	let twoWaySmsEnabled = $derived(data.settings?.twoWaySmsEnabled ?? true);
@@ -72,6 +73,7 @@
 				dailyPatientCapacity: Number(dailyPatientCapacity),
 				maternalHealthEnabled,
 				immunizationEnabled,
+				coldChainEnabled,
 				aiVoiceEnabled,
 				outbreakDetectionEnabled,
 				twoWaySmsEnabled,
@@ -90,6 +92,7 @@
 					dailyPatientCapacity: Number(dailyPatientCapacity),
 					maternalHealthEnabled,
 					immunizationEnabled,
+					coldChainEnabled,
 					aiVoiceEnabled,
 					outbreakDetectionEnabled,
 					twoWaySmsEnabled,
@@ -279,6 +282,15 @@
 						</p>
 					</div>
 					<Switch bind:checked={immunizationEnabled} />
+				</div>
+				<div class="flex items-center justify-between">
+					<div class="space-y-0.5">
+						<Label class="text-base">Cold Chain</Label>
+						<p class="text-sm text-muted-foreground">
+							Enable vaccine temperature logging and batch/expiry tracking.
+						</p>
+					</div>
+					<Switch bind:checked={coldChainEnabled} />
 				</div>
 				<div class="flex items-center justify-between">
 					<div class="space-y-0.5">

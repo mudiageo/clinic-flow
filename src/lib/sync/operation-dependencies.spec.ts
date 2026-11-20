@@ -26,6 +26,20 @@ describe('orderOperationsForDependencies', () => {
 		]);
 	});
 
+	it('pushes appointments before immunizations that reference them', () => {
+		const operations = [
+			op('immunizationRecords', { entityId: 'immunization-1' }),
+			op('patients', { entityId: 'patient-1' }),
+			op('appointments', { entityId: 'appointment-1' })
+		];
+
+		expect(orderOperationsForDependencies(operations).map((entry) => entry.entityId)).toEqual([
+			'patient-1',
+			'appointment-1',
+			'immunization-1'
+		]);
+	});
+
 	it('keeps the original order inside the same rank', () => {
 		const operations = [
 			op('vitalsRecords', { entityId: 'vitals-1' }),

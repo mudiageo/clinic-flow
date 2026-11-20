@@ -32,6 +32,7 @@ export type PermissionKey =
 	| 'view:inventory'
 	| 'manage:dispensing'
 	| 'view:cold_chain'
+	| 'manage:cold_chain'
 	| 'manage:restock'
 	| 'view:prescriptions'
 
@@ -178,6 +179,11 @@ export const PERMISSION_DESCRIPTIONS: Record<
 	'view:cold_chain': {
 		label: 'View Cold Chain',
 		description: 'View cold chain vaccine tracker',
+		category: 'Pharmacy & Inventory'
+	},
+	'manage:cold_chain': {
+		label: 'Manage Cold Chain',
+		description: 'Log vaccine fridge temperatures and update batch/expiry details',
 		category: 'Pharmacy & Inventory'
 	},
 	'manage:restock': {

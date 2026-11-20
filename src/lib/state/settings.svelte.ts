@@ -8,6 +8,7 @@ export type PhcSettings = {
 	dailyPatientCapacity: number;
 	maternalHealthEnabled: boolean;
 	immunizationEnabled: boolean;
+	coldChainEnabled: boolean;
 	aiVoiceEnabled: boolean;
 	outbreakDetectionEnabled: boolean;
 	twoWaySmsEnabled: boolean;
@@ -27,6 +28,7 @@ const DEFAULT_SETTINGS: PhcSettings = {
 	dailyPatientCapacity: 100,
 	maternalHealthEnabled: true,
 	immunizationEnabled: true,
+	coldChainEnabled: true,
 	aiVoiceEnabled: true,
 	outbreakDetectionEnabled: true,
 	twoWaySmsEnabled: true,
@@ -74,6 +76,7 @@ class SettingsStore {
 					dailyPatientCapacity: serverSettings.dailyPatientCapacity ?? 100,
 					maternalHealthEnabled: serverSettings.maternalHealthEnabled,
 					immunizationEnabled: serverSettings.immunizationEnabled,
+					coldChainEnabled: serverSettings.coldChainEnabled ?? true,
 					aiVoiceEnabled: serverSettings.aiVoiceEnabled,
 					outbreakDetectionEnabled: serverSettings.outbreakDetectionEnabled,
 					twoWaySmsEnabled: serverSettings.twoWaySmsEnabled,

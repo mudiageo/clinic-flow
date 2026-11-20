@@ -29,7 +29,9 @@ export const ENCOUNTER_LINKED_ENTITIES = new Set([
 
 const DEPENDENCY_RANK: Record<string, number> = {
 	patients: 0,
-	encounters: 1
+	encounters: 1,
+	// Immunizations may reference an appointment created in the same batch.
+	immunizationRecords: 3
 };
 
 /**

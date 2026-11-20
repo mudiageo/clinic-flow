@@ -6,6 +6,12 @@ import { database, getTable } from '#lib/server/db/queries/_core.ts';
 import { toClientRow, toServerRow, SYNC_ENTITY_TABLE } from '#lib/seed/adapters.ts';
 import { realtimeHub, syncTopics } from '#lib/server/realtime/hub.ts';
 import { canWriteOutreach, normalizeOutreachPayload } from '#lib/outreach/policy.ts';
+import {
+	canWriteClinical,
+	clinicalFeatureEnabled,
+	clinicalWritePolicy,
+	normalizeClinicalPayload
+} from '#lib/clinical/policy.ts';
 import { appendSyncOperation } from '#lib/server/sync/outbox.ts';
 import { finalizeChangeBatch } from '#lib/sync/change-feed.ts';
 import { checkTenantScope, resolvesViaPatient } from '#lib/sync/tenant-scope.ts';
@@ -37,7 +43,9 @@ const tableMap: Record<string, ReturnType<typeof getTable>> = {
 	pregnancyRecords: getTable('pregnancyRecords'),
 	staff,
 	families: getTable('families'),
-	outreachRecords: getTable('outreachRecords')
+	outreachRecords: getTable('outreachRecords'),
+	immunizationRecords: getTable('immunizationRecords'),
+	temperatureLogs: getTable('temperatureLogs')
 };
 
 interface ServerSyncChange {
@@ -172,6 +180,17 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 		}
 	}
 
+	// Feature flags are authoritative on the server. A client cannot enable a
+	// disabled clinical module by skipping its own feature check.
+	const [featureFlags] = await database
+		.select({
+			immunizationEnabled: phcs.immunizationEnabled,
+			coldChainEnabled: phcs.coldChainEnabled
+		})
+		.from(phcs)
+		.where(eq(phcs.id, sessionPhcId))
+		.limit(1);
+
 	const accepted: number[] = [];
 	const acceptedVersions: AcceptedVersion[] = [];
 	const conflicts: unknown[] = [];
@@ -195,6 +214,18 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 
 		if (op.entityType === 'outreachRecords' && !canWriteOutreach(locals.role, locals.permissions)) {
 			conflicts.push({ localId: op.localId, reason: 'missing-outreach-permission' });
+			continue;
+		}
+
+		// Clinical records require both a permission and an enabled feature flag.
+		// This is the authoritative gate; client-side flags are not authorization.
+		const clinicalPermissionOk = canWriteClinical(op.entityType, locals.role, locals.permissions);
+		const clinicalFlagOk = clinicalFeatureEnabled(op.entityType, featureFlags);
+		if (!clinicalPermissionOk || !clinicalFlagOk) {
+			conflicts.push({
+				localId: op.localId,
+				reason: !clinicalPermissionOk ? 'missing-clinical-permission' : 'clinical-feature-disabled'
+			});
 			continue;
 		}
 
@@ -359,6 +390,30 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 			}
 			payload.phcId = sessionPhcId;
 			payload.recordedByStaffId = existing?.recordedByStaffId ?? locals.staffId;
+		}
+		// Clinical records must be attributed to the signed-in staff member and
+		// validated before they reach the database. Neither the recorder identity
+		// nor the clinical values are trusted from the client.
+		if (clinicalWritePolicy(op.entityType)) {
+			if (!locals.staffId) {
+				conflicts.push({ localId: op.localId, reason: 'missing-staff-identity' });
+				continue;
+			}
+			const normalized = normalizeClinicalPayload(
+				op.entityType,
+				payload,
+				op.operation === 'update'
+			);
+			if (!normalized) {
+				conflicts.push({ localId: op.localId, reason: 'invalid-clinical-payload' });
+				continue;
+			}
+			payload = {
+				...payload,
+				...normalized,
+				phcId: sessionPhcId,
+				recordedByStaffId: existing?.recordedByStaffId ?? locals.staffId
+			};
 		}
 		// Compatibility shim: map client field names/types to the server row.
 		// See docs/data-model/client-server-field-mapping.md.
@@ -686,6 +741,7 @@ export const updatePhcSettings = command(
 			),
 			maternalHealthEnabled: v.optional(v.boolean()),
 			immunizationEnabled: v.optional(v.boolean()),
+			coldChainEnabled: v.optional(v.boolean()),
 			aiVoiceEnabled: v.optional(v.boolean()),
 			outbreakDetectionEnabled: v.optional(v.boolean()),
 			twoWaySmsEnabled: v.optional(v.boolean()),

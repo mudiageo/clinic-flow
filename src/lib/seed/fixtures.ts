@@ -744,6 +744,9 @@ export function buildFixtures(profile: PhcProfile, now = Date.now()): FixtureSet
 			itemName: item.name,
 			category: item.category,
 			unit: item.unit,
+			// No fabricated clinical batch/expiry data in seed fixtures.
+			batchNumber: null,
+			expiryDate: null,
 			currentStock: stock,
 			lowStockThreshold: item.threshold,
 			isCritical: item.critical,

@@ -103,11 +103,47 @@ export interface LocalPharmacyInventory {
 	itemName: string;
 	category: string | null;
 	unit: string;
+	batchNumber: string | null;
+	expiryDate: number | null;
 	currentStock: number;
 	lowStockThreshold: number;
 	isCritical: boolean;
 	syncStatus: 'synced' | 'pending' | 'conflict';
 	updatedAt: number;
+}
+
+export interface LocalImmunizationRecord {
+	id: string;
+	phcId: string;
+	patientId: string;
+	appointmentId: string | null;
+	vaccineName: string;
+	doseNumber: number;
+	administeredAt: number;
+	batchNumber: string | null;
+	expiryDate: number | null;
+	route: string | null;
+	recordedByStaffId: string;
+	correctionOf: string | null;
+	notes: string | null;
+	createdAt: number;
+	syncStatus: 'synced' | 'pending' | 'conflict';
+	updatedAt: number;
+	serverUpdatedAt: number | null;
+}
+
+export interface LocalTemperatureLog {
+	id: string;
+	phcId: string;
+	fridgeLabel: string;
+	temperatureCelsius: number;
+	recordedAt: number;
+	recordedByStaffId: string;
+	notes: string | null;
+	createdAt: number;
+	syncStatus: 'synced' | 'pending' | 'conflict';
+	updatedAt: number;
+	serverUpdatedAt: number | null;
 }
 
 export interface LocalSyncOperation {
@@ -124,7 +160,10 @@ export interface LocalSyncOperation {
 		| 'reminders'
 		| 'labRequests'
 		| 'appointments'
-		| 'outreachRecords';
+		| 'outreachRecords'
+		| 'pregnancyRecords'
+		| 'immunizationRecords'
+		| 'temperatureLogs';
 	entityId: string;
 	operation: 'INSERT' | 'UPDATE' | 'DELETE';
 	payload: unknown;
@@ -342,6 +381,8 @@ class ClinicFlowDB extends Dexie {
 	announcements!: Table<LocalAnnouncement, string>;
 	announcementReceiptQueue!: Table<LocalAnnouncementReceiptOperation, number>;
 	outreachRecords!: Table<LocalOutreachRecord, string>;
+	immunizationRecords!: Table<LocalImmunizationRecord, string>;
+	temperatureLogs!: Table<LocalTemperatureLog, string>;
 
 	constructor() {
 		super('clinicflow');
@@ -418,6 +459,11 @@ class ClinicFlowDB extends Dexie {
 						entry.baseVersion ??= 0;
 					});
 			});
+		this.version(11).stores({
+			immunizationRecords:
+				'id, phcId, patientId, appointmentId, administeredAt, syncStatus, updatedAt',
+			temperatureLogs: 'id, phcId, recordedAt, syncStatus, updatedAt'
+		});
 	}
 }
 

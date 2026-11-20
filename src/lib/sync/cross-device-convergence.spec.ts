@@ -149,4 +149,34 @@ describe('cross-device convergence', () => {
 		expect(outsider.records.size).toBe(0);
 		expect(outsider.cursor).toBe(0);
 	});
+
+	it('converges immunization and temperature records and isolates other PHCs', async () => {
+		const feed = new DurableTestFeed();
+		const nurse = new TestClient('nurse-device', 'phc-one', feed);
+		const pharmacy = new TestClient('pharmacy-device', 'phc-one', feed);
+		const outsider = new TestClient('outside-device', 'phc-two', feed);
+		const entities = [
+			['immunizationRecords', 'immunization-1', { vaccineName: 'BCG', doseNumber: 1 }],
+			['temperatureLogs', 'temperature-1', { temperatureCelsius: 4.1 }]
+		] as const;
+
+		for (const [entityType, entityId, value] of entities) {
+			nurse.mutate({
+				operationId: `clinical:${entityId}`,
+				entityType,
+				entityId,
+				value
+			});
+		}
+
+		await pharmacy.catchUp();
+		await outsider.catchUp();
+
+		for (const [entityType, entityId, value] of entities) {
+			expect(pharmacy.records.get(`${entityType}:${entityId}`)).toEqual(value);
+			expect(outsider.records.get(`${entityType}:${entityId}`)).toBeUndefined();
+		}
+		expect(pharmacy.cursor).toBe(2);
+		expect(outsider.cursor).toBe(0);
+	});
 });

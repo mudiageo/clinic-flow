@@ -38,7 +38,9 @@
 				currentStock,
 				lowStockThreshold,
 				unit,
-				isCritical
+				isCritical,
+				batchNumber: null,
+				expiryDate: null
 			});
 			toast.success('Inventory item added successfully.');
 			goto('/pharmacy');
