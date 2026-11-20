@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { getAllUsers } from '#lib/remote/superadmin.remote.ts';
+	import { refreshAll } from '$app/navigation';
+	import { toast } from 'svelte-sonner';
+	import { deactivateUser, getAllUsers, resetUserPassword } from '#lib/remote/superadmin.remote.ts';
 	import {
 		Card,
 		CardContent,
@@ -16,10 +18,12 @@
 		TableRow
 	} from '#lib/components/ui/table/index.ts';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
-	import { Users, Search, MoreHorizontal } from '@lucide/svelte';
-	import { Input } from '#lib/components/ui/input/index.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
+	import * as Dialog from '#lib/components/ui/dialog/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
 	import * as DropdownMenu from '#lib/components/ui/dropdown-menu/index.ts';
+	import { KeyRound, Loader2, MoreHorizontal, PowerOff, Search, Users } from '@lucide/svelte';
 
 	let searchTerm = $state('');
 
@@ -32,6 +36,14 @@
 		phcName?: string | null;
 	};
 
+	let resetDialogOpen = $state(false);
+	let deactivateDialogOpen = $state(false);
+	let resetTarget = $state<DirectoryUser | null>(null);
+	let deactivateTarget = $state<DirectoryUser | null>(null);
+	let newPassword = $state('');
+	let confirmPassword = $state('');
+	let submitting = $state(false);
+
 	function filterUsers(users: DirectoryUser[]) {
 		if (!searchTerm) return users;
 		const lower = searchTerm.toLowerCase();
@@ -42,6 +54,71 @@
 				(u.phcName ?? '').toLowerCase().includes(lower) ||
 				u.role.toLowerCase().includes(lower)
 		);
+	}
+
+	function openResetDialog(user: DirectoryUser): void {
+		resetTarget = user;
+		newPassword = '';
+		confirmPassword = '';
+		resetDialogOpen = true;
+	}
+
+	function openActiveDialog(user: DirectoryUser): void {
+		deactivateTarget = user;
+		deactivateDialogOpen = true;
+	}
+
+	async function handleResetPassword(): Promise<void> {
+		if (!resetTarget || submitting) return;
+		if (newPassword.length < 12) {
+			toast.error('The new password must be at least 12 characters.');
+			return;
+		}
+		if (newPassword !== confirmPassword) {
+			toast.error('The new password and confirmation do not match.');
+			return;
+		}
+
+		const target = resetTarget;
+		submitting = true;
+		try {
+			await resetUserPassword({ userId: target.id, newPassword });
+			toast.success(
+				`Password reset for ${target.name}. All of their sessions have been signed out.`
+			);
+			resetDialogOpen = false;
+			resetTarget = null;
+			newPassword = '';
+			confirmPassword = '';
+			await refreshAll();
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Unable to reset the password.');
+		} finally {
+			submitting = false;
+		}
+	}
+
+	async function handleSetActive(): Promise<void> {
+		if (!deactivateTarget || submitting) return;
+
+		const target = deactivateTarget;
+		const nextActive = !target.active;
+		submitting = true;
+		try {
+			await deactivateUser({ userId: target.id, active: nextActive });
+			toast.success(
+				nextActive
+					? `${target.name} has been reactivated.`
+					: `${target.name} has been deactivated and all sessions revoked.`
+			);
+			deactivateDialogOpen = false;
+			deactivateTarget = null;
+			await refreshAll();
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Unable to update the user status.');
+		} finally {
+			submitting = false;
+		}
 	}
 </script>
 
@@ -123,9 +200,17 @@
 										</DropdownMenu.Trigger>
 										<DropdownMenu.Content align="end">
 											<DropdownMenu.Label>Actions</DropdownMenu.Label>
-											<DropdownMenu.Item>Reset Password</DropdownMenu.Item>
-											<DropdownMenu.Item class="text-destructive">Deactivate User</DropdownMenu.Item
+											<DropdownMenu.Item onSelect={() => openResetDialog(user)}>
+												<KeyRound class="size-4 mr-2" />
+												Reset Password
+											</DropdownMenu.Item>
+											<DropdownMenu.Item
+												class="text-destructive cursor-pointer focus:text-destructive"
+												onSelect={() => openActiveDialog(user)}
 											>
+												<PowerOff class="size-4 mr-2" />
+												{user.active ? 'Deactivate User' : 'Reactivate User'}
+											</DropdownMenu.Item>
 										</DropdownMenu.Content>
 									</DropdownMenu.Root>
 								</TableCell>
@@ -143,3 +228,103 @@
 		</CardContent>
 	</Card>
 </div>
+
+<Dialog.Root bind:open={resetDialogOpen}>
+	<Dialog.Content class="sm:max-w-md">
+		<Dialog.Header>
+			<Dialog.Title class="flex items-center gap-2 text-destructive">
+				<KeyRound class="size-5" />
+				Reset password for {resetTarget?.name ?? 'user'}
+			</Dialog.Title>
+			<Dialog.Description>
+				Choose a new password of at least 12 characters. This action immediately signs the user out
+				of every active session; they must sign in again with the new password.
+			</Dialog.Description>
+		</Dialog.Header>
+		<div class="space-y-4 py-2">
+			<div class="space-y-2">
+				<Label for="superadmin-new-password">New password</Label>
+				<Input
+					id="superadmin-new-password"
+					type="password"
+					autocomplete="new-password"
+					minlength={12}
+					bind:value={newPassword}
+				/>
+				<p class="text-xs text-muted-foreground">Minimum 12 characters.</p>
+			</div>
+			<div class="space-y-2">
+				<Label for="superadmin-confirm-password">Confirm new password</Label>
+				<Input
+					id="superadmin-confirm-password"
+					type="password"
+					autocomplete="new-password"
+					bind:value={confirmPassword}
+				/>
+				{#if confirmPassword && newPassword !== confirmPassword}
+					<p class="text-xs text-destructive">Passwords do not match.</p>
+				{/if}
+			</div>
+		</div>
+		<Dialog.Footer>
+			<Button variant="outline" disabled={submitting} onclick={() => (resetDialogOpen = false)}>
+				Cancel
+			</Button>
+			<Button
+				variant="destructive"
+				disabled={submitting || newPassword.length < 12 || newPassword !== confirmPassword}
+				onclick={handleResetPassword}
+			>
+				{#if submitting}
+					<Loader2 class="size-4 mr-2 animate-spin" />
+					Resetting…
+				{:else}
+					Reset password
+				{/if}
+			</Button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
+
+<Dialog.Root bind:open={deactivateDialogOpen}>
+	<Dialog.Content class="sm:max-w-md">
+		<Dialog.Header>
+			<Dialog.Title class="flex items-center gap-2 text-destructive">
+				<PowerOff class="size-5" />
+				{deactivateTarget?.active ? 'Deactivate' : 'Reactivate'}
+				{deactivateTarget?.name ?? 'user'}
+			</Dialog.Title>
+			<Dialog.Description>
+				{#if deactivateTarget?.active}
+					This immediately revokes all active sessions for this user and blocks sign-in until an
+					authorised admin reactivates the account. Continue only if this access should be stopped
+					now.
+				{:else}
+					This restores the user's access. They will need to sign in again before they can use the
+					system.
+				{/if}
+			</Dialog.Description>
+		</Dialog.Header>
+		<Dialog.Footer>
+			<Button
+				variant="outline"
+				disabled={submitting}
+				onclick={() => (deactivateDialogOpen = false)}
+			>
+				Cancel
+			</Button>
+			<Button
+				variant={deactivateTarget?.active ? 'destructive' : 'default'}
+				disabled={submitting}
+				onclick={handleSetActive}
+			>
+				{#if submitting}
+					<Loader2 class="size-4 mr-2 animate-spin" />
+					Working…
+				{:else}
+					{deactivateTarget?.active ? 'Deactivate user' : 'Reactivate user'}
+				{/if}
+			</Button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>

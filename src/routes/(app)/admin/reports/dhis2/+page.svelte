@@ -2,8 +2,20 @@
 	import { patientStore } from '#lib/state/patients.svelte.ts';
 	import { encounterStore } from '#lib/state/encounters.svelte.ts';
 	import { vitalsStore } from '#lib/state/vitals.svelte.ts';
+	import { getDhis2Config, updateDhis2Config } from '#lib/remote/dhis2.remote.ts';
+	import { DHIS2_DEFAULT_UIDS, type Dhis2UidKey } from '#lib/config/dhis2.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import {
+		Dialog,
+		DialogContent,
+		DialogHeader,
+		DialogTitle,
+		DialogDescription,
+		DialogFooter
+	} from '#lib/components/ui/dialog/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
 	import {
 		Card,
 		CardHeader,
@@ -12,10 +24,85 @@
 		CardDescription
 	} from '#lib/components/ui/card/index.ts';
 	import { toast } from 'svelte-sonner';
-	import { Download, FileJson, AlertTriangle } from '@lucide/svelte';
+	import {
+		Download,
+		FileJson,
+		AlertTriangle,
+		Settings2,
+		CheckCircle2,
+		Save,
+		Loader2
+	} from '@lucide/svelte';
 
+	type Dhis2Draft = Record<Dhis2UidKey, string>;
+
+	const UID_FIELDS: { key: Dhis2UidKey; label: string }[] = [
+		{ key: 'dataSetUid', label: 'Dataset UID' },
+		{ key: 'orgUnitUid', label: 'Organisation unit UID' },
+		{ key: 'totalPatientsUid', label: 'Total patients data element UID' },
+		{ key: 'totalEncountersUid', label: 'Total encounters data element UID' },
+		{ key: 'patientsMaleUid', label: 'Male patients data element UID' },
+		{ key: 'patientsFemaleUid', label: 'Female patients data element UID' },
+		{ key: 'triageRedUid', label: 'Triage red data element UID' },
+		{ key: 'triageAmberUid', label: 'Triage amber data element UID' },
+		{ key: 'triageGreenUid', label: 'Triage green data element UID' }
+	];
+
+	const configQuery = getDhis2Config();
+	const config = $derived(
+		configQuery.current ?? {
+			...DHIS2_DEFAULT_UIDS,
+			configured: false,
+			updatedAt: null
+		}
+	);
+	let draft = $state<Dhis2Draft>({ ...DHIS2_DEFAULT_UIDS });
 	let isExporting = $state(false);
 	let previewData = $state<any>(null);
+	let configDialogOpen = $state(false);
+	let isSavingConfig = $state(false);
+
+	function uidValue(key: Dhis2UidKey): string {
+		return config[key]?.trim() || DHIS2_DEFAULT_UIDS[key];
+	}
+
+	function openConfigDialog() {
+		draft = { ...DHIS2_DEFAULT_UIDS };
+		for (const field of UID_FIELDS) draft[field.key] = uidValue(field.key);
+		configDialogOpen = true;
+	}
+
+	async function saveConfig() {
+		if (UID_FIELDS.some((field) => !draft[field.key].trim())) {
+			toast.error('All nine DHIS2 UIDs are required.');
+			return;
+		}
+		isSavingConfig = true;
+		try {
+			await updateDhis2Config({
+				dataSetUid: draft.dataSetUid.trim(),
+				orgUnitUid: draft.orgUnitUid.trim(),
+				totalPatientsUid: draft.totalPatientsUid.trim(),
+				totalEncountersUid: draft.totalEncountersUid.trim(),
+				patientsMaleUid: draft.patientsMaleUid.trim(),
+				patientsFemaleUid: draft.patientsFemaleUid.trim(),
+				triageRedUid: draft.triageRedUid.trim(),
+				triageAmberUid: draft.triageAmberUid.trim(),
+				triageGreenUid: draft.triageGreenUid.trim()
+			});
+			await configQuery.refresh();
+			configDialogOpen = false;
+			if (previewData) generatePayload();
+			toast.success('DHIS2 UIDs saved.');
+		} catch (error) {
+			toast.error(
+				'Unable to save DHIS2 configuration: ' +
+					(error instanceof Error ? error.message : 'Unknown error')
+			);
+		} finally {
+			isSavingConfig = false;
+		}
+	}
 
 	// Generate a standard DHIS2 JSON Event Payload
 	function generatePayload() {
@@ -46,18 +133,18 @@
 		const period = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}`; // YYYYMM format for DHIS2
 
 		const payload = {
-			dataSet: 'CLINIC_FLOW_DATASET_UID',
+			dataSet: uidValue('dataSetUid'),
 			completeDate: now.toISOString().split('T')[0],
-			orgUnit: 'CLINIC_FLOW_LOCAL_PHC_UID',
+			orgUnit: uidValue('orgUnitUid'),
 			period: period,
 			dataValues: [
-				{ dataElement: 'TOTAL_PATIENTS_UID', value: totalPatients.toString() },
-				{ dataElement: 'TOTAL_ENCOUNTERS_UID', value: totalEncounters.toString() },
-				{ dataElement: 'PATIENTS_MALE_UID', value: (genderSplit['M'] || 0).toString() },
-				{ dataElement: 'PATIENTS_FEMALE_UID', value: (genderSplit['F'] || 0).toString() },
-				{ dataElement: 'TRIAGE_RED_UID', value: (triageStats['red'] || 0).toString() },
-				{ dataElement: 'TRIAGE_AMBER_UID', value: (triageStats['amber'] || 0).toString() },
-				{ dataElement: 'TRIAGE_GREEN_UID', value: (triageStats['green'] || 0).toString() }
+				{ dataElement: uidValue('totalPatientsUid'), value: totalPatients.toString() },
+				{ dataElement: uidValue('totalEncountersUid'), value: totalEncounters.toString() },
+				{ dataElement: uidValue('patientsMaleUid'), value: (genderSplit['M'] || 0).toString() },
+				{ dataElement: uidValue('patientsFemaleUid'), value: (genderSplit['F'] || 0).toString() },
+				{ dataElement: uidValue('triageRedUid'), value: (triageStats['red'] || 0).toString() },
+				{ dataElement: uidValue('triageAmberUid'), value: (triageStats['amber'] || 0).toString() },
+				{ dataElement: uidValue('triageGreenUid'), value: (triageStats['green'] || 0).toString() }
 			]
 		};
 
@@ -112,6 +199,23 @@
 					Generates a deterministic JSON payload mapping local encounters to standard DHIS2 data
 					elements.
 				</CardDescription>
+				<div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+					{#if config.configured}
+						<Badge class="bg-emerald-500/10 text-emerald-700 border-emerald-500/20">
+							<CheckCircle2 class="size-3 mr-1" />
+							Configured
+						</Badge>
+					{:else}
+						<Badge variant="outline" class="bg-amber-500/10 text-amber-700 border-amber-500/20">
+							<AlertTriangle class="size-3 mr-1" />
+							Using default placeholder UIDs
+						</Badge>
+					{/if}
+					<Button variant="outline" size="sm" onclick={openConfigDialog}>
+						<Settings2 class="size-4 mr-2" />
+						Configure DHIS2 UIDs
+					</Button>
+				</div>
 			</CardHeader>
 			<CardContent class="space-y-4">
 				<div
@@ -161,7 +265,7 @@
 								</tr>
 							</thead>
 							<tbody class="divide-y divide-border/30">
-								{#each previewData.dataValues as item}
+								{#each previewData.dataValues as item, index (index)}
 									<tr class="hover:bg-muted/10 transition-colors">
 										<td class="px-4 py-3 font-mono text-xs text-primary">{item.dataElement}</td>
 										<td class="px-4 py-3 font-semibold text-right tabular-nums">{item.value}</td>
@@ -181,3 +285,48 @@
 		{/if}
 	</div>
 </div>
+
+<Dialog bind:open={configDialogOpen}>
+	<DialogContent class="sm:max-w-2xl">
+		<DialogHeader>
+			<DialogTitle>Configure DHIS2 UIDs</DialogTitle>
+			<DialogDescription>
+				Enter the dataset, organisation unit and data element UIDs from your DHIS2 instance. Values
+				are stored for this facility only.
+			</DialogDescription>
+		</DialogHeader>
+		<form
+			onsubmit={(event) => {
+				event.preventDefault();
+				void saveConfig();
+			}}
+			class="space-y-4 py-2"
+		>
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+				{#each UID_FIELDS as field (field.key)}
+					<div class="space-y-2">
+						<Label for={`dhis2-${field.key}`}>{field.label}</Label>
+						<Input
+							id={`dhis2-${field.key}`}
+							bind:value={draft[field.key]}
+							class="font-mono text-xs"
+						/>
+					</div>
+				{/each}
+			</div>
+			<DialogFooter>
+				<Button type="button" variant="outline" onclick={() => (configDialogOpen = false)}>
+					Cancel
+				</Button>
+				<Button type="submit" disabled={isSavingConfig}>
+					{#if isSavingConfig}
+						<Loader2 class="size-4 mr-2 animate-spin" />
+					{:else}
+						<Save class="size-4 mr-2" />
+					{/if}
+					Save UIDs
+				</Button>
+			</DialogFooter>
+		</form>
+	</DialogContent>
+</Dialog>

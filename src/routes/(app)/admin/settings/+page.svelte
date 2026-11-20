@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getPhcSettings, updatePhcSettings } from '#lib/remote/admin.remote.ts';
+	import { sendTestSms } from '#lib/remote/sms-test.remote.ts';
 	import { db } from '#lib/local-db/db.ts';
 	import { Input } from '#lib/components/ui/input/index.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
@@ -58,6 +59,8 @@
 
 	let isSaving = $state(false);
 	let isResetting = $state(false);
+	let testPhone = $state('');
+	let isTestingSms = $state(false);
 
 	async function saveSettings(e: Event) {
 		e.preventDefault();
@@ -112,15 +115,27 @@
 	}
 
 	async function testSms() {
-		if (!termiiApiKey) {
-			toast.error('Please enter and save an API key first');
+		if (testPhone.trim().length < 10) {
+			toast.error('Enter a valid test phone number first.');
 			return;
 		}
-		// Simulate SMS test
-		toast.info('Sending test SMS via Termii...');
-		setTimeout(() => {
-			toast.success('Test SMS successfully delivered (simulated)');
-		}, 1500);
+		isTestingSms = true;
+		try {
+			// The provider and API key are derived on the server from saved PHC settings.
+			const result = await sendTestSms({ to: testPhone.trim() });
+			const reference = result.reference ?? 'not available';
+			if (result.mode === 'console') {
+				toast.warning(
+					`Console mode — no SMS was delivered. Manual follow-up required. Reference: ${reference}`
+				);
+			} else {
+				toast.success(`Test SMS delivered. Reference: ${reference}`);
+			}
+		} catch (error) {
+			toast.error('Test SMS failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
+		} finally {
+			isTestingSms = false;
+		}
 	}
 
 	import { seedDemoData } from '#lib/utils/seed.ts';
@@ -237,20 +252,37 @@
 			<CardContent class="space-y-4">
 				<div class="space-y-2">
 					<Label for="apiKey">Termii API Key</Label>
+					<Input
+						id="apiKey"
+						type="password"
+						bind:value={termiiApiKey}
+						placeholder="TL-XXXXXXXXXXXXXXXXXXXXXXXXX"
+					/>
+					<p class="text-xs text-muted-foreground mt-1">Get this from your Termii dashboard.</p>
+				</div>
+				<div class="space-y-2 pt-2 border-t border-border">
+					<Label for="testPhone">Test phone number</Label>
 					<div class="flex gap-2">
 						<Input
-							id="apiKey"
-							type="password"
-							bind:value={termiiApiKey}
-							placeholder="TL-XXXXXXXXXXXXXXXXXXXXXXXXX"
+							id="testPhone"
+							type="tel"
+							bind:value={testPhone}
+							placeholder="e.g. 08012345678"
 							class="flex-1"
 						/>
-						<Button type="button" variant="outline" onclick={testSms}>
-							<TestTube2 class="size-4 mr-2" />
+						<Button type="button" variant="outline" onclick={testSms} disabled={isTestingSms}>
+							{#if isTestingSms}
+								<RotateCcw class="size-4 mr-2 animate-spin" />
+							{:else}
+								<TestTube2 class="size-4 mr-2" />
+							{/if}
 							Test
 						</Button>
 					</div>
-					<p class="text-xs text-muted-foreground mt-1">Get this from your Termii dashboard.</p>
+					<p class="text-xs text-muted-foreground mt-1">
+						Sends a real test SMS when a provider key is configured; otherwise console mode reports
+						that manual delivery is required.
+					</p>
 				</div>
 			</CardContent>
 		</Card>

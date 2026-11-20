@@ -1,11 +1,37 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Button } from '#lib/components/ui/button/index.ts';
-	import { Printer, Send, Activity, ChevronLeft } from '@lucide/svelte';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
+	import {
+		Printer,
+		Send,
+		Activity,
+		ChevronLeft,
+		AlertTriangle,
+		CheckCircle2
+	} from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
+	import { sendReferralSms } from '#lib/remote/referrals.remote.ts';
+	import { sessionStore } from '#lib/state/session.svelte.ts';
+	import { authStore } from '#lib/state/auth.svelte.ts';
+
+	type SmsResult = Awaited<ReturnType<typeof sendReferralSms>>;
 
 	let referralData: any = $state(null);
+	let recipientPhone = $state('');
 	let isSendingSms = $state(false);
+	let smsResult = $state<SmsResult | null>(null);
+	let smsError = $state<string | null>(null);
+
+	// The server-derived signature is authoritative. Until a send succeeds, use
+	// the signed-in user's real name — never a fabricated clinician name.
+	const signatureName = $derived(
+		smsResult?.signedBy?.trim() ||
+			sessionStore.user?.name?.trim() ||
+			authStore.profile?.name?.trim() ||
+			''
+	);
 
 	onMount(() => {
 		const raw = localStorage.getItem('temp_referral');
@@ -18,12 +44,37 @@
 		window.print();
 	}
 
-	function handleSendSms() {
+	async function handleSendSms() {
+		if (!referralData) return;
+		const to = recipientPhone.trim();
+		if (!to) {
+			toast.error('Enter the receiving facility phone number first.');
+			return;
+		}
+
 		isSendingSms = true;
-		setTimeout(() => {
+		smsError = null;
+		try {
+			const result = await sendReferralSms({
+				to,
+				facility: String(referralData.facility ?? '').trim(),
+				summary: String(referralData.reason ?? 'Referral summary')
+					.trim()
+					.slice(0, 480)
+			});
+			smsResult = result;
+			if (result.mode === 'console') {
+				toast.info('SMS not delivered — console mode. See the status message below.');
+			} else {
+				toast.success(`Referral summary delivered to ${referralData.facility}.`);
+			}
+		} catch (e: any) {
+			const message = typeof e?.message === 'string' ? e.message : 'Failed to send referral SMS.';
+			smsError = message;
+			toast.error(message);
+		} finally {
 			isSendingSms = false;
-			toast.success(`Referral summary SMS sent to ${referralData.facility}`);
-		}, 1500);
+		}
 	}
 </script>
 
@@ -34,17 +85,28 @@
 <div class="min-h-screen bg-muted/20 py-8 px-4 print:bg-white print:py-0 print:px-0">
 	<!-- Top Bar (Hidden on print) -->
 	<div
-		class="max-w-3xl mx-auto mb-6 flex items-center justify-between print:hidden bg-card border rounded-lg p-3 shadow-sm"
+		class="max-w-3xl mx-auto mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-3 print:hidden bg-card border rounded-lg p-3 shadow-sm"
 	>
-		<Button variant="ghost" size="sm" onclick={() => window.close()}>
+		<Button variant="ghost" size="sm" onclick={() => window.close()} class="self-start">
 			<ChevronLeft class="size-4 mr-1" /> Close
 		</Button>
-		<div class="flex items-center gap-2">
+		<div class="flex flex-col sm:flex-row items-stretch sm:items-end gap-2">
+			<div class="space-y-1">
+				<Label for="sms-recipient" class="text-xs text-muted-foreground">Recipient phone</Label>
+				<Input
+					id="sms-recipient"
+					type="tel"
+					inputmode="tel"
+					bind:value={recipientPhone}
+					placeholder="Receiving facility phone"
+					class="h-9 w-full sm:w-56"
+				/>
+			</div>
 			<Button
 				variant="outline"
 				size="sm"
 				onclick={handleSendSms}
-				disabled={isSendingSms || !referralData}
+				disabled={isSendingSms || !referralData || !recipientPhone.trim()}
 			>
 				<Send class="size-4 mr-2 text-primary" />
 				{isSendingSms ? 'Sending...' : 'Send SMS Summary'}
@@ -54,6 +116,42 @@
 			</Button>
 		</div>
 	</div>
+
+	{#if smsResult}
+		<div
+			class="max-w-3xl mx-auto mb-4 print:hidden rounded-lg border p-3 text-sm flex gap-2 {smsResult.mode ===
+			'console'
+				? 'border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-300'
+				: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300'}"
+		>
+			{#if smsResult.mode === 'console'}
+				<AlertTriangle class="size-4 shrink-0 mt-0.5" />
+				<div>
+					<p class="font-medium">SMS not delivered — console mode</p>
+					<p class="text-xs mt-0.5">
+						{smsResult.reason ??
+							'No live SMS provider is configured; the message was logged for review.'}
+						Reference: {smsResult.reference}
+					</p>
+				</div>
+			{:else}
+				<CheckCircle2 class="size-4 shrink-0 mt-0.5" />
+				<div>
+					<p class="font-medium">Referral summary delivered</p>
+					<p class="text-xs mt-0.5">
+						Reference: {smsResult.reference} • Signed by {smsResult.signedBy}
+					</p>
+				</div>
+			{/if}
+		</div>
+	{:else if smsError}
+		<div
+			class="max-w-3xl mx-auto mb-4 print:hidden rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive flex gap-2"
+		>
+			<AlertTriangle class="size-4 shrink-0 mt-0.5" />
+			<p>{smsError}</p>
+		</div>
+	{/if}
 
 	<!-- Printable Letterhead Area -->
 	<div
@@ -136,7 +234,7 @@
 				<div class="flex justify-between items-end">
 					<div>
 						<p class="text-sm text-slate-500">Referring Physician</p>
-						<p class="font-bold text-lg mt-1">Dr. ClinicFlow User</p>
+						<p class="font-bold text-lg mt-1">{signatureName}</p>
 						<p class="text-sm">Sign: ___________________</p>
 					</div>
 					<div class="text-right text-xs text-slate-400">Generated via ClinicFlow securely</div>

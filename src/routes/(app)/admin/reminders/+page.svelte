@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { reminderStore } from '#lib/state/reminders.svelte.ts';
 	import { patientStore } from '#lib/state/patients.svelte.ts';
+	import { syncStore } from '#lib/state/sync.svelte.ts';
+	import { formatDate } from '#lib/utils/date.ts';
 	import { dispatchReminders } from '../../../sms/sms.remote';
 	import {
 		Card,
@@ -27,50 +29,39 @@
 	let isDispatching = $state(false);
 
 	async function handleDispatchPending() {
-		const pending = reminderStore.pendingReminders;
-		if (pending.length === 0) {
+		const pendingRows = reminderStore.pendingReminders;
+		if (pendingRows.length === 0) {
 			toast.info('No pending reminders to dispatch.');
 			return;
 		}
 
 		isDispatching = true;
 		try {
-			const batch = pending.map((r) => ({
-				id: r.id,
-				phone: r.recipientPhone,
-				message: `ClinicFlow Reminder: ${r.label}`
-			}));
+			toast.info(`Dispatching ${pendingRows.length} reminders via SMS...`);
+			// The server derives the phone number, message, provider and status from its durable rows.
+			const results = await dispatchReminders(pendingRows.map((r) => ({ id: r.id })));
 
-			toast.info(`Dispatching ${batch.length} reminders via SMS...`);
-			const results = await dispatchReminders(batch);
-
-			let successCount = 0;
-			for (const res of results) {
-				if (res.success) {
-					await reminderStore.update(res.id, {
-						status: 'sent',
-						sentAt: Date.now(),
-						provider: 'termii_sandbox',
-						providerMessageId: res.providerMessageId
-					} as any);
-					successCount++;
-				}
+			let liveSent = 0;
+			let consoleSent = 0;
+			let failed = 0;
+			for (const result of results) {
+				if (!result.success) failed++;
+				else if (result.mode === 'live') liveSent++;
+				else consoleSent++;
 			}
 
-			toast.success(`Successfully dispatched ${successCount} reminders.`);
+			// Pull the server's authoritative status/provider values into the local reminder store.
+			await syncStore.flush();
+			const remaining = reminderStore.pendingReminders.length;
+
+			const report = `${liveSent} sent live, ${consoleSent} console-mode (manual delivery required), ${failed} failed. ${remaining} still pending.`;
+			if (failed > 0 || consoleSent > 0) toast.warning(`Reminders dispatched: ${report}`);
+			else toast.success(`Reminders dispatched: ${report}`);
 		} catch (err: any) {
 			toast.error(`SMS dispatch failed: ${err.message}`);
 		} finally {
 			isDispatching = false;
 		}
-	}
-
-	function formatDate(ts: number) {
-		return new Date(ts).toLocaleDateString('en-GB', {
-			day: 'numeric',
-			month: 'short',
-			year: 'numeric'
-		});
 	}
 </script>
 
@@ -148,7 +139,7 @@
 							</TableCell>
 						</TableRow>
 					{:else}
-						{#each reminders as r}
+						{#each reminders as r (r.id)}
 							{@const p = patientStore.get(r.patientId)}
 							<TableRow class="border-border hover:bg-muted/40 transition-colors">
 								<TableCell class="px-6 py-4">

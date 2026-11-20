@@ -152,6 +152,7 @@ export const phcs = pgTable('phcs', {
 	nhisTrackingEnabled: boolean('nhis_tracking_enabled').notNull().default(true),
 	aiAutoTriageEscalation: boolean('ai_auto_triage_escalation').notNull().default(false),
 	lgaDsoPhone: varchar('lga_dso_phone', { length: 20 }),
+	active: boolean('active').notNull().default(true),
 
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 });
@@ -661,6 +662,78 @@ export const temperatureLogs = pgTable(
 	(table) => ({
 		phcIdx: index('temperature_logs_phc_idx').on(table.phcId),
 		recordedAtIdx: index('temperature_logs_recorded_at_idx').on(table.recordedAt)
+	})
+);
+
+// ─────────────────────────────────────────────────────────────
+// ADMIN CONFIGURATION & CLAIMS
+// ─────────────────────────────────────────────────────────────
+
+export const dhis2Configs = pgTable(
+	'dhis2_configs',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		phcId: uuid('phc_id')
+			.notNull()
+			.references(() => phcs.id),
+		dataSetUid: varchar('data_set_uid', { length: 64 })
+			.notNull()
+			.default('CLINIC_FLOW_DATASET_UID'),
+		orgUnitUid: varchar('org_unit_uid', { length: 64 })
+			.notNull()
+			.default('CLINIC_FLOW_LOCAL_PHC_UID'),
+		totalPatientsUid: varchar('total_patients_uid', { length: 64 })
+			.notNull()
+			.default('TOTAL_PATIENTS_UID'),
+		totalEncountersUid: varchar('total_encounters_uid', { length: 64 })
+			.notNull()
+			.default('TOTAL_ENCOUNTERS_UID'),
+		patientsMaleUid: varchar('patients_male_uid', { length: 64 })
+			.notNull()
+			.default('PATIENTS_MALE_UID'),
+		patientsFemaleUid: varchar('patients_female_uid', { length: 64 })
+			.notNull()
+			.default('PATIENTS_FEMALE_UID'),
+		triageRedUid: varchar('triage_red_uid', { length: 64 }).notNull().default('TRIAGE_RED_UID'),
+		triageAmberUid: varchar('triage_amber_uid', { length: 64 })
+			.notNull()
+			.default('TRIAGE_AMBER_UID'),
+		triageGreenUid: varchar('triage_green_uid', { length: 64 })
+			.notNull()
+			.default('TRIAGE_GREEN_UID'),
+		updatedByStaffId: uuid('updated_by_staff_id').references(() => staff.id),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(table) => ({ phcIdx: uniqueIndex('dhis2_configs_phc_idx').on(table.phcId) })
+);
+
+export const nhisClaims = pgTable(
+	'nhis_claims',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		phcId: uuid('phc_id')
+			.notNull()
+			.references(() => phcs.id),
+		encounterId: uuid('encounter_id').references(() => encounters.id),
+		patientId: uuid('patient_id').references(() => patients.id),
+		createdByStaffId: uuid('created_by_staff_id').references(() => staff.id),
+		claimReference: varchar('claim_reference', { length: 120 }).notNull(),
+		status: varchar('status', { length: 20 }).notNull().default('draft'),
+		providerMode: varchar('provider_mode', { length: 10 }).notNull().default('console'),
+		providerReference: varchar('provider_reference', { length: 160 }),
+		enrolleeNumber: varchar('enrollee_number', { length: 80 }),
+		authorizationCode: varchar('authorization_code', { length: 80 }),
+		claimData: text('claim_data').notNull(),
+		note: text('note'),
+		submittedAt: timestamp('submitted_at', { withTimezone: true }),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(table) => ({
+		phcIdx: index('nhis_claims_phc_idx').on(table.phcId),
+		statusIdx: index('nhis_claims_status_idx').on(table.status),
+		encounterIdx: index('nhis_claims_encounter_idx').on(table.encounterId)
 	})
 );
 

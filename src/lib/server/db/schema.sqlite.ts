@@ -76,6 +76,7 @@ export const phcs = sqliteTable('phcs', {
 	nhisTrackingEnabled: integer('nhis_tracking_enabled', { mode: 'boolean' })
 		.notNull()
 		.default(true),
+	active: integer('active', { mode: 'boolean' }).notNull().default(true),
 	createdAt: integer('created_at', { mode: 'timestamp' })
 		.notNull()
 		.$defaultFn(() => new Date())
@@ -650,6 +651,74 @@ export const temperatureLogs = sqliteTable(
 	(table) => ({
 		phcIdx: index('temperature_logs_phc_idx').on(table.phcId),
 		recordedAtIdx: index('temperature_logs_recorded_at_idx').on(table.recordedAt)
+	})
+);
+
+// ─────────────────────────────────────────────────────────────
+// ADMIN CONFIGURATION & CLAIMS
+// ─────────────────────────────────────────────────────────────
+
+export const dhis2Configs = sqliteTable(
+	'dhis2_configs',
+	{
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		phcId: text('phc_id')
+			.notNull()
+			.references(() => phcs.id),
+		dataSetUid: text('data_set_uid').notNull().default('CLINIC_FLOW_DATASET_UID'),
+		orgUnitUid: text('org_unit_uid').notNull().default('CLINIC_FLOW_LOCAL_PHC_UID'),
+		totalPatientsUid: text('total_patients_uid').notNull().default('TOTAL_PATIENTS_UID'),
+		totalEncountersUid: text('total_encounters_uid').notNull().default('TOTAL_ENCOUNTERS_UID'),
+		patientsMaleUid: text('patients_male_uid').notNull().default('PATIENTS_MALE_UID'),
+		patientsFemaleUid: text('patients_female_uid').notNull().default('PATIENTS_FEMALE_UID'),
+		triageRedUid: text('triage_red_uid').notNull().default('TRIAGE_RED_UID'),
+		triageAmberUid: text('triage_amber_uid').notNull().default('TRIAGE_AMBER_UID'),
+		triageGreenUid: text('triage_green_uid').notNull().default('TRIAGE_GREEN_UID'),
+		updatedByStaffId: text('updated_by_staff_id').references(() => staff.id),
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.notNull()
+			.$defaultFn(() => new Date()),
+		updatedAt: integer('updated_at', { mode: 'timestamp' })
+			.notNull()
+			.$defaultFn(() => new Date())
+	},
+	(table) => ({ phcIdx: uniqueIndex('dhis2_configs_phc_idx').on(table.phcId) })
+);
+
+export const nhisClaims = sqliteTable(
+	'nhis_claims',
+	{
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		phcId: text('phc_id')
+			.notNull()
+			.references(() => phcs.id),
+		encounterId: text('encounter_id').references(() => encounters.id),
+		patientId: text('patient_id').references(() => patients.id),
+		createdByStaffId: text('created_by_staff_id').references(() => staff.id),
+		claimReference: text('claim_reference').notNull(),
+		status: text('status').notNull().default('draft'),
+		providerMode: text('provider_mode').notNull().default('console'),
+		providerReference: text('provider_reference'),
+		enrolleeNumber: text('enrollee_number'),
+		authorizationCode: text('authorization_code'),
+		claimData: text('claim_data').notNull(),
+		note: text('note'),
+		submittedAt: integer('submitted_at', { mode: 'timestamp' }),
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.notNull()
+			.$defaultFn(() => new Date()),
+		updatedAt: integer('updated_at', { mode: 'timestamp' })
+			.notNull()
+			.$defaultFn(() => new Date())
+	},
+	(table) => ({
+		phcIdx: index('nhis_claims_phc_idx').on(table.phcId),
+		statusIdx: index('nhis_claims_status_idx').on(table.status),
+		encounterIdx: index('nhis_claims_encounter_idx').on(table.encounterId)
 	})
 );
 

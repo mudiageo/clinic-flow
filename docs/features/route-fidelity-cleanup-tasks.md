@@ -46,9 +46,9 @@
 - [x] **MK-02** `immunization`: remove fake roster; bind search; wire Record action
 - [x] **MK-03** `pharmacy/cold-chain`: fake temps/vaccines removed; real vaccine stock, temperature log store/remote, Log Temperature, batch/expiry and excursion warnings wired (see the clinical data models feature)
 - [ ] **NW-08** `families/[id]`: implement Register Newborn + Add Relative
-- [ ] **NW-09** `doctor/consult`: wire referral-tab Generate Referral; fix mobile pane placeholder
-- [ ] **NW-10** `doctor/referral/print`: real SMS remote + session-based signature
-- [ ] Preserve `<AiDisclaimer>` and human-in-the-loop guardrails in all AI-touching pages
+- [x] **NW-09** `doctor/consult`: wire referral-tab Generate Referral; fix mobile pane placeholder
+- [x] **NW-10** `doctor/referral/print`: real SMS remote + session-based signature
+- [x] Preserve `<AiDisclaimer>` and human-in-the-loop guardrails in all AI-touching pages
 
 ## Phase E — Mocked superadmin/admin pages (P0/P1)
 
@@ -58,15 +58,15 @@
 - [x] **MK-07** `superadmin/releases`: use `getReleases`; wire Publish; remove video placeholder
 - [x] **MK-08** `epidemiology.remote.ts`: replace `Math.random()` case data with real aggregation; add demo disclaimer until fixed
 - [x] **MK-09** `admin/sync-health`: derive device log from sync state
-- [ ] **MK-10** `admin/reports/dhis2`: configurable UIDs with documented defaults
-- [ ] **NW-01** `admin/nhis-claims`: real submit remote; real claim status
+- [x] **MK-10** `admin/reports/dhis2`: configurable UIDs with documented defaults
+- [x] **NW-01** `admin/nhis-claims`: real submit remote; real claim status
 - [x] **NW-02** `admin/outbreak-radar`: real SMS remote; fix `FileSignature` import; remove false "Uses Termii" claim
-- [ ] **NW-03** `admin/settings`: real SMS-test remote
+- [x] **NW-03** `admin/settings`: real SMS-test remote
 - [x] **NW-04** `admin/audit`: implement `getAuditLog`; wire data + Filter button
 - [x] **NW-05** `admin/devices`: wire Add Manually
-- [ ] **NW-06** `superadmin/users`: reset-password + deactivate remotes
-- [ ] **NW-07** `superadmin/phcs/[id]`: sync status + deactivate + reset-data remotes
-- [ ] **NW-14** `admin/reminders`: replace `dispatchReminders` stub with real SMS dispatch
+- [x] **NW-06** `superadmin/users`: reset-password + deactivate remotes
+- [x] **NW-07** `superadmin/phcs/[id]`: sync status + deactivate + reset-data remotes
+- [x] **NW-14** `admin/reminders`: replace `dispatchReminders` stub with real SMS dispatch
 - [x] **NW-15** `superadmin/releases`: Publish + ExternalLink buttons
 
 ## Phase F — Auth/onboarding/marketing polish (P1/P2)
@@ -101,7 +101,7 @@
 
 ## Docs & release hygiene
 
-- [ ] Create/update user-facing docs (Walkthrough/tooltips/guides) for changed flows
-- [ ] Add a changeset per phase
-- [ ] Update the main feature tracker if applicable (`docs/AI-Features-Implementation-Plan.md`)
-- [ ] Final validation: `vp fmt --check .`, `pnpm check:sw`, `vp build`, `vp test --run`
+- [x] Create/update user-facing docs (Walkthrough/tooltips/guides) for changed flows (`/support/admin-operations`)
+- [x] Add a changeset per phase (`route-fidelity-admin-actions-wave-1`, `-wave-2`)
+- [x] Update the main feature tracker if applicable — N/A: no route-fidelity entry exists in `docs/AI-Features-Implementation-Plan.md`
+- [x] Final validation: changed-file `vp fmt --check`, `pnpm check:sw`, `vp build`, `vp test --run --project server`, `pnpm run check` (baseline 226 errors / 23 warnings, no new diagnostics)

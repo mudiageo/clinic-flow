@@ -268,6 +268,14 @@ export const DASHBOARD_MODULES: DashboardModule[] = [
 		category: 'Administration'
 	},
 	{
+		id: 'facility-review',
+		label: 'Facility Review',
+		iconName: 'Building2',
+		href: '/admin/facility-review',
+		permission: 'manage:phc',
+		category: 'Administration'
+	},
+	{
 		id: 'device-management',
 		label: 'Device Management',
 		iconName: 'Monitor',

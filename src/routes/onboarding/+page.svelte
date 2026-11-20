@@ -22,7 +22,9 @@
 		QrCode,
 		HardDrive,
 		ArrowRight,
-		ArrowLeft
+		ArrowLeft,
+		Search,
+		Loader2
 	} from '@lucide/svelte';
 	import { fade, slide } from 'svelte/transition';
 	import { toast } from 'svelte-sonner';
@@ -30,6 +32,7 @@
 	import { onMount } from 'svelte';
 	import { registerPhc } from '#lib/remote/auth.remote.ts';
 	import { initDatabase } from '#lib/remote/setup.remote.ts';
+	import { lookupRegistryFacilities } from '#lib/remote/facility-registry.remote.ts';
 
 	let currentStep = $state(1);
 	let totalSteps = 7;
@@ -47,6 +50,45 @@
 	// DB Init state
 	let dbProgress = $state(0);
 	let dbInitFailed = $state(false);
+
+	// Optional advisory national facility registry lookup. Results are only
+	// applied when the user explicitly clicks "Use suggestion".
+	type RegistryLookupResult = Awaited<ReturnType<typeof lookupRegistryFacilities>>;
+	type RegistryFacilitySuggestion = RegistryLookupResult['facilities'][number];
+	let registryLookup = $state<RegistryLookupResult | null>(null);
+	let registrySearching = $state(false);
+	let registryRequestId = 0;
+
+	async function checkRegistry() {
+		const requestId = ++registryRequestId;
+		registrySearching = true;
+		try {
+			const result = await lookupRegistryFacilities({
+				name: phcName.trim().length >= 2 ? phcName.trim() : undefined,
+				state: phcState.trim() || undefined,
+				lga: phcLga.trim() || undefined
+			});
+			if (requestId === registryRequestId) registryLookup = result;
+		} catch (e: any) {
+			if (requestId === registryRequestId) {
+				registryLookup = {
+					availability: 'unavailable',
+					facilities: [],
+					reason: e?.message ?? 'Registry lookup failed.',
+					checkedAt: new Date().toISOString()
+				};
+			}
+		} finally {
+			if (requestId === registryRequestId) registrySearching = false;
+		}
+	}
+
+	function applySuggestion(facility: RegistryFacilitySuggestion) {
+		phcName = facility.name;
+		if (facility.state) phcState = facility.state;
+		if (facility.lga) phcLga = facility.lga;
+		toast.success('Registry suggestion applied — please review before continuing.');
+	}
 
 	function nextStep() {
 		if (currentStep === 2) {
@@ -239,6 +281,83 @@
 					<div class="space-y-2">
 						<Label>LGA (Local Government Area)</Label>
 						<Input bind:value={phcLga} placeholder="e.g., Oredo" class="h-12" />
+					</div>
+
+					<div class="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-3">
+						<div class="flex items-start justify-between gap-3">
+							<div class="space-y-1">
+								<p class="text-sm font-semibold text-foreground flex items-center gap-2">
+									<Building2 class="size-4 text-primary" /> Check national facility registry
+								</p>
+								<p class="text-xs text-muted-foreground">
+									Optional advisory lookup of Nigeria's national Health Facility Registry.
+								</p>
+							</div>
+							<Button
+								variant="outline"
+								size="sm"
+								class="shrink-0"
+								onclick={checkRegistry}
+								disabled={registrySearching}
+							>
+								{#if registrySearching}
+									<Loader2 class="size-3.5 mr-1.5 animate-spin" /> Checking...
+								{:else}
+									<Search class="size-3.5 mr-1.5" /> Check registry
+								{/if}
+							</Button>
+						</div>
+						<p
+							class="text-[11px] leading-relaxed text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded px-2 py-1.5"
+						>
+							Advisory only — registry data is not authoritative. Suggestions change these fields
+							only when you click "Use suggestion". Verify all details with your facility; manual
+							entry remains available.
+						</p>
+						{#if registryLookup}
+							{#if registryLookup.availability === 'unconfigured' || registryLookup.availability === 'unavailable'}
+								<div
+									class="rounded border border-amber-500/20 bg-amber-500/10 p-2.5 text-xs text-amber-800 dark:text-amber-300 space-y-1"
+								>
+									<p class="font-medium">
+										Registry check unavailable ({registryLookup.availability})
+									</p>
+									{#if registryLookup.reason}
+										<p>{registryLookup.reason}</p>
+									{/if}
+									<p>Manual entry remains available and registration can continue.</p>
+								</div>
+							{:else if registryLookup.facilities.length === 0}
+								<p class="text-xs text-muted-foreground">
+									No matching registry facilities found. Continue with manual entry.
+								</p>
+							{:else}
+								<ul class="space-y-2 max-h-48 overflow-y-auto pr-1">
+									{#each registryLookup.facilities as facility (facility.registryId ?? facility.name)}
+										<li
+											class="flex items-start justify-between gap-3 rounded border bg-card p-2.5 text-sm"
+										>
+											<div class="min-w-0 space-y-0.5">
+												<p class="font-medium truncate">{facility.name}</p>
+												<p class="text-xs text-muted-foreground truncate">
+													{[facility.level, facility.lga, facility.state]
+														.filter(Boolean)
+														.join(' • ') || 'Registry facility'}
+												</p>
+											</div>
+											<Button
+												variant="outline"
+												size="sm"
+												class="h-7 shrink-0 text-xs"
+												onclick={() => applySuggestion(facility)}
+											>
+												Use suggestion
+											</Button>
+										</li>
+									{/each}
+								</ul>
+							{/if}
+						{/if}
 					</div>
 
 					<label

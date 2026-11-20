@@ -40,6 +40,7 @@
 	import { toast } from 'svelte-sonner';
 	import { aiService } from '#lib/services/ai/ai.service.ts';
 	import { getClinicalDecisionSupport, generateSoapNote } from '#lib/remote/ai.remote.ts';
+	import { lookupRegistryFacilities } from '#lib/remote/facility-registry.remote.ts';
 	import AiDisclaimer from '#lib/components/ui/ai-disclaimer.svelte';
 	import {
 		Stethoscope,
@@ -61,7 +62,9 @@
 		Send,
 		Sparkles,
 		AlertTriangle,
-		ShieldCheck
+		ShieldCheck,
+		Building2,
+		Search
 	} from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -114,6 +117,35 @@
 	let referralFacility = $state('');
 	let referralReason = $state('');
 	let referralUrgency = $state('routine');
+
+	// Advisory national facility registry lookup (read-only, never auto-applied)
+	type RegistryLookupResult = Awaited<ReturnType<typeof lookupRegistryFacilities>>;
+	let registryLookup = $state<RegistryLookupResult | null>(null);
+	let registrySearching = $state(false);
+	let registryRequestId = 0;
+
+	async function searchRegistry() {
+		const requestId = ++registryRequestId;
+		registrySearching = true;
+		try {
+			const name = referralFacility.trim();
+			const result = await lookupRegistryFacilities({
+				name: name.length >= 2 ? name : undefined
+			});
+			if (requestId === registryRequestId) registryLookup = result;
+		} catch (e: any) {
+			if (requestId === registryRequestId) {
+				registryLookup = {
+					availability: 'unavailable',
+					facilities: [],
+					reason: e?.message ?? 'Registry lookup failed.',
+					checkedAt: new Date().toISOString()
+				};
+			}
+		} finally {
+			if (requestId === registryRequestId) registrySearching = false;
+		}
+	}
 
 	function generateReferral() {
 		if (!patient) return;
@@ -488,7 +520,7 @@ P: ${res.plan}`;
 						</h4>
 						<div class="space-y-2">
 							{#if pastEncounters.length > 0}
-								{#each pastEncounters.slice(0, 3) as enc}
+								{#each pastEncounters.slice(0, 3) as enc (enc.id)}
 									<div class="p-3 border rounded-lg bg-card text-sm space-y-1">
 										<div class="font-medium text-foreground line-clamp-1">
 											{enc.chiefComplaint || 'Consultation'}
@@ -714,7 +746,7 @@ P: ${res.plan}`;
 													><SelectPrimitive.Value placeholder="Select Medication" /></SelectTrigger
 												>
 												<SelectContent>
-													{#each pharmacyStore.items || [] as med}
+													{#each pharmacyStore.items || [] as med (med.id)}
 														<SelectItem value={med.id}
 															>{med.itemName} (Stock: {med.currentStock})</SelectItem
 														>
@@ -744,7 +776,7 @@ P: ${res.plan}`;
 											></thead
 										>
 										<tbody class="divide-y">
-											{#each prescriptions as p, i}
+											{#each prescriptions as p, i (p.id + ':' + i)}
 												<tr class="hover:bg-muted/30"
 													><td class="px-3 py-2">{p.name}</td><td class="px-3 py-2">{p.quantity}</td
 													><td class="px-3 py-2 text-right"
@@ -810,7 +842,9 @@ P: ${res.plan}`;
 										letter.
 									</p>
 								</div>
-								<Button variant="outline" class="mt-2">Generate Referral Letter</Button>
+								<Button variant="outline" class="mt-2" onclick={() => (showReferralDialog = true)}
+									>Generate Referral Letter</Button
+								>
 							</div>
 						</TabsContent>
 						<TabsContent value="ai-assist" class="m-0 space-y-4 animate-in fade-in-50 zoom-in-95">
@@ -867,7 +901,7 @@ P: ${res.plan}`;
 												<ul
 													class="list-disc list-inside text-sm font-medium text-red-700/90 space-y-1 pl-1"
 												>
-													{#each dssResult.redFlags as flag}
+													{#each dssResult.redFlags as flag (flag)}
 														<li>{flag}</li>
 													{/each}
 												</ul>
@@ -882,7 +916,7 @@ P: ${res.plan}`;
 													</CardTitle>
 												</CardHeader>
 												<CardContent class="space-y-4 pt-4">
-													{#each dssResult.differentials as diff}
+													{#each dssResult.differentials as diff (diff.condition)}
 														<div class="space-y-1.5">
 															<div class="flex items-center justify-between">
 																<span class="font-medium text-sm">{diff.condition}</span>
@@ -928,7 +962,7 @@ P: ${res.plan}`;
 														<ul
 															class="list-disc list-inside text-sm text-muted-foreground space-y-1"
 														>
-															{#each dssResult.suggestedTests as test}
+															{#each dssResult.suggestedTests as test (test)}
 																<li>{test}</li>
 															{/each}
 														</ul>
@@ -961,7 +995,7 @@ P: ${res.plan}`;
 														<ul
 															class="list-disc list-inside text-sm text-muted-foreground space-y-1"
 														>
-															{#each dssResult.treatments as tx}
+															{#each dssResult.treatments as tx (tx)}
 																<li>{tx}</li>
 															{/each}
 														</ul>
@@ -1019,7 +1053,7 @@ P: ${res.plan}`;
 {/if}
 
 <Dialog.Root bind:open={showReferralDialog}>
-	<Dialog.Content class="sm:max-w-[425px]">
+	<Dialog.Content class="sm:max-w-[540px]">
 		<Dialog.Header>
 			<Dialog.Title>Generate Referral Letter</Dialog.Title>
 			<Dialog.Description>
@@ -1031,6 +1065,72 @@ P: ${res.plan}`;
 				<Label>Receiving Facility</Label>
 				<Input bind:value={referralFacility} placeholder="e.g. General Hospital, Benin City" />
 			</div>
+
+			<div class="space-y-2 rounded-lg border bg-muted/30 p-3">
+				<div class="flex items-center justify-between gap-2">
+					<p
+						class="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5"
+					>
+						<Building2 class="size-3.5" /> National facility registry
+					</p>
+					<Button
+						variant="outline"
+						size="sm"
+						class="h-7 text-xs"
+						onclick={searchRegistry}
+						disabled={registrySearching}
+					>
+						{#if registrySearching}
+							<Loader2 class="size-3 mr-1.5 animate-spin" /> Searching...
+						{:else}
+							<Search class="size-3 mr-1.5" /> Search registry
+						{/if}
+					</Button>
+				</div>
+				<p
+					class="text-[11px] leading-relaxed text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded px-2 py-1.5"
+				>
+					Advisory only — verify the receiving facility with the clinician. Registry results are
+					reference data, are not authoritative, and are never applied automatically. Manual entry
+					remains available.
+				</p>
+				{#if registryLookup}
+					{#if registryLookup.availability !== 'live' && registryLookup.reason}
+						<p class="text-xs text-muted-foreground">
+							{registryLookup.reason} Manual entry remains available.
+						</p>
+					{:else if registryLookup.facilities.length === 0}
+						<p class="text-xs text-muted-foreground">
+							No registry matches found. Manual entry remains available.
+						</p>
+					{:else}
+						<ul class="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+							{#each registryLookup.facilities as facility (facility.registryId ?? facility.name)}
+								<li
+									class="flex items-center justify-between gap-2 rounded border bg-card px-2 py-1.5 text-xs"
+								>
+									<div class="min-w-0">
+										<p class="font-medium truncate">{facility.name}</p>
+										<p class="text-muted-foreground truncate">
+											{[facility.level, facility.lga, facility.state].filter(Boolean).join(' • ') ||
+												'Registry facility'}
+										</p>
+									</div>
+									<Button
+										variant="outline"
+										size="sm"
+										class="h-6 shrink-0 text-xs"
+										onclick={() => (referralFacility = facility.name)}
+									>
+										Use
+									</Button>
+								</li>
+							{/each}
+						</ul>
+					{/if}
+				{/if}
+			</div>
+
 			<div class="space-y-2">
 				<Label>Reason for Referral / Provisional Diagnosis</Label>
 				<Textarea bind:value={referralReason} placeholder="Enter reason for referral..." rows={3} />

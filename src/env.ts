@@ -28,11 +28,19 @@ export const variables = defineEnvVars({
 		schema: v.optional(v.string())
 	},
 	NHIS_API_URL: {
-		description: 'Optional NHIS claims API base URL',
+		description: 'Optional private NHIS/HMO claims endpoint URL (no public API is assumed)',
 		schema: v.optional(v.string())
 	},
 	NHIS_API_KEY: {
-		description: 'Optional NHIS claims API key',
+		description: 'Optional API key for the private NHIS/HMO claims endpoint',
+		schema: v.optional(v.string())
+	},
+	HFR_API_KEY: {
+		description: 'Optional API key for the read-only Nigeria Health Facility Registry',
+		schema: v.optional(v.string())
+	},
+	HFR_API_URL: {
+		description: 'Optional override for the Nigeria Health Facility Registry API base URL',
 		schema: v.optional(v.string())
 	},
 	GEMINI_API_KEY: {

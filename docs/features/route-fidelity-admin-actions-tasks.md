@@ -20,24 +20,24 @@
 
 ## Wave 2 — config tables, adapters, referrals
 
-- [ ] MK-10: add PHC-scoped `dhis2_config` table in PG + SQLite dialects and migrations.
-- [ ] MK-10: add `getDhis2Config` / `updateDhis2Config` remotes; wire page UIDs; preserve clinical-integrity notice.
-- [ ] NW-01: add durable `nhis_claims` table in PG + SQLite dialects and migrations.
-- [ ] NW-01: add `nhis-provider` adapter + submit remote; manual queue by default, private endpoint override opt-in; replace simulated submit and hardcoded status.
-- [ ] HF-01: add read-only advisory HFR `facility-registry-provider.ts` with live/unconfigured/unavailable states and TTL cache; no console mode.
-- [ ] HF-02: wire advisory HFR referral destination directory; clinician confirms the target.
-- [ ] HF-03: wire advisory HFR onboarding validation and admin data-quality review; never auto-overwrite.
-- [ ] NW-03: add `sms-provider` adapter + SMS test command; replace simulated test toast.
-- [ ] NW-06: add superadmin-scoped reset-password and deactivate-user commands with confirmation + audit.
-- [ ] NW-07: add `phcs.active` column (both dialects + migrations).
-- [ ] NW-07: add PHC-scoped sync-status query and deactivate/reset-data commands; remove literal "Healthy".
-- [ ] NW-14: replace `dispatchReminders` stub with adapter-backed dispatch, durable status and permission check.
-- [ ] NW-09: wire doctor referral tab to the working referral flow.
-- [ ] NW-10: replace simulated referral SMS with adapter-backed remote and session-derived signature.
-- [ ] Add focused tests for adapter mode selection and referral/NHIS server logic.
-- [ ] Update user-facing docs for claims, SMS, referrals and superadmin actions.
-- [ ] Validation: full checks as in Wave 1; no increase over the post-Wave-1 baseline.
-- [ ] Add Wave 2 changeset; update parent tracker and main tracker; commit and push.
+- [x] MK-10: add PHC-scoped `dhis2_config` table in PG + SQLite dialects and migrations.
+- [x] MK-10: add `getDhis2Config` / `updateDhis2Config` remotes; wire page UIDs; preserve clinical-integrity notice.
+- [x] NW-01: add durable `nhis_claims` table in PG + SQLite dialects and migrations.
+- [x] NW-01: add `nhis-provider` adapter + submit remote; manual queue by default, private endpoint override opt-in; replace simulated submit and hardcoded status.
+- [x] HF-01: add read-only advisory HFR `facility-registry-provider.ts` with live/unconfigured/unavailable states and TTL cache; no console mode.
+- [x] HF-02: wire advisory HFR referral destination directory; clinician confirms the target.
+- [x] HF-03: wire advisory HFR onboarding validation and admin data-quality review; never auto-overwrite.
+- [x] NW-03: add `sms-provider` adapter + SMS test command; replace simulated test toast.
+- [x] NW-06: add superadmin-scoped reset-password and deactivate-user commands with confirmation + audit.
+- [x] NW-07: add `phcs.active` column (both dialects + migrations).
+- [x] NW-07: add PHC-scoped sync-status query and deactivate/reset-data commands; remove literal "Healthy".
+- [x] NW-14: replace `dispatchReminders` stub with adapter-backed dispatch, durable status and permission check.
+- [x] NW-09: wire doctor referral tab to the working referral flow.
+- [x] NW-10: replace simulated referral SMS with adapter-backed remote and session-derived signature.
+- [x] Add focused tests for adapter mode selection and referral/NHIS server logic.
+- [x] Update user-facing docs for claims, SMS, referrals and superadmin actions.
+- [x] Validation: full checks as in Wave 1; no increase over the post-Wave-1 baseline (226 errors / 23 warnings).
+- [x] Add Wave 2 changeset; update parent tracker and main tracker; commit and push.
 
 ## Deferred / unchanged
 

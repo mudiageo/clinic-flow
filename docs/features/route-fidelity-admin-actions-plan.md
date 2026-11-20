@@ -1,6 +1,6 @@
 # Route Fidelity — Admin Actions & Provider Adapters (Implementation Plan)
 
-**Status:** In progress — Wave 1 complete and pushed; Wave 2 in implementation. Last verified: 2026-11-20.
+**Status:** Complete — both waves implemented, documented, validated and pushed. Last verified: 2026-11-20.
 **Companion checklist:** `docs/features/route-fidelity-admin-actions-tasks.md`
 **Parent:** `docs/features/route-fidelity-cleanup-plan.md` (remaining Phase E items + referral items).
 **Scope:** MK-07, NW-15, MK-09, NW-05 (Wave 1); MK-10, NW-01, NW-03, NW-06, NW-07, NW-14, NW-09, NW-10 (Wave 2). ST-14 remains explicitly deferred.
@@ -147,3 +147,7 @@ Wave 2 also adds `minor` changeset + user-facing docs and then commit and push.
 - Update user-facing docs/guides for changed flows (releases, sync health, devices, claims, SMS, referrals).
 - One `minor` changeset per wave (repo convention + parent tracker item).
 - Update the main tracker if applicable; final validation; commit and push each wave.
+
+### Closure (2026-11-20)
+
+Wave 1 landed as `4e8d97a`. Wave 2 adds the config/status schema for both dialects (`dhis2_config`, `nhis_claims`, `phcs.active`), the SMS/NHIS/HFR adapters, the superadmin user/PHC actions, durable reminder dispatch and the doctor referral/SMS flow. Final validation for both waves: changed-file `vp fmt --check` and `vp lint` clean, Svelte autofixer clean on all edited components, `pnpm check:sw` clean, `vp build` passing, `vp test --run --project server` passing (17 files / 95 tests), and `pnpm run check` holding the post-Wave-1 baseline of 226 errors / 23 warnings with no new diagnostics in changed files. User-facing guidance lives in `/support/admin-operations`. Deferred items (ST-14, `/download` distribution, universal offline `0000` PIN) remain unchanged and Planned. `local.db` remains untracked and untouched.
