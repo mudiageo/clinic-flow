@@ -101,6 +101,26 @@ async function upsert(table: AnyTable, rows: Record<string, unknown>[]): Promise
 	return rows.length;
 }
 
+/** Columns that point at a staff row and must follow a reused staff id. */
+const STAFF_REF_FIELDS = [
+	'staffId',
+	'recordedByStaffId',
+	'requestedByStaffId',
+	'resultEnteredByStaffId',
+	'dispensedByStaffId',
+	'assignedStaffId'
+] as const;
+
+function remapStaffRefs<T extends Record<string, unknown>>(row: T, remap: Map<string, string>): T {
+	if (remap.size === 0) return row;
+	const next: Record<string, unknown> = { ...row };
+	for (const field of STAFF_REF_FIELDS) {
+		const value = next[field];
+		if (typeof value === 'string' && remap.has(value)) next[field] = remap.get(value);
+	}
+	return next as T;
+}
+
 /** Ensure a Better Auth user + credential account exist; return the real user id. */
 async function ensureAuthUser(input: {
 	id: string;
@@ -226,19 +246,47 @@ async function seedFixture(f: FixtureSet) {
 	const userIds = new Map<string, string>();
 	for (const user of f.authUsers) userIds.set(user.email, await ensureAuthUser(user));
 
-	rowsWritten += await upsert(
-		schema.staff as AnyTable,
-		f.staff.map((s) => {
-			const owner = f.authUsers.find((u) => u.id === s.authUserId);
-			return {
-				...(toServerRow('staff', s as unknown as Record<string, unknown>) as Record<
-					string,
-					unknown
-				>),
-				authUserId: (owner && userIds.get(owner.email)) || s.authUserId
-			};
-		})
+	const staffRows = f.staff.map((s) => {
+		const owner = f.authUsers.find((u) => u.id === s.authUserId);
+		return {
+			...(toServerRow('staff', s as unknown as Record<string, unknown>) as Record<string, unknown>),
+			authUserId: (owner && userIds.get(owner.email)) || s.authUserId
+		};
+	});
+
+	// `staff.auth_user_id` is unique independently of the primary key. A remote
+	// database may already have a staff row for one of these auth users (from
+	// onboarding, or an older seed with different ids). Reuse that row's id instead
+	// of inserting a second one: this avoids the duplicate-key crash without
+	// deleting existing data, and the remap below keeps fixture foreign keys valid.
+	const targetAuthUserIds = staffRows.map((r) => r.authUserId as string);
+	const existingStaff = await db
+		.select({ id: schema.staff.id, authUserId: schema.staff.authUserId })
+		.from(schema.staff)
+		.where(inArray(schema.staff.authUserId, targetAuthUserIds));
+	const existingIdByAuthUserId = new Map(existingStaff.map((s) => [s.authUserId, s.id] as const));
+
+	const staffIdRemap = new Map<string, string>();
+	const resolvedStaffRows = staffRows.map((row) => {
+		const existingId = existingIdByAuthUserId.get(row.authUserId as string);
+		if (existingId && existingId !== row.id) {
+			staffIdRemap.set(row.id as string, existingId);
+			return { ...row, id: existingId };
+		}
+		return row;
+	});
+
+	const realAuthUserIdByFixtureId = new Map(
+		staffRows.map(
+			(row, i) => [row.id as string, resolvedStaffRows[i].authUserId as string] as const
+		)
 	);
+
+	if (staffIdRemap.size) {
+		console.log(`   Reusing ${staffIdRemap.size} existing staff row(s) with matching auth users`);
+	}
+
+	rowsWritten += await upsert(schema.staff as AnyTable, resolvedStaffRows);
 
 	rowsWritten += await upsert(
 		schema.families as AnyTable,
@@ -253,7 +301,10 @@ async function seedFixture(f: FixtureSet) {
 	const write = async (entityType: string, rows: Array<{ id: string }>) => {
 		const serverRows = rows.map(
 			(r) =>
-				toServerRow(entityType, r as unknown as Record<string, unknown>) as Record<string, unknown>
+				toServerRow(
+					entityType,
+					remapStaffRefs(r as unknown as Record<string, unknown>, staffIdRemap)
+				) as Record<string, unknown>
 		);
 		rowsWritten += await upsert(schema[entityType as keyof typeof schema] as AnyTable, serverRows);
 	};
@@ -273,13 +324,25 @@ async function seedFixture(f: FixtureSet) {
 
 	rowsWritten += await upsert(schema.devices as AnyTable, f.serverOnly.devices);
 	rowsWritten += await upsert(schema.smsInbox as AnyTable, f.serverOnly.smsInbox);
-	rowsWritten += await upsert(schema.auditLog as AnyTable, f.serverOnly.auditLog);
+	rowsWritten += await upsert(
+		schema.auditLog as AnyTable,
+		f.serverOnly.auditLog.map((row) =>
+			remapStaffRefs(row as unknown as Record<string, unknown>, staffIdRemap)
+		)
+	);
 
 	// Sync log: client-shaped payloads so a fresh Dexie can pull this data.
 	const syncRows: Array<Record<string, unknown>> = [];
 	const log = (entityType: string, rows: Array<{ id: string; updatedAt: number }>) => {
-		for (const row of rows) {
-			const operationKey = `${profile.slug}:${entityType}:${row.id}`;
+		for (const rawRow of rows) {
+			const row = remapStaffRefs(rawRow as unknown as Record<string, unknown>, staffIdRemap) as {
+				id: string;
+				updatedAt: number;
+			};
+			const resolvedId = staffIdRemap.get(rawRow.id) ?? rawRow.id;
+			const operationKey = `${profile.slug}:${entityType}:${resolvedId}`;
+			const realAuthUserId =
+				entityType === 'staff' ? realAuthUserIdByFixtureId.get(rawRow.id) : undefined;
 			syncRows.push({
 				id: seedId(`syncop:${operationKey}`),
 				phcId: f.phcId,
@@ -287,9 +350,13 @@ async function seedFixture(f: FixtureSet) {
 				operationId: `seed:${operationKey}`,
 				version: syncRows.length + 1,
 				entityType,
-				entityId: row.id,
+				entityId: resolvedId,
 				operation: 'create',
-				payload: JSON.stringify(row),
+				payload: JSON.stringify({
+					...row,
+					id: resolvedId,
+					...(realAuthUserId ? { authUserId: realAuthUserId } : {})
+				}),
 				clientUpdatedAt: new Date(row.updatedAt)
 			});
 		}
