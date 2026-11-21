@@ -246,13 +246,19 @@ async function seedFixture(f: FixtureSet) {
 	const userIds = new Map<string, string>();
 	for (const user of f.authUsers) userIds.set(user.email, await ensureAuthUser(user));
 
-	const staffRows = f.staff.map((s) => {
-		const owner = f.authUsers.find((u) => u.id === s.authUserId);
-		return {
-			...(toServerRow('staff', s as unknown as Record<string, unknown>) as Record<string, unknown>),
-			authUserId: (owner && userIds.get(owner.email)) || s.authUserId
-		};
-	});
+	const staffRows = f.staff.map(
+		(s): Record<string, unknown> & { id: string; authUserId: string } => {
+			const owner = f.authUsers.find((u) => u.id === s.authUserId);
+			return {
+				...(toServerRow('staff', s as unknown as Record<string, unknown>) as Record<
+					string,
+					unknown
+				>),
+				id: s.id,
+				authUserId: (owner && userIds.get(owner.email)) || s.authUserId
+			};
+		}
+	);
 
 	// `staff.auth_user_id` is unique independently of the primary key. A remote
 	// database may already have a staff row for one of these auth users (from
@@ -264,7 +270,11 @@ async function seedFixture(f: FixtureSet) {
 		.select({ id: schema.staff.id, authUserId: schema.staff.authUserId })
 		.from(schema.staff)
 		.where(inArray(schema.staff.authUserId, targetAuthUserIds));
-	const existingIdByAuthUserId = new Map(existingStaff.map((s) => [s.authUserId, s.id] as const));
+	const existingIdByAuthUserId = new Map<string, string>(
+		(existingStaff as Array<{ authUserId: string; id: string }>).map(
+			(s) => [s.authUserId, s.id] as const
+		)
+	);
 
 	const staffIdRemap = new Map<string, string>();
 	const resolvedStaffRows = staffRows.map((row) => {
