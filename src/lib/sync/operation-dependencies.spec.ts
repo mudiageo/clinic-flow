@@ -40,6 +40,20 @@ describe('orderOperationsForDependencies', () => {
 		]);
 	});
 
+	it('pushes pregnancy records before ANC visits that reference them', () => {
+		const operations = [
+			op('ancVisits', { entityId: 'anc-1' }),
+			op('patients', { entityId: 'patient-1' }),
+			op('pregnancyRecords', { entityId: 'pregnancy-1' })
+		];
+
+		expect(orderOperationsForDependencies(operations).map((entry) => entry.entityId)).toEqual([
+			'patient-1',
+			'pregnancy-1',
+			'anc-1'
+		]);
+	});
+
 	it('keeps the original order inside the same rank', () => {
 		const operations = [
 			op('vitalsRecords', { entityId: 'vitals-1' }),

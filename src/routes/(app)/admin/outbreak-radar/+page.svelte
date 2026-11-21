@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { outbreakEngine } from '#lib/state/outbreaks.svelte.ts';
 	import { settingsStore } from '#lib/state/settings.svelte.ts';
+	import AiDisclaimer from '#lib/components/ui/ai-disclaimer.svelte';
 	import {
 		Card,
 		CardHeader,
@@ -171,6 +172,8 @@
 			{/if}
 		</div>
 	</div>
+
+	<AiDisclaimer compact />
 
 	{#if currentTab === 'radar'}
 		<!-- Strict Rule-Based Alerts (Safety Layer) -->

@@ -157,7 +157,8 @@ describe('cross-device convergence', () => {
 		const outsider = new TestClient('outside-device', 'phc-two', feed);
 		const entities = [
 			['immunizationRecords', 'immunization-1', { vaccineName: 'BCG', doseNumber: 1 }],
-			['temperatureLogs', 'temperature-1', { temperatureCelsius: 4.1 }]
+			['temperatureLogs', 'temperature-1', { temperatureCelsius: 4.1 }],
+			['ancVisits', 'anc-1', { visitNumber: 2 }]
 		] as const;
 
 		for (const [entityType, entityId, value] of entities) {
@@ -176,7 +177,7 @@ describe('cross-device convergence', () => {
 			expect(pharmacy.records.get(`${entityType}:${entityId}`)).toEqual(value);
 			expect(outsider.records.get(`${entityType}:${entityId}`)).toBeUndefined();
 		}
-		expect(pharmacy.cursor).toBe(2);
+		expect(pharmacy.cursor).toBe(3);
 		expect(outsider.cursor).toBe(0);
 	});
 });

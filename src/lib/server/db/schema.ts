@@ -253,6 +253,41 @@ export const pregnancyRecords = pgTable(
 	})
 );
 
+export const ancVisits = pgTable(
+	'anc_visits',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		patientId: uuid('patient_id')
+			.notNull()
+			.references(() => patients.id),
+		pregnancyRecordId: uuid('pregnancy_record_id')
+			.notNull()
+			.references(() => pregnancyRecords.id),
+		phcId: uuid('phc_id')
+			.notNull()
+			.references(() => phcs.id),
+		visitNumber: integer('visit_number'),
+		visitDate: timestamp('visit_date', { withTimezone: true }).notNull(),
+		systolicBp: integer('systolic_bp'),
+		diastolicBp: integer('diastolic_bp'),
+		weightKg: real('weight_kg'),
+		fetalHeartRateBpm: integer('fetal_heart_rate_bpm'),
+		fundalHeightCm: real('fundal_height_cm'),
+		notes: text('notes'),
+		recordedByStaffId: uuid('recorded_by_staff_id')
+			.notNull()
+			.references(() => staff.id),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(table) => ({
+		patientIdx: index('anc_visits_patient_idx').on(table.patientId),
+		pregnancyIdx: index('anc_visits_pregnancy_idx').on(table.pregnancyRecordId),
+		phcIdx: index('anc_visits_phc_idx').on(table.phcId),
+		visitDateIdx: index('anc_visits_visit_date_idx').on(table.visitDate)
+	})
+);
+
 export const familyRelationships = pgTable(
 	'family_relationships',
 	{
@@ -961,6 +996,16 @@ export const remindersRelations = relations(reminders, ({ one }) => ({
 export const pregnancyRecordsRelations = relations(pregnancyRecords, ({ one }) => ({
 	patient: one(patients, { fields: [pregnancyRecords.patientId], references: [patients.id] }),
 	phc: one(phcs, { fields: [pregnancyRecords.phcId], references: [phcs.id] })
+}));
+
+export const ancVisitsRelations = relations(ancVisits, ({ one }) => ({
+	patient: one(patients, { fields: [ancVisits.patientId], references: [patients.id] }),
+	pregnancy: one(pregnancyRecords, {
+		fields: [ancVisits.pregnancyRecordId],
+		references: [pregnancyRecords.id]
+	}),
+	phc: one(phcs, { fields: [ancVisits.phcId], references: [phcs.id] }),
+	recordedBy: one(staff, { fields: [ancVisits.recordedByStaffId], references: [staff.id] })
 }));
 
 export const smsInboxRelations = relations(smsInbox, ({ one }) => ({

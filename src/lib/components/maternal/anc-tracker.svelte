@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { pregnancyStore } from '#lib/state/pregnancy.svelte.ts';
 	import { patientStore } from '#lib/state/patients.svelte.ts';
+	import { sessionStore } from '#lib/state/session.svelte.ts';
+	import { settingsStore } from '#lib/state/settings.svelte.ts';
+	import { ancVisitsStore } from '#lib/state/anc-visits.svelte.ts';
+	import { formatDate } from '#lib/utils/date.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import {
 		Card,
@@ -12,6 +16,7 @@
 	import { Baby, CalendarPlus, Activity, Plus } from '@lucide/svelte';
 	import PartogramDialog from './partogram-dialog.svelte';
 	import DeliveryDialog from './delivery-dialog.svelte';
+	import AncVisitDialog from './anc-visit-dialog.svelte';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import { Input } from '#lib/components/ui/input/index.ts';
 	import { Label } from '#lib/components/ui/label/index.ts';
@@ -29,6 +34,22 @@
 
 	let partogramOpen = $state(false);
 	let deliveryOpen = $state(false);
+	let ancVisitOpen = $state(false);
+
+	// ANC visit logging is available only when the feature and permission are both enabled.
+	let canLogAncVisit = $derived(
+		sessionStore.can('manage:anc') && settingsStore.current.maternalHealthEnabled
+	);
+	let ancVisitBlockedReason = $derived(
+		!sessionStore.can('manage:anc')
+			? 'You do not have permission to manage ANC visits.'
+			: 'Maternal health is disabled for this PHC.'
+	);
+
+	// Reactive read of the local ANC visit store; no direct database access in the component.
+	let recentAncVisits = $derived(
+		activePregnancy ? ancVisitsStore.forPregnancy(activePregnancy.id) : []
+	);
 
 	// Calculate EDD based on LMP (Naegele's rule)
 	function calculateEDD() {
@@ -117,7 +138,13 @@
 			</div>
 
 			<div class="flex gap-3 pt-4 border-t border-border">
-				<Button variant="outline" class="w-full">
+				<Button
+					variant="outline"
+					class="w-full"
+					onclick={() => (ancVisitOpen = true)}
+					disabled={!canLogAncVisit}
+					title={canLogAncVisit ? 'Log an antenatal visit' : ancVisitBlockedReason}
+				>
 					<Activity class="size-4 mr-2" />
 					Log ANC Visit
 				</Button>
@@ -126,6 +153,51 @@
 					Start Partogram (Labor)
 				</Button>
 				<Button variant="default" class="w-full" onclick={handleDeliver}>Mark as Delivered</Button>
+			</div>
+
+			<div class="mt-6 pt-4 border-t border-border">
+				<h4 class="text-sm font-semibold mb-3">Recent ANC visits</h4>
+				{#if recentAncVisits.length === 0}
+					<p class="text-sm text-muted-foreground">No ANC visits recorded yet.</p>
+				{:else}
+					<ul class="space-y-2">
+						{#each recentAncVisits as visit (visit.id)}
+							<li class="rounded-md border border-border bg-muted/20 p-3 text-sm">
+								<div class="flex flex-wrap items-center justify-between gap-2">
+									<span class="font-medium">
+										{formatDate(visit.visitDate)}{visit.visitNumber
+											? ` · Visit ${visit.visitNumber}`
+											: ''}
+									</span>
+									<span class="text-xs text-muted-foreground">
+										{visit.syncStatus === 'pending'
+											? 'Pending sync'
+											: visit.syncStatus === 'conflict'
+												? 'Sync conflict'
+												: 'Synced'}
+									</span>
+								</div>
+								<div class="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-muted-foreground">
+									{#if visit.systolicBp != null && visit.diastolicBp != null}
+										<span>BP {visit.systolicBp}/{visit.diastolicBp} mmHg</span>
+									{/if}
+									{#if visit.fetalHeartRateBpm != null}
+										<span>FHR {visit.fetalHeartRateBpm} bpm</span>
+									{/if}
+									{#if visit.weightKg != null}
+										<span>Weight {visit.weightKg} kg</span>
+									{/if}
+									{#if visit.fundalHeightCm != null}
+										<span>Fundal height {visit.fundalHeightCm} cm</span>
+									{/if}
+								</div>
+								{#if visit.notes}
+									<p class="mt-1 text-xs text-muted-foreground">{visit.notes}</p>
+								{/if}
+							</li>
+						{/each}
+					</ul>
+				{/if}
 			</div>
 		{:else}
 			{#if showNewPregnancyForm}
@@ -179,4 +251,10 @@
 <PartogramDialog bind:open={partogramOpen} {patientId} />
 {#if activePregnancy}
 	<DeliveryDialog bind:open={deliveryOpen} {patientId} pregnancyRecordId={activePregnancy.id} />
+	<AncVisitDialog
+		bind:open={ancVisitOpen}
+		{patientId}
+		pregnancyRecordId={activePregnancy.id}
+		onComplete={() => (ancVisitOpen = false)}
+	/>
 {/if}

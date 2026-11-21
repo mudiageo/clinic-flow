@@ -6,7 +6,11 @@ import {
 	normalizeClinicalPayload
 } from './policy.ts';
 
-const flags = { immunizationEnabled: true, coldChainEnabled: true };
+const flags = {
+	immunizationEnabled: true,
+	coldChainEnabled: true,
+	maternalHealthEnabled: true
+};
 
 describe('clinical write policy', () => {
 	it('maps each clinical entity to its permission and feature flag', () => {
@@ -18,6 +22,10 @@ describe('clinical write policy', () => {
 			permission: 'manage:cold_chain',
 			flag: 'coldChainEnabled'
 		});
+		expect(clinicalWritePolicy('ancVisits')).toEqual({
+			permission: 'manage:anc',
+			flag: 'maternalHealthEnabled'
+		});
 		expect(clinicalWritePolicy('patients')).toBeNull();
 	});
 
@@ -26,6 +34,8 @@ describe('clinical write policy', () => {
 		expect(canWriteClinical('temperatureLogs', 'pharmacy', ['manage:cold_chain'])).toBe(true);
 		expect(canWriteClinical('immunizationRecords', 'nurse', ['manage:cold_chain'])).toBe(false);
 		expect(canWriteClinical('temperatureLogs', 'pharmacy', [])).toBe(false);
+		expect(canWriteClinical('ancVisits', 'nurse_midwife', ['manage:anc'])).toBe(true);
+		expect(canWriteClinical('ancVisits', 'nurse', ['view:anc'])).toBe(false);
 		expect(canWriteClinical('temperatureLogs', 'superadmin', [])).toBe(true);
 		// Non-clinical entities are unaffected by this gate.
 		expect(canWriteClinical('patients', 'receptionist', [])).toBe(true);
@@ -34,6 +44,10 @@ describe('clinical write policy', () => {
 	it('fails closed when the PHC flag is disabled or missing', () => {
 		expect(clinicalFeatureEnabled('immunizationRecords', flags)).toBe(true);
 		expect(clinicalFeatureEnabled('temperatureLogs', flags)).toBe(true);
+		expect(clinicalFeatureEnabled('ancVisits', flags)).toBe(true);
+		expect(clinicalFeatureEnabled('ancVisits', { ...flags, maternalHealthEnabled: false })).toBe(
+			false
+		);
 		expect(
 			clinicalFeatureEnabled('immunizationRecords', { ...flags, immunizationEnabled: false })
 		).toBe(false);
@@ -113,6 +127,41 @@ describe('clinical payload normalization', () => {
 		).toBeNull();
 		expect(
 			normalizeClinicalPayload('temperatureLogs', { temperatureCelsius: 4, recordedAt: 1 })
+		).toBeNull();
+	});
+
+	it('normalizes a valid ANC visit and rejects invalid clinical values', () => {
+		const ancVisit = {
+			patientId: 'patient-1',
+			pregnancyRecordId: 'pregnancy-1',
+			visitNumber: 2,
+			visitDate: 1_700_000_000_000,
+			systolicBp: 120,
+			diastolicBp: 80,
+			weightKg: 65.5,
+			fetalHeartRateBpm: 140,
+			fundalHeightCm: 28,
+			notes: '  routine visit  '
+		};
+
+		const result = normalizeClinicalPayload('ancVisits', ancVisit);
+		expect(result).not.toBeNull();
+		expect(result?.visitDate).toBeInstanceOf(Date);
+		expect(result?.notes).toBe('routine visit');
+		expect(result?.weightKg).toBe(65.5);
+
+		expect(
+			normalizeClinicalPayload('ancVisits', { ...ancVisit, pregnancyRecordId: '' })
+		).toBeNull();
+		expect(normalizeClinicalPayload('ancVisits', { ...ancVisit, visitNumber: 9 })).toBeNull();
+		expect(
+			normalizeClinicalPayload('ancVisits', { ...ancVisit, fetalHeartRateBpm: 400 })
+		).toBeNull();
+		expect(
+			normalizeClinicalPayload('ancVisits', {
+				...ancVisit,
+				visitDate: Date.now() + 10 * 24 * 60 * 60 * 1000
+			})
 		).toBeNull();
 	});
 

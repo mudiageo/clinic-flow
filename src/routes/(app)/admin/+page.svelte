@@ -6,6 +6,7 @@
 	import { syncStore } from '#lib/state/sync.svelte.ts';
 	import { outbreakEngine } from '#lib/state/outbreaks.svelte.ts';
 	import { settingsStore } from '#lib/state/settings.svelte.ts';
+	import AiDisclaimer from '#lib/components/ui/ai-disclaimer.svelte';
 	import {
 		Card,
 		CardHeader,
@@ -43,6 +44,7 @@
 	} from '@lucide/svelte';
 
 	import { onMount } from 'svelte';
+	import { SvelteDate } from 'svelte/reactivity';
 	import { getPhcStaffList } from '#lib/remote/admin.remote.ts';
 	import { toast } from 'svelte-sonner';
 
@@ -77,7 +79,7 @@
 		const days = [];
 		const now = new Date();
 		for (let i = 6; i >= 0; i--) {
-			const d = new Date(now);
+			const d = new SvelteDate(now);
 			d.setDate(d.getDate() - i);
 			const dateStr = d.toDateString();
 			const count = encounters.filter(
@@ -123,6 +125,8 @@
 			<p class="text-muted-foreground text-sm mt-0.5">Primary Health Centre metrics and alerts</p>
 		</div>
 	</div>
+
+	<AiDisclaimer compact />
 
 	<!-- AI Outbreak Radar Widget -->
 	{#if settingsStore.current.outbreakDetectionEnabled}
@@ -183,7 +187,7 @@
 							>
 						</div>
 						<div class="grid gap-2">
-							{#each outbreakEngine.alerts as alert}
+							{#each outbreakEngine.alerts as alert (`${alert.disease}-${alert.community}`)}
 								<div
 									class="text-sm font-medium text-destructive/90 flex items-center justify-between bg-destructive/10 px-3 py-2 rounded-md"
 								>
@@ -242,7 +246,7 @@
 							<!-- Pre-alerts / Outbreaks -->
 							{#if ai.outbreaks?.length > 0 || ai.preAlerts?.length > 0}
 								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-									{#each ai.outbreaks || [] as outbreak}
+									{#each ai.outbreaks || [] as outbreak (`${outbreak.disease}-${outbreak.affectedCommunities?.join(',') ?? ''}`)}
 										<div
 											class="rounded-lg border bg-card p-3 space-y-2 shadow-sm border-l-4 {outbreak.severity ===
 											'critical'
@@ -276,7 +280,7 @@
 										</div>
 									{/each}
 
-									{#each ai.preAlerts || [] as preAlert}
+									{#each ai.preAlerts || [] as preAlert (`${preAlert.disease}-${preAlert.affectedCommunities?.join(',') ?? ''}`)}
 										<div
 											class="rounded-lg border bg-card p-3 space-y-2 shadow-sm border-l-4 border-l-blue-400"
 										>
@@ -425,7 +429,7 @@
 				</CardHeader>
 				<CardContent>
 					<div class="flex items-end gap-2 h-48 mt-4">
-						{#each visitsPerDay.days as { day, count }}
+						{#each visitsPerDay.days as { day, count } (day)}
 							<div class="flex-1 flex flex-col justify-end items-center gap-2 group">
 								<div
 									class="w-full bg-primary/20 hover:bg-primary transition-colors rounded-t-md relative flex justify-center"
@@ -595,7 +599,7 @@
 						<p class="text-sm text-muted-foreground">No staff active today.</p>
 					{:else}
 						<div class="flex -space-x-3 overflow-hidden p-1">
-							{#each activeStaff as staff}
+							{#each activeStaff as staff (staff.id)}
 								<div class="relative group">
 									<Avatar class="border-2 border-background ring-2 ring-transparent">
 										<AvatarFallback class="bg-primary/10 text-primary font-medium text-xs">

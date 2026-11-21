@@ -2,7 +2,6 @@
 	import {
 		Activity,
 		AlertTriangle,
-		Info,
 		CheckCircle2,
 		Siren,
 		FileText,
@@ -11,6 +10,7 @@
 		Copy
 	} from '@lucide/svelte';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import AiDisclaimer from '#lib/components/ui/ai-disclaimer.svelte';
 </script>
 
 <svelte:head>
@@ -43,20 +43,11 @@
 	</div>
 
 	<!-- AI Disclaimer -->
-	<div
-		class="bg-blue-50/80 border border-blue-100 dark:bg-blue-950/30 dark:border-blue-900/50 p-5 rounded-xl flex gap-4"
-	>
-		<Info class="size-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-		<div class="space-y-1">
-			<h3 class="font-semibold text-blue-900 dark:text-blue-100">AI-Assisted Analysis</h3>
-			<p class="text-sm text-blue-800/90 dark:text-blue-300/90 leading-relaxed">
-				Outbreak Radar uses Google Gemini 2.5 Pro to analyse multi-signal data. It is an advisory
-				tool designed to assist PHC Admins and Local Government Area (LGA) Disease Surveillance
-				Officers. <strong>It does not replace clinical judgment.</strong> All data sent to the AI is strictly
-				de-identified to comply with NDPR.
-			</p>
-		</div>
-	</div>
+	<AiDisclaimer />
+	<p class="text-sm text-muted-foreground leading-relaxed">
+		Outbreak Radar uses Google Gemini 2.5 Pro to analyse de-identified multi-signal data for PHC
+		Admins and LGA Disease Surveillance Officers.
+	</p>
 
 	<div class="prose prose-slate dark:prose-invert max-w-none">
 		<h2>How It Works: The Two Layers</h2>

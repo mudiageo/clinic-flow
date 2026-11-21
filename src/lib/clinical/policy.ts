@@ -5,16 +5,17 @@
  * permission or feature-flag gating. Client-side checks are convenience only;
  * this module is the authoritative gate.
  */
-export type ClinicalEntityType = 'immunizationRecords' | 'temperatureLogs';
+export type ClinicalEntityType = 'immunizationRecords' | 'temperatureLogs' | 'ancVisits';
 
 export interface ClinicalWritePolicy {
-	permission: 'manage:immunization' | 'manage:cold_chain';
-	flag: 'immunizationEnabled' | 'coldChainEnabled';
+	permission: 'manage:immunization' | 'manage:cold_chain' | 'manage:anc';
+	flag: 'immunizationEnabled' | 'coldChainEnabled' | 'maternalHealthEnabled';
 }
 
 export const CLINICAL_WRITE_POLICY: Record<ClinicalEntityType, ClinicalWritePolicy> = {
 	immunizationRecords: { permission: 'manage:immunization', flag: 'immunizationEnabled' },
-	temperatureLogs: { permission: 'manage:cold_chain', flag: 'coldChainEnabled' }
+	temperatureLogs: { permission: 'manage:cold_chain', flag: 'coldChainEnabled' },
+	ancVisits: { permission: 'manage:anc', flag: 'maternalHealthEnabled' }
 };
 
 export function clinicalWritePolicy(entityType: string): ClinicalWritePolicy | null {
@@ -77,6 +78,25 @@ function optionalString(
 function requiredString(source: Record<string, unknown>, key: string, maxLength: number): string {
 	const value = optionalString(source, key, maxLength);
 	if (!value) throw new Error(`Missing ${key}`);
+	return value;
+}
+
+function numberInRange(
+	value: unknown,
+	min: number,
+	max: number,
+	integerOnly = false
+): number | null {
+	if (value === null || value === undefined || value === '') return null;
+	if (
+		typeof value !== 'number' ||
+		!Number.isFinite(value) ||
+		(integerOnly && !Number.isInteger(value)) ||
+		value < min ||
+		value > max
+	) {
+		return null;
+	}
 	return value;
 }
 
@@ -157,6 +177,41 @@ export function normalizeClinicalPayload(
 				if (!recordedAt) return null;
 				normalized.recordedAt = recordedAt;
 			} else if (!partial) return null;
+			if ('notes' in source || !partial) {
+				normalized.notes = optionalString(source, 'notes', 500);
+			}
+			return normalized;
+		}
+
+		if (entityType === 'ancVisits') {
+			const normalized: Record<string, unknown> = {};
+			if ('patientId' in source) {
+				normalized.patientId = requiredString(source, 'patientId', 160);
+			} else if (!partial) return null;
+			if ('pregnancyRecordId' in source) {
+				normalized.pregnancyRecordId = requiredString(source, 'pregnancyRecordId', 160);
+			} else if (!partial) return null;
+			if ('visitDate' in source) {
+				const visitDate = toDate(source.visitDate);
+				if (!visitDate || visitDate.getTime() > Date.now() + 24 * 60 * 60 * 1000) return null;
+				normalized.visitDate = visitDate;
+			} else if (!partial) return null;
+
+			const numericFields: Array<[string, number, number, boolean]> = [
+				['visitNumber', 1, 8, true],
+				['systolicBp', 50, 300, true],
+				['diastolicBp', 20, 200, true],
+				['weightKg', 1, 400, false],
+				['fetalHeartRateBpm', 50, 250, true],
+				['fundalHeightCm', 5, 60, false]
+			];
+			for (const [key, min, max, integerOnly] of numericFields) {
+				if (key in source || !partial) {
+					const value = numberInRange(source[key], min, max, integerOnly);
+					if (value === null && source[key] !== null && source[key] !== '') return null;
+					normalized[key] = value;
+				}
+			}
 			if ('notes' in source || !partial) {
 				normalized.notes = optionalString(source, 'notes', 500);
 			}

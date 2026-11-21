@@ -21,6 +21,7 @@ export const SYNC_ENTITY_TABLE: Record<string, string> = {
 	restockRequests: 'restock_requests',
 	appointments: 'appointments',
 	pregnancyRecords: 'pregnancy_records',
+	ancVisits: 'anc_visits',
 	staff: 'staff',
 	families: 'families',
 	outreachRecords: 'outreach_records',

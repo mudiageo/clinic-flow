@@ -110,3 +110,13 @@ _Note: Checkboxes [ ] will be updated to [x] as features are completed._
   **Files to Modify**:
 - `src/routes/ai/ai.remote.ts`: Add `optimizeTriageRules`.
 - `src/routes/(app)/admin/triage/+page.svelte`: Add "AI Analyze Thresholds" button.
+
+## [x] 9. 🛡️ AI Advisory Disclaimer Coverage (Demo Prep)
+
+**Objective**: Ensure every AI-assisted path used in the knowledge-showcase demo visibly identifies AI output as experimental and advisory.
+**Permissions**: No new permissions; the shared disclaimer is visible to any user who can reach the AI surface.
+
+- Nurse vitals AI-risk step: `src/routes/(app)/nurse/vitals/+page.svelte`.
+- Outbreak Radar page and dashboard widget: `src/routes/(app)/admin/outbreak-radar/+page.svelte`, `src/routes/(app)/admin/+page.svelte`.
+- Support guide: `src/routes/(marketing)/support/outbreak-radar/+page.svelte`.
+- Details: `docs/features/ai-disclaimer-coverage-plan.md`, `docs/Knowledge-Showcase-Speaker-Script.md`.

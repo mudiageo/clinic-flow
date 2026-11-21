@@ -31,7 +31,9 @@ const DEPENDENCY_RANK: Record<string, number> = {
 	patients: 0,
 	encounters: 1,
 	// Immunizations may reference an appointment created in the same batch.
-	immunizationRecords: 3
+	immunizationRecords: 3,
+	// ANC visits reference a pregnancy record created in the same batch.
+	ancVisits: 4
 };
 
 /**

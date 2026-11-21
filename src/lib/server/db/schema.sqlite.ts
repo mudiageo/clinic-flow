@@ -227,6 +227,47 @@ export const pregnancyRecords = sqliteTable('pregnancy_records', {
 		.$defaultFn(() => new Date())
 });
 
+export const ancVisits = sqliteTable(
+	'anc_visits',
+	{
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		patientId: text('patient_id')
+			.notNull()
+			.references(() => patients.id),
+		pregnancyRecordId: text('pregnancy_record_id')
+			.notNull()
+			.references(() => pregnancyRecords.id),
+		phcId: text('phc_id')
+			.notNull()
+			.references(() => phcs.id),
+		visitNumber: integer('visit_number'),
+		visitDate: integer('visit_date', { mode: 'timestamp' }).notNull(),
+		systolicBp: integer('systolic_bp'),
+		diastolicBp: integer('diastolic_bp'),
+		weightKg: real('weight_kg'),
+		fetalHeartRateBpm: integer('fetal_heart_rate_bpm'),
+		fundalHeightCm: real('fundal_height_cm'),
+		notes: text('notes'),
+		recordedByStaffId: text('recorded_by_staff_id')
+			.notNull()
+			.references(() => staff.id),
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.notNull()
+			.$defaultFn(() => new Date()),
+		updatedAt: integer('updated_at', { mode: 'timestamp' })
+			.notNull()
+			.$defaultFn(() => new Date())
+	},
+	(table) => ({
+		patientIdx: index('anc_visits_patient_idx').on(table.patientId),
+		pregnancyIdx: index('anc_visits_pregnancy_idx').on(table.pregnancyRecordId),
+		phcIdx: index('anc_visits_phc_idx').on(table.phcId),
+		visitDateIdx: index('anc_visits_visit_date_idx').on(table.visitDate)
+	})
+);
+
 export const familyRelationships = sqliteTable(
 	'family_relationships',
 	{
@@ -988,6 +1029,16 @@ export const temperatureLogsRelations = relations(temperatureLogs, ({ one }) => 
 		fields: [temperatureLogs.recordedByStaffId],
 		references: [staff.id]
 	})
+}));
+
+export const ancVisitsRelations = relations(ancVisits, ({ one }) => ({
+	patient: one(patients, { fields: [ancVisits.patientId], references: [patients.id] }),
+	pregnancy: one(pregnancyRecords, {
+		fields: [ancVisits.pregnancyRecordId],
+		references: [pregnancyRecords.id]
+	}),
+	phc: one(phcs, { fields: [ancVisits.phcId], references: [phcs.id] }),
+	recordedBy: one(staff, { fields: [ancVisits.recordedByStaffId], references: [staff.id] })
 }));
 
 // Better Auth tables integration

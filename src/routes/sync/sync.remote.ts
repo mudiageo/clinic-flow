@@ -41,6 +41,7 @@ const tableMap: Record<string, ReturnType<typeof getTable>> = {
 	restockRequests: getTable('restockRequests'),
 	appointments: getTable('appointments'),
 	pregnancyRecords: getTable('pregnancyRecords'),
+	ancVisits: getTable('ancVisits'),
 	staff,
 	families: getTable('families'),
 	outreachRecords: getTable('outreachRecords'),
@@ -185,7 +186,8 @@ export const pushOperations = command(v.array(operationSchema), async (operation
 	const [featureFlags] = await database
 		.select({
 			immunizationEnabled: phcs.immunizationEnabled,
-			coldChainEnabled: phcs.coldChainEnabled
+			coldChainEnabled: phcs.coldChainEnabled,
+			maternalHealthEnabled: phcs.maternalHealthEnabled
 		})
 		.from(phcs)
 		.where(eq(phcs.id, sessionPhcId))

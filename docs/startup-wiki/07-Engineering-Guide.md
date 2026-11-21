@@ -4,7 +4,7 @@ _Part of the Startup Foundation documentation. Living document — update as the
 _Audience: new engineers, contractors, the founder reviewing their own decisions, grant/investor due diligence._
 _Last verified: 2026-11-19._
 
-> This guide describes **what is implemented today**. Items that are designed but not yet built are labelled **Planned**. For authoritative detail see [`AGENTS.md`](../../AGENTS.md), [`docs/features/shared-realtime-sync-plan.md`](../features/shared-realtime-sync-plan.md), [`docs/user-guides/realtime-sync.md`](../user-guides/realtime-sync.md), [`docs/data-model/client-server-field-mapping.md`](../data-model/client-server-field-mapping.md), and the architecture plan in [`docs/Architecture-Implementation-Plan.md`](../Architecture-Implementation-Plan.md).
+> This guide describes **what is implemented today**. Items that are designed but not yet built are labelled **Planned**. For authoritative detail see [`AGENTS.md`](../../AGENTS.md), [`docs/features/shared-realtime-sync-plan.md`](../features/shared-realtime-sync-plan.md), [`docs/user-guides/realtime-sync.md`](../user-guides/realtime-sync.md), [`docs/data-model/client-server-field-mapping.md`](../data-model/client-server-field-mapping.md), the architecture plan in [`docs/Architecture-Implementation-Plan.md`](../Architecture-Implementation-Plan.md), and the demo-prep docs [`docs/Knowledge-Showcase-Speaker-Script.md`](../Knowledge-Showcase-Speaker-Script.md) and [`docs/user-guides/anc-record-keeping.md`](../user-guides/anc-record-keeping.md).
 
 ---
 

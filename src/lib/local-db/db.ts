@@ -162,6 +162,7 @@ export interface LocalSyncOperation {
 		| 'appointments'
 		| 'outreachRecords'
 		| 'pregnancyRecords'
+		| 'ancVisits'
 		| 'immunizationRecords'
 		| 'temperatureLogs';
 	entityId: string;
@@ -296,6 +297,26 @@ export interface LocalPregnancyRecord {
 	syncStatus: 'synced' | 'pending' | 'conflict';
 }
 
+export interface LocalAncVisit {
+	id: string;
+	phcId: string;
+	patientId: string;
+	pregnancyRecordId: string;
+	visitNumber: number | null;
+	visitDate: number;
+	systolicBp: number | null;
+	diastolicBp: number | null;
+	weightKg: number | null;
+	fetalHeartRateBpm: number | null;
+	fundalHeightCm: number | null;
+	notes: string | null;
+	recordedByStaffId: string;
+	createdAt: number;
+	updatedAt: number;
+	syncStatus: 'synced' | 'pending' | 'conflict';
+	serverUpdatedAt: number | null;
+}
+
 export interface SyncLogEntry {
 	localId?: number; // auto-increment
 	operationId: string;
@@ -373,6 +394,7 @@ class ClinicFlowDB extends Dexie {
 	restockRequests!: Table<LocalRestockRequest, string>;
 	appointments!: Table<LocalAppointment, string>;
 	pregnancyRecords!: Table<LocalPregnancyRecord, string>;
+	ancVisits!: Table<LocalAncVisit, string>;
 	families!: Table<LocalFamily, string>;
 	staff!: Table<LocalStaff, string>;
 	syncLog!: Table<SyncLogEntry, number>;
@@ -463,6 +485,10 @@ class ClinicFlowDB extends Dexie {
 			immunizationRecords:
 				'id, phcId, patientId, appointmentId, administeredAt, syncStatus, updatedAt',
 			temperatureLogs: 'id, phcId, recordedAt, syncStatus, updatedAt'
+		});
+		this.version(12).stores({
+			ancVisits:
+				'id, phcId, patientId, pregnancyRecordId, visitDate, recordedByStaffId, syncStatus, updatedAt'
 		});
 	}
 }

@@ -48,6 +48,15 @@ Admins can open **Settings → Demo Data → Seed Demo Data** to load the same f
 
 Seeded rows are written to the server's `sync_operations` table with a device id of `clinicflow-seed`. Any browser signed in to that PHC pulls them on its next sync cycle. The sync boundary translates between the older client field names and the current server schema (documented in `docs/data-model/client-server-field-mapping.md`); that shim will be removed once the client schema migration is done.
 
+## AI advisory disclaimers in the demo
+
+AI features are labelled with the shared `<AiDisclaimer>` component wherever an AI output is shown:
+
+- **Vitals & Triage** — before the background AI risk score runs and appears on queue tickets.
+- **Outbreak Radar** — on the admin Outbreak Radar page, on the Operations Dashboard widget, and in the support guide.
+
+These notices state that AI output is experimental and advisory, may make serious mistakes, and must be verified by staff. They are not synthetic-data labels; the synthetic-data warning is this guide.
+
 ## Troubleshooting
 
 - **No patients in the UI after seeding** — make sure you connected to one of the three demo clinics so `clinicflow_phc_id` is set, then wait for one sync cycle (or trigger a manual sync).

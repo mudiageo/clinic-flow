@@ -10,6 +10,7 @@
 	import { getPatientRiskScore } from '#lib/remote/ai.remote.ts';
 	import { settingsStore } from '#lib/state/settings.svelte.ts';
 	import QrScanner from '#lib/components/QrScanner.svelte';
+	import AiDisclaimer from '#lib/components/ui/ai-disclaimer.svelte';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Input } from '#lib/components/ui/input/index.ts';
 	import { Label } from '#lib/components/ui/label/index.ts';
@@ -58,18 +59,28 @@
 	let isSubmitting = $state(false);
 
 	// One-time handoff from Patient Search ("Take Vitals Instead"). The Dexie-backed registry
-	// populates asynchronously, so re-read patientStore.get() until the patient is available.
-	let handoffApplied = false;
-	$effect(() => {
-		if (handoffApplied) return;
-		const patientId = page.url.searchParams.get('patient');
-		if (!patientId) return;
+	// populates asynchronously, so retry briefly until the patient record is available locally.
+	// This is a bounded local-hydration wait, not a realtime data mechanism.
+	onMount(() => {
+		const handoffPatientId = page.url.searchParams.get('patient');
+		if (!handoffPatientId) return;
 
-		const patient = patientStore.get(patientId);
-		if (!patient) return;
+		let attempts = 0;
+		let timer: ReturnType<typeof setTimeout> | undefined;
 
-		handoffApplied = true;
-		applyPatientSelection(patient);
+		const tryHandoff = () => {
+			const patient = patientStore.get(handoffPatientId);
+			if (patient) {
+				applyPatientSelection(patient);
+				return;
+			}
+			if (attempts++ < 30) timer = setTimeout(tryHandoff, 100);
+		};
+
+		tryHandoff();
+		return () => {
+			if (timer) clearTimeout(timer);
+		};
 	});
 
 	// Active triage rules loaded from local store
@@ -436,6 +447,8 @@
 							>
 						</div>
 					{/if}
+
+					<AiDisclaimer compact />
 
 					<div class="grid grid-cols-2 gap-4">
 						<div class="space-y-2">
