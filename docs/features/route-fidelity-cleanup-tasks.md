@@ -45,7 +45,7 @@
 - [x] **MK-01** `maternity`: remove fake admissions; wire `pregnancyStore`/`patientStore`; wire Admit/Vitals actions
 - [x] **MK-02** `immunization`: remove fake roster; bind search; wire Record action
 - [x] **MK-03** `pharmacy/cold-chain`: fake temps/vaccines removed; real vaccine stock, temperature log store/remote, Log Temperature, batch/expiry and excursion warnings wired (see the clinical data models feature)
-- [ ] **NW-08** `families/[id]`: implement Register Newborn + Add Relative
+- [x] **NW-08** `families/[id]`: implement Register Newborn + Add Relative (Wave 3)
 - [x] **NW-09** `doctor/consult`: wire referral-tab Generate Referral; fix mobile pane placeholder
 - [x] **NW-10** `doctor/referral/print`: real SMS remote + session-based signature
 - [x] Preserve `<AiDisclaimer>` and human-in-the-loop guardrails in all AI-touching pages
@@ -71,10 +71,10 @@
 
 ## Phase F — Auth/onboarding/marketing polish (P1/P2)
 
-- [ ] **NW-12** `connect`: implement or hide QR scanner; real device name
-- [ ] **NW-13** `onboarding`: wire `includeSeedData`; real progress; remove/realize fake calibration
-- [ ] **NW-11** `settings/notifications`: resolve "SMS Notifications (Coming Soon)"
-- [ ] Confirm marketing `pitch` stats are acceptable as static copy (DB-era decision)
+- [x] **NW-12** `connect`: implement or hide QR scanner; real device name (Wave 3)
+- [x] **NW-13** `onboarding`: wire `includeSeedData`; real progress; remove/realize fake calibration (Wave 3 — dead seed checkbox removed; PHC-scoped demo seeding remains Planned)
+- [x] **NW-11** `settings/notifications`: resolve "SMS Notifications (Coming Soon)" (Wave 3 — durable preference saved; staff SMS delivery remains Planned)
+- [x] Confirm marketing `pitch` stats are acceptable as static copy (DB-era decision) — accepted as static marketing/public-health sector figures; no code change
 
 ## Phase G — App-shell spacing & search dropdown (P1)
 
@@ -102,6 +102,6 @@
 ## Docs & release hygiene
 
 - [x] Create/update user-facing docs (Walkthrough/tooltips/guides) for changed flows (`/support/admin-operations`)
-- [x] Add a changeset per phase (`route-fidelity-admin-actions-wave-1`, `-wave-2`)
+- [x] Add a changeset per phase (`route-fidelity-admin-actions-wave-1`, `-wave-2`, `-wave-3`)
 - [x] Update the main feature tracker if applicable — N/A: no route-fidelity entry exists in `docs/AI-Features-Implementation-Plan.md`
-- [x] Final validation: changed-file `vp fmt --check`, `pnpm check:sw`, `vp build`, `vp test --run --project server`, `pnpm run check` (baseline 226 errors / 23 warnings, no new diagnostics)
+- [x] Final validation: changed-file `vp fmt --check`, `pnpm check:sw`, `vp build`, `vp test --run --project server`, `pnpm run check` (baseline 225 errors / 23 warnings in 64 files, no new diagnostics)

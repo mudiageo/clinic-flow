@@ -9,6 +9,8 @@
 	} from '#lib/components/ui/card/index.ts';
 	import { Input } from '#lib/components/ui/input/index.ts';
 	import { Label } from '#lib/components/ui/label/index.ts';
+	import * as Dialog from '#lib/components/ui/dialog/index.ts';
+	import QrScanner from '#lib/components/QrScanner.svelte';
 	import {
 		Cloud,
 		Server,
@@ -19,7 +21,8 @@
 		HardDrive,
 		Database,
 		Wifi,
-		ShieldCheck
+		ShieldCheck,
+		Smartphone
 	} from '@lucide/svelte';
 	import { slide, fade } from 'svelte/transition';
 	import { toast } from 'svelte-sonner';
@@ -30,10 +33,95 @@
 	import { validatePairingToken } from '#lib/remote/server-status.remote.ts';
 	import { getServerUrl } from '#lib/utils/server-url.ts';
 
-	let connectionMode = $state<'select' | 'local' | 'cloud' | 'scanning' | 'master_setup'>('select');
+	type PairingTarget = { token: string; serverUrl: string };
+	type PairingResult = { deviceId: string; status: string; phcId: string };
+
+	let connectionMode = $state<'select' | 'local' | 'cloud' | 'master_setup'>('select');
 	let localIp = $state('');
 	let cloudUrl = $state('');
 	let isConnecting = $state(false);
+
+	let scannerOpen = $state(false);
+	let pendingPairing = $state<PairingTarget | null>(null);
+	let deviceName = $state('');
+	let isPairing = $state(false);
+	let pairedResult = $state<PairingResult | null>(null);
+
+	/** A stable, user-confirmable name derived from a persisted local device id. */
+	function deterministicDeviceName(): string {
+		let deviceId = localStorage.getItem('clinicflow_device_id');
+		if (!deviceId) {
+			deviceId = crypto.randomUUID().slice(0, 8).toUpperCase();
+			localStorage.setItem('clinicflow_device_id', deviceId);
+		}
+		const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+		return `${isMobile ? 'Tablet' : 'Device'}-${deviceId}`;
+	}
+
+	function preparePairing(target: PairingTarget) {
+		pendingPairing = target;
+		deviceName = deterministicDeviceName();
+	}
+
+	function handleScanResult(text: string) {
+		scannerOpen = false;
+		try {
+			const scanned = new URL(text);
+			const token = scanned.searchParams.get('token');
+			if (scanned.pathname.replace(/\/$/, '') !== '/connect' || !token) {
+				toast.error('That QR code is not a ClinicFlow pairing code.');
+				return;
+			}
+			// The admin-generated QR is `${origin}/connect?token=...`, so its origin is the server URL.
+			preparePairing({ token, serverUrl: scanned.origin });
+		} catch {
+			toast.error('Could not read the pairing QR code.');
+		}
+	}
+
+	async function confirmPairing() {
+		if (!pendingPairing) return;
+		const name = deviceName.trim();
+		if (name.length < 2) {
+			toast.error('Enter a device name of at least 2 characters.');
+			return;
+		}
+
+		isPairing = true;
+		try {
+			localStorage.setItem('clinicflow_server_url', pendingPairing.serverUrl);
+			if ('caches' in window) {
+				const cache = await caches.open('clinicflow-config');
+				await cache.put('/server-url', new Response(pendingPairing.serverUrl));
+			}
+
+			const res = await validatePairingToken({
+				token: pendingPairing.token,
+				deviceName: name,
+				role: 'kiosk'
+			});
+			localStorage.setItem('clinicflow_phc_id', res.phcId);
+			pairedResult = { deviceId: res.deviceId, status: res.status, phcId: res.phcId };
+			pendingPairing = null;
+			history.replaceState(history.state, '', '/connect');
+		} catch (e) {
+			const message = e instanceof Error ? e.message : 'Invalid or expired pairing token.';
+			toast.error(message);
+			localStorage.removeItem('clinicflow_server_url');
+			if ('caches' in window) {
+				try {
+					const cache = await caches.open('clinicflow-config');
+					await cache.delete('/server-url');
+				} catch {
+					// Cache cleanup is best-effort; the rejected token is never reused.
+				}
+			}
+			pendingPairing = null;
+			history.replaceState(history.state, '', '/connect');
+		} finally {
+			isPairing = false;
+		}
+	}
 
 	async function connectToServer(url: string) {
 		isConnecting = true;
@@ -130,49 +218,13 @@
 		goto('/onboarding');
 	}
 
-	onMount(async () => {
+	onMount(() => {
 		const token = page.url.searchParams.get('token');
-		const serverUrl = page.url.searchParams.get('serverUrl');
-
-		if (token && serverUrl) {
-			isConnecting = true;
-			try {
-				// Store the remote master server URL in cache first
-				localStorage.setItem('clinicflow_server_url', serverUrl);
-				if ('caches' in window) {
-					const cache = await caches.open('clinicflow-config');
-					await cache.put('/server-url', new Response(serverUrl));
-				}
-
-				// Generate a generic device name based on user agent or random ID
-				const deviceName = `Tablet-${Math.floor(Math.random() * 10000)
-					.toString()
-					.padStart(4, '0')}`;
-
-				// Now this remote call will be properly routed to the master server
-				const res = await validatePairingToken({ token, deviceName, role: 'kiosk' });
-
-				localStorage.setItem('clinicflow_phc_id', res.phcId);
-				toast.success('Device paired successfully! Waiting for admin approval.');
-				goto('/login');
-			} catch (e: any) {
-				toast.error(e.message ?? 'Invalid or expired pairing token.');
-				// Clear the invalid URL from storage so it doesn't break future connections
-				localStorage.removeItem('clinicflow_server_url');
-				if ('caches' in window) {
-					try {
-						const cache = await caches.open('clinicflow-config');
-						await cache.delete('/server-url');
-					} catch (err) {}
-				}
-				// Clear token from URL so they can try again manually
-				goto('/connect', { replace: true });
-			} finally {
-				isConnecting = false;
-			}
-		} else if (token) {
-			toast.error('Invalid pairing link. Missing server address.');
-			goto('/connect', { replace: true });
+		if (token) {
+			// The pairing QR links to the issuing server's own /connect route, so the
+			// current origin is the server to contact. No separate serverUrl param is
+			// generated by the admin UI, and pairing is never automatic.
+			preparePairing({ token, serverUrl: window.location.origin });
 		}
 	});
 </script>
@@ -286,7 +338,7 @@
 						<Button
 							variant="outline"
 							class="w-full h-14 border-border text-foreground hover:bg-muted mt-3"
-							onclick={() => toast.info('QR Scanner component not implemented yet!')}
+							onclick={() => (scannerOpen = true)}
 						>
 							<QrCode class="size-4 mr-2" />
 							Scan QR Code
@@ -416,6 +468,89 @@
 					</div>
 				</div>
 			</div>
+		{/if}
+
+		<!-- QR scanner: mounted only while open so the camera is released on close -->
+		<Dialog.Root bind:open={scannerOpen}>
+			<Dialog.Content class="sm:max-w-lg">
+				<Dialog.Header>
+					<Dialog.Title>Scan pairing QR code</Dialog.Title>
+					<Dialog.Description>
+						Point the camera at the QR code shown by your clinic administrator.
+					</Dialog.Description>
+				</Dialog.Header>
+				{#if scannerOpen}
+					<QrScanner onResult={handleScanResult} />
+				{/if}
+			</Dialog.Content>
+		</Dialog.Root>
+
+		<!-- Explicit pairing confirmation: no device is registered until confirmed -->
+		<Dialog.Root
+			open={!!pendingPairing}
+			onOpenChange={(open) => {
+				if (!open && !isPairing) pendingPairing = null;
+			}}
+		>
+			<Dialog.Content class="sm:max-w-md">
+				<Dialog.Header>
+					<Dialog.Title class="flex items-center gap-2">
+						<Smartphone class="size-5" /> Confirm device pairing
+					</Dialog.Title>
+					<Dialog.Description>
+						This device will be registered as <strong>pending</strong>. An administrator must
+						approve it before it can be used.
+					</Dialog.Description>
+				</Dialog.Header>
+				{#if pendingPairing}
+					<div class="space-y-4 py-2">
+						<div class="space-y-2">
+							<Label for="pairing-device-name">Device name</Label>
+							<Input
+								id="pairing-device-name"
+								bind:value={deviceName}
+								disabled={isPairing}
+								placeholder="e.g. Tablet-1A2B3C4D"
+							/>
+							<p class="text-sm text-muted-foreground">
+								Pairing with {pendingPairing.serverUrl}
+							</p>
+						</div>
+					</div>
+				{/if}
+				<Dialog.Footer>
+					<Button variant="outline" disabled={isPairing} onclick={() => (pendingPairing = null)}
+						>Cancel</Button
+					>
+					<Button disabled={isPairing} onclick={confirmPairing}>
+						{#if isPairing}
+							<Loader2 class="size-4 mr-2 animate-spin" /> Pairing...
+						{:else}
+							Confirm pairing
+						{/if}
+					</Button>
+				</Dialog.Footer>
+			</Dialog.Content>
+		</Dialog.Root>
+
+		<!-- Real status returned by validatePairingToken; never claims approval -->
+		{#if pairedResult}
+			<Card class="shadow-xl border-border/50 mt-6">
+				<CardHeader>
+					<CardTitle class="flex items-center gap-2">
+						<ShieldCheck class="size-5 text-amber-500" /> Device registered
+					</CardTitle>
+					<CardDescription>
+						An administrator must approve this device before it can be used.
+					</CardDescription>
+				</CardHeader>
+				<CardContent class="space-y-2 text-sm">
+					<p><span class="font-medium">Status:</span> {pairedResult.status}</p>
+					<p><span class="font-medium">Device:</span> {deviceName || pairedResult.deviceId}</p>
+					<p class="text-muted-foreground break-all">Device ID: {pairedResult.deviceId}</p>
+					<Button class="w-full mt-4" onclick={() => goto('/login')}>Continue to login</Button>
+				</CardContent>
+			</Card>
 		{/if}
 
 		<!-- Loader Overlay -->

@@ -168,6 +168,53 @@
 			data.
 		</p>
 
+		<h3>Pairing a tablet from a QR code (Admin and staff)</h3>
+		<p>
+			On <strong>Admin → Server Status</strong>, generate a pairing code and show its QR to the
+			tablet. The QR links to <code>/connect?token=...</code> on that server. On the tablet, choose
+			<strong>Scan QR Code</strong> (or open the link directly), review the prefilled device name, change
+			it if needed, and confirm. The name is derived from a stable device identifier, not a random number,
+			so it stays the same across attempts.
+		</p>
+		<div
+			class="bg-blue-50 border border-blue-200 text-blue-900 p-4 rounded-lg my-6 flex items-start gap-3"
+		>
+			<ShieldCheck class="size-6 shrink-0 mt-1 text-blue-600" />
+			<div>
+				<strong>Pairing is not approval</strong>
+				<p class="m-0 mt-1 text-sm text-blue-800">
+					The tablet is registered with a real <code>pending</code> status. An administrator must
+					still approve the device in <strong>Admin → Devices</strong> before it can be used. The connect
+					screen reports the status returned by the server; it never claims the device is already approved.
+				</p>
+			</div>
+		</div>
+
+		<h3>Notification preferences (Staff)</h3>
+		<p>
+			In <strong>Settings → Notifications</strong>, your email and in-app choices are saved to your
+			profile. The <strong>SMS Notifications</strong> switch is now real: saving it stores your
+			preference. If your PHC has not enabled two-way SMS, the switch stays disabled and the page
+			says so plainly. Saving the preference does not mean an SMS will be sent — staff SMS delivery
+			(phone number plus urgent-triage alerts) is still <strong>Planned</strong>.
+		</p>
+
+		<h3>Family actions and setup verification</h3>
+		<p>
+			On a family's detail page, <strong>Register newborn</strong> and <strong>Add relative</strong>
+			create real patient records or link existing patients into that household. Enter only details you
+			have confirmed; clinic IDs are assigned deterministically. During onboarding, the old fake camera
+			"calibration" step is now <strong>Setup Verification</strong>, which runs a real server check
+			and reports whether the server is reachable and a PHC is configured. The database step shows a
+			neutral progress indicator rather than a fabricated percentage.
+		</p>
+		<p>
+			Demo seed data at onboarding remains <strong>Planned</strong>: no sample patients or results
+			are silently inserted into a real facility. When the demo seeder is run deliberately against a
+			remote database, it now reuses an existing staff row whose auth user already exists instead of
+			failing with a duplicate-key error; no existing staff record is deleted.
+		</p>
+
 		<div
 			class="my-6 rounded-lg border border-slate-200 bg-slate-50 p-4 text-slate-800 flex items-start gap-3"
 		>

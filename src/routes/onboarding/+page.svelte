@@ -10,7 +10,6 @@
 	} from '#lib/components/ui/card/index.ts';
 	import { Input } from '#lib/components/ui/input/index.ts';
 	import { Label } from '#lib/components/ui/label/index.ts';
-	import { Progress } from '#lib/components/ui/progress/index.ts';
 	import {
 		HeartPulse,
 		PlayCircle,
@@ -19,20 +18,21 @@
 		UserPlus,
 		Users,
 		CheckCircle2,
-		QrCode,
+		ShieldCheck,
 		HardDrive,
 		ArrowRight,
 		ArrowLeft,
 		Search,
-		Loader2
+		Loader2,
+		TriangleAlert
 	} from '@lucide/svelte';
-	import { fade, slide } from 'svelte/transition';
+	import { fade } from 'svelte/transition';
 	import { toast } from 'svelte-sonner';
 	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
 	import { registerPhc } from '#lib/remote/auth.remote.ts';
-	import { initDatabase } from '#lib/remote/setup.remote.ts';
+	import { checkServerStatus, initDatabase } from '#lib/remote/setup.remote.ts';
 	import { lookupRegistryFacilities } from '#lib/remote/facility-registry.remote.ts';
+	import { formatDateTime } from '#lib/utils/date.ts';
 
 	let currentStep = $state(1);
 	let totalSteps = 7;
@@ -45,11 +45,16 @@
 	let adminEmail = $state('');
 	let adminPassword = $state('');
 	let adminPin = $state('');
-	let includeSeedData = $state(false);
 
-	// DB Init state
-	let dbProgress = $state(0);
+	// DB init progress is indeterminate: it reflects the real initDatabase promise,
+	// never a fabricated percentage.
+	let dbInitializing = $state(false);
 	let dbInitFailed = $state(false);
+
+	// Real setup verification results, returned only by checkServerStatus().
+	type VerificationResult = { reachable: boolean; isConfigured: boolean; checkedAt: string };
+	let verification = $state<VerificationResult | null>(null);
+	let isVerifying = $state(false);
 
 	// Optional advisory national facility registry lookup. Results are only
 	// applied when the user explicitly clicks "Use suggestion".
@@ -58,6 +63,10 @@
 	let registryLookup = $state<RegistryLookupResult | null>(null);
 	let registrySearching = $state(false);
 	let registryRequestId = 0;
+
+	function errorMessage(error: unknown, fallback: string): string {
+		return error instanceof Error ? error.message : fallback;
+	}
 
 	async function checkRegistry() {
 		const requestId = ++registryRequestId;
@@ -69,12 +78,12 @@
 				lga: phcLga.trim() || undefined
 			});
 			if (requestId === registryRequestId) registryLookup = result;
-		} catch (e: any) {
+		} catch (error: unknown) {
 			if (requestId === registryRequestId) {
 				registryLookup = {
 					availability: 'unavailable',
 					facilities: [],
-					reason: e?.message ?? 'Registry lookup failed.',
+					reason: errorMessage(error, 'Registry lookup failed.'),
 					checkedAt: new Date().toISOString()
 				};
 			}
@@ -119,26 +128,38 @@
 	}
 
 	async function runDbInit() {
-		dbProgress = 0;
+		dbInitializing = true;
 		dbInitFailed = false;
-		// Fake progress bar while waiting for the server
-		const interval = setInterval(() => {
-			if (dbProgress < 90) dbProgress += Math.random() * 15;
-		}, 300);
-
 		try {
-			await initDatabase({});
-			dbProgress = 100;
-			clearInterval(interval);
-			setTimeout(() => {
-				toast.success('Database initialized successfully');
-				nextStep();
-			}, 600);
-		} catch (error: any) {
-			clearInterval(interval);
+			const result = await initDatabase({});
+			if (!result.success) {
+				throw new Error(result.error || 'Database initialization failed.');
+			}
+			toast.success('Database initialized successfully');
+			nextStep();
+		} catch (error: unknown) {
 			dbInitFailed = true;
-			toast.error(error.message || 'Failed to initialize database');
+			toast.error(errorMessage(error, 'Failed to initialize database'));
 			console.error(error);
+		} finally {
+			dbInitializing = false;
+		}
+	}
+
+	/** Real verification: only reports what checkServerStatus actually returns. */
+	async function runVerification() {
+		isVerifying = true;
+		const checkedAt = new Date().toISOString();
+		try {
+			const status = await checkServerStatus();
+			verification = { reachable: true, isConfigured: status.isConfigured, checkedAt };
+			toast.success('Server verification complete.');
+		} catch (error: unknown) {
+			verification = { reachable: false, isConfigured: false, checkedAt };
+			toast.error(errorMessage(error, 'Could not reach the server.'));
+			console.error(error);
+		} finally {
+			isVerifying = false;
 		}
 	}
 
@@ -169,9 +190,9 @@
 			toast.success('Setup Complete! Welcome to ClinicFlow.', { id: 'register' });
 			localStorage.setItem('clinicflow_onboarding_complete', 'true');
 			goto('/login?registered=true');
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error(error);
-			toast.error(error.message || 'Registration failed', { id: 'register' });
+			toast.error(errorMessage(error, 'Registration failed'), { id: 'register' });
 		}
 	}
 </script>
@@ -213,7 +234,7 @@
 				{:else if currentStep === 5}
 					<Users class="size-6 text-primary" /> Invite Team
 				{:else if currentStep === 6}
-					<QrCode class="size-6 text-primary" /> Hardware Calibration
+					<ShieldCheck class="size-6 text-primary" /> Setup Verification
 				{:else if currentStep === 7}
 					<CheckCircle2 class="size-6 text-emerald-500" /> All Set!
 				{/if}
@@ -230,7 +251,7 @@
 				{:else if currentStep === 5}
 					Add your doctors, nurses, and lab technicians.
 				{:else if currentStep === 6}
-					Test your barcode/QR scanner to ensure patient cards can be read.
+					Confirm the server is reachable and review its real configuration state.
 				{:else if currentStep === 7}
 					ClinicFlow is ready for deployment.
 				{/if}
@@ -359,18 +380,6 @@
 							{/if}
 						{/if}
 					</div>
-
-					<label
-						class="flex items-center gap-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 mt-6"
-					>
-						<input type="checkbox" bind:checked={includeSeedData} class="accent-primary size-5" />
-						<div>
-							<p class="font-medium text-foreground">Include Demo Seed Data</p>
-							<p class="text-sm text-muted-foreground">
-								Pre-loads 50 sample patients, queue tickets, and lab results for training purposes.
-							</p>
-						</div>
-					</label>
 				</div>
 			{:else if currentStep === 3}
 				<div
@@ -382,34 +391,31 @@
 							class="size-24 rounded-full border-4 border-muted flex items-center justify-center"
 						>
 							<Database
-								class="size-10 {dbInitFailed ? 'text-destructive' : 'text-primary'} {dbProgress <
-									100 && !dbInitFailed
+								class="size-10 {dbInitFailed ? 'text-destructive' : 'text-primary'} {dbInitializing
 									? 'animate-pulse'
 									: ''}"
 							/>
 						</div>
-						{#if dbProgress >= 100}
-							<div
-								class="absolute -bottom-2 -right-2 size-8 bg-emerald-500 rounded-full border-4 border-background flex items-center justify-center text-white"
-								in:fade
-							>
-								<CheckCircle2 class="size-4" />
-							</div>
-						{/if}
 					</div>
 
-					<div class="w-full max-w-md space-y-2">
-						<div class="flex justify-between text-sm font-medium">
-							<span
-								>{dbInitFailed
-									? 'Initialization Failed'
-									: dbProgress >= 100
-										? 'Initialization Complete'
-										: 'Building Local Indices...'}</span
-							>
-							<span>{Math.round(dbProgress)}%</span>
-						</div>
-						<Progress value={dbProgress} class="h-2 {dbInitFailed ? 'bg-destructive/20' : ''}" />
+					<div class="w-full max-w-md space-y-3">
+						<p class="text-sm font-medium">
+							{dbInitFailed
+								? 'Initialization Failed'
+								: dbInitializing
+									? 'Initializing local database...'
+									: 'Local database ready'}
+						</p>
+						<!-- Indeterminate: the server does not report progress, so no percentage is shown. -->
+						{#if dbInitializing}
+							<div class="h-2 w-full overflow-hidden rounded-full bg-muted">
+								<div class="h-full w-1/3 rounded-full bg-primary animate-pulse"></div>
+							</div>
+						{:else if dbInitFailed}
+							<div class="h-2 w-full overflow-hidden rounded-full bg-destructive/20">
+								<div class="h-full w-full rounded-full bg-destructive"></div>
+							</div>
+						{/if}
 					</div>
 					{#if dbInitFailed}
 						<Button variant="outline" onclick={runDbInit}>Retry Initialization</Button>
@@ -473,36 +479,53 @@
 					</p>
 				</div>
 			{:else if currentStep === 6}
-				<div in:fade={{ duration: 200 }} class="space-y-6 text-center py-6">
-					<div
-						class="mx-auto size-48 bg-slate-900 rounded-xl overflow-hidden relative border-2 border-primary/50 shadow-inner"
-					>
-						<div
-							class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 gap-2"
-						>
-							<QrCode class="size-10 opacity-50" />
-							<span class="text-xs uppercase tracking-widest">Camera View</span>
+				<div in:fade={{ duration: 200 }} class="space-y-6 py-4">
+					<div class="max-w-md mx-auto space-y-4">
+						<div class="p-5 border rounded-xl bg-muted/30 text-center space-y-2">
+							<ShieldCheck class="size-10 text-primary mx-auto" />
+							<h3 class="font-bold text-lg">Verify this server</h3>
+							<p class="text-sm text-muted-foreground">
+								Runs a real check against the configured server. No camera or scanner test is
+								performed here.
+							</p>
 						</div>
-						<!-- Scan line animation -->
-						<div
-							class="absolute left-0 top-1/2 w-full h-0.5 bg-primary/70 shadow-[0_0_8px_2px_rgba(var(--primary),0.5)] animate-scan"
-						></div>
+
+						<Button
+							variant="outline"
+							class="w-full"
+							disabled={isVerifying}
+							onclick={runVerification}
+						>
+							{#if isVerifying}
+								<Loader2 class="size-4 mr-2 animate-spin" /> Verifying...
+							{:else}
+								<ShieldCheck class="size-4 mr-2" /> Run verification
+							{/if}
+						</Button>
+
+						{#if verification}
+							<div class="rounded-lg border p-4 space-y-2 text-sm">
+								<p class="font-medium flex items-center gap-2">
+									{#if verification.reachable}
+										<CheckCircle2 class="size-4 text-emerald-500" /> Server reachable
+									{:else}
+										<TriangleAlert class="size-4 text-destructive" /> Server unreachable
+									{/if}
+								</p>
+								<p class="text-muted-foreground">
+									PHC configured: {verification.isConfigured ? 'Yes' : 'No'}
+								</p>
+								{#if !verification.isConfigured}
+									<p class="text-xs text-amber-700 dark:text-amber-400">
+										The facility record is created when you complete setup on the next step.
+									</p>
+								{/if}
+								<p class="text-xs text-muted-foreground">
+									Checked {formatDateTime(verification.checkedAt)}
+								</p>
+							</div>
+						{/if}
 					</div>
-					<div class="max-w-xs mx-auto">
-						<h3 class="font-bold mb-2">Scan a Patient Card</h3>
-						<p class="text-sm text-muted-foreground">
-							Present a QR code to the device camera to verify the scanner is working correctly.
-						</p>
-					</div>
-					<Button
-						variant="outline"
-						onclick={() => {
-							toast.success('Hardware verified!');
-							nextStep();
-						}}
-					>
-						Skip Calibration
-					</Button>
 				</div>
 			{:else if currentStep === 7}
 				<div
@@ -543,34 +566,17 @@
 				>
 					Launch ClinicFlow
 				</Button>
+			{:else if currentStep === 6}
+				<Button class="h-11 px-8" disabled={!verification?.reachable} onclick={nextStep}>
+					Continue
+					<ArrowRight class="size-4 ml-2" />
+				</Button>
 			{:else}
 				<Button class="h-11 px-8" onclick={nextStep}>
-					{currentStep === 6 ? 'Verify & Continue' : 'Continue'}
+					Continue
 					<ArrowRight class="size-4 ml-2" />
 				</Button>
 			{/if}
 		</CardFooter>
 	</Card>
 </div>
-
-<style>
-	@keyframes scan {
-		0% {
-			top: 10%;
-			opacity: 0;
-		}
-		10% {
-			opacity: 1;
-		}
-		90% {
-			opacity: 1;
-		}
-		100% {
-			top: 90%;
-			opacity: 0;
-		}
-	}
-	.animate-scan {
-		animation: scan 2.5s infinite linear;
-	}
-</style>
