@@ -4,6 +4,21 @@
 **Format:** 8–10 minute slide-keyed walkthrough with three short live-demo beats.
 **Environment:** fresh database and Vercel deployment. Records shown are synthetic demo fixtures. This is a knowledge showcase of the architecture and workflow design — not a commercial pitch, not a clinical pitch, and not a claim of field readiness.
 
+## ⚡ 3-MINUTE VERSION — read only this section
+
+Timings are cumulative. Commercial slides get a one-line skip.
+
+- **[0:00] Slide 1 — Title.** "ClinicFlow: an offline-first clinic workflow prototype. What I'm showing is the engineering — local-first records, authoritative sync, and a deliberately advisory role for AI. This is a knowledge showcase, not a clinical or commercial pitch."
+- **[0:15] Slide 2 — The problem.** "The problem on this slide is documentation burden: one encounter copied into several paper registers, then retyped into a reporting portal. That's delay, duplication, and transcription error — the workflow shape this prototype models."
+- **[0:30] Slide 3 — Local-first.** "Records are written to IndexedDB first, queued in an offline sync log, then pushed to the server and pulled back by cursor when a connection exists. Devices point at a local server address — configurable, not magic discovery."
+- **[0:55] Slide 4 — Triage vs Dr. Assist.** "Two distinct things: instant triage is deterministic rules — red, amber, green. Dr. Assist is the experimental AI path that turns shorthand into a structured note, always advisory. Note the on-screen 'Experimental AI Feature' disclaimer before the vitals. The AI risk score is a badge on the queue card, not a decision — staff verify the patient and vitals first."
+- **[1:30] Slide 5 — RxBrain & Outbreak Radar.** "RxBrain is advisory medication safety. Outbreak Radar combines a local rules engine with an AI-assisted summary that correlates de-identified signals and suggests actions. It does not auto-report to DHIS2. Escalation is staff-initiated and reviewed — the banner makes that advisory boundary visible."
+- **[2:00] Slides 6–7 — Commercial.** "Skipping the market and business-model slides — out of scope here."
+- **[2:10] Slides 8–9 — Point of care + live beat.** "The technical distinction is point-of-care capture versus aggregated reporting. Live: here's a patient in Maternal Health — I log an ANC visit as a real durable record: BP, weight, fetal heart rate, saved to the recent list. Staff-entered and verified against the physical register — nothing inferred."
+- **[2:45] Slides 10–12 — Close.** "Skipping the plan and budget slides. Takeaway: separation of concerns — durable records in the database and local cache, cursor-based authoritative sync, and AI as an advisory layer with visible disclaimers and human verification. Thank you — happy to walk through the data flow."
+
+---
+
 ## Delivery notes
 
 - Tone: technical, candid, and educational. Show what is implemented, what is advisory, and where the boundaries are.
