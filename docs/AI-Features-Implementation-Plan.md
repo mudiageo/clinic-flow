@@ -69,7 +69,7 @@ _Note: Checkboxes [ ] will be updated to [x] as features are completed._
 - `src/routes/(app)/nurse/vitals/+page.svelte`: Fetch score upon saving vitals.
 - `src/lib/local-db/db.ts`: Update `LocalQueueTicket` schema.
 
-## [ ] 5. 📊 Outbreak Radar (Epidemiology Forecast)
+## [x] 5. 📊 Outbreak Radar (Epidemiology Forecast)
 
 **Objective**: Analyze 30-day data for disease threats and intervention recommendations.
 **Permissions**:
