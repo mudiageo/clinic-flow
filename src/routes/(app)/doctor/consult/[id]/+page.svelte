@@ -10,6 +10,7 @@
 	import { reminderStore } from '#lib/state/reminders.svelte.ts';
 	import { settingsStore } from '#lib/state/settings.svelte.ts';
 	import { notificationStore } from '#lib/state/notifications.svelte.ts';
+	import { sessionStore } from '#lib/state/session.svelte.ts';
 
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
@@ -368,11 +369,12 @@ P: ${res.plan}`;
 					encounterId,
 					patientId: patient.id,
 					phcId: ticket.phcId,
-					requestedByStaffId: 'none', // Will be overridden by remote
+					requestedByStaffId: sessionStore.staffId ?? '',
 					testType,
 					urgency,
 					notes: labNotes,
 					status: 'pending',
+					createdAt: Date.now(),
 					result: null,
 					resultEnteredByStaffId: null,
 					resultEnteredAt: null
