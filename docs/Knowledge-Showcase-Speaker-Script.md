@@ -7,7 +7,7 @@
 ## Delivery notes
 
 - Tone: technical, candid, and educational. Show what is implemented, what is advisory, and where the boundaries are.
-- Some submitted slides are outside this knowledge showcase. They are acknowledged only as quick transitions so the script still follows the deck order.
+- Follow the deck order exactly. A few submitted slides are outside this showcase; acknowledge them only as quick transitions.
 - When an AI slide appears, point to the on-screen **Experimental AI Feature** disclaimer. Never describe AI output as a decision, diagnosis, or automated action.
 - Do not claim broad on-device AI, a locked-down Android APK, universal zero-config discovery, DHIS2 auto-submit, or a live NHIS integration.
 - Demo logins: `admin@clinic.com`, `doctor@clinic.com`, or `doctor.egor@clinic.com` (password `password123`).
@@ -15,6 +15,8 @@
 ---
 
 ## Slide 1 — Title Slide (“ClinicFlow”)
+
+**Slide cue:** logo beside the Nurse Vitals Dashboard screenshot.
 
 **Say:** “This is ClinicFlow, an offline-first clinic workflow prototype. Today I am using the submitted slides only as anchors to explain the engineering: local-first documentation, authoritative sync, and a deliberately advisory role for AI.”
 
@@ -26,7 +28,9 @@
 
 ## Slide 2 — The Broken Backbone of Healthcare (“The 97% Staffing Crisis”)
 
-**Say:** “I am not going to expand the staffing statistics here. The engineering point on this slide is the double-entry burden: the same encounter is written into several paper registers and later transcribed into a national reporting portal. That creates delay, duplication, and transcription error. That is the workflow shape the prototype models.”
+**Slide cue:** icons for the 97% statistic, missing files, and an overwhelmed OIC.
+
+**Say:** “I am not expanding the staffing statistics here. The engineering point is the documentation burden shown on this slide: the same encounter is written into several paper registers and later transcribed into a reporting portal. That creates delay, duplication, and transcription error. That is the workflow shape the prototype models.”
 
 **Show/do:** Stay on the slide briefly, then move on. No live action.
 
@@ -35,6 +39,8 @@
 ---
 
 ## Slide 3 — The Solution (“Build AI. Solve Local.”)
+
+**Slide cue:** tablets connecting to a local router without internet access.
 
 **Say:** “The local-first design is the core idea. Records are written to IndexedDB first. Writes go into an offline sync log, and when connectivity is available the client pushes operations to the server and pulls authoritative changes back using a cursor. Devices can be pointed at a local server address from the connect flow; that is a configurable path, not magic discovery.”
 
@@ -45,6 +51,8 @@
 ---
 
 ## Slide 4 — AI Clinical Decision Support (“Empowering the Frontline”)
+
+**Slide cue:** Dr. Assist UI turning shorthand into a structured note.
 
 **Say:** “Two different mechanisms often get grouped together here. Instant triage is deterministic: rules evaluate entered vitals and assign red, amber, or green immediately. Dr. Assist is the experimental AI path: shorthand keywords can be turned into a structured note, and the result is always advisory. We made that boundary explicit in the UI with the shared AI disclaimer placed before the vitals fields and before the background risk score.”
 
@@ -58,6 +66,8 @@
 
 ## Slide 5 — AI Patient Safety & Epidemiology (“RxBrain & Outbreak Radar”)
 
+**Slide cue:** RxBrain warning badge and the Outbreak Radar heatmap.
+
 **Say:** “RxBrain is an advisory medication-safety check. Outbreak Radar combines a local rules engine with an AI-assisted summary. The AI layer correlates de-identified aggregate signals and suggests actions; it does not automatically report to DHIS2 or instruct staff. The advisory banner is shown on the radar page, the dashboard widget, and the support guide.”
 
 **Show/do:** Open **Admin → Outbreak Radar**. Point to the AI disclaimer near the header, then the rule-based alerts and the AI-assisted analysis block. Show the **Escalate to LGA DSO** panel as a staff-initiated action, not an automatic send.
@@ -68,9 +78,11 @@
 
 ---
 
-## Slide 6 — Market Size & Opportunity (“A Massive Unmet Need”)
+## Slide 6 — Market Size & Opportunity
 
-**Say:** “Transition slide. No market or commercial framing in this showcase. The only technical carry-over is that a point-of-care tool has to tolerate intermittent connectivity, low-power hardware, and task-shifting between cadres.”
+**Slide cue:** map and scale graphic. Acknowledge only; do not interpret.
+
+**Say:** “Transition slide. This showcase does not cover market sizing.”
 
 **Show/do:** Advance quickly. No live action.
 
@@ -78,11 +90,13 @@
 
 ---
 
-## Slide 7 — Business Model (“B2B SaaS for Public Health”)
+## Slide 7 — Business Model
 
-**Say:** “Transition slide. Buyers, pricing, and commercial model are outside this knowledge showcase.”
+**Slide cue:** commercial diagram. Acknowledge only; do not interpret.
 
-**Show/do:** Advance quickly. Optionally show the role switcher to illustrate role-based access only — not pricing or buyers.
+**Say:** “Transition slide. This showcase does not cover the business model.”
+
+**Show/do:** Advance quickly. No live action.
 
 **Boundary:** No commercial discussion.
 
@@ -90,7 +104,9 @@
 
 ## Slide 8 — The Ecosystem Fit (Why We Win) (“The Perfect Point-of-Care Companion”)
 
-**Say:** “The useful technical distinction is between aggregated reporting tools and point-of-care tools. ClinicFlow is explored as the point-of-care layer: capture in the queue or at the bedside, keep an authoritative local record, and bridge clean data outward later. DHIS2 export and NHIS integration are not live auto-submit features.”
+**Slide cue:** 2×2 comparison of clinical utility and offline capability.
+
+**Say:** “The useful technical distinction on this slide is between aggregated reporting tools and point-of-care tools. ClinicFlow is explored as the point-of-care layer: capture in the queue or at the bedside, keep an authoritative local record, and bridge clean data outward later. DHIS2 export and NHIS integration are not live auto-submit features.”
 
 **Show/do:** Stay on the slide. Describe the current boundary rather than showing a non-existent integration.
 
@@ -99,6 +115,8 @@
 ---
 
 ## Slide 9 — Traction & Current Status (“From Concept to Working Prototype”)
+
+**Slide cue:** the app running on a tablet in airplane mode.
 
 **Say:** “This is the live part. The app is a SvelteKit PWA with a Tauri desktop build. Clinical records are written offline-first through typed stores and synced when a connection exists. We just wired the ANC visit action so it is a real record instead of a placeholder button.”
 
@@ -110,9 +128,11 @@
 
 ---
 
-## Slide 10 — Milestones & Project Plan (“The Next 8 Months”)
+## Slide 10 — Milestones & Project Plan
 
-**Say:** “Transition slide. Roadmap and field-pilot planning are outside this showcase; the demo is about what the prototype does now.”
+**Slide cue:** three-step timeline. Acknowledge only; do not interpret.
+
+**Say:** “Transition slide. This showcase is about what the prototype does now, not the project plan.”
 
 **Show/do:** Advance quickly. No live action.
 
@@ -122,15 +142,19 @@
 
 ## Slide 11 — Detailed Use of Funds
 
-**Say:** “Transition slide. Budget and funding are for a separate pitch, not this knowledge showcase.”
+**Slide cue:** budget graphic. Acknowledge only; do not interpret.
+
+**Say:** “Transition slide. Not part of this knowledge showcase.”
 
 **Show/do:** Advance quickly. No live action.
 
-**Boundary:** Do not discuss the budget, vendors, or funds received.
+**Boundary:** Do not discuss funding, vendors, or amounts.
 
 ---
 
 ## Slide 12 — The Team (“Engineering the Future of Healthcare”)
+
+**Slide cue:** team or university branding and a thank-you.
 
 **Say:** “To close: the takeaway is separation of concerns. Durable records live in the database and local cache; sync is cursor-based and authoritative; AI is an advisory layer with visible disclaimers and human verification. Thank you — I'm happy to walk through the architecture or the data flow in more detail.”
 
@@ -146,4 +170,5 @@
 - [ ] Vitals & Triage → point to AI disclaimer → save vitals → show deterministic triage and AI risk badge.
 - [ ] Admin → Outbreak Radar → point to AI disclaimer → show rule alerts and staff-initiated escalation.
 - [ ] Patient profile → Maternal Health & ANC → Log ANC Visit → show the saved record in the recent list.
+- [ ] Advance quickly through slides 6, 7, 10, and 11 without commercial or roadmap detail.
 - [ ] State explicitly: synthetic demo data, advisory AI, human verification required.
