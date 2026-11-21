@@ -1,189 +1,116 @@
-# ClinicFlow — Knowledge Showcase Speaker & Demo Script
+# ClinicFlow — Pitch Speaker Script
 
-**Deck:** [`Grant-Pitch-Deck.md`](./Grant-Pitch-Deck.md) — the already-submitted 12-slide deck. Do not revise or resubmit it.
-**Format:** 8–10 minute slide-keyed walkthrough with three short live-demo beats.
-**Environment:** fresh database and Vercel deployment. Records shown are synthetic demo fixtures. This is a knowledge showcase of the architecture and workflow design — not a commercial pitch, not a clinical pitch, and not a claim of field readiness.
+**Deck:** [`Grant-Pitch-Deck.md`](./Grant-Pitch-Deck.md) — the already-submitted 12-slide deck for this event. Do not revise or resubmit it.
+**Source of truth:** every slide below follows the deck's own headline and content, in order. This is a student grant pitch — present all 12 slides, including market, business model, milestones and budget.
+
+---
 
 ## ⚡ 3-MINUTE VERSION — read only this section
 
-Timings are cumulative. Commercial slides get a one-line skip.
+Timings are cumulative.
 
-- **[0:00] Slide 1 — Title.** "ClinicFlow: an offline-first clinic workflow prototype. What I'm showing is the engineering — local-first records, authoritative sync, and a deliberately advisory role for AI. This is a knowledge showcase, not a clinical or commercial pitch."
-- **[0:15] Slide 2 — The problem.** "The problem on this slide is documentation burden: one encounter copied into several paper registers, then retyped into a reporting portal. That's delay, duplication, and transcription error — the workflow shape this prototype models."
-- **[0:30] Slide 3 — Local-first.** "Records are written to IndexedDB first, queued in an offline sync log, then pushed to the server and pulled back by cursor when a connection exists. Devices point at a local server address — configurable, not magic discovery."
-- **[0:55] Slide 4 — Triage vs Dr. Assist.** "Two distinct things: instant triage is deterministic rules — red, amber, green. Dr. Assist is the experimental AI path that turns shorthand into a structured note, always advisory. Note the on-screen 'Experimental AI Feature' disclaimer before the vitals. The AI risk score is a badge on the queue card, not a decision — staff verify the patient and vitals first."
-- **[1:30] Slide 5 — RxBrain & Outbreak Radar.** "RxBrain is advisory medication safety. Outbreak Radar combines a local rules engine with an AI-assisted summary that correlates de-identified signals and suggests actions. It does not auto-report to DHIS2. Escalation is staff-initiated and reviewed — the banner makes that advisory boundary visible."
-- **[2:00] Slides 6–7 — Commercial.** "Skipping the market and business-model slides — out of scope here."
-- **[2:10] Slides 8–9 — Point of care + live beat.** "The technical distinction is point-of-care capture versus aggregated reporting. Live: here's a patient in Maternal Health — I log an ANC visit as a real durable record: BP, weight, fetal heart rate, saved to the recent list. Staff-entered and verified against the physical register — nothing inferred."
-- **[2:45] Slides 10–12 — Close.** "Skipping the plan and budget slides. Takeaway: separation of concerns — durable records in the database and local cache, cursor-based authoritative sync, and AI as an advisory layer with visible disclaimers and human verification. Thank you — happy to walk through the data flow."
+- **[0:00] Slide 1 — ClinicFlow.** "ClinicFlow: an offline-first, AI-powered safety net for Nigeria's primary health centres. Problem, build, and ask — in three minutes."
+- **[0:12] Slide 2 — The 97% Staffing Crisis.** "97% of PHCs across 16 states miss minimum staffing standards — a deficit of about 122,000 health workers. Staff are trapped writing the same encounter into several paper registers, then transcribing it into DHIS2 weeks later. That double-entry causes errors and delays outbreak detection."
+- **[0:35] Slide 3 — Build AI. Solve Local.** "We digitize at the point of care. The app is 100% offline-first: records go to IndexedDB on the device, and tablets sync across a local router with no internet. That's the core idea."
+- **[0:50] Slide 4 — Empowering the Frontline.** "Dr. Assist is our AI auto-scribe: a doctor types shorthand like 'fever 5 days' and gets a structured SOAP note and differential. Instant triage flags red, amber, and green the moment a nurse enters vitals. AI output is advisory — the health worker verifies it."
+- **[1:10] Slide 5 — RxBrain & Outbreak Radar.** "RxBrain cross-checks prescriptions against vitals and age to flag dangerous interactions. Outbreak Radar scans chief complaints across local PHCs to spot clusters like cholera weeks before paper-to-DHIS2 transcription. Both are decision support, not autonomous action."
+- **[1:30] Slide 6 — A Massive Unmet Need.** "Over 30,000 PHCs in Nigeria. Government and international partners are actively looking for digital health tools that actually work offline — that's the addressable need."
+- **[1:40] Slide 7 — B2B SaaS for Public Health.** "Buyers are state ministries of health, LGAs, and NGOs. Pricing is ₦50,000 per PHC per month, covering licensing, cloud backup sync, and AI API costs."
+- **[1:52] Slide 8 — The Perfect Point-of-Care Companion.** "DHIS2 and CommCare are strong on aggregated reporting but weak at bedside workflows; traditional EMRs need constant internet and power. ClinicFlow sits at the point of care and is designed to bridge clean data into DHIS2."
+- **[2:05] Slide 9 — From Concept to Working Prototype.** "A working PWA and Tauri desktop app, built with SvelteKit, Dexie, local sync, and Gemini. Core workflows — registration, triage, pharmacy — are built and lab-tested."
+- **[2:20] Slide 10 — The Next 8 Months.** "Months 1–2: hardware — tablets, routers, solar power banks. Months 3–4: AI safety testing and NHIS integration. Months 5–8: a live field pilot with training, deployment, and monitoring."
+- **[2:35] Slide 11 — The ₦5,000,000 Ask.** "We're asking for ₦5 million: 28% equipment, 36% research and development, 30% operations and training, 6% compliance and privacy audits."
+- **[2:48] Slide 12 — The Team.** "Our team brings offline-first architecture, generative AI, and Nigerian public health experience. Join us in transforming primary healthcare. Thank you."
 
 ---
 
 ## Delivery notes
 
-- Tone: technical, candid, and educational. Show what is implemented, what is advisory, and where the boundaries are.
-- Follow the deck order exactly. A few submitted slides are outside this showcase; acknowledge them only as quick transitions.
-- When an AI slide appears, point to the on-screen **Experimental AI Feature** disclaimer. Never describe AI output as a decision, diagnosis, or automated action.
-- Do not claim broad on-device AI, a locked-down Android APK, universal zero-config discovery, DHIS2 auto-submit, or a live NHIS integration.
-- Demo logins: `admin@clinic.com`, `doctor@clinic.com`, or `doctor.egor@clinic.com` (password `password123`).
+- Follow the deck order exactly — all 12 slides. Do not skip the commercial slides; this is a grant pitch.
+- Use the deck's own headline figures and wording. Don't invent new numbers.
+- On slides 4 and 5, keep AI framed as **advisory decision support with human verification** — never a diagnosis or an autonomous action.
+- If demoing: the live prototype backs slides 3, 4, 5, and 9. Keep it short; the deck is the story.
 
 ---
 
-## Slide 1 — Title Slide (“ClinicFlow”)
+## Slide-by-slide detail (longer version)
 
-**Slide cue:** logo beside the Nurse Vitals Dashboard screenshot.
+### Slide 1 — Title Slide
 
-**Say:** “This is ClinicFlow, an offline-first clinic workflow prototype. Today I am using the submitted slides only as anchors to explain the engineering: local-first documentation, authoritative sync, and a deliberately advisory role for AI.”
+**Headline:** ClinicFlow — An offline-first, AI-powered safety net for Nigeria's Primary Health Centres.
+**Say:** "ClinicFlow is an offline-first, AI-powered safety net for Nigeria's primary health centres. I'll cover the problem, what we've built, and the ask."
+**Visual:** logo beside the Nurse Vitals Dashboard screenshot.
 
-**Show/do:** Open the deployed app and sign in as `doctor@clinic.com`. Land on **Operations Dashboard** or **Doctor Queue**.
+### Slide 2 — The Broken Backbone of Healthcare
 
-**Boundary:** Call it a working prototype, not a deployed clinical product.
+**Headline:** The 97% Staffing Crisis.
+**Say:** "97% of PHCs across 16 states fail minimum staffing standards — a national deficit of 122,696 health workers. OICs, visiting doctors, and nurses are trapped in redundant physical registers — ANC, TB, General. Then data is transcribed into DHIS2 weeks later, causing errors and delaying outbreak detection."
+**Visual:** icons for the 97% stat, missing files, overwhelmed OIC.
 
----
+### Slide 3 — The Solution
 
-## Slide 2 — The Broken Backbone of Healthcare (“The 97% Staffing Crisis”)
+**Headline:** Build AI. Solve Local.
+**Say:** "We capture data instantly at the point of care. It's 100% offline-first using IndexedDB, and devices sync across a local battery-powered Wi-Fi router."
+**If demoing:** show the app's local cache / sync state. Say "local router sync", not magic discovery.
 
-**Slide cue:** icons for the 97% statistic, missing files, and an overwhelmed OIC.
+### Slide 4 — AI Clinical Decision Support
 
-**Say:** “I am not expanding the staffing statistics here. The engineering point is the documentation burden shown on this slide: the same encounter is written into several paper registers and later transcribed into a reporting portal. That creates delay, duplication, and transcription error. That is the workflow shape the prototype models.”
+**Headline:** Empowering the Frontline.
+**Say:** "Dr. Assist is an AI auto-scribe: shorthand like 'fever 5 days' becomes a structured SOAP note and differential. Instant triage flags red, amber, and green the second vitals are entered. AI output is advisory; the health worker verifies it."
+**If demoing:** Vitals & Triage — point to the Experimental AI Feature disclaimer, save vitals, show triage level and the AI risk badge.
+**Guardrail:** the score does not replace the nurse's triage decision.
 
-**Show/do:** Stay on the slide briefly, then move on. No live action.
+### Slide 5 — AI Patient Safety & Epidemiology
 
-**Boundary:** Treat the headline statistic as deck context; do not present new or independently verified claims.
+**Headline:** RxBrain & Outbreak Radar.
+**Say:** "RxBrain cross-references prescriptions against vitals and age to prevent fatal interactions. Outbreak Radar scans chief complaints across local PHCs to detect clusters like cholera weeks before manual transcription. Both are advisory — any escalation is reviewed and sent by authorized staff."
+**If demoing:** Admin → Outbreak Radar — point to the AI disclaimer, show rule alerts and staff-initiated escalation.
+**Boundary:** describe DHIS2 reporting as a staff-initiated bridge, not auto-submit.
 
----
+### Slide 6 — Market Size & Opportunity
 
-## Slide 3 — The Solution (“Build AI. Solve Local.”)
+**Headline:** A Massive Unmet Need.
+**Say:** "Over 30,000 primary health centres in Nigeria alone. Government and international NGOs are actively seeking digital health transformation that works offline."
+**Visual:** map of Nigeria, "30,000+ Potential Deployments".
 
-**Slide cue:** tablets connecting to a local router without internet access.
+### Slide 7 — Business Model
 
-**Say:** “The local-first design is the core idea. Records are written to IndexedDB first. Writes go into an offline sync log, and when connectivity is available the client pushes operations to the server and pulls authoritative changes back using a cursor. Devices can be pointed at a local server address from the connect flow; that is a configurable path, not magic discovery.”
+**Headline:** B2B SaaS for Public Health.
+**Say:** "Buyers are state ministries of health, LGAs, and international NGOs. ₦50,000 per PHC per month covers licensing, cloud backup sync, and AI API costs."
+**Visual:** pricing tiers / NGO-to-state deployment funnel.
 
-**Show/do:** Open **Settings** or the sync indicator and point out local cache / sync state. If online, trigger or observe a sync cycle.
+### Slide 8 — The Ecosystem Fit (Why We Win)
 
-**Boundary:** Say “local server address”, not “zero-config discovery”.
+**Headline:** The Perfect Point-of-Care Companion.
+**Say:** "DHIS2 and CommCare are national standards for aggregated data but lack offline point-of-care workflows. Traditional EMRs need constant internet and grid power. ClinicFlow is the real-time point-of-care tool, designed to bridge clean data into DHIS2."
+**Visual:** 2×2 matrix — high clinical utility, high offline capability.
 
----
+### Slide 9 — Traction & Current Status
 
-## Slide 4 — AI Clinical Decision Support (“Empowering the Frontline”)
+**Headline:** From Concept to Working Prototype.
+**Say:** "A complete PWA and Tauri desktop app. SvelteKit 5, Dexie.js with IndexedDB, local sync, Gemini API. Core clinical workflows — registration, triage, pharmacy — are built and lab-tested."
+**Visual:** app on an Android tablet in airplane mode.
 
-**Slide cue:** Dr. Assist UI turning shorthand into a structured note.
+### Slide 10 — Milestones & Project Plan
 
-**Say:** “Two different mechanisms often get grouped together here. Instant triage is deterministic: rules evaluate entered vitals and assign red, amber, or green immediately. Dr. Assist is the experimental AI path: shorthand keywords can be turned into a structured note, and the result is always advisory. We made that boundary explicit in the UI with the shared AI disclaimer placed before the vitals fields and before the background risk score.”
+**Headline:** The Next 8 Months.
+**Say:** "Months 1–2: hardware — tablets, routers, solar power banks. Months 3–4: rigorous AI safety testing and NHIS integration. Months 5–8: a live field pilot with training, deployment, and monitoring."
 
-**Show/do:** Go to **Vitals & Triage**. In step 2, point to the **Experimental AI Feature** banner before entering vitals. Save a demo patient's vitals and explain that the background risk score appears on the queue card only after the deterministic triage result. Point to the ⚡ AI Risk badge and its rationale tooltip.
+### Slide 11 — Detailed Use of Funds
 
-**Guardrail:** “The score does not replace the nurse's triage decision. Staff verify the underlying vitals and the patient first.”
+**Headline:** The ₦5,000,000 Ask.
+**Say:** "₦5 million total: 28% equipment and assets, 36% R&D including LLM credits and engineering, 30% operations and on-site training, 6% compliance and NDPA privacy audits."
 
-**Boundary:** Dr. Assist uses a hosted model with a narrow WebLLM fallback for structuring dictated intake; do not describe the whole app as running AI on-device.
+### Slide 12 — The Team
 
----
-
-## Slide 5 — AI Patient Safety & Epidemiology (“RxBrain & Outbreak Radar”)
-
-**Slide cue:** RxBrain warning badge and the Outbreak Radar heatmap.
-
-**Say:** “RxBrain is an advisory medication-safety check. Outbreak Radar combines a local rules engine with an AI-assisted summary. The AI layer correlates de-identified aggregate signals and suggests actions; it does not automatically report to DHIS2 or instruct staff. The advisory banner is shown on the radar page, the dashboard widget, and the support guide.”
-
-**Show/do:** Open **Admin → Outbreak Radar**. Point to the AI disclaimer near the header, then the rule-based alerts and the AI-assisted analysis block. Show the **Escalate to LGA DSO** panel as a staff-initiated action, not an automatic send.
-
-**Guardrail:** “Any escalation is reviewed and sent by an authorized staff member.”
-
-**Boundary:** SMS sending uses the configured provider path; describe it as staff-initiated, not autonomous public-health action.
-
----
-
-## Slide 6 — Market Size & Opportunity
-
-**Slide cue:** map and scale graphic. Acknowledge only; do not interpret.
-
-**Say:** “Transition slide. This showcase does not cover market sizing.”
-
-**Show/do:** Advance quickly. No live action.
-
-**Boundary:** Do not discuss market size, adoption, or traction.
-
----
-
-## Slide 7 — Business Model
-
-**Slide cue:** commercial diagram. Acknowledge only; do not interpret.
-
-**Say:** “Transition slide. This showcase does not cover the business model.”
-
-**Show/do:** Advance quickly. No live action.
-
-**Boundary:** No commercial discussion.
+**Headline:** Engineering the Future of Healthcare.
+**Say:** "Our team brings deep expertise in offline-first web architecture, generative AI, and Nigerian public health workflows. Join us in transforming primary healthcare. Thank you."
+**Visual:** team headshots / university logo, bold "Thank You" with contact info.
 
 ---
 
-## Slide 8 — The Ecosystem Fit (Why We Win) (“The Perfect Point-of-Care Companion”)
+## Optional live-demo checklist (only if time allows)
 
-**Slide cue:** 2×2 comparison of clinical utility and offline capability.
-
-**Say:** “The useful technical distinction on this slide is between aggregated reporting tools and point-of-care tools. ClinicFlow is explored as the point-of-care layer: capture in the queue or at the bedside, keep an authoritative local record, and bridge clean data outward later. DHIS2 export and NHIS integration are not live auto-submit features.”
-
-**Show/do:** Stay on the slide. Describe the current boundary rather than showing a non-existent integration.
-
-**Boundary:** Do not demonstrate or imply DHIS2 auto-submission or a live NHIS connection.
-
----
-
-## Slide 9 — Traction & Current Status (“From Concept to Working Prototype”)
-
-**Slide cue:** the app running on a tablet in airplane mode.
-
-**Say:** “This is the live part. The app is a SvelteKit PWA with a Tauri desktop build. Clinical records are written offline-first through typed stores and synced when a connection exists. We just wired the ANC visit action so it is a real record instead of a placeholder button.”
-
-**Show/do:** Open a female patient with an active pregnancy → **Maternal Health & ANC** → **Log ANC Visit**. Enter visit number, date, BP, weight, fetal heart rate, and a short note. Point out the staff-entry verification notice, save, and show the visit appear in **Recent ANC visits**.
-
-**Guardrail:** “This is a staff-entered record. It is verified against the physical ANC register; nothing is inferred or scored.”
-
-**Boundary:** Prototype/PWA and Tauri desktop are real. Do not claim a locked-down Android kiosk APK or universal offline AI.
-
----
-
-## Slide 10 — Milestones & Project Plan
-
-**Slide cue:** three-step timeline. Acknowledge only; do not interpret.
-
-**Say:** “Transition slide. This showcase is about what the prototype does now, not the project plan.”
-
-**Show/do:** Advance quickly. No live action.
-
-**Boundary:** Do not turn planned work into delivered work.
-
----
-
-## Slide 11 — Detailed Use of Funds
-
-**Slide cue:** budget graphic. Acknowledge only; do not interpret.
-
-**Say:** “Transition slide. Not part of this knowledge showcase.”
-
-**Show/do:** Advance quickly. No live action.
-
-**Boundary:** Do not discuss funding, vendors, or amounts.
-
----
-
-## Slide 12 — The Team (“Engineering the Future of Healthcare”)
-
-**Slide cue:** team or university branding and a thank-you.
-
-**Say:** “To close: the takeaway is separation of concerns. Durable records live in the database and local cache; sync is cursor-based and authoritative; AI is an advisory layer with visible disclaimers and human verification. Thank you — I'm happy to walk through the architecture or the data flow in more detail.”
-
-**Show/do:** Return to the app dashboard. Leave the AI disclaimer and the ANC recent-visits list visible if taking questions.
-
-**Boundary:** End on the architecture lesson, not a clinical or commercial claim.
-
----
-
-## Live-demo checklist
-
-- [ ] Sign in to the fresh deployment with a demo account.
-- [ ] Vitals & Triage → point to AI disclaimer → save vitals → show deterministic triage and AI risk badge.
-- [ ] Admin → Outbreak Radar → point to AI disclaimer → show rule alerts and staff-initiated escalation.
-- [ ] Patient profile → Maternal Health & ANC → Log ANC Visit → show the saved record in the recent list.
-- [ ] Advance quickly through slides 6, 7, 10, and 11 without commercial or roadmap detail.
-- [ ] State explicitly: synthetic demo data, advisory AI, human verification required.
+- [ ] Vitals & Triage → Experimental AI Feature disclaimer → save vitals → triage level + AI risk badge.
+- [ ] Admin → Outbreak Radar → AI disclaimer → rule alerts + staff-initiated escalation.
+- [ ] Patient profile → Maternal Health & ANC → Log ANC Visit → recent list.
