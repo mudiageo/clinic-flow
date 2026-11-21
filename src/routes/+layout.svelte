@@ -4,6 +4,7 @@
 	import { Toaster } from '#lib/components/ui/sonner/index.ts';
 	import PWAManager from '#lib/components/PWAManager.svelte';
 	import { Skeleton } from '#lib/components/ui/skeleton/index.ts';
+	import { ModeWatcher } from 'mode-watcher';
 
 	let { children } = $props();
 
@@ -34,6 +35,7 @@
 <svelte:window onkeydown={handleKeydown} oncontextmenu={handleContextMenu} />
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
+<ModeWatcher defaultMode="light" />
 <Toaster richColors closeButton position="top-right" />
 <PWAManager />
 <svelte:boundary>

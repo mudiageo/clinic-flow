@@ -3,36 +3,28 @@
 		eyebrow = '',
 		heading,
 		subheading = '',
-		align = 'center'
+		align = 'left'
 	}: {
 		eyebrow?: string;
 		heading: string;
 		subheading?: string;
-		align?: 'center' | 'left';
+		align?: 'left' | 'center';
 	} = $props();
 </script>
 
-<div class="mb-14 {align === 'center' ? 'text-center' : 'text-left'}">
+<div class="mb-12 {align === 'center' ? 'text-center mx-auto max-w-2xl' : 'text-left max-w-3xl'}">
 	{#if eyebrow}
-		<div
-			class="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary mb-4"
-		>
+		<p class="text-xs font-mono font-semibold tracking-wider text-primary mb-2.5">
 			{eyebrow}
-		</div>
+		</p>
 	{/if}
 	<h2
-		class="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground {align === 'center'
-			? 'max-w-2xl mx-auto'
-			: ''}"
+		class="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-foreground leading-[1.15]"
 	>
 		{heading}
 	</h2>
 	{#if subheading}
-		<p
-			class="mt-4 text-muted-foreground text-lg leading-relaxed {align === 'center'
-				? 'max-w-2xl mx-auto'
-				: 'max-w-2xl'}"
-		>
+		<p class="mt-3.5 text-muted-foreground text-base sm:text-lg leading-relaxed">
 			{subheading}
 		</p>
 	{/if}

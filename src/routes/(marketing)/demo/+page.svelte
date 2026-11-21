@@ -62,15 +62,13 @@
 		<!-- Left info column -->
 		<div class="lg:col-span-5 space-y-8">
 			<div class="space-y-3">
-				<div
-					class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary"
+				<p class="text-xs font-mono font-semibold tracking-wider text-primary">PILOT EVALUATION</p>
+				<h1
+					class="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground leading-tight"
 				>
-					Pilot Applications Open
-				</div>
-				<h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground">
 					See ClinicFlow in action.
 				</h1>
-				<p class="text-muted-foreground leading-relaxed">
+				<p class="text-sm text-muted-foreground leading-relaxed">
 					Whether you manage an individual Primary Health Centre or oversee statewide clinical
 					services, we provide hands-on walkthroughs and pilot hardware support.
 				</p>
@@ -126,7 +124,7 @@
 
 		<!-- Right form card -->
 		<div class="lg:col-span-7">
-			<div class="rounded-3xl border border-border bg-card p-8 md:p-10 shadow-lg">
+			<div class="rounded-lg border border-border bg-card p-6 md:p-8 shadow-sm">
 				{#if submitted}
 					<div class="text-center py-12 space-y-4">
 						<div
@@ -212,7 +210,7 @@
 						<Button
 							type="submit"
 							disabled={isSubmitting}
-							class="w-full rounded-full h-12 font-bold bg-primary text-primary-foreground hover:bg-primary/95 shadow-md shadow-primary/20"
+							class="w-full rounded-md h-10 font-semibold text-sm bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
 						>
 							{#if isSubmitting}
 								Submitting Request...

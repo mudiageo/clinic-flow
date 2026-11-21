@@ -1,43 +1,42 @@
 <script lang="ts">
 	import { Button } from '#lib/components/ui/button';
-	import SectionHeader from '#lib/components/marketing/section-header.svelte';
-	import { Check, HelpCircle, ArrowRight, ShieldCheck, Zap } from '@lucide/svelte';
+	import { Check, HelpCircle, ArrowRight, ShieldCheck } from '@lucide/svelte';
 
 	const tiers = [
 		{
 			name: 'Pilot Facility',
-			tagline: 'For research partners & pilot PHCs',
+			tagline: 'For research partners, grant programmes, and approved trial PHCs.',
 			price: '₦0',
 			period: 'during grant pilot',
 			highlight: false,
 			badge: 'Field Trial',
 			features: [
-				'Full offline clinic suite',
-				'Up to 6 active staff kiosk devices',
-				'Zero-config LAN auto-discovery',
-				'Automated triage & vitals',
-				'Local & cloud backup synchronization',
-				'Direct on-site onboarding & support'
+				'Complete offline clinical suite (intake, triage, consult, pharmacy)',
+				'Up to 6 active staff kiosk devices per facility',
+				'Zero-config local LAN auto-discovery',
+				'Automated smart triage & vitals urgency rules',
+				'Local SQLite edge broker & cloud synchronization',
+				'Direct on-site onboarding and technician support'
 			],
-			cta: 'Apply for Pilot',
+			cta: 'Apply for Pilot Cohort',
 			ctaHref: '/demo?plan=pilot',
 			ctaVariant: 'outline' as const
 		},
 		{
-			name: 'Public PHC Tier',
-			tagline: 'Annual contract for State Primary Health Care Agencies',
+			name: 'Public PHC Network',
+			tagline: 'Annual institutional contract for State Primary Health Care Agencies (SPHCDA).',
 			price: '₦30,000',
 			period: '/ facility / month',
 			highlight: true,
-			badge: 'Most Common',
+			badge: 'Recommended',
 			features: [
-				'Unlimited staff logins & kiosk tablets',
-				'Full AI clinical decision support (Dr. Assist & RxBrain)',
-				'Automated DHIS2 aggregated reporting',
-				'Outbreak Radar surveillance alerts',
-				'Automated daily encrypted cloud backup',
+				'Unlimited staff logins and kiosk tablet seats',
+				'Dual AI clinical safety nets (Dr. Assist & RxBrain)',
+				'Automated monthly DHIS2 aggregated reporting',
+				'Outbreak Radar epidemiological surveillance alerts',
+				'Daily encrypted cloud backup & central facility analytics',
 				'Central State/LGA administrative dashboard',
-				'Dedicated technician support & SLA'
+				'Dedicated technician field support SLA'
 			],
 			cta: 'State Procurement Contact',
 			ctaHref: '/contact?inquiry=state',
@@ -45,20 +44,20 @@
 		},
 		{
 			name: 'Private & NGO Tier',
-			tagline: 'For mission hospitals, private clinics, and global health donors',
+			tagline: 'For mission hospitals, private clinics, and international global health donors.',
 			price: 'Custom',
 			period: 'tailored per network',
 			highlight: false,
 			badge: 'Enterprise',
 			features: [
-				'Multi-facility centralized analytics',
+				'Multi-facility centralized analytics & oversight',
 				'Custom DHIS2 & national API push pipelines',
 				'Custom clinical templates & formulary rules',
 				'Termii automated SMS patient follow-up',
 				'On-premise edge server installation option',
-				'24/7 Priority support hotline'
+				'Dedicated SLA & custom cloud tenant deployment'
 			],
-			cta: 'Request Quote',
+			cta: 'Request Formal Proposal',
 			ctaHref: '/contact?inquiry=enterprise',
 			ctaVariant: 'outline' as const
 		}
@@ -71,7 +70,7 @@
 		},
 		{
 			q: 'What happens when power or internet is unavailable for weeks?',
-			a: 'ClinicFlow was engineered specifically for this condition. All daily operations run from local IndexedDB and edge storage without requesting a single byte from the internet. When power and network return, changes merge deterministically.'
+			a: 'ClinicFlow was engineered specifically for this condition. All daily operations run from local IndexedDB and edge SQLite storage without requesting a single byte from the internet. When power and network return, changes merge deterministically.'
 		},
 		{
 			q: 'What hardware does our clinic need to purchase?',
@@ -96,74 +95,84 @@
 	/>
 </svelte:head>
 
-<div class="py-16 md:py-24 space-y-24">
-	<!-- Header -->
-	<section class="container mx-auto px-4 md:px-8 max-w-4xl text-center space-y-6">
-		<div
-			class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary"
-		>
-			Predictable, Institutional Pricing
+<div class="space-y-20 py-12 md:py-16">
+	<!-- Page Header (Editorial Left-Aligned) -->
+	<section class="border-b border-border bg-background pb-14">
+		<div class="container mx-auto px-4 md:px-8 max-w-7xl">
+			<div class="max-w-3xl space-y-4">
+				<p class="text-xs font-mono font-semibold tracking-wider text-primary">
+					INSTITUTIONAL PROCUREMENT
+				</p>
+				<h1
+					class="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-foreground leading-[1.1]"
+				>
+					Affordable for state agencies. Free for pilot facilities.
+				</h1>
+				<p class="text-base sm:text-lg text-muted-foreground leading-relaxed pt-1">
+					Designed to fit within public health budgets without recurring per-patient fees,
+					unexpected cloud usage spikes, or proprietary software lock-in.
+				</p>
+			</div>
 		</div>
-		<h1 class="text-4xl md:text-6xl font-extrabold tracking-tight text-foreground">
-			Affordable for government agencies. Free for pilot clinics.
-		</h1>
-		<p class="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-			Designed to fit within public health budgets without recurring per-patient fees or predatory
-			SaaS lock-in.
-		</p>
 	</section>
 
 	<!-- Pricing Cards -->
 	<section class="container mx-auto px-4 md:px-8 max-w-7xl">
-		<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+		<div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
 			{#each tiers as tier}
 				<div
-					class="rounded-3xl border {tier.highlight
-						? 'border-primary ring-2 ring-primary/20 shadow-xl bg-card'
-						: 'border-border bg-card/60 shadow-sm'} p-8 flex flex-col justify-between relative overflow-hidden"
+					class="rounded-lg border {tier.highlight
+						? 'border-2 border-primary bg-card shadow-md'
+						: 'border-border bg-card'} p-7 flex flex-col justify-between relative"
 				>
-					{#if tier.highlight}
-						<div
-							class="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-bold px-4 py-1 rounded-bl-xl uppercase tracking-wider"
-						>
-							{tier.badge}
-						</div>
-					{/if}
 					<div class="space-y-6">
 						<div>
-							<h3 class="text-xl font-bold text-foreground">{tier.name}</h3>
-							<p class="text-sm text-muted-foreground mt-1 min-h-[40px]">{tier.tagline}</p>
-						</div>
-
-						<div class="flex items-baseline gap-2">
-							<span class="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground"
-								>{tier.price}</span
-							>
-							<span class="text-sm text-muted-foreground">{tier.period}</span>
-						</div>
-
-						<div class="border-t border-border/60 pt-6 space-y-3">
-							<p class="text-xs font-bold uppercase tracking-widest text-foreground">
-								What’s included:
+							<div class="flex items-center justify-between">
+								<h2 class="text-lg font-bold text-foreground tracking-tight">{tier.name}</h2>
+								<span
+									class="px-2 py-0.5 rounded text-[10px] font-mono font-semibold {tier.highlight
+										? 'bg-primary text-primary-foreground'
+										: 'bg-muted text-muted-foreground'}"
+								>
+									{tier.badge}
+								</span>
+							</div>
+							<p class="text-xs text-muted-foreground mt-2 min-h-[36px] leading-relaxed">
+								{tier.tagline}
 							</p>
-							<ul class="space-y-2.5 text-sm text-muted-foreground">
+						</div>
+
+						<div class="flex items-baseline gap-2 pt-2 border-t border-border">
+							<span
+								class="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground font-mono"
+							>
+								{tier.price}
+							</span>
+							<span class="text-xs text-muted-foreground font-mono">{tier.period}</span>
+						</div>
+
+						<div class="border-t border-border pt-5 space-y-3">
+							<p class="text-xs font-mono font-semibold text-foreground tracking-wider uppercase">
+								Capabilities:
+							</p>
+							<ul class="space-y-2.5 text-xs text-muted-foreground">
 								{#each tier.features as feat}
-									<li class="flex items-start gap-2.5">
-										<Check class="size-4 text-primary shrink-0 mt-0.5" />
-										<span>{feat}</span>
+									<li class="flex items-start gap-2.5 leading-normal">
+										<Check class="size-3.5 text-primary shrink-0 mt-0.5" />
+										<span class="text-foreground/90">{feat}</span>
 									</li>
 								{/each}
 							</ul>
 						</div>
 					</div>
 
-					<div class="pt-8 mt-6 border-t border-border/40">
+					<div class="pt-6 mt-6 border-t border-border">
 						<Button
 							href={tier.ctaHref}
 							variant={tier.ctaVariant}
-							class="w-full rounded-full h-12 font-bold {tier.highlight
-								? 'bg-primary text-primary-foreground hover:bg-primary/95 shadow-lg shadow-primary/20'
-								: ''}"
+							class="w-full rounded-md h-10 font-semibold text-xs {tier.highlight
+								? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
+								: 'border-border'}"
 						>
 							{tier.cta}
 						</Button>
@@ -174,20 +183,24 @@
 	</section>
 
 	<!-- FAQ Section -->
-	<section class="container mx-auto px-4 md:px-8 max-w-4xl space-y-12">
-		<SectionHeader
-			eyebrow="Frequently Asked Questions"
-			heading="Clear answers for healthcare administrators"
-		/>
+	<section class="container mx-auto px-4 md:px-8 max-w-4xl space-y-8">
+		<div class="border-b border-border pb-4">
+			<p class="text-xs font-mono font-semibold tracking-wider text-primary mb-1">
+				FREQUENT QUESTIONS
+			</p>
+			<h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+				Clear answers for healthcare administrators.
+			</h2>
+		</div>
 
-		<div class="space-y-6">
+		<div class="divide-y divide-border">
 			{#each faqs as item}
-				<div class="rounded-2xl border border-border bg-card p-6 md:p-8 space-y-3 shadow-sm">
-					<h3 class="text-lg font-bold text-foreground flex items-center gap-2.5">
-						<HelpCircle class="size-5 text-primary shrink-0" />
-						{item.q}
+				<div class="py-5 space-y-2">
+					<h3 class="text-base font-bold text-foreground flex items-start gap-2">
+						<HelpCircle class="size-4 text-primary shrink-0 mt-1" />
+						<span>{item.q}</span>
 					</h3>
-					<p class="text-muted-foreground leading-relaxed text-sm md:text-base pl-7">
+					<p class="text-sm text-muted-foreground leading-relaxed pl-6">
 						{item.a}
 					</p>
 				</div>
@@ -196,22 +209,27 @@
 	</section>
 
 	<!-- Contact CTA -->
-	<section class="border-t border-border/40 bg-muted/20 py-20 text-center">
-		<div class="container mx-auto px-4 max-w-3xl space-y-6">
-			<h2 class="text-3xl font-bold tracking-tight text-foreground">
-				Need a formal procurement proposal?
-			</h2>
-			<p class="text-muted-foreground text-lg">
-				We prepare customized implementation schedules and technical capability briefs for State
-				Ministries of Health and LGA authorities.
-			</p>
-			<Button
-				href="/contact"
-				size="lg"
-				class="rounded-full px-8 font-bold bg-primary text-primary-foreground shadow-md shadow-primary/20"
+	<section class="border-t border-border bg-background py-16">
+		<div class="container mx-auto px-4 md:px-8 max-w-5xl">
+			<div
+				class="rounded-lg border border-border bg-card p-8 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm"
 			>
-				Contact Institutional Sales <ArrowRight class="ml-2 size-4" />
-			</Button>
+				<div class="space-y-1.5 text-left">
+					<h2 class="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+						Need a formal procurement proposal?
+					</h2>
+					<p class="text-sm text-muted-foreground">
+						We prepare customized implementation schedules and technical capability briefs for State
+						Ministries of Health and LGA authorities.
+					</p>
+				</div>
+				<Button
+					href="/contact"
+					class="rounded-md px-5 h-10 font-semibold text-xs bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm shrink-0"
+				>
+					Contact Institutional Sales <ArrowRight class="ml-2 size-3.5" />
+				</Button>
+			</div>
 		</div>
 	</section>
 </div>

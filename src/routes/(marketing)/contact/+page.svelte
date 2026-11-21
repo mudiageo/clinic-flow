@@ -61,28 +61,28 @@
 	/>
 </svelte:head>
 
-<div class="container mx-auto px-4 md:px-8 max-w-5xl py-16 md:py-24 space-y-16">
+<div class="container mx-auto px-4 md:px-8 max-w-5xl py-12 md:py-16 space-y-12">
 	<!-- Top Intro -->
-	<div class="text-center max-w-2xl mx-auto space-y-4">
-		<div
-			class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary"
+	<div class="max-w-3xl space-y-3">
+		<p class="text-xs font-mono font-semibold tracking-wider text-primary">
+			COMMUNICATIONS & PARTNERSHIPS
+		</p>
+		<h1
+			class="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-foreground leading-[1.1]"
 		>
-			Direct Communications
-		</div>
-		<h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
 			Let’s talk digital health.
 		</h1>
-		<p class="text-lg text-muted-foreground leading-relaxed">
+		<p class="text-base text-muted-foreground leading-relaxed">
 			Have inquiries about pilot deployments, State Primary Health Care agency agreements, or
 			technical integrations? We are ready to assist.
 		</p>
 	</div>
 
-	<div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+	<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 		<!-- Contact details card -->
-		<div class="lg:col-span-5 space-y-6">
-			<div class="rounded-3xl border border-border bg-card p-8 space-y-6 shadow-sm">
-				<h3 class="text-xl font-bold text-foreground">Direct Contact</h3>
+		<div class="lg:col-span-5 space-y-5">
+			<div class="rounded-lg border border-border bg-card p-6 md:p-7 space-y-5 shadow-sm">
+				<h3 class="text-lg font-bold text-foreground">Direct Contact</h3>
 
 				<div class="space-y-5 text-sm">
 					<div class="flex items-start gap-3.5">
@@ -146,7 +146,7 @@
 
 		<!-- Form -->
 		<div class="lg:col-span-7">
-			<div class="rounded-3xl border border-border bg-card p-8 md:p-10 shadow-lg">
+			<div class="rounded-lg border border-border bg-card p-6 md:p-8 shadow-sm">
 				{#if submitted}
 					<div class="text-center py-12 space-y-4">
 						<div
@@ -159,14 +159,18 @@
 							Thank you, <strong>{name}</strong>. Your inquiry has been routed to our clinical
 							coordination team. We will respond promptly via <strong>{email}</strong>.
 						</p>
-						<Button href="/" variant="outline" class="rounded-full mt-4 font-semibold">
+						<Button
+							href="/"
+							variant="outline"
+							class="rounded-md mt-4 font-semibold text-xs h-9 border-border"
+						>
 							Back to Homepage
 						</Button>
 					</div>
 				{:else}
-					<form onsubmit={handleSubmit} class="space-y-5">
+					<form onsubmit={handleSubmit} class="space-y-4">
 						<div class="space-y-1">
-							<h3 class="text-xl font-bold text-foreground">Send a Message</h3>
+							<h3 class="text-lg font-bold text-foreground">Send a Message</h3>
 							<p class="text-xs text-muted-foreground">
 								We typically reply within one business day.
 							</p>
@@ -174,7 +178,7 @@
 
 						{#if errorMessage}
 							<div
-								class="p-3 text-sm rounded-xl bg-destructive/10 text-destructive border border-destructive/20"
+								class="p-3 text-xs rounded-md bg-destructive/10 text-destructive border border-destructive/20"
 							>
 								{errorMessage}
 							</div>
@@ -246,12 +250,12 @@
 						<Button
 							type="submit"
 							disabled={isSubmitting}
-							class="w-full rounded-full h-12 font-bold bg-primary text-primary-foreground hover:bg-primary/95 shadow-md shadow-primary/20"
+							class="w-full rounded-md h-10 font-semibold text-xs bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
 						>
 							{#if isSubmitting}
 								Sending...
 							{:else}
-								Transmit Message <Send class="ml-2 size-4" />
+								Transmit Message <Send class="ml-2 size-3.5" />
 							{/if}
 						</Button>
 					</form>

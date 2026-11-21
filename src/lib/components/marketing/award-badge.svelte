@@ -12,20 +12,20 @@
 	} = $props();
 
 	const styles = {
-		gold: 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400',
-		silver: 'bg-slate-400/10 border-slate-400/30 text-slate-600 dark:text-slate-300',
-		primary: 'bg-primary/10 border-primary/30 text-primary'
+		gold: 'bg-amber-500/10 border-amber-500/20 text-amber-800 dark:text-amber-300',
+		silver: 'bg-muted border-border text-foreground',
+		primary: 'bg-primary/10 border-primary/20 text-primary'
 	};
 </script>
 
 <div
-	class="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold {styles[
+	class="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium {styles[
 		variant
 	]}"
 >
-	<Trophy class="size-3.5 shrink-0" />
-	<span>{label}</span>
+	<Trophy class="size-3 shrink-0 text-current opacity-80" />
+	<span class="font-semibold">{label}</span>
 	{#if sublabel}
-		<span class="font-normal opacity-70">· {sublabel}</span>
+		<span class="opacity-70 font-normal">· {sublabel}</span>
 	{/if}
 </div>
