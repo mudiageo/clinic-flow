@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Tag, Calendar, Download, Sparkles, CheckCircle2 } from '@lucide/svelte';
+	import { Calendar, CheckCircle2, ArrowRight } from '@lucide/svelte';
 	import { Button } from '#lib/components/ui/button';
 
 	const logEntries = [
@@ -47,38 +47,34 @@
 	/>
 </svelte:head>
 
-<div class="container mx-auto px-4 md:px-8 max-w-4xl py-16 md:py-24 space-y-16">
-	<!-- Header -->
-	<div class="text-center max-w-2xl mx-auto space-y-4">
-		<div
-			class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary"
-		>
-			Release Notes
-		</div>
-		<h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">Changelog</h1>
-		<p class="text-lg text-muted-foreground leading-relaxed">
+<div class="container mx-auto px-4 md:px-8 max-w-5xl py-12 md:py-20 space-y-16">
+	<!-- Editorial Header -->
+	<div class="border-b border-border/70 pb-8 space-y-4">
+		<p class="text-xs font-mono uppercase tracking-wider text-primary">Release Notes</p>
+		<h1 class="text-3xl md:text-5xl font-bold tracking-tight text-foreground">Changelog</h1>
+		<p class="text-base md:text-lg text-muted-foreground max-w-2xl leading-relaxed">
 			Every major improvement, performance optimization, and clinical feature we ship to Nigerian
 			clinics.
 		</p>
 		<div class="pt-2">
-			<Button href="/releases" variant="outline" class="rounded-full font-semibold">
-				View technical GitHub releases & APK assets →
+			<Button href="/releases" variant="outline" class="rounded-md font-medium">
+				View technical GitHub releases & APK assets <ArrowRight class="ml-2 size-4" />
 			</Button>
 		</div>
 	</div>
 
 	<!-- Log Entries -->
-	<div class="space-y-10">
+	<div class="space-y-6">
 		{#each logEntries as entry}
-			<article class="rounded-3xl border border-border bg-card p-8 md:p-10 space-y-6 shadow-sm">
+			<article class="rounded-lg border border-border bg-card p-6 md:p-8 space-y-6">
 				<div
-					class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/60 pb-4"
+					class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/70 pb-4"
 				>
 					<div class="flex items-center gap-3">
 						<span class="text-2xl font-bold font-mono text-foreground">{entry.version}</span>
 						<span class="text-sm font-semibold text-primary">{entry.highlight}</span>
 					</div>
-					<span class="text-xs text-muted-foreground flex items-center gap-1.5 font-medium">
+					<span class="text-xs text-muted-foreground flex items-center gap-1.5 font-mono">
 						<Calendar class="size-3.5" />
 						{entry.date}
 					</span>

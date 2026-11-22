@@ -11,17 +11,16 @@
 	/>
 </svelte:head>
 
-<div class="container mx-auto px-4 md:px-8 max-w-4xl py-16 md:py-24 space-y-20">
-	<div class="text-center max-w-2xl mx-auto space-y-4">
-		<div
-			class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary"
-		>
+<div class="container mx-auto px-4 md:px-8 max-w-5xl py-12 md:py-20 space-y-16">
+	<!-- Editorial Header -->
+	<div class="border-b border-border/70 pb-8 space-y-4">
+		<p class="text-xs font-mono uppercase tracking-wider text-primary">
 			Private Healthcare Operations
-		</div>
-		<h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
+		</p>
+		<h1 class="text-3xl md:text-5xl font-bold tracking-tight text-foreground max-w-3xl">
 			Keep your private clinic running when the network drops.
 		</h1>
-		<p class="text-lg text-muted-foreground leading-relaxed">
+		<p class="text-base md:text-lg text-muted-foreground max-w-2xl leading-relaxed">
 			For private practitioners and mission clinics, internet downtime means lost revenue,
 			frustrated patients, and clinical blindspots. ClinicFlow keeps your reception, consultation
 			desks, and pharmacy in lockstep without internet reliance.
@@ -30,57 +29,53 @@
 			<Button
 				href="/contact?inquiry=enterprise"
 				size="lg"
-				class="rounded-full px-8 font-bold bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+				class="rounded-md px-6 font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
 			>
 				Book Private Practice Demo <ArrowRight class="ml-2 size-4" />
 			</Button>
 		</div>
 	</div>
 
-	<!-- Features -->
-	<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-		<div class="rounded-3xl border border-border bg-card p-8 space-y-3 shadow-sm">
-			<div class="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+	<!-- Features Grid -->
+	<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+		<div class="rounded-lg border border-border bg-card p-6 md:p-8 space-y-3">
+			<div class="size-10 rounded-md bg-primary/10 text-primary flex items-center justify-center">
 				<Zap class="size-5" />
 			</div>
-			<h3 class="text-xl font-bold text-foreground">Zero Reception Latency</h3>
+			<h3 class="text-lg font-bold text-foreground">Zero Reception Latency</h3>
 			<p class="text-sm text-muted-foreground leading-relaxed">
 				No spinning loading indicators while patients stand at the front desk. Patient lookups and
 				registration happen instantly from local cache.
 			</p>
 		</div>
 
-		<div class="rounded-3xl border border-border bg-card p-8 space-y-3 shadow-sm">
-			<div class="size-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
+		<div class="rounded-lg border border-border bg-card p-6 md:p-8 space-y-3">
+			<div class="size-10 rounded-md bg-primary/10 text-primary flex items-center justify-center">
 				<ShieldCheck class="size-5" />
 			</div>
-			<h3 class="text-xl font-bold text-foreground">RxBrain Drug Safety Checks</h3>
+			<h3 class="text-lg font-bold text-foreground">RxBrain Drug Safety Checks</h3>
 			<p class="text-sm text-muted-foreground leading-relaxed">
 				Protect your clinic’s clinical reputation. RxBrain automatically flags dangerous drug-drug
 				interactions before prescriptions are filled.
 			</p>
 		</div>
 
-		<div class="rounded-3xl border border-border bg-card p-8 space-y-3 shadow-sm">
-			<div
-				class="size-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center"
-			>
+		<div class="rounded-lg border border-border bg-card p-6 md:p-8 space-y-3">
+			<div class="size-10 rounded-md bg-primary/10 text-primary flex items-center justify-center">
 				<Clock class="size-5" />
 			</div>
-			<h3 class="text-xl font-bold text-foreground">Complete Patient Longitudinal History</h3>
+			<h3 class="text-lg font-bold text-foreground">Complete Patient Longitudinal History</h3>
 			<p class="text-sm text-muted-foreground leading-relaxed">
 				Access a patient’s full history of vitals, past allergies, previous medications, and
 				maternal visits in one clean, unified timeline.
 			</p>
 		</div>
 
-		<div class="rounded-3xl border border-border bg-card p-8 space-y-3 shadow-sm">
-			<div
-				class="size-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center"
-			>
+		<div class="rounded-lg border border-border bg-card p-6 md:p-8 space-y-3">
+			<div class="size-10 rounded-md bg-primary/10 text-primary flex items-center justify-center">
 				<DollarSign class="size-5" />
 			</div>
-			<h3 class="text-xl font-bold text-foreground">Controlled Pharmacy Stock</h3>
+			<h3 class="text-lg font-bold text-foreground">Controlled Pharmacy Stock</h3>
 			<p class="text-sm text-muted-foreground leading-relaxed">
 				Prevent medication shrinkage and stockouts. Dispensing automatically decrements inventory
 				and maintains a strict audit trail.
@@ -89,19 +84,24 @@
 	</div>
 
 	<!-- Private CTA -->
-	<div class="rounded-3xl border border-border bg-muted/30 p-8 md:p-12 text-center space-y-5">
-		<h2 class="text-2xl md:text-3xl font-bold text-foreground">
-			Upgrade your private clinic’s digital workflow
-		</h2>
-		<p class="text-muted-foreground text-sm md:text-base max-w-xl mx-auto leading-relaxed">
+	<div class="rounded-lg border border-border bg-muted/20 p-6 md:p-10 space-y-5">
+		<div class="space-y-2">
+			<p class="text-xs font-mono uppercase tracking-wider text-primary">Facility Onboarding</p>
+			<h2 class="text-2xl font-bold text-foreground">
+				Upgrade your private clinic’s digital workflow
+			</h2>
+		</div>
+		<p class="text-muted-foreground text-sm md:text-base max-w-2xl leading-relaxed">
 			We offer tailored setups and dedicated on-boarding for private clinics and multi-specialty
 			practices across Nigeria.
 		</p>
-		<Button
-			href="/contact?inquiry=enterprise"
-			class="rounded-full px-8 font-bold bg-primary text-primary-foreground"
-		>
-			Contact Private Practice Team
-		</Button>
+		<div>
+			<Button
+				href="/contact?inquiry=enterprise"
+				class="rounded-md px-6 font-medium bg-primary text-primary-foreground hover:bg-primary/90"
+			>
+				Contact Private Practice Team
+			</Button>
+		</div>
 	</div>
 </div>

@@ -1,15 +1,12 @@
 <script lang="ts">
 	import { Button } from '#lib/components/ui/button';
-	import SectionHeader from '#lib/components/marketing/section-header.svelte';
 	import {
 		Building2,
 		HeartHandshake,
 		Cpu,
 		Globe2,
-		ShieldCheck,
 		ArrowRight,
 		CheckCircle2,
-		Users,
 		Stethoscope
 	} from '@lucide/svelte';
 
@@ -83,91 +80,84 @@
 	/>
 </svelte:head>
 
-<div class="py-16 md:py-24 space-y-24">
-	<!-- Hero -->
-	<section class="container mx-auto px-4 md:px-8 max-w-4xl text-center space-y-6">
-		<div
-			class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary"
-		>
-			Collaborative Ecosystem
-		</div>
-		<h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
+<div class="container mx-auto px-4 md:px-8 max-w-5xl py-12 md:py-20 space-y-16">
+	<!-- Editorial Hero -->
+	<div class="border-b border-border/70 pb-8 space-y-4">
+		<p class="text-xs font-mono uppercase tracking-wider text-primary">Collaborative Ecosystem</p>
+		<h1 class="text-3xl md:text-5xl font-bold tracking-tight text-foreground max-w-3xl">
 			Building the digital backbone for Nigerian primary healthcare together.
 		</h1>
-		<p class="text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+		<p class="text-base md:text-lg text-muted-foreground leading-relaxed max-w-2xl">
 			Transforming 30,000 paper-based clinics across Nigeria requires strong partnerships between
 			public agencies, global health donors, hardware suppliers, and frontline medical workers.
 		</p>
-	</section>
+	</div>
 
-	<!-- Partner Tracks -->
-	<section class="container mx-auto px-4 md:px-8 max-w-7xl">
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-			{#each partnerTracks as track}
-				<div
-					class="rounded-3xl border border-border bg-card p-8 md:p-10 space-y-6 shadow-sm flex flex-col justify-between"
-				>
-					<div class="space-y-4">
-						<div class="size-12 rounded-2xl {track.color} flex items-center justify-center">
-							<track.icon class="size-6" />
-						</div>
-						<h2 class="text-2xl font-bold text-foreground">{track.category}</h2>
-						<p class="text-sm text-muted-foreground leading-relaxed">{track.description}</p>
-
-						<div class="border-t border-border/60 pt-4 space-y-2.5">
-							<p class="text-xs font-bold uppercase tracking-widest text-foreground">
-								Partnership Highlights:
-							</p>
-							<ul class="space-y-2 text-sm text-muted-foreground">
-								{#each track.offerings as offering}
-									<li class="flex items-start gap-2">
-										<CheckCircle2 class="size-4 text-primary shrink-0 mt-0.5" />
-										<span>{offering}</span>
-									</li>
-								{/each}
-							</ul>
-						</div>
+	<!-- Partner Tracks Grid -->
+	<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+		{#each partnerTracks as track}
+			<div
+				class="rounded-lg border border-border bg-card p-6 md:p-8 space-y-6 flex flex-col justify-between"
+			>
+				<div class="space-y-4">
+					<div class="size-10 rounded-md {track.color} flex items-center justify-center">
+						<track.icon class="size-5" />
 					</div>
+					<h2 class="text-xl font-bold text-foreground">{track.category}</h2>
+					<p class="text-sm text-muted-foreground leading-relaxed">{track.description}</p>
 
-					<div class="pt-6 mt-4 border-t border-border/40">
-						<Button
-							href="/contact?inquiry={track.inquiry}"
-							variant="outline"
-							class="w-full rounded-full font-semibold h-11"
-						>
-							{track.cta}
-							<ArrowRight class="ml-2 size-4" />
-						</Button>
+					<div class="border-t border-border/70 pt-4 space-y-2.5">
+						<p class="text-xs font-mono uppercase tracking-wider text-foreground font-semibold">
+							Partnership Highlights:
+						</p>
+						<ul class="space-y-2 text-sm text-muted-foreground">
+							{#each track.offerings as offering}
+								<li class="flex items-start gap-2">
+									<CheckCircle2 class="size-4 text-primary shrink-0 mt-0.5" />
+									<span>{offering}</span>
+								</li>
+							{/each}
+						</ul>
 					</div>
 				</div>
-			{/each}
-		</div>
-	</section>
+
+				<div class="pt-4 border-t border-border/70">
+					<Button
+						href="/contact?inquiry={track.inquiry}"
+						variant="outline"
+						class="w-full rounded-md font-medium"
+					>
+						{track.cta}
+						<ArrowRight class="ml-2 size-4" />
+					</Button>
+				</div>
+			</div>
+		{/each}
+	</div>
 
 	<!-- Pilot Deployment Invitation -->
-	<section class="container mx-auto px-4 md:px-8 max-w-4xl">
-		<div
-			class="rounded-3xl border border-primary/20 bg-primary/5 p-8 md:p-12 text-center space-y-5"
-		>
-			<h3 class="text-2xl md:text-3xl font-bold text-foreground">
+	<div class="rounded-lg border border-border bg-muted/20 p-6 md:p-10 space-y-4">
+		<div class="space-y-1">
+			<p class="text-xs font-mono uppercase tracking-wider text-primary">Regional Pilots</p>
+			<h3 class="text-2xl font-bold text-foreground">
 				Are you piloting health innovations in Edo State?
 			</h3>
-			<p class="text-muted-foreground text-sm md:text-base max-w-xl mx-auto leading-relaxed">
-				We are actively establishing initial pilot cohorts in Egor LGA, Benin City. We provide
-				tablets, routers, and hands-on staff training with zero software licensing costs during the
-				trial.
-			</p>
-			<div class="flex justify-center gap-4 pt-2">
-				<Button
-					href="/demo"
-					class="rounded-full px-8 font-bold bg-primary text-primary-foreground shadow-md shadow-primary/20"
-				>
-					Apply for Facility Pilot
-				</Button>
-				<Button href="/contact" variant="outline" class="rounded-full px-8 font-semibold">
-					Contact Partnerships Desk
-				</Button>
-			</div>
 		</div>
-	</section>
+		<p class="text-muted-foreground text-sm md:text-base max-w-2xl leading-relaxed">
+			We are actively establishing initial pilot cohorts in Egor LGA, Benin City. We provide
+			tablets, routers, and hands-on staff training with zero software licensing costs during the
+			trial.
+		</p>
+		<div class="flex flex-wrap gap-4 pt-2">
+			<Button
+				href="/demo"
+				class="rounded-md px-6 font-medium bg-primary text-primary-foreground hover:bg-primary/90"
+			>
+				Apply for Facility Pilot
+			</Button>
+			<Button href="/contact" variant="outline" class="rounded-md px-6 font-medium">
+				Contact Partnerships Desk
+			</Button>
+		</div>
+	</div>
 </div>

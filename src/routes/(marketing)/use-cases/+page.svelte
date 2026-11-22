@@ -57,45 +57,44 @@
 	/>
 </svelte:head>
 
-<div class="container mx-auto px-4 md:px-8 max-w-4xl py-16 md:py-24 space-y-16">
-	<div class="text-center max-w-2xl mx-auto space-y-4">
-		<div
-			class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary"
-		>
-			Frontline Field Scenarios
-		</div>
-		<h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
+<div class="container mx-auto px-4 md:px-8 max-w-5xl py-12 md:py-20 space-y-16">
+	<!-- Editorial Header -->
+	<div class="border-b border-border/70 pb-8 space-y-4">
+		<p class="text-xs font-mono uppercase tracking-wider text-primary">Frontline Field Scenarios</p>
+		<h1 class="text-3xl md:text-5xl font-bold tracking-tight text-foreground">
 			Engineered for real clinic days.
 		</h1>
-		<p class="text-lg text-muted-foreground leading-relaxed">
+		<p class="text-base md:text-lg text-muted-foreground max-w-2xl leading-relaxed">
 			See how ClinicFlow solves the exact bottlenecks Nigerian nurses, CHEWs, and doctors encounter
 			every morning.
 		</p>
 	</div>
 
 	<!-- Use case cards -->
-	<div class="space-y-8">
+	<div class="space-y-6">
 		{#each useCases as uc}
-			<article class="rounded-3xl border border-border bg-card p-8 md:p-10 space-y-6 shadow-sm">
+			<article class="rounded-lg border border-border bg-card p-6 md:p-8 space-y-6">
 				<div class="flex items-center gap-4">
-					<div class="size-12 rounded-2xl {uc.color} flex items-center justify-center shrink-0">
-						<uc.icon class="size-6" />
+					<div class="size-10 rounded-md {uc.color} flex items-center justify-center shrink-0">
+						<uc.icon class="size-5" />
 					</div>
 					<div>
-						<h2 class="text-2xl font-bold text-foreground">{uc.title}</h2>
+						<h2 class="text-xl font-bold text-foreground">{uc.title}</h2>
 						<p class="text-sm text-muted-foreground">{uc.summary}</p>
 					</div>
 				</div>
 
-				<div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-border/60">
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-border/70">
 					<div class="space-y-2">
-						<h3 class="text-xs font-bold uppercase tracking-widest text-destructive">
+						<h3
+							class="text-xs font-mono uppercase tracking-wider text-muted-foreground font-semibold"
+						>
 							The Paper Reality
 						</h3>
 						<p class="text-sm text-muted-foreground leading-relaxed">{uc.problem}</p>
 					</div>
 					<div class="space-y-2">
-						<h3 class="text-xs font-bold uppercase tracking-widest text-primary">
+						<h3 class="text-xs font-mono uppercase tracking-wider text-primary font-semibold">
 							The ClinicFlow Difference
 						</h3>
 						<p class="text-sm text-foreground leading-relaxed">{uc.solution}</p>
@@ -106,16 +105,24 @@
 	</div>
 
 	<!-- CTA -->
-	<div class="rounded-3xl border border-primary/20 bg-primary/5 p-8 md:p-10 text-center space-y-4">
-		<h3 class="text-2xl font-bold text-foreground">
-			Have a similar workflow challenge at your clinic?
-		</h3>
-		<p class="text-sm text-muted-foreground max-w-md mx-auto">
+	<div class="rounded-lg border border-border bg-muted/20 p-6 md:p-10 space-y-4">
+		<div class="space-y-1">
+			<p class="text-xs font-mono uppercase tracking-wider text-primary">Tailored Deployments</p>
+			<h3 class="text-2xl font-bold text-foreground">
+				Have a similar workflow challenge at your clinic?
+			</h3>
+		</div>
+		<p class="text-sm text-muted-foreground max-w-xl leading-relaxed">
 			We can configure ClinicFlow’s modules to match your facility’s specific staffing and patient
 			volume.
 		</p>
-		<Button href="/demo" class="rounded-full px-8 font-bold bg-primary text-primary-foreground">
-			Request a Custom Demo <ArrowRight class="ml-2 size-4" />
-		</Button>
+		<div>
+			<Button
+				href="/demo"
+				class="rounded-md px-6 font-medium bg-primary text-primary-foreground hover:bg-primary/90"
+			>
+				Request a Custom Demo <ArrowRight class="ml-2 size-4" />
+			</Button>
+		</div>
 	</div>
 </div>

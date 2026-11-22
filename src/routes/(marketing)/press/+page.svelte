@@ -1,17 +1,7 @@
 <script lang="ts">
 	import { Button } from '#lib/components/ui/button';
 	import AwardBadge from '#lib/components/marketing/award-badge.svelte';
-	import {
-		Download,
-		Mail,
-		HeartPulse,
-		Trophy,
-		ExternalLink,
-		Copy,
-		Check,
-		FileText,
-		Calendar
-	} from '@lucide/svelte';
+	import { Mail, Check, Calendar } from '@lucide/svelte';
 
 	let copiedColor = $state<string | null>(null);
 
@@ -23,34 +13,34 @@
 
 	const brandColors = [
 		{
-			name: 'Teal Primary',
-			hex: '#0d9488',
-			oklch: 'oklch(0.55 0.16 175)',
-			usage: 'Core brand, buttons, key indicators'
+			name: 'Deep Emerald (Primary)',
+			hex: '#107353',
+			oklch: 'oklch(0.46 0.14 162)',
+			usage: 'Primary brand identity, primary buttons, clinical focus'
 		},
 		{
 			name: 'Amber Accent',
-			hex: '#f59e0b',
-			oklch: 'oklch(0.85 0.18 75)',
-			usage: 'Triage warnings, badges, highlights'
+			hex: '#d97706',
+			oklch: 'oklch(0.68 0.16 65)',
+			usage: 'Triage warnings, priority flags, highlights'
 		},
 		{
 			name: 'Urgent Red',
 			hex: '#dc2626',
-			oklch: 'oklch(0.58 0.22 27)',
+			oklch: 'oklch(0.55 0.22 27)',
 			usage: 'Triage red alert, emergency cases'
 		},
 		{
-			name: 'Safe Green',
+			name: 'Clinical Safe Green',
 			hex: '#16a34a',
-			oklch: 'oklch(0.64 0.15 145)',
+			oklch: 'oklch(0.62 0.17 145)',
 			usage: 'Completed orders, green triage, sync success'
 		},
 		{
-			name: 'Slate Dark',
+			name: 'Deep Slate / Neutral',
 			hex: '#0f172a',
-			oklch: 'oklch(0.145 0 0)',
-			usage: 'Headings, dark surfaces, text'
+			oklch: 'oklch(0.145 0.01 260)',
+			usage: 'High-contrast typography, dark surfaces'
 		}
 	];
 
@@ -81,26 +71,24 @@
 	/>
 </svelte:head>
 
-<div class="container mx-auto px-4 md:px-8 max-w-4xl py-16 md:py-24 space-y-20">
-	<!-- Header -->
-	<section class="text-center max-w-2xl mx-auto space-y-4">
-		<div
-			class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary"
-		>
+<div class="container mx-auto px-4 md:px-8 max-w-5xl py-12 md:py-20 space-y-16">
+	<!-- Editorial Header -->
+	<div class="border-b border-border/70 pb-8 space-y-4">
+		<p class="text-xs font-mono uppercase tracking-wider text-primary">
 			Newsroom & Media Resources
-		</div>
-		<h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
-			Press & Media Kit
-		</h1>
-		<p class="text-lg text-muted-foreground leading-relaxed">
-			Brand assets, executive bios, and official announcements for journalists, conference curators,
-			and researchers.
 		</p>
-	</section>
+		<h1 class="text-3xl md:text-5xl font-bold tracking-tight text-foreground">Press & Media Kit</h1>
+		<p class="text-base md:text-lg text-muted-foreground max-w-2xl leading-relaxed">
+			Brand assets, executive bios, and official announcements for journalists, conference curators,
+			and health researchers.
+		</p>
+	</div>
 
 	<!-- Boilerplate -->
-	<section class="rounded-3xl border border-border bg-card p-8 md:p-10 space-y-4 shadow-sm">
-		<h2 class="text-2xl font-bold text-foreground">Official Product Boilerplate</h2>
+	<section class="rounded-lg border border-border bg-card p-6 md:p-8 space-y-3">
+		<p class="text-xs font-mono uppercase tracking-wider text-primary">
+			Official Product Boilerplate
+		</p>
 		<p class="text-sm md:text-base text-muted-foreground leading-relaxed">
 			ClinicFlow is an offline-first clinic management and clinical decision support platform built
 			for Primary Health Centres (PHCs) in Nigeria. Developed by Mudiageo Technologies, ClinicFlow
@@ -114,14 +102,14 @@
 
 	<!-- News & Announcements -->
 	<section class="space-y-6">
-		<div class="border-b border-border/60 pb-3">
+		<div class="border-b border-border/70 pb-3">
 			<h2 class="text-2xl font-bold text-foreground">Press Releases & Awards</h2>
 		</div>
 
-		<div class="space-y-6">
+		<div class="space-y-4">
 			{#each pressReleases as pr}
-				<article class="rounded-3xl border border-border bg-card p-8 space-y-3 shadow-sm">
-					<div class="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+				<article class="rounded-lg border border-border bg-card p-6 md:p-8 space-y-3">
+					<div class="flex items-center gap-2 text-xs font-mono text-muted-foreground">
 						<Calendar class="size-3.5" />
 						{pr.date}
 					</div>
@@ -133,18 +121,21 @@
 	</section>
 
 	<!-- Founder Bio -->
-	<section class="rounded-3xl border border-border bg-muted/20 p-8 md:p-10 space-y-6">
-		<div class="border-b border-border/60 pb-3 flex items-center justify-between">
-			<h2 class="text-2xl font-bold text-foreground">Executive Bio: Mudiaga Arharhire</h2>
-			<span class="text-xs uppercase font-semibold text-primary tracking-wider"
+	<section class="rounded-lg border border-border bg-muted/20 p-6 md:p-8 space-y-6">
+		<div
+			class="border-b border-border/70 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+		>
+			<h2 class="text-xl font-bold text-foreground">Executive Bio: Mudiaga Arharhire</h2>
+			<span class="text-xs font-mono uppercase text-primary tracking-wider"
 				>Founder & Lead Engineer</span
 			>
 		</div>
 
 		<div class="space-y-4 text-sm md:text-base text-muted-foreground leading-relaxed">
 			<p>
-				<strong>Mudiaga Arharhire</strong> is a 500-level Computer Engineering student at the University
-				of Benin (UNIBEN) and the founder of Mudiageo Technologies (CAC registered October 2021).
+				<strong class="text-foreground">Mudiaga Arharhire</strong> is a 500-level Computer Engineering
+				student at the University of Benin (UNIBEN) and the founder of Mudiageo Technologies (CAC registered
+				October 2021).
 			</p>
 			<p>
 				He built every layer of ClinicFlow alone over 2.5 months — encompassing the SvelteKit 5
@@ -170,7 +161,7 @@
 
 	<!-- Brand Assets & Color Palette -->
 	<section class="space-y-6">
-		<div class="border-b border-border/60 pb-3">
+		<div class="border-b border-border/70 pb-3">
 			<h2 class="text-2xl font-bold text-foreground">Brand Palette & Assets</h2>
 			<p class="text-xs text-muted-foreground mt-1">
 				Click any color swatch to copy its hexadecimal code.
@@ -182,17 +173,15 @@
 				<button
 					type="button"
 					onclick={() => copyHex(color.hex)}
-					class="p-4 rounded-2xl border border-border bg-card text-left space-y-2 hover:border-primary/50 transition-colors group cursor-pointer"
+					class="p-4 rounded-lg border border-border bg-card text-left space-y-2 hover:border-primary/50 transition-colors group cursor-pointer"
 				>
 					<div
-						class="w-full h-14 rounded-xl shadow-inner border border-black/10 flex items-center justify-center font-mono text-xs font-bold transition-transform group-hover:scale-[1.02]"
-						style="background-color: {color.hex}; color: {color.hex === '#0f172a'
-							? '#ffffff'
-							: '#ffffff'};"
+						class="w-full h-12 rounded-md border border-black/10 flex items-center justify-center font-mono text-xs font-bold transition-transform group-hover:scale-[1.02]"
+						style="background-color: {color.hex}; color: #ffffff;"
 					>
 						{#if copiedColor === color.hex}
 							<span
-								class="flex items-center gap-1 bg-black/60 px-2 py-0.5 rounded text-[10px] text-white"
+								class="flex items-center gap-1 bg-black/70 px-2 py-0.5 rounded text-[10px] text-white"
 							>
 								<Check class="size-3" /> Copied
 							</span>
@@ -210,18 +199,16 @@
 	</section>
 
 	<!-- Press Contact -->
-	<section
-		class="rounded-3xl border border-primary/20 bg-primary/5 p-8 md:p-12 text-center space-y-4"
-	>
-		<h3 class="text-2xl font-bold text-foreground">Media & Interview Inquiries</h3>
-		<p class="text-sm text-muted-foreground max-w-md mx-auto">
+	<section class="rounded-lg border border-border bg-muted/20 p-6 md:p-8 space-y-4">
+		<h3 class="text-lg font-bold text-foreground">Media & Interview Inquiries</h3>
+		<p class="text-sm text-muted-foreground max-w-md leading-relaxed">
 			For interview requests, high-resolution product photography, or commentary on primary
 			healthcare digitization in Nigeria:
 		</p>
-		<div class="pt-2">
+		<div>
 			<Button
 				href="mailto:press@mudiageotech.com"
-				class="rounded-full px-8 font-bold bg-primary text-primary-foreground shadow-md shadow-primary/20"
+				class="rounded-md px-6 font-medium bg-primary text-primary-foreground hover:bg-primary/90"
 			>
 				<Mail class="mr-2 size-4" /> press@mudiageotech.com
 			</Button>
