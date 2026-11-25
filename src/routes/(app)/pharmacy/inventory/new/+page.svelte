@@ -1,13 +1,6 @@
 <script lang="ts">
 	import { pharmacyStore } from '#lib/state/pharmacy.svelte.ts';
 	import { sessionStore } from '#lib/state/session.svelte.ts';
-	import {
-		Card,
-		CardContent,
-		CardHeader,
-		CardTitle,
-		CardDescription
-	} from '#lib/components/ui/card/index.ts';
 	import { Input } from '#lib/components/ui/input/index.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Label } from '#lib/components/ui/label/index.ts';
@@ -54,82 +47,93 @@
 	<title>Add Inventory Item — ClinicFlow</title>
 </svelte:head>
 
-<div class="max-w-2xl mx-auto space-y-6 animate-fade-in">
-	<div class="flex items-center gap-4">
-		<Button variant="ghost" size="icon" href="/pharmacy" class="rounded-full">
+<div class="max-w-2xl mx-auto space-y-6">
+	<div class="flex items-center gap-3 pb-2 border-b border-border">
+		<Button variant="ghost" size="icon" href="/pharmacy" class="rounded-lg">
 			<ArrowLeft class="size-5" />
 		</Button>
 		<div>
-			<h1 class="text-2xl font-bold tracking-tight">Add Inventory Item</h1>
-			<p class="text-sm text-muted-foreground">
-				Register a new medication or supply in the pharmacy.
+			<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+				Dispensary Counter
 			</p>
+			<h1 class="text-2xl font-bold tracking-tight text-foreground">Add Inventory Item</h1>
 		</div>
 	</div>
 
-	<Card>
-		<CardHeader>
-			<div class="flex items-center gap-2">
-				<PackagePlus class="size-5 text-primary" />
-				<CardTitle>Item Details</CardTitle>
+	<section class="rounded-xl border border-border bg-card overflow-hidden">
+		<div class="px-5 py-3.5 border-b border-border bg-muted/20 flex items-center gap-2">
+			<PackagePlus class="size-4 text-primary" />
+			<div>
+				<h2 class="text-base font-semibold">Item Details</h2>
+				<p class="text-xs text-muted-foreground">
+					Register a new medication or supply in the pharmacy
+				</p>
 			</div>
-			<CardDescription>Enter the details for the new inventory item.</CardDescription>
-		</CardHeader>
-		<CardContent>
-			<form onsubmit={handleSubmit} class="space-y-6">
-				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<div class="space-y-2">
-						<Label for="itemName">Item Name</Label>
-						<Input
-							id="itemName"
-							bind:value={itemName}
-							placeholder="e.g. Paracetamol 500mg"
-							required
-						/>
-					</div>
-					<div class="space-y-2">
-						<Label for="category">Category</Label>
-						<Input id="category" bind:value={category} placeholder="e.g. Analgesics" required />
-					</div>
-					<div class="space-y-2">
-						<Label for="currentStock">Initial Stock Level</Label>
-						<Input id="currentStock" type="number" bind:value={currentStock} min="0" required />
-					</div>
-					<div class="space-y-2">
-						<Label for="lowStockThreshold">Low Stock Threshold</Label>
-						<Input
-							id="lowStockThreshold"
-							type="number"
-							bind:value={lowStockThreshold}
-							min="0"
-							required
-						/>
-					</div>
-					<div class="space-y-2">
-						<Label for="unit">Unit</Label>
-						<Input
-							id="unit"
-							bind:value={unit}
-							placeholder="e.g. tablets, bottles, vials"
-							required
-						/>
-					</div>
-					<div class="flex items-center space-x-2 pt-8">
-						<Checkbox id="isCritical" bind:checked={isCritical} />
-						<Label
-							for="isCritical"
-							class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-						>
-							Mark as Critical Supply
-						</Label>
-					</div>
+		</div>
+		<form onsubmit={handleSubmit} class="p-5 space-y-5">
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+				<div class="space-y-1.5">
+					<Label for="itemName">Item Name</Label>
+					<Input
+						id="itemName"
+						bind:value={itemName}
+						placeholder="e.g. Paracetamol 500mg"
+						class="h-11"
+						required
+					/>
 				</div>
+				<div class="space-y-1.5">
+					<Label for="category">Category</Label>
+					<Input
+						id="category"
+						bind:value={category}
+						placeholder="e.g. Analgesics"
+						class="h-11"
+						required
+					/>
+				</div>
+				<div class="space-y-1.5">
+					<Label for="currentStock">Initial Stock Level</Label>
+					<Input
+						id="currentStock"
+						type="number"
+						bind:value={currentStock}
+						min="0"
+						class="h-11 font-mono tabular-nums"
+						required
+					/>
+				</div>
+				<div class="space-y-1.5">
+					<Label for="lowStockThreshold">Low Stock Threshold</Label>
+					<Input
+						id="lowStockThreshold"
+						type="number"
+						bind:value={lowStockThreshold}
+						min="0"
+						class="h-11 font-mono tabular-nums"
+						required
+					/>
+				</div>
+				<div class="space-y-1.5">
+					<Label for="unit">Unit</Label>
+					<Input
+						id="unit"
+						bind:value={unit}
+						placeholder="e.g. tablets, bottles, vials"
+						class="h-11"
+						required
+					/>
+				</div>
+				<div class="flex items-center space-x-2 pt-7">
+					<Checkbox id="isCritical" bind:checked={isCritical} />
+					<Label for="isCritical" class="text-sm font-medium">Mark as Critical Supply</Label>
+				</div>
+			</div>
 
-				<div class="flex justify-end gap-3 pt-4 border-t border-border/50">
-					<Button type="button" variant="outline" href="/pharmacy">Cancel</Button>
-					<Button type="submit">Save Item</Button>
-				</div>
-			</form>
-		</CardContent>
-	</Card>
+			<div class="flex justify-end gap-3 pt-4 border-t border-border">
+				<Button type="button" variant="outline" class="min-h-11" href="/pharmacy">Cancel</Button>
+				<Button type="submit" class="min-h-11 px-6 font-semibold">Save Item</Button>
+			</div>
+		</form>
+	</section>
 </div>

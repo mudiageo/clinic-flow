@@ -4,13 +4,6 @@
 	import { vitalsStore } from '#lib/state/vitals.svelte.ts';
 	import { encounterStore } from '#lib/state/encounters.svelte.ts';
 	import { labRequestStore } from '#lib/state/lab-requests.svelte.ts';
-	import {
-		Card,
-		CardContent,
-		CardHeader,
-		CardTitle,
-		CardDescription
-	} from '#lib/components/ui/card/index.ts';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '#lib/components/ui/tabs/index.ts';
@@ -27,7 +20,6 @@
 	const encounters = $derived(encounterStore.sortedItems.filter((e) => e.patientId === patientId));
 	const labs = $derived(labRequestStore.sortedItems.filter((l) => l.patientId === patientId));
 
-	// Trend data
 	const tempTrend = $derived(
 		chronoVitals.map((v) => v.temperatureCelsius).filter((v) => v !== null) as number[]
 	);
@@ -46,94 +38,102 @@
 	<title>{patient?.name ?? 'Patient Profile'} — ClinicFlow</title>
 </svelte:head>
 
-<div class="max-w-6xl mx-auto space-y-6 animate-fade-in pb-10">
-	<div class="flex items-center gap-4">
-		<Button
-			variant="outline"
-			size="icon"
-			href="/doctor/patients"
-			class="rounded-xl bg-card border-border shadow-sm"
-		>
-			<ChevronLeft class="size-5" />
-		</Button>
-		<div>
-			<h1 class="text-2xl font-bold tracking-tight text-foreground">
-				{patient?.name ?? 'Loading...'}
-			</h1>
-			<p class="text-muted-foreground text-sm font-medium">Comprehensive Clinical Record</p>
+<div class="max-w-6xl mx-auto space-y-6 pb-10">
+	<!-- Patient Folder Header Band -->
+	<div class="rounded-xl border border-border bg-card overflow-hidden">
+		<div class="bg-primary text-primary-foreground px-5 py-4 flex items-center gap-3">
+			<Button
+				variant="ghost"
+				size="icon"
+				href="/doctor/patients"
+				aria-label="Back to Patient Directory"
+				class="text-primary-foreground hover:bg-primary-foreground/15 shrink-0"
+			>
+				<ChevronLeft class="size-5" />
+			</Button>
+			<div class="min-w-0 flex-1">
+				<p class="text-[11px] font-mono uppercase tracking-widest opacity-80">
+					Comprehensive Clinical Record
+				</p>
+				<h1 class="text-xl sm:text-2xl font-bold tracking-tight truncate">
+					{patient?.name ?? 'Loading...'}
+				</h1>
+			</div>
+			{#if patient}
+				<span
+					class="font-mono text-xs sm:text-sm bg-primary-foreground/15 px-3 py-1 rounded-lg shrink-0"
+				>
+					{patient.clinicId}
+				</span>
+			{/if}
 		</div>
 	</div>
 
 	{#if patient}
 		<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-			<!-- Left Column: Demographics & Vitals Overview -->
+			<!-- Left Column: Demographics & Vitals Trends -->
 			<div class="space-y-6">
-				<Card class="bg-card shadow-sm border-border">
-					<CardHeader class="pb-3 border-b border-border/50">
-						<CardTitle class="text-lg flex items-center gap-2"
-							><User class="size-5 text-primary" /> Demographics</CardTitle
-						>
-					</CardHeader>
-					<CardContent class="p-4 space-y-4">
-						<div class="grid grid-cols-2 gap-y-4">
-							<div>
-								<p class="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-									Clinic ID
-								</p>
-								<p class="font-mono text-sm mt-0.5">{patient.clinicId}</p>
-							</div>
-							<div>
-								<p class="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-									Sex
-								</p>
-								<p class="capitalize text-sm mt-0.5">{patient.sex}</p>
-							</div>
-							<div>
-								<p class="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-									DOB / Age
-								</p>
-								<p class="text-sm mt-0.5">
-									{patient.dob ? formatDate(patient.dob) : 'Unknown'}
-									{#if patient.dob}
-										<span class="text-muted-foreground"
-											>({new Date().getFullYear() - new Date(patient.dob).getFullYear()}y)</span
-										>
-									{/if}
-								</p>
-							</div>
-							<div>
-								<p class="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-									Phone
-								</p>
-								<p class="text-sm mt-0.5">{patient.phone || 'N/A'}</p>
-							</div>
-							<div class="col-span-2">
-								<p class="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-									Address
-								</p>
-								<p class="text-sm mt-0.5">{patient.address || 'N/A'}</p>
-							</div>
+				<section class="rounded-xl border border-border bg-card p-5 space-y-4">
+					<h2 class="text-base font-semibold flex items-center gap-2 pb-2 border-b border-border">
+						<User class="size-4 text-primary" /> Demographics
+					</h2>
+					<div class="grid grid-cols-2 gap-y-4 gap-x-3 text-sm">
+						<div>
+							<p class="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">
+								Clinic ID
+							</p>
+							<p class="font-mono text-sm mt-0.5">{patient.clinicId}</p>
 						</div>
-					</CardContent>
-				</Card>
+						<div>
+							<p class="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">
+								Sex
+							</p>
+							<p class="capitalize text-sm mt-0.5">{patient.sex}</p>
+						</div>
+						<div>
+							<p class="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">
+								DOB / Age
+							</p>
+							<p class="text-sm mt-0.5 font-mono">
+								{patient.dob ? formatDate(patient.dob) : 'Unknown'}
+								{#if patient.dob}
+									<span class="text-muted-foreground">
+										({new Date().getFullYear() - new Date(patient.dob).getFullYear()}y)
+									</span>
+								{/if}
+							</p>
+						</div>
+						<div>
+							<p class="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">
+								Phone
+							</p>
+							<p class="text-sm font-mono mt-0.5">{patient.phone || 'N/A'}</p>
+						</div>
+						<div class="col-span-2">
+							<p class="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">
+								Address
+							</p>
+							<p class="text-sm mt-0.5">{patient.address || 'N/A'}</p>
+						</div>
+					</div>
+				</section>
 
-				<Card class="bg-card shadow-sm border-border">
-					<CardHeader class="pb-3 border-b border-border/50">
-						<CardTitle class="text-lg flex items-center gap-2"
-							><Activity class="size-5 text-accent" /> Vitals Trends</CardTitle
-						>
-					</CardHeader>
-					<CardContent class="p-4 space-y-5">
-						{#if vitalsHistory.length === 0}
-							<div class="text-center py-6 text-muted-foreground text-sm italic">
-								No vitals recorded yet.
-							</div>
-						{:else}
+				<section class="rounded-xl border border-border bg-card p-5 space-y-4">
+					<h2 class="text-base font-semibold flex items-center gap-2 pb-2 border-b border-border">
+						<Activity class="size-4 text-primary" /> Vitals Trends
+					</h2>
+					{#if vitalsHistory.length === 0}
+						<div class="text-center py-6 text-muted-foreground text-sm">
+							No vitals recorded yet.
+						</div>
+					{:else}
+						<div class="space-y-4">
 							<div>
 								<div class="flex justify-between items-end mb-1">
-									<p class="text-xs font-semibold text-muted-foreground">Temperature (°C)</p>
-									<span class="text-sm font-bold">{vitalsHistory[0].temperatureCelsius ?? '—'}</span
-									>
+									<p class="text-xs font-medium text-muted-foreground">Temperature (°C)</p>
+									<span class="text-sm font-bold font-mono tabular-nums">
+										{vitalsHistory[0].temperatureCelsius ?? '—'}
+									</span>
 								</div>
 								{#if tempTrend.length > 1}
 									<Sparkline data={tempTrend} width={100} height={30} color="var(--primary)" />
@@ -142,21 +142,22 @@
 
 							<div>
 								<div class="flex justify-between items-end mb-1">
-									<p class="text-xs font-semibold text-muted-foreground">Blood Pressure</p>
-									<span class="text-sm font-bold"
-										>{vitalsHistory[0].systolicBp ?? '—'}/{vitalsHistory[0].diastolicBp ??
-											'—'}</span
-									>
+									<p class="text-xs font-medium text-muted-foreground">Blood Pressure</p>
+									<span class="text-sm font-bold font-mono tabular-nums">
+										{vitalsHistory[0].systolicBp ?? '—'}/{vitalsHistory[0].diastolicBp ?? '—'}
+									</span>
 								</div>
 								{#if bpSysTrend.length > 1}
-									<Sparkline data={bpSysTrend} width={100} height={30} color="var(--accent)" />
+									<Sparkline data={bpSysTrend} width={100} height={30} color="var(--primary)" />
 								{/if}
 							</div>
 
 							<div>
 								<div class="flex justify-between items-end mb-1">
-									<p class="text-xs font-semibold text-muted-foreground">Heart Rate (BPM)</p>
-									<span class="text-sm font-bold">{vitalsHistory[0].pulseBpm ?? '—'}</span>
+									<p class="text-xs font-medium text-muted-foreground">Heart Rate (BPM)</p>
+									<span class="text-sm font-bold font-mono tabular-nums">
+										{vitalsHistory[0].pulseBpm ?? '—'}
+									</span>
 								</div>
 								{#if pulseTrend.length > 1}
 									<Sparkline data={pulseTrend} width={100} height={30} color="var(--destructive)" />
@@ -165,8 +166,10 @@
 
 							<div>
 								<div class="flex justify-between items-end mb-1">
-									<p class="text-xs font-semibold text-muted-foreground">Weight (kg)</p>
-									<span class="text-sm font-bold">{vitalsHistory[0].weightKg ?? '—'}</span>
+									<p class="text-xs font-medium text-muted-foreground">Weight (kg)</p>
+									<span class="text-sm font-bold font-mono tabular-nums">
+										{vitalsHistory[0].weightKg ?? '—'}
+									</span>
 								</div>
 								{#if weightTrend.length > 1}
 									<Sparkline
@@ -177,77 +180,77 @@
 									/>
 								{/if}
 							</div>
-						{/if}
-					</CardContent>
-				</Card>
+						</div>
+					{/if}
+				</section>
 			</div>
 
 			<!-- Right Column: Timeline / History Tabs -->
 			<div class="md:col-span-2">
-				<Card class="bg-card shadow-sm border-border h-full min-h-[600px]">
+				<section
+					class="rounded-xl border border-border bg-card h-full min-h-[560px] flex flex-col overflow-hidden"
+				>
 					<Tabs value="encounters" class="h-full flex flex-col">
-						<CardHeader class="p-0 border-b border-border/50 bg-muted/10">
-							<TabsList class="bg-transparent h-auto p-0 gap-6 px-6 pt-4 pb-0">
+						<div class="border-b border-border bg-muted/20 px-5 pt-3">
+							<TabsList class="bg-transparent h-auto p-0 gap-4">
 								<TabsTrigger
 									value="encounters"
-									class="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-3 text-sm"
+									class="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-2.5 text-sm font-medium"
 								>
 									<FileText class="size-4 mr-2" /> Encounters ({encounters.length})
 								</TabsTrigger>
 								<TabsTrigger
 									value="labs"
-									class="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-3 text-sm"
+									class="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-2.5 text-sm font-medium"
 								>
 									<FlaskConical class="size-4 mr-2" /> Labs ({labs.length})
 								</TabsTrigger>
 							</TabsList>
-						</CardHeader>
+						</div>
 
-						<CardContent class="p-6 flex-1 overflow-y-auto">
+						<div class="p-5 flex-1 overflow-y-auto">
 							<TabsContent value="encounters" class="m-0 space-y-4">
 								{#if encounters.length === 0}
 									<div
-										class="py-16 text-center text-muted-foreground flex flex-col items-center border border-dashed rounded-xl bg-muted/20"
+										class="py-16 text-center text-muted-foreground flex flex-col items-center border border-dashed border-border rounded-xl bg-muted/15"
 									>
-										<FileText class="size-10 mb-3 opacity-20" />
-										<p>No past encounters found for this patient.</p>
+										<FileText class="size-9 mb-2 opacity-25" />
+										<p class="text-sm">No past encounters found for this patient.</p>
 									</div>
 								{:else}
-									<div class="relative border-l-2 border-muted ml-3 space-y-8 pb-4">
+									<div class="relative border-l-2 border-border ml-3 space-y-6 pb-2">
 										{#each encounters as enc}
 											<div class="relative pl-6">
-												<!-- Timeline dot -->
 												<div
-													class="absolute -left-[9px] top-1 size-4 rounded-full bg-background border-2 border-primary"
+													class="absolute -left-[9px] top-1 size-4 rounded-full bg-card border-2 border-primary"
 												></div>
 
-												<div class="bg-muted/30 border border-border/50 rounded-xl p-4">
-													<div class="flex justify-between items-start mb-3">
-														<div>
-															<h4
-																class="font-semibold text-foreground text-sm flex items-center gap-2"
-															>
-																<Clock class="size-3 text-muted-foreground" />
-																{formatDateTime(enc.visitDate)}
-															</h4>
-														</div>
-													</div>
+												<div class="bg-muted/20 border border-border rounded-xl p-4 space-y-3">
+													<h3
+														class="font-semibold text-foreground text-xs font-mono flex items-center gap-2"
+													>
+														<Clock class="size-3.5 text-muted-foreground" />
+														{formatDateTime(enc.visitDate)}
+													</h3>
 													{#if enc.chiefComplaint}
-														<div class="mb-3">
-															<span class="text-xs font-semibold text-muted-foreground uppercase"
-																>Chief Complaint</span
+														<div>
+															<span
+																class="text-[11px] font-mono font-semibold text-muted-foreground uppercase"
 															>
+																Chief Complaint
+															</span>
 															<p class="text-sm mt-0.5">{enc.chiefComplaint}</p>
 														</div>
 													{/if}
 													{#if enc.doctorNotes}
 														<div
-															class="bg-background border rounded-lg p-3 text-sm text-foreground/90 whitespace-pre-wrap"
+															class="bg-card border border-border rounded-lg p-3 text-sm text-foreground/90 whitespace-pre-wrap"
 														>
 															<span
-																class="text-xs font-semibold text-muted-foreground uppercase block mb-1"
-																>Clinical Notes</span
+																class="text-[11px] font-mono font-semibold text-muted-foreground uppercase block mb-1"
 															>
+																Clinical Notes
+															</span>
 															{enc.doctorNotes}
 														</div>
 													{/if}
@@ -258,65 +261,61 @@
 								{/if}
 							</TabsContent>
 
-							<TabsContent value="labs" class="m-0 space-y-4">
+							<TabsContent value="labs" class="m-0 space-y-3">
 								{#if labs.length === 0}
 									<div
-										class="py-16 text-center text-muted-foreground flex flex-col items-center border border-dashed rounded-xl bg-muted/20"
+										class="py-16 text-center text-muted-foreground flex flex-col items-center border border-dashed border-border rounded-xl bg-muted/15"
 									>
-										<FlaskConical class="size-10 mb-3 opacity-20" />
-										<p>No lab requests found for this patient.</p>
+										<FlaskConical class="size-9 mb-2 opacity-25" />
+										<p class="text-sm">No lab requests found for this patient.</p>
 									</div>
 								{:else}
-									<div class="space-y-3">
-										{#each labs as lab}
-											<div
-												class="border border-border/60 rounded-xl p-4 bg-card hover:bg-muted/10 transition-colors"
-											>
-												<div class="flex justify-between items-start mb-2">
-													<div>
-														<h4 class="font-bold text-sm">{lab.testType}</h4>
-														<p class="text-xs text-muted-foreground mt-0.5">
-															{formatDateTime(lab.createdAt)}
-														</p>
-													</div>
-													<div class="flex gap-2">
-														<Badge
-															variant={lab.status === 'completed' ? 'default' : 'secondary'}
-															class={lab.status === 'completed'
-																? 'bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20 shadow-none border-none'
-																: ''}
-														>
-															{lab.status}
-														</Badge>
-														<Badge variant="outline" class="uppercase text-[10px]"
-															>{lab.urgency}</Badge
-														>
-													</div>
-												</div>
-												{#if lab.notes}
-													<p class="text-sm text-muted-foreground mt-2">
-														<span class="font-semibold">Notes:</span>
-														{lab.notes}
+									{#each labs as lab}
+										<div class="border border-border rounded-xl p-4 bg-card space-y-2">
+											<div class="flex justify-between items-start gap-2">
+												<div>
+													<h3 class="font-semibold text-sm">{lab.testType}</h3>
+													<p class="text-xs font-mono text-muted-foreground mt-0.5">
+														{formatDateTime(lab.createdAt)}
 													</p>
-												{/if}
-												{#if lab.result}
-													<div class="mt-3 p-3 bg-muted/30 border rounded-lg">
-														<p
-															class="text-xs font-semibold text-foreground uppercase tracking-wider mb-1"
-														>
-															Result
-														</p>
-														<p class="text-sm whitespace-pre-wrap">{lab.result}</p>
-													</div>
-												{/if}
+												</div>
+												<div class="flex gap-1.5">
+													<Badge
+														variant={lab.status === 'completed' ? 'default' : 'secondary'}
+														class={lab.status === 'completed'
+															? 'bg-triage-green/15 text-triage-green border-triage-green/30'
+															: ''}
+													>
+														{lab.status}
+													</Badge>
+													<Badge variant="outline" class="uppercase text-[10px]">
+														{lab.urgency}
+													</Badge>
+												</div>
 											</div>
-										{/each}
-									</div>
+											{#if lab.notes}
+												<p class="text-xs text-muted-foreground">
+													<span class="font-semibold">Notes:</span>
+													{lab.notes}
+												</p>
+											{/if}
+											{#if lab.result}
+												<div class="p-3 bg-muted/30 border border-border rounded-lg">
+													<p
+														class="text-[11px] font-mono font-semibold text-foreground uppercase tracking-wider mb-1"
+													>
+														Result
+													</p>
+													<p class="text-sm font-mono whitespace-pre-wrap">{lab.result}</p>
+												</div>
+											{/if}
+										</div>
+									{/each}
 								{/if}
 							</TabsContent>
-						</CardContent>
+						</div>
 					</Tabs>
-				</Card>
+				</section>
 			</div>
 		</div>
 	{/if}

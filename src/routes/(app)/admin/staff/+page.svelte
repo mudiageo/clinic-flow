@@ -1,12 +1,5 @@
 <script lang="ts">
 	import {
-		Card,
-		CardHeader,
-		CardTitle,
-		CardContent,
-		CardDescription
-	} from '#lib/components/ui/card/index.ts';
-	import {
 		Table,
 		TableBody,
 		TableCell,
@@ -22,9 +15,18 @@
 	import { updateStaffStatus } from '#lib/remote/admin.remote.ts';
 	import { setStaffPin } from '#lib/remote/staff.remote.ts';
 	import { toast } from 'svelte-sonner';
-	import { UserCog, Plus, ShieldCheck, KeyRound, Loader2 } from '@lucide/svelte';
+	import { Plus, KeyRound, Loader2 } from '@lucide/svelte';
 
-	let { data } = $props<{ data: { staffList: any[] } }>();
+	type StaffMember = {
+		id: string;
+		fullName: string;
+		role: string;
+		active: boolean;
+		authUserId: string;
+		createdAt: string | number | Date;
+	};
+
+	let { data } = $props<{ data: { staffList: StaffMember[] } }>();
 
 	let pinDialogOpen = $state(false);
 	let selectedStaffId = $state<string | null>(null);
@@ -35,7 +37,7 @@
 		const result = await updateStaffStatus({ staffId, active: !currentStatus });
 		if (result?.success) {
 			toast.success('Staff status updated successfully');
-			const staff = data.staffList.find((s: any) => s.id === staffId);
+			const staff = data.staffList.find((s: StaffMember) => s.id === staffId);
 			if (staff) staff.active = !currentStatus;
 		} else {
 			toast.error('Failed to update status');
@@ -47,84 +49,90 @@
 		pinInput = '';
 		pinDialogOpen = true;
 	}
-
-	// savePin and revokePin are now handled by enhance forms in the markup
 </script>
 
 <svelte:head>
 	<title>Staff Management — ClinicFlow</title>
 </svelte:head>
 
-<div class="space-y-8 animate-fade-in">
-	<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-		<div class="flex items-start gap-3">
-			<div class="p-2.5 rounded-xl bg-primary/10 text-primary">
-				<UserCog class="size-6" />
-			</div>
-			<div>
-				<h1 class="text-2xl font-bold text-foreground tracking-tight">Staff Management</h1>
-				<p class="text-muted-foreground text-sm mt-0.5 font-medium">
-					Manage PHC staff accounts and permissions
-				</p>
-			</div>
+<div class="space-y-6 max-w-6xl mx-auto">
+	<div
+		class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 pb-2 border-b border-border"
+	>
+		<div>
+			<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+				Administration
+			</p>
+			<h1 class="text-2xl font-bold text-foreground tracking-tight">Staff Management</h1>
+			<p class="text-muted-foreground text-sm mt-0.5">
+				Manage PHC staff accounts, PINs, and access status
+			</p>
 		</div>
-		<Button href="/admin/staff/invite" class="bg-primary text-primary-foreground">
+		<Button href="/admin/staff/invite" class="min-h-11 px-5 font-semibold w-full md:w-auto">
 			<Plus class="size-4 mr-2" />
 			Invite Staff
 		</Button>
 	</div>
 
-	<Card class="overflow-hidden card-hover">
-		<CardHeader class="border-b border-border bg-muted/20 px-6 py-4">
-			<CardTitle class="text-base font-semibold">Active Staff Members</CardTitle>
-		</CardHeader>
+	<section class="rounded-xl border border-border bg-card overflow-hidden">
+		<div class="border-b border-border bg-muted/20 px-5 py-3.5 flex items-center justify-between">
+			<h2 class="text-base font-semibold">Active Staff Members</h2>
+			<span class="text-xs font-mono tabular-nums text-muted-foreground">
+				{data.staffList.length} total
+			</span>
+		</div>
 		<Table>
-			<TableHeader>
-				<TableRow>
-					<TableHead class="font-semibold px-6">Name</TableHead>
-					<TableHead class="font-semibold px-6">Role</TableHead>
-					<TableHead class="font-semibold px-6">Joined</TableHead>
-					<TableHead class="font-semibold px-6 text-center">Status</TableHead>
-					<TableHead class="font-semibold px-6 text-right">Actions</TableHead>
+			<TableHeader class="bg-muted/40">
+				<TableRow class="hover:bg-transparent">
+					<TableHead class="font-mono text-xs uppercase tracking-wider px-5">Name</TableHead>
+					<TableHead class="font-mono text-xs uppercase tracking-wider px-5">Role</TableHead>
+					<TableHead class="font-mono text-xs uppercase tracking-wider px-5">Joined</TableHead>
+					<TableHead class="font-mono text-xs uppercase tracking-wider px-5 text-center"
+						>Status</TableHead
+					>
+					<TableHead class="font-mono text-xs uppercase tracking-wider px-5 text-right"
+						>Actions</TableHead
+					>
 				</TableRow>
 			</TableHeader>
 			<TableBody>
 				{#if data.staffList.length === 0}
 					<TableRow>
-						<TableCell colspan={5} class="text-center py-16 text-muted-foreground">
+						<TableCell colspan={5} class="text-center py-14 text-muted-foreground">
 							No staff members found.
 						</TableCell>
 					</TableRow>
 				{:else}
-					{#each data.staffList as staff (staff.id)}
-						<TableRow class="hover:bg-muted/40 transition-colors">
-							<TableCell class="font-semibold px-6">
+					{#each data.staffList as staff, idx (staff.id)}
+						<TableRow class={idx % 2 === 1 ? 'bg-muted/20 hover:bg-muted/40' : 'hover:bg-muted/40'}>
+							<TableCell class="font-semibold px-5">
 								{staff.fullName}
 								{#if staff.authUserId.startsWith('pending-')}
 									<span
 										class="ml-2 text-xs text-muted-foreground font-normal bg-muted px-2 py-0.5 rounded-full"
-										>Invited</span
 									>
+										Invited
+									</span>
 								{/if}
 							</TableCell>
-							<TableCell class="px-6">
-								<Badge variant="outline" class="capitalize">{staff.role}</Badge>
+							<TableCell class="px-5">
+								<Badge variant="outline" class="capitalize font-mono text-xs">{staff.role}</Badge>
 							</TableCell>
-							<TableCell class="text-muted-foreground text-sm px-6">
+							<TableCell class="text-muted-foreground font-mono text-xs px-5">
 								{new Date(staff.createdAt).toLocaleDateString()}
 							</TableCell>
-							<TableCell class="text-center px-6">
+							<TableCell class="text-center px-5">
 								<Switch
 									checked={staff.active}
 									onCheckedChange={() => toggleStatus(staff.id, staff.active)}
 								/>
 							</TableCell>
-							<TableCell class="text-right px-6 flex justify-end gap-2">
+							<TableCell class="text-right px-5 flex justify-end gap-2">
 								<Button variant="outline" size="sm" onclick={() => openPinDialog(staff.id)}>
-									<KeyRound class="size-4 mr-2" />
+									<KeyRound class="size-3.5 mr-1.5" />
 									Set PIN
 								</Button>
-								{const revokePin = setStaffPin.for(staff.id)}
+								{@const revokePin = setStaffPin.for(staff.id)}
 								<form
 									{...revokePin.enhance(async (form) => {
 										try {
@@ -156,7 +164,7 @@
 				{/if}
 			</TableBody>
 		</Table>
-	</Card>
+	</section>
 </div>
 
 <Dialog.Root bind:open={pinDialogOpen}>
@@ -204,9 +212,9 @@
 				/>
 			</div>
 			<Dialog.Footer>
-				<Button type="button" variant="outline" onclick={() => (pinDialogOpen = false)}
-					>Cancel</Button
-				>
+				<Button type="button" variant="outline" onclick={() => (pinDialogOpen = false)}>
+					Cancel
+				</Button>
 				<Button type="submit" disabled={isSettingPin || pinInput.length !== 4}>
 					{#if isSettingPin}
 						<Loader2 class="size-4 mr-2 animate-spin" /> Saving...

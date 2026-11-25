@@ -10,13 +10,6 @@
 	import { formatDate } from '#lib/utils/date.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
-	import {
-		Card,
-		CardContent,
-		CardDescription,
-		CardHeader,
-		CardTitle
-	} from '#lib/components/ui/card/index.ts';
 	import * as Dialog from '#lib/components/ui/dialog/index.ts';
 	import { Input } from '#lib/components/ui/input/index.ts';
 	import { Label } from '#lib/components/ui/label/index.ts';
@@ -137,133 +130,128 @@
 </svelte:head>
 
 {#if canManageOutreach}
-	<div class="space-y-8 animate-fade-in">
-		<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-			<div class="flex items-start gap-3">
+	<div class="space-y-6 max-w-6xl mx-auto">
+		<div
+			class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between pb-2 border-b border-border"
+		>
+			<div class="flex items-center gap-3">
 				<Button variant="ghost" size="icon" href="/field" aria-label="Back to Field Mode">
 					<ArrowLeft class="size-5" />
 				</Button>
-				<div class="rounded-xl bg-indigo-100 p-2.5 text-indigo-700">
-					<MapPin class="size-6" />
-				</div>
 				<div>
-					<h1 class="text-2xl font-bold tracking-tight">Outreach Log</h1>
-					<p class="mt-0.5 text-sm font-medium text-muted-foreground">
+					<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+						Field &amp; Community
+					</p>
+					<h1 class="text-2xl font-bold tracking-tight text-foreground">Outreach Log</h1>
+					<p class="mt-0.5 text-sm text-muted-foreground">
 						Offline-ready aggregate community activity records
 					</p>
 				</div>
 			</div>
-			<Button onclick={() => (dialogOpen = true)}>
+			<Button class="min-h-11 px-5 font-semibold" onclick={() => (dialogOpen = true)}>
 				<Plus class="mr-2 size-4" /> Log Activity
 			</Button>
 		</div>
 
-		<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-			<Card>
-				<CardContent class="flex items-center justify-between p-5">
-					<div>
-						<p class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-							Today
-						</p>
-						<p class="mt-1 text-2xl font-bold tabular-nums">{todayRecords.length}</p>
-					</div>
-					<MapPin class="size-5 text-indigo-600" />
-				</CardContent>
-			</Card>
-			<Card>
-				<CardContent class="flex items-center justify-between p-5">
-					<div>
-						<p class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-							People Reached
-						</p>
-						<p class="mt-1 text-2xl font-bold tabular-nums">{todayPeople}</p>
-					</div>
-					<Users class="size-5 text-indigo-600" />
-				</CardContent>
-			</Card>
-			<Card>
-				<CardContent class="flex items-center justify-between p-5">
-					<div>
-						<p class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-							Households
-						</p>
-						<p class="mt-1 text-2xl font-bold tabular-nums">{todayHouseholds}</p>
-					</div>
-					<Home class="size-5 text-indigo-600" />
-				</CardContent>
-			</Card>
-			<Card>
-				<CardContent class="flex items-center justify-between p-5">
-					<div>
-						<p class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-							Pending Sync
-						</p>
-						<p class="mt-1 text-2xl font-bold tabular-nums">{pendingCount}</p>
-					</div>
-					<PackageCheck class="size-5 text-indigo-600" />
-				</CardContent>
-			</Card>
+		<!-- Ruled Summary Strip -->
+		<div
+			class="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-border rounded-xl border border-border bg-card"
+		>
+			<div class="px-4 py-3 flex items-center justify-between gap-2">
+				<div>
+					<p class="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">Today</p>
+					<p class="mt-0.5 text-2xl font-bold font-mono tabular-nums">{todayRecords.length}</p>
+				</div>
+				<MapPin class="size-4 text-primary shrink-0" />
+			</div>
+			<div class="px-4 py-3 flex items-center justify-between gap-2">
+				<div>
+					<p class="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
+						People Reached
+					</p>
+					<p class="mt-0.5 text-2xl font-bold font-mono tabular-nums">{todayPeople}</p>
+				</div>
+				<Users class="size-4 text-primary shrink-0" />
+			</div>
+			<div class="px-4 py-3 flex items-center justify-between gap-2">
+				<div>
+					<p class="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
+						Households
+					</p>
+					<p class="mt-0.5 text-2xl font-bold font-mono tabular-nums">{todayHouseholds}</p>
+				</div>
+				<Home class="size-4 text-primary shrink-0" />
+			</div>
+			<div class="px-4 py-3 flex items-center justify-between gap-2">
+				<div>
+					<p class="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
+						Pending Sync
+					</p>
+					<p class="mt-0.5 text-2xl font-bold font-mono tabular-nums">{pendingCount}</p>
+				</div>
+				<PackageCheck class="size-4 text-primary shrink-0" />
+			</div>
 		</div>
 
-		<div class="flex gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-red-900">
-			<ShieldAlert class="mt-0.5 size-5 shrink-0 text-red-700" />
+		<div
+			class="flex gap-3 rounded-xl border border-triage-red/30 border-l-4 border-l-triage-red bg-triage-red/8 p-4 text-foreground"
+		>
+			<ShieldAlert class="mt-0.5 size-5 shrink-0 text-triage-red" />
 			<div>
-				<p class="text-sm font-semibold">Aggregate reporting only</p>
-				<p class="mt-1 text-xs leading-relaxed">
+				<p class="text-sm font-semibold text-triage-red">Aggregate reporting only</p>
+				<p class="mt-1 text-xs leading-relaxed text-foreground/85">
 					Do not enter patient names, clinic IDs, phone numbers, or clinical histories. Urgent
 					findings require immediate referral and documentation in the patient's clinical record.
 				</p>
 			</div>
 		</div>
 
-		<Card class="overflow-hidden">
-			<CardHeader class="border-b bg-muted/20">
-				<CardTitle class="text-base">Recorded Activities</CardTitle>
-				<CardDescription>Records from this PHC, newest first</CardDescription>
-			</CardHeader>
-			<CardContent class="p-0">
-				<Table>
-					<TableHeader>
-						<TableRow>
-							<TableHead class="px-6">Activity</TableHead>
-							<TableHead>Community</TableHead>
-							<TableHead>Date</TableHead>
-							<TableHead>People</TableHead>
-							<TableHead>Households</TableHead>
-							<TableHead>Services</TableHead>
-							<TableHead>Sync</TableHead>
+		<section class="rounded-xl border border-border bg-card overflow-hidden">
+			<div class="px-5 py-3.5 border-b border-border bg-muted/20">
+				<h2 class="text-base font-semibold text-foreground">Recorded Activities</h2>
+				<p class="text-xs text-muted-foreground">Records from this PHC, newest first</p>
+			</div>
+			<Table>
+				<TableHeader>
+					<TableRow class="hover:bg-transparent">
+						<TableHead class="px-5 font-mono text-xs uppercase tracking-wider">Activity</TableHead>
+						<TableHead class="font-mono text-xs uppercase tracking-wider">Community</TableHead>
+						<TableHead class="font-mono text-xs uppercase tracking-wider">Date</TableHead>
+						<TableHead class="font-mono text-xs uppercase tracking-wider">People</TableHead>
+						<TableHead class="font-mono text-xs uppercase tracking-wider">Households</TableHead>
+						<TableHead class="font-mono text-xs uppercase tracking-wider">Services</TableHead>
+						<TableHead class="font-mono text-xs uppercase tracking-wider">Sync</TableHead>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					{#each records as record, idx (record.id)}
+						<TableRow class={idx % 2 === 1 ? 'bg-muted/20 hover:bg-muted/40' : 'hover:bg-muted/40'}>
+							<TableCell class="px-5 font-medium">
+								{OUTREACH_ACTIVITY_LABELS[record.activityType]}
+							</TableCell>
+							<TableCell>{record.community}</TableCell>
+							<TableCell class="font-mono text-xs">{formatDate(record.occurredAt)}</TableCell>
+							<TableCell class="font-mono tabular-nums">{record.peopleReached}</TableCell>
+							<TableCell class="font-mono tabular-nums">{record.householdsVisited}</TableCell>
+							<TableCell class="text-xs">
+								{record.immunizationsGiven} vaccines · {record.bednetsDistributed} bednets
+							</TableCell>
+							<TableCell>
+								<Badge variant={record.syncStatus === 'conflict' ? 'destructive' : 'outline'}>
+									{record.syncStatus}
+								</Badge>
+							</TableCell>
 						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{#each records as record (record.id)}
-							<TableRow>
-								<TableCell class="px-6 font-medium">
-									{OUTREACH_ACTIVITY_LABELS[record.activityType]}
-								</TableCell>
-								<TableCell>{record.community}</TableCell>
-								<TableCell>{formatDate(record.occurredAt)}</TableCell>
-								<TableCell>{record.peopleReached}</TableCell>
-								<TableCell>{record.householdsVisited}</TableCell>
-								<TableCell>
-									{record.immunizationsGiven} vaccines · {record.bednetsDistributed} bednets
-								</TableCell>
-								<TableCell>
-									<Badge variant={record.syncStatus === 'conflict' ? 'destructive' : 'outline'}>
-										{record.syncStatus}
-									</Badge>
-								</TableCell>
-							</TableRow>
-						{:else}
-							<TableRow>
-								<TableCell colspan={7} class="h-56 text-center text-muted-foreground">
-									No outreach activities recorded for this PHC.
-								</TableCell>
-							</TableRow>
-						{/each}
-					</TableBody>
-				</Table>
-			</CardContent>
-		</Card>
+					{:else}
+						<TableRow>
+							<TableCell colspan={7} class="h-52 text-center text-muted-foreground">
+								No outreach activities recorded for this PHC.
+							</TableCell>
+						</TableRow>
+					{/each}
+				</TableBody>
+			</Table>
+		</section>
 	</div>
 
 	<Dialog.Root bind:open={dialogOpen}>
@@ -355,12 +343,10 @@
 		</Dialog.Content>
 	</Dialog.Root>
 {:else}
-	<Card class="mx-auto max-w-xl">
-		<CardHeader>
-			<CardTitle>Outreach access required</CardTitle>
-			<CardDescription>
-				Your account does not have the Manage Outreach permission. Contact your PHC administrator.
-			</CardDescription>
-		</CardHeader>
-	</Card>
+	<div class="mx-auto max-w-xl rounded-xl border border-border bg-card p-6">
+		<h2 class="text-base font-semibold">Outreach access required</h2>
+		<p class="text-sm text-muted-foreground mt-1">
+			Your account does not have the Manage Outreach permission. Contact your PHC administrator.
+		</p>
+	</div>
 {/if}

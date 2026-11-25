@@ -5,13 +5,6 @@
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Label } from '#lib/components/ui/label/index.ts';
 	import {
-		Card,
-		CardHeader,
-		CardTitle,
-		CardContent,
-		CardDescription
-	} from '#lib/components/ui/card/index.ts';
-	import {
 		Table,
 		TableBody,
 		TableCell,
@@ -21,17 +14,16 @@
 	} from '#lib/components/ui/table/index.ts';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import { vitalsStore } from '#lib/state/vitals.svelte.ts';
-	import { FileText, Printer, BarChart3, Activity, Download } from '@lucide/svelte';
+	import { Printer, Download } from '@lucide/svelte';
 
 	let startDate = $state(
 		new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0]
 	);
 	let endDate = $state(new Date().toISOString().split('T')[0]);
 
-	// Filtered encounters
 	const filteredEncounters = $derived.by(() => {
 		const start = new Date(startDate).getTime();
-		const end = new Date(endDate).getTime() + 86400000; // include end date
+		const end = new Date(endDate).getTime() + 86400000;
 		return encounterStore.items.filter(
 			(e) => new Date(e.visitDate).getTime() >= start && new Date(e.visitDate).getTime() <= end
 		);
@@ -43,7 +35,6 @@
 		return vitalsStore.items.filter((v) => v.recordedAt >= start && v.recordedAt <= end);
 	});
 
-	// Derived metrics
 	const triageCounts = $derived.by(() => {
 		let red = 0,
 			amber = 0,
@@ -69,7 +60,6 @@
 			.slice(0, 5);
 	});
 
-	// Pharmacy stats
 	const filteredPrescriptions = $derived.by(() => {
 		const start = new Date(startDate).getTime();
 		const end = new Date(endDate).getTime() + 86400000;
@@ -119,30 +109,28 @@
 	<title>Clinical Reports — ClinicFlow</title>
 </svelte:head>
 
-<div class="space-y-8 animate-fade-in max-w-7xl mx-auto print:bg-white print:m-0 print:max-w-none">
-	<div class="flex flex-col md:flex-row md:items-end justify-between gap-4 print:hidden">
-		<div class="flex items-start gap-3">
-			<div class="p-2.5 rounded-xl bg-primary/10 text-primary">
-				<BarChart3 class="size-6" />
-			</div>
-			<div>
-				<h1 class="text-2xl font-bold text-foreground tracking-tight">Clinical Reports</h1>
-				<p class="text-muted-foreground text-sm mt-0.5 font-medium">
-					Generate and analyze facility metrics
-				</p>
-			</div>
+<div class="space-y-6 max-w-7xl mx-auto print:bg-white print:m-0 print:max-w-none">
+	<div
+		class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-2 border-b border-border print:hidden"
+	>
+		<div>
+			<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+				Analytics &amp; Reporting
+			</p>
+			<h1 class="text-2xl font-bold text-foreground tracking-tight">Clinical Reports</h1>
+			<p class="text-muted-foreground text-sm mt-0.5">Generate and analyze facility metrics</p>
 		</div>
 
 		<div class="flex items-end gap-3 flex-wrap">
-			<div class="space-y-1.5">
+			<div class="space-y-1">
 				<Label class="text-xs">Start Date</Label>
-				<Input type="date" bind:value={startDate} class="h-9" />
+				<Input type="date" bind:value={startDate} class="h-10 font-mono" />
 			</div>
-			<div class="space-y-1.5">
+			<div class="space-y-1">
 				<Label class="text-xs">End Date</Label>
-				<Input type="date" bind:value={endDate} class="h-9" />
+				<Input type="date" bind:value={endDate} class="h-10 font-mono" />
 			</div>
-			<Button variant="outline" class="h-9" onclick={() => window.print()}>
+			<Button variant="outline" class="h-10" onclick={() => window.print()}>
 				<Printer class="size-4 mr-2" />
 				Print Report
 			</Button>
@@ -158,41 +146,39 @@
 		<p class="text-sm text-gray-400 mt-1">Generated: {new Date().toLocaleString()}</p>
 	</div>
 
-	<!-- Summary Cards -->
-	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-		<Card>
-			<CardContent class="p-6">
-				<p class="text-sm font-medium text-muted-foreground">Total Encounters</p>
-				<p class="text-3xl font-bold mt-2">{filteredEncounters.length}</p>
-			</CardContent>
-		</Card>
-		<Card>
-			<CardContent class="p-6">
-				<p class="text-sm font-medium text-muted-foreground">Prescriptions Written</p>
-				<p class="text-3xl font-bold mt-2">{filteredPrescriptions.length}</p>
-			</CardContent>
-		</Card>
+	<!-- Ruled Summary Strip -->
+	<div class="grid grid-cols-2 divide-x divide-border rounded-xl border border-border bg-card">
+		<div class="px-5 py-4">
+			<p class="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+				Total Encounters
+			</p>
+			<p class="text-3xl font-bold font-mono tabular-nums mt-1">{filteredEncounters.length}</p>
+		</div>
+		<div class="px-5 py-4">
+			<p class="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+				Prescriptions Written
+			</p>
+			<p class="text-3xl font-bold font-mono tabular-nums mt-1">{filteredPrescriptions.length}</p>
+		</div>
 	</div>
 
 	<!-- Charts Grid -->
 	<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 		<!-- Triage Distribution -->
-		<Card>
-			<CardHeader>
-				<CardTitle>Triage Distribution</CardTitle>
-				<CardDescription>Breakdown by urgency level</CardDescription>
-			</CardHeader>
-			<CardContent class="flex items-center justify-center p-6">
+		<section class="rounded-xl border border-border bg-card overflow-hidden">
+			<div class="px-5 py-3.5 border-b border-border bg-muted/20">
+				<h2 class="text-base font-semibold">Triage Distribution</h2>
+				<p class="text-xs text-muted-foreground">Breakdown by urgency level</p>
+			</div>
+			<div class="flex items-center justify-center p-6">
 				{#if filteredVitals.length === 0}
 					<p class="text-muted-foreground text-sm py-12">No data for selected period</p>
 				{:else}
 					{@const total = triageCounts.red + triageCounts.amber + triageCounts.green}
 					{@const redPct = (triageCounts.red / total) * 100}
 					{@const amberPct = (triageCounts.amber / total) * 100}
-					{@const greenPct = (triageCounts.green / total) * 100}
 
-					<div class="flex items-center gap-12 w-full max-w-sm">
-						<!-- Custom Donut Chart CSS -->
+					<div class="flex items-center gap-10 w-full max-w-sm">
 						<div
 							class="relative size-32 rounded-full overflow-hidden shrink-0 print:border-4 print:border-gray-200"
 							style="background: conic-gradient(
@@ -202,7 +188,9 @@
                             );"
 						>
 							<div class="absolute inset-4 bg-card rounded-full print:bg-white"></div>
-							<div class="absolute inset-0 flex items-center justify-center font-bold text-xl">
+							<div
+								class="absolute inset-0 flex items-center justify-center font-bold font-mono text-xl"
+							>
 								{total}
 							</div>
 						</div>
@@ -212,35 +200,35 @@
 									<div class="size-3 rounded-full bg-red-500 print:border border-black"></div>
 									<span class="text-sm font-medium">RED</span>
 								</div>
-								<span class="font-bold">{triageCounts.red}</span>
+								<span class="font-bold font-mono tabular-nums">{triageCounts.red}</span>
 							</div>
 							<div class="flex items-center justify-between">
 								<div class="flex items-center gap-2">
 									<div class="size-3 rounded-full bg-amber-500 print:border border-black"></div>
 									<span class="text-sm font-medium">AMBER</span>
 								</div>
-								<span class="font-bold">{triageCounts.amber}</span>
+								<span class="font-bold font-mono tabular-nums">{triageCounts.amber}</span>
 							</div>
 							<div class="flex items-center justify-between">
 								<div class="flex items-center gap-2">
 									<div class="size-3 rounded-full bg-green-500 print:border border-black"></div>
 									<span class="text-sm font-medium">GREEN</span>
 								</div>
-								<span class="font-bold">{triageCounts.green}</span>
+								<span class="font-bold font-mono tabular-nums">{triageCounts.green}</span>
 							</div>
 						</div>
 					</div>
 				{/if}
-			</CardContent>
-		</Card>
+			</div>
+		</section>
 
 		<!-- Top Complaints -->
-		<Card>
-			<CardHeader>
-				<CardTitle>Top Chief Complaints</CardTitle>
-				<CardDescription>Most common reasons for visit</CardDescription>
-			</CardHeader>
-			<CardContent class="p-6">
+		<section class="rounded-xl border border-border bg-card overflow-hidden">
+			<div class="px-5 py-3.5 border-b border-border bg-muted/20">
+				<h2 class="text-base font-semibold">Top Chief Complaints</h2>
+				<p class="text-xs text-muted-foreground">Most common reasons for visit</p>
+			</div>
+			<div class="p-6">
 				{#if chiefComplaints.length === 0}
 					<p class="text-muted-foreground text-sm py-12 text-center">No data for selected period</p>
 				{:else}
@@ -250,7 +238,8 @@
 							<div>
 								<div class="flex justify-between text-sm mb-1">
 									<span class="font-medium truncate pr-4">{complaint}</span>
-									<span class="font-bold text-muted-foreground">{count}</span>
+									<span class="font-bold font-mono tabular-nums text-muted-foreground">{count}</span
+									>
 								</div>
 								<div
 									class="w-full bg-muted rounded-full h-2 overflow-hidden print:border print:border-gray-300"
@@ -264,30 +253,42 @@
 						{/each}
 					</div>
 				{/if}
-			</CardContent>
-		</Card>
+			</div>
+		</section>
 	</div>
 
-	<!-- Pharmacy Usage -->
-	<Card class="print:shadow-none print:border-t-2 print:border-black print:rounded-none">
-		<CardHeader class="flex flex-row items-center justify-between print:px-0">
+	<!-- Pharmacy Usage Ledger -->
+	<section
+		class="rounded-xl border border-border bg-card overflow-hidden print:border-t-2 print:border-black print:rounded-none"
+	>
+		<div
+			class="px-5 py-3.5 border-b border-border bg-muted/20 flex items-center justify-between print:px-0"
+		>
 			<div>
-				<CardTitle>Pharmacy Usage Summary</CardTitle>
-				<CardDescription>Most prescribed vs. dispensed medications</CardDescription>
+				<h2 class="text-base font-semibold">Pharmacy Usage Summary</h2>
+				<p class="text-xs text-muted-foreground">Most prescribed vs. dispensed medications</p>
 			</div>
 			<Button variant="outline" size="sm" class="print:hidden" onclick={exportPharmacyCsv}>
 				<Download class="size-4 mr-2" />
 				CSV
 			</Button>
-		</CardHeader>
-		<CardContent class="print:px-0">
+		</div>
+		<div class="print:px-0">
 			<Table>
-				<TableHeader>
-					<TableRow>
-						<TableHead>Medication Name</TableHead>
-						<TableHead class="text-right">Prescribed Count</TableHead>
-						<TableHead class="text-right">Dispensed Count</TableHead>
-						<TableHead class="text-right">Fulfillment %</TableHead>
+				<TableHeader class="bg-muted/40">
+					<TableRow class="hover:bg-transparent">
+						<TableHead class="font-mono text-xs uppercase tracking-wider px-5"
+							>Medication Name</TableHead
+						>
+						<TableHead class="text-right font-mono text-xs uppercase tracking-wider"
+							>Prescribed</TableHead
+						>
+						<TableHead class="text-right font-mono text-xs uppercase tracking-wider"
+							>Dispensed</TableHead
+						>
+						<TableHead class="text-right font-mono text-xs uppercase tracking-wider px-5"
+							>Fulfillment %</TableHead
+						>
 					</TableRow>
 				</TableHeader>
 				<TableBody>
@@ -298,19 +299,19 @@
 							</TableCell>
 						</TableRow>
 					{:else}
-						{#each medicationStats.slice(0, 10) as stat}
-							<TableRow>
-								<TableCell class="font-medium">{stat.name}</TableCell>
-								<TableCell class="text-right">{stat.count}</TableCell>
-								<TableCell class="text-right">{stat.dispensed}</TableCell>
-								<TableCell class="text-right">
+						{#each medicationStats.slice(0, 10) as stat, idx}
+							<TableRow class={idx % 2 === 1 ? 'bg-muted/20' : ''}>
+								<TableCell class="font-medium px-5">{stat.name}</TableCell>
+								<TableCell class="text-right font-mono tabular-nums">{stat.count}</TableCell>
+								<TableCell class="text-right font-mono tabular-nums">{stat.dispensed}</TableCell>
+								<TableCell class="text-right px-5">
 									<Badge
 										variant="outline"
 										class={stat.dispensed === stat.count
-											? 'text-emerald-600 border-emerald-200 bg-emerald-50'
+											? 'text-triage-green border-triage-green/30 bg-triage-green/10'
 											: stat.dispensed === 0
 												? 'text-destructive border-destructive/20 bg-destructive/10'
-												: 'text-amber-600 border-amber-200 bg-amber-50'}
+												: 'text-amber-700 dark:text-triage-amber border-triage-amber/40 bg-triage-amber/12'}
 									>
 										{Math.round((stat.dispensed / stat.count) * 100)}%
 									</Badge>
@@ -320,6 +321,6 @@
 					{/if}
 				</TableBody>
 			</Table>
-		</CardContent>
-	</Card>
+		</div>
+	</section>
 </div>

@@ -1,13 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { pharmacyStore } from '#lib/state/pharmacy.svelte.ts';
-	import {
-		Card,
-		CardContent,
-		CardHeader,
-		CardTitle,
-		CardDescription
-	} from '#lib/components/ui/card/index.ts';
 	import { Input } from '#lib/components/ui/input/index.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Label } from '#lib/components/ui/label/index.ts';
@@ -17,7 +10,6 @@
 	import { Checkbox } from '#lib/components/ui/checkbox/index.ts';
 
 	let id = $derived(page.params.id as string);
-
 	let item = $derived(pharmacyStore.get(id));
 
 	let itemName = $state('');
@@ -59,8 +51,8 @@
 			});
 			toast.success('Inventory item updated successfully.');
 			goto('/pharmacy');
-		} catch (err: any) {
-			toast.error('Failed to update item: ' + err.message);
+		} catch (err) {
+			toast.error('Failed to update item: ' + (err instanceof Error ? err.message : String(err)));
 		}
 	}
 
@@ -73,8 +65,8 @@
 			await pharmacyStore.delete(id);
 			toast.success('Item deleted.');
 			goto('/pharmacy');
-		} catch (err: any) {
-			toast.error('Failed to delete item: ' + err.message);
+		} catch (err) {
+			toast.error('Failed to delete item: ' + (err instanceof Error ? err.message : String(err)));
 		}
 	}
 </script>
@@ -83,90 +75,99 @@
 	<title>{item?.itemName || 'Edit Item'} — ClinicFlow</title>
 </svelte:head>
 
-<div class="max-w-2xl mx-auto space-y-6 animate-fade-in">
-	<div class="flex items-center gap-4">
-		<Button variant="ghost" size="icon" href="/pharmacy" class="rounded-full">
+<div class="max-w-2xl mx-auto space-y-6">
+	<div class="flex items-center gap-3 pb-2 border-b border-border">
+		<Button variant="ghost" size="icon" href="/pharmacy" class="rounded-lg">
 			<ArrowLeft class="size-5" />
 		</Button>
 		<div>
-			<h1 class="text-2xl font-bold tracking-tight">Edit Inventory Item</h1>
-			<p class="text-sm text-muted-foreground">Modify details or update stock levels manually.</p>
+			<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+				Dispensary Counter
+			</p>
+			<h1 class="text-2xl font-bold tracking-tight text-foreground">Edit Inventory Item</h1>
 		</div>
 	</div>
 
 	{#if item}
-		<Card>
-			<CardHeader>
-				<div class="flex items-center justify-between">
-					<div class="flex items-center gap-2">
-						<PackageSearch class="size-5 text-primary" />
-						<CardTitle>{item.itemName}</CardTitle>
+		<section class="rounded-xl border border-border bg-card overflow-hidden">
+			<div class="px-5 py-3.5 border-b border-border bg-muted/20 flex items-center justify-between">
+				<div class="flex items-center gap-2">
+					<PackageSearch class="size-4 text-primary" />
+					<div>
+						<h2 class="text-base font-semibold">{item.itemName}</h2>
+						<p class="text-xs text-muted-foreground">
+							Modify details or update stock levels manually
+						</p>
 					</div>
-					<Button
-						variant="destructive"
-						size="icon"
-						class="size-8 rounded-full"
-						onclick={handleDelete}
-					>
-						<Trash2 class="size-4" />
+				</div>
+				<Button
+					variant="destructive"
+					size="icon"
+					class="size-9 rounded-lg"
+					onclick={handleDelete}
+					aria-label="Delete item"
+				>
+					<Trash2 class="size-4" />
+				</Button>
+			</div>
+
+			<form onsubmit={handleSubmit} class="p-5 space-y-5">
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+					<div class="space-y-1.5">
+						<Label for="itemName">Item Name</Label>
+						<Input id="itemName" bind:value={itemName} class="h-11" required />
+					</div>
+					<div class="space-y-1.5">
+						<Label for="category">Category</Label>
+						<Input id="category" bind:value={category} class="h-11" required />
+					</div>
+					<div class="space-y-1.5">
+						<Label for="currentStock">Current Stock Level</Label>
+						<Input
+							id="currentStock"
+							type="number"
+							bind:value={currentStock}
+							min="0"
+							class="h-11 font-mono tabular-nums"
+							required
+						/>
+					</div>
+					<div class="space-y-1.5">
+						<Label for="lowStockThreshold">Low Stock Threshold</Label>
+						<Input
+							id="lowStockThreshold"
+							type="number"
+							bind:value={lowStockThreshold}
+							min="0"
+							class="h-11 font-mono tabular-nums"
+							required
+						/>
+					</div>
+					<div class="space-y-1.5">
+						<Label for="unit">Unit</Label>
+						<Input id="unit" bind:value={unit} class="h-11" required />
+					</div>
+					<div class="flex items-center space-x-2 pt-7">
+						<Checkbox id="isCritical" bind:checked={isCritical} />
+						<Label for="isCritical" class="text-sm font-medium">Mark as Critical Supply</Label>
+					</div>
+				</div>
+
+				<div class="flex justify-end gap-3 pt-4 border-t border-border">
+					<Button type="button" variant="outline" class="min-h-11" href="/pharmacy">Cancel</Button>
+					<Button type="submit" class="min-h-11 px-5 font-semibold gap-2">
+						<Save class="size-4" />
+						Save Changes
 					</Button>
 				</div>
-				<CardDescription>Make changes below and save to update the inventory.</CardDescription>
-			</CardHeader>
-			<CardContent>
-				<form onsubmit={handleSubmit} class="space-y-6">
-					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<div class="space-y-2">
-							<Label for="itemName">Item Name</Label>
-							<Input id="itemName" bind:value={itemName} required />
-						</div>
-						<div class="space-y-2">
-							<Label for="category">Category</Label>
-							<Input id="category" bind:value={category} required />
-						</div>
-						<div class="space-y-2">
-							<Label for="currentStock">Current Stock Level</Label>
-							<Input id="currentStock" type="number" bind:value={currentStock} min="0" required />
-						</div>
-						<div class="space-y-2">
-							<Label for="lowStockThreshold">Low Stock Threshold</Label>
-							<Input
-								id="lowStockThreshold"
-								type="number"
-								bind:value={lowStockThreshold}
-								min="0"
-								required
-							/>
-						</div>
-						<div class="space-y-2">
-							<Label for="unit">Unit</Label>
-							<Input id="unit" bind:value={unit} required />
-						</div>
-						<div class="flex items-center space-x-2 pt-8">
-							<Checkbox id="isCritical" bind:checked={isCritical} />
-							<Label
-								for="isCritical"
-								class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-							>
-								Mark as Critical Supply
-							</Label>
-						</div>
-					</div>
-
-					<div class="flex justify-end gap-3 pt-4 border-t border-border/50">
-						<Button type="button" variant="outline" href="/pharmacy">Cancel</Button>
-						<Button type="submit" class="gap-2">
-							<Save class="size-4" />
-							Save Changes
-						</Button>
-					</div>
-				</form>
-			</CardContent>
-		</Card>
+			</form>
+		</section>
 	{:else}
-		<div class="py-12 text-center text-muted-foreground">
-			<PackageSearch class="size-8 mx-auto mb-3 opacity-50" />
-			<p>Item not found or loading...</p>
+		<div
+			class="py-12 text-center text-muted-foreground rounded-xl border border-dashed border-border bg-card/50"
+		>
+			<PackageSearch class="size-8 mx-auto mb-2 opacity-40" />
+			<p class="text-sm">Item not found or loading...</p>
 		</div>
 	{/if}
 </div>

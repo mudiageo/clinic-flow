@@ -1,23 +1,10 @@
 <script lang="ts">
-	import {
-		Card,
-		CardContent,
-		CardDescription,
-		CardHeader,
-		CardTitle
-	} from '#lib/components/ui/card/index.ts';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import * as Dialog from '#lib/components/ui/dialog/index.ts';
 	import { Input } from '#lib/components/ui/input/index.ts';
 	import { Label } from '#lib/components/ui/label/index.ts';
-	import {
-		Activity,
-		AlertTriangle,
-		Clock,
-		Thermometer,
-		ThermometerSnowflake
-	} from '@lucide/svelte';
+	import { Activity, AlertTriangle, Clock, Thermometer } from '@lucide/svelte';
 	import { pharmacyStore } from '#lib/state/pharmacy.svelte.ts';
 	import { temperatureLogsStore } from '#lib/state/temperature-logs.svelte.ts';
 	import { sessionStore } from '#lib/state/session.svelte.ts';
@@ -114,22 +101,22 @@
 	<title>Cold Chain — ClinicFlow</title>
 </svelte:head>
 
-<div class="space-y-8 animate-fade-in">
-	<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-		<div class="flex items-start gap-3">
-			<div class="p-2.5 rounded-xl bg-sky-100 text-sky-600">
-				<ThermometerSnowflake class="size-6" />
-			</div>
-			<div>
-				<h1 class="text-2xl font-bold text-foreground tracking-tight">Cold Chain Tracker</h1>
-				<p class="text-muted-foreground text-sm mt-0.5 font-medium">
-					Monitor vaccine temperatures and sensitive stock
-				</p>
-			</div>
+<div class="space-y-6 max-w-6xl mx-auto">
+	<div
+		class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 pb-2 border-b border-border"
+	>
+		<div>
+			<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+				Vaccine Storage
+			</p>
+			<h1 class="text-2xl font-bold text-foreground tracking-tight">Cold Chain Tracker</h1>
+			<p class="text-muted-foreground text-sm mt-0.5">
+				Monitor vaccine fridge temperatures (2–8 °C) and sensitive stock
+			</p>
 		</div>
 		<div class="flex flex-col items-start md:items-end gap-1.5">
 			<Button
-				variant="outline"
+				class="min-h-11 px-5 font-semibold"
 				onclick={openDialog}
 				disabled={coldChainEnabled === false || !canManageColdChain}
 				title={coldChainEnabled === false
@@ -142,7 +129,7 @@
 				Log Temperature
 			</Button>
 			{#if coldChainEnabled === false}
-				<p class="flex items-center gap-1 text-xs text-amber-600">
+				<p class="flex items-center gap-1 text-xs text-amber-700 dark:text-triage-amber">
 					<AlertTriangle class="size-3" />
 					Cold-chain logging is disabled for this facility.
 				</p>
@@ -151,77 +138,83 @@
 	</div>
 
 	<!-- Fridge Status -->
-	<Card class="overflow-hidden border-sky-100 bg-sky-50/30">
-		<CardContent class="p-6 md:p-8 flex flex-col md:flex-row items-center gap-6 justify-between">
-			<div class="flex items-center gap-6">
-				<div class="relative">
-					<div
-						class="size-20 rounded-full border-4 flex items-center justify-center {isExcursion
-							? 'border-red-200 text-red-600'
-							: 'border-muted text-muted-foreground'}"
-					>
-						<span class="text-2xl font-bold">
-							{latestLog ? latestLog.temperatureCelsius.toFixed(1) : '—'}
-						</span>
-					</div>
-					<div
-						class="absolute -bottom-2 -right-2 p-1.5 rounded-full bg-white shadow-sm text-muted-foreground"
-					>
-						<Thermometer class="size-5" />
-					</div>
+	<section
+		class="rounded-xl border border-border border-l-4 bg-card p-5 sm:p-6 {isExcursion
+			? 'border-l-triage-red bg-triage-red/5'
+			: 'border-l-primary'}"
+	>
+		<div class="flex flex-col sm:flex-row sm:items-center gap-5">
+			<div class="relative shrink-0">
+				<div
+					class="size-20 rounded-xl border-2 flex flex-col items-center justify-center bg-background {isExcursion
+						? 'border-triage-red text-triage-red'
+						: 'border-primary/40 text-foreground'}"
+				>
+					<span class="text-2xl font-bold font-mono tabular-nums">
+						{latestLog ? latestLog.temperatureCelsius.toFixed(1) : '—'}
+					</span>
+					<span class="text-[10px] font-mono text-muted-foreground">°C</span>
 				</div>
-				<div>
-					<h3 class="text-lg font-bold">
-						{latestLog?.fridgeLabel ?? 'No fridge unit recorded'}
-					</h3>
-					{#if latestLog}
-						<p class="text-sm text-muted-foreground flex items-center gap-2 mt-1 flex-wrap">
-							Recorded:
-							<span class="font-medium text-foreground">{formatDateTime(latestLog.recordedAt)}</span
-							>
-							{#if isExcursion}
-								<Badge variant="outline" class="text-red-600 border-red-200 bg-red-50 gap-1">
-									<AlertTriangle class="size-3" />
-									Out of range (2–8 °C)
-								</Badge>
-							{:else}
-								<Badge variant="outline" class="border-muted text-muted-foreground bg-white">
-									Within range
-								</Badge>
-							{/if}
-							{#if isStale}
-								<Badge variant="outline" class="text-amber-600 border-amber-200 bg-amber-50 gap-1">
-									<Clock class="size-3" />
-									Stale reading
-								</Badge>
-							{/if}
-						</p>
-						{#if isExcursion}
-							<p class="text-xs text-red-600 mt-2 flex items-center gap-1">
-								<AlertTriangle class="size-3" />
-								Advisory only — verify against the physical thermometer; no automatic action is taken.
-							</p>
-						{/if}
-					{:else}
-						<p class="text-sm text-muted-foreground flex items-center gap-2 mt-1">
-							Status:
-							<Badge variant="outline" class="border-muted text-muted-foreground bg-white">
-								No temperature logs recorded
-							</Badge>
-						</p>
-					{/if}
+				<div
+					class="absolute -bottom-1.5 -right-1.5 p-1 rounded-full bg-card border border-border text-muted-foreground"
+				>
+					<Thermometer class="size-4" />
 				</div>
 			</div>
-		</CardContent>
-	</Card>
+
+			<div class="flex-1 min-w-0">
+				<h2 class="text-lg font-bold text-foreground">
+					{latestLog?.fridgeLabel ?? 'No fridge unit recorded'}
+				</h2>
+				{#if latestLog}
+					<p class="text-xs text-muted-foreground flex items-center gap-2 mt-1 flex-wrap">
+						<span>Recorded:</span>
+						<span class="font-mono font-medium text-foreground"
+							>{formatDateTime(latestLog.recordedAt)}</span
+						>
+						{#if isExcursion}
+							<Badge variant="destructive" class="gap-1">
+								<AlertTriangle class="size-3" />
+								Out of range (2–8 °C)
+							</Badge>
+						{:else}
+							<Badge
+								variant="secondary"
+								class="bg-triage-green/15 text-triage-green border-triage-green/30"
+							>
+								Within range
+							</Badge>
+						{/if}
+						{#if isStale}
+							<Badge
+								variant="outline"
+								class="text-amber-700 dark:text-triage-amber border-triage-amber/40 gap-1"
+							>
+								<Clock class="size-3" />
+								Stale reading
+							</Badge>
+						{/if}
+					</p>
+					{#if isExcursion}
+						<p class="text-xs text-triage-red mt-2 flex items-center gap-1">
+							<AlertTriangle class="size-3 shrink-0" />
+							Advisory only — verify against the physical thermometer; no automatic action is taken.
+						</p>
+					{/if}
+				{:else}
+					<p class="text-xs text-muted-foreground mt-1">No temperature logs recorded yet.</p>
+				{/if}
+			</div>
+		</div>
+	</section>
 
 	<!-- Recent Readings -->
-	<Card>
-		<CardHeader>
-			<CardTitle class="text-base">Recent readings</CardTitle>
-			<CardDescription>Latest five staff-recorded temperature readings.</CardDescription>
-		</CardHeader>
-		<CardContent>
+	<section class="rounded-xl border border-border bg-card overflow-hidden">
+		<div class="px-5 py-3.5 border-b border-border bg-muted/20">
+			<h2 class="text-base font-semibold text-foreground">Recent Readings</h2>
+			<p class="text-xs text-muted-foreground">Latest five staff-recorded temperature readings</p>
+		</div>
+		<div class="p-5">
 			{#if recentLogs.length === 0}
 				<p class="text-sm text-muted-foreground">No temperature logs recorded.</p>
 			{:else}
@@ -230,101 +223,104 @@
 						<li class="flex items-center justify-between gap-3 py-2.5">
 							<div class="min-w-0">
 								<p class="text-sm font-medium truncate">{log.fridgeLabel}</p>
-								<p class="text-xs text-muted-foreground">{formatDateTime(log.recordedAt)}</p>
+								<p class="text-xs font-mono text-muted-foreground">
+									{formatDateTime(log.recordedAt)}
+								</p>
 							</div>
 							<div class="flex items-center gap-2 shrink-0">
 								<span
-									class="text-sm font-bold {log.temperatureCelsius < 2 || log.temperatureCelsius > 8
-										? 'text-red-600'
+									class="text-sm font-bold font-mono tabular-nums {log.temperatureCelsius < 2 ||
+									log.temperatureCelsius > 8
+										? 'text-triage-red'
 										: ''}"
 								>
 									{log.temperatureCelsius.toFixed(1)} °C
 								</span>
 								{#if log.temperatureCelsius < 2 || log.temperatureCelsius > 8}
-									<Badge variant="outline" class="text-red-600 border-red-200 bg-red-50">
-										Out of range
-									</Badge>
+									<Badge variant="destructive">Out of range</Badge>
 								{/if}
 							</div>
 						</li>
 					{/each}
 				</ul>
 			{/if}
-		</CardContent>
-	</Card>
+		</div>
+	</section>
 
 	<!-- Vaccine Inventory -->
-	<div class="space-y-4">
-		<h2 class="text-lg font-bold tracking-tight">Sensitive Stock</h2>
-		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+	<section class="space-y-3">
+		<div class="flex items-center gap-2">
+			<h2 class="text-xs font-mono uppercase tracking-widest text-muted-foreground font-semibold">
+				Sensitive Stock
+			</h2>
+			<div class="h-px flex-1 bg-border"></div>
+		</div>
+
+		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
 			{#if vaccineStock.length === 0}
-				<Card class="md:col-span-2 lg:col-span-4">
-					<CardContent class="p-8 text-center text-muted-foreground">
-						No vaccine stock recorded in pharmacy inventory.
-					</CardContent>
-				</Card>
+				<div
+					class="md:col-span-2 lg:col-span-4 p-8 text-center text-muted-foreground rounded-xl border border-dashed border-border bg-card/50"
+				>
+					No vaccine stock recorded in pharmacy inventory.
+				</div>
 			{/if}
 
 			{#each vaccineStock as item (item.id)}
 				{@const lowStock = isLowStock(item)}
-				<Card class="card-hover {lowStock ? 'border-amber-200 bg-amber-50/30' : ''}">
-					<CardContent class="p-5 flex flex-col h-full">
-						<div class="flex justify-between items-start mb-4">
+				<article
+					class="rounded-xl border border-border bg-card p-4 flex flex-col {lowStock
+						? 'border-l-4 border-l-triage-amber'
+						: ''}"
+				>
+					<div class="flex justify-between items-start mb-3 gap-2">
+						<Badge variant="secondary" class="text-[10px] font-mono uppercase">Vaccine</Badge>
+						{#if lowStock}
 							<Badge
 								variant="outline"
-								class="text-[10px] uppercase font-bold tracking-wider text-sky-600 border-sky-200 bg-sky-50"
+								class="text-amber-700 dark:text-triage-amber border-triage-amber/40 gap-1"
 							>
-								Vaccine
+								<AlertTriangle class="size-3" />
+								Low stock
 							</Badge>
-							{#if lowStock}
-								<Badge variant="outline" class="text-amber-600 border-amber-200 bg-amber-50 gap-1">
-									<AlertTriangle class="size-3" />
-									Low stock
-								</Badge>
-							{/if}
+						{/if}
+					</div>
+
+					<h3 class="text-base font-bold mb-3">{item.itemName}</h3>
+
+					<div class="mt-auto pt-3 border-t border-dashed border-border space-y-1.5 text-xs">
+						<div class="flex justify-between items-center gap-2">
+							<span class="text-muted-foreground">Stock</span>
+							<span class="font-mono font-bold tabular-nums {lowStock ? 'text-triage-red' : ''}">
+								{item.currentStock}
+								{item.unit}
+							</span>
 						</div>
-
-						<h3 class="text-xl font-bold mb-1">{item.itemName}</h3>
-
-						<div class="mt-auto pt-4 space-y-2">
-							<div class="flex justify-between items-end gap-2">
-								<span class="text-xs text-muted-foreground">Stock</span>
-								<span class="font-bold {lowStock ? 'text-red-600' : ''}">
-									{item.currentStock}
-									{item.unit}
-								</span>
-							</div>
-							<div class="flex justify-between items-end gap-2">
-								<span class="text-xs text-muted-foreground">Batch</span>
-								<span class="text-sm font-medium truncate">
-									{item.batchNumber ?? 'Not recorded'}
-								</span>
-							</div>
-							<div class="flex justify-between items-end gap-2">
-								<span class="text-xs text-muted-foreground">Expiry</span>
-								<span class="text-sm font-medium flex items-center gap-1.5 flex-wrap justify-end">
-									{#if item.expiryDate !== null}
-										{formatDate(item.expiryDate)}
-										{#if isExpired(item)}
-											<Badge variant="outline" class="text-red-600 border-red-200 bg-red-50">
-												Expired
-											</Badge>
-										{/if}
-									{:else}
-										No expiry recorded
+						<div class="flex justify-between items-center gap-2">
+							<span class="text-muted-foreground">Batch</span>
+							<span class="font-mono truncate">{item.batchNumber ?? 'Not recorded'}</span>
+						</div>
+						<div class="flex justify-between items-center gap-2">
+							<span class="text-muted-foreground">Expiry</span>
+							<span class="font-mono flex items-center gap-1.5 flex-wrap justify-end">
+								{#if item.expiryDate !== null}
+									{formatDate(item.expiryDate)}
+									{#if isExpired(item)}
+										<Badge variant="destructive" class="text-[10px]">Expired</Badge>
 									{/if}
-								</span>
-							</div>
+								{:else}
+									Not recorded
+								{/if}
+							</span>
 						</div>
-					</CardContent>
-				</Card>
+					</div>
+				</article>
 			{/each}
 		</div>
 		<p class="text-xs text-muted-foreground">
 			Staff-entered record. Verify against the physical fridge thermometer and vaccine vial before
 			clinical use. Out-of-range readings are advisory and require human review.
 		</p>
-	</div>
+	</section>
 
 	<Dialog.Root bind:open={dialogOpen}>
 		<Dialog.Content class="max-h-[90vh] overflow-y-auto sm:max-w-lg">

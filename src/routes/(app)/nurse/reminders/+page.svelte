@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { reminderStore } from '#lib/state/reminders.svelte.ts';
 	import { patientStore } from '#lib/state/patients.svelte.ts';
-	import { Bell, Plus, Clock } from '@lucide/svelte';
+	import { Plus } from '@lucide/svelte';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import DataTable from './data-table.svelte';
 	import { columns, type ReminderRow } from './columns';
@@ -9,7 +9,6 @@
 
 	let isCreateOpen = $state(false);
 
-	// Construct data for the table by merging reminder data with patient data
 	let data = $derived(
 		reminderStore.sortedItems.map((r) => {
 			const patient = patientStore.get(r.patientId);
@@ -31,31 +30,30 @@
 	<title>Reminders — ClinicFlow</title>
 </svelte:head>
 
-<div class="max-w-6xl mx-auto space-y-8 animate-fade-in">
+<div class="max-w-6xl mx-auto space-y-6">
 	<div
-		class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-6"
+		class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2 border-b border-border"
 	>
-		<div class="flex items-start gap-3">
-			<div class="p-2.5 rounded-xl bg-primary/10 text-primary">
-				<Bell class="size-6" />
-			</div>
-			<div>
-				<h1 class="text-2xl font-bold text-foreground tracking-tight">Patient Reminders</h1>
-				<p class="text-muted-foreground text-sm mt-0.5">
-					Manage and schedule automated SMS reminders for patients
-				</p>
-			</div>
+		<div>
+			<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+				Patient Follow-Up
+			</p>
+			<h1 class="text-2xl font-bold text-foreground tracking-tight">Patient Reminders</h1>
+			<p class="text-muted-foreground text-sm mt-0.5">
+				Manage and schedule automated SMS reminders for patients
+			</p>
 		</div>
 
-		<Button onclick={() => (isCreateOpen = true)} class="h-10 px-4 btn-press shadow-sm">
+		<Button
+			onclick={() => (isCreateOpen = true)}
+			class="min-h-10 px-4 font-semibold w-full sm:w-auto"
+		>
 			<Plus class="size-4 mr-2" />
 			New Reminder
 		</Button>
 	</div>
 
-	<!-- Data Table View -->
 	<DataTable {data} {columns} />
 
-	<!-- Create Dialog -->
 	<CreateReminderDialog bind:open={isCreateOpen} />
 </div>
