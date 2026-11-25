@@ -1,12 +1,5 @@
 <script lang="ts">
 	import {
-		Card,
-		CardContent,
-		CardHeader,
-		CardTitle,
-		CardDescription
-	} from '#lib/components/ui/card/index.ts';
-	import {
 		Table,
 		TableBody,
 		TableCell,
@@ -30,22 +23,22 @@
 	<title>Audit Log — ClinicFlow</title>
 </svelte:head>
 
-<div class="space-y-8 animate-fade-in">
-	<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-		<div class="flex items-start gap-3">
-			<div class="p-2.5 rounded-xl bg-primary/10 text-primary">
-				<ClipboardList class="size-6" />
-			</div>
-			<div>
-				<h1 class="text-2xl font-bold text-foreground tracking-tight">Audit Log</h1>
-				<p class="text-muted-foreground text-sm mt-0.5 font-medium">
-					A complete record of all actions performed in this system.
-				</p>
-			</div>
+<div class="space-y-6 max-w-6xl mx-auto">
+	<div
+		class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 pb-2 border-b border-border"
+	>
+		<div>
+			<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+				Compliance &amp; Traceability
+			</p>
+			<h1 class="text-2xl font-bold text-foreground tracking-tight">Audit Log</h1>
+			<p class="text-muted-foreground text-sm mt-0.5">
+				A complete record of all actions performed in this system
+			</p>
 		</div>
 		<Button
 			variant="outline"
-			class="gap-2"
+			class="gap-2 min-h-10"
 			aria-expanded={showFilters}
 			onclick={() => (showFilters = !showFilters)}
 		>
@@ -55,77 +48,90 @@
 	</div>
 
 	{#if showFilters}
-		<Card>
-			<CardContent class="p-4 space-y-4">
-				<div class="grid gap-4 md:grid-cols-2">
-					<div class="space-y-2">
-						<label for="audit-action-filter" class="text-sm font-medium">Action</label>
-						<Input
-							id="audit-action-filter"
-							placeholder="e.g. patient.update"
-							bind:value={actionFilter}
-						/>
-					</div>
-					<div class="space-y-2">
-						<label for="audit-entity-filter" class="text-sm font-medium">Entity type</label>
-						<Input id="audit-entity-filter" placeholder="e.g. patient" bind:value={entityFilter} />
-					</div>
+		<section class="rounded-xl border border-border bg-card p-5 space-y-4">
+			<div class="grid gap-4 md:grid-cols-2">
+				<div class="space-y-1.5">
+					<label for="audit-action-filter" class="text-xs font-medium">Action</label>
+					<Input
+						id="audit-action-filter"
+						placeholder="e.g. patient.update"
+						class="h-10"
+						bind:value={actionFilter}
+					/>
 				</div>
-				<div class="flex gap-2">
-					<Button size="sm" onclick={() => (page = 1)}>Apply</Button>
-					<Button
-						size="sm"
-						variant="outline"
-						onclick={() => {
-							actionFilter = '';
-							entityFilter = '';
-							page = 1;
-						}}>Clear</Button
-					>
+				<div class="space-y-1.5">
+					<label for="audit-entity-filter" class="text-xs font-medium">Entity type</label>
+					<Input
+						id="audit-entity-filter"
+						placeholder="e.g. patient"
+						class="h-10"
+						bind:value={entityFilter}
+					/>
 				</div>
-			</CardContent>
-		</Card>
+			</div>
+			<div class="flex gap-2">
+				<Button size="sm" onclick={() => (page = 1)}>Apply</Button>
+				<Button
+					size="sm"
+					variant="outline"
+					onclick={() => {
+						actionFilter = '';
+						entityFilter = '';
+						page = 1;
+					}}
+				>
+					Clear
+				</Button>
+			</div>
+		</section>
 	{/if}
 
 	{#await getAuditLog({ page, action: actionFilter, entityType: entityFilter })}
-		<Card>
-			<CardContent class="p-12 text-center text-muted-foreground">Loading audit log...</CardContent>
-		</Card>
+		<div class="rounded-xl border border-border bg-card p-12 text-center text-muted-foreground">
+			Loading audit log...
+		</div>
 	{:then result}
-		<Card class="overflow-hidden card-hover">
-			<CardHeader class="border-b border-border bg-muted/20 px-6 py-4">
-				<CardTitle class="text-base font-semibold">Recent Actions</CardTitle>
-				<CardDescription class="mt-1">
-					Showing {result.entries.length} of {result.total} entries
-				</CardDescription>
-			</CardHeader>
+		<section class="rounded-xl border border-border bg-card overflow-hidden">
+			<div class="border-b border-border bg-muted/20 px-5 py-3.5 flex items-center justify-between">
+				<div>
+					<h2 class="text-base font-semibold">Recent Actions</h2>
+					<p class="text-xs font-mono text-muted-foreground mt-0.5">
+						Showing {result.entries.length} of {result.total} entries
+					</p>
+				</div>
+			</div>
 
 			<Table>
-				<TableHeader>
-					<TableRow>
-						<TableHead class="font-semibold px-6">Timestamp</TableHead>
-						<TableHead class="font-semibold px-6">Staff Name</TableHead>
-						<TableHead class="font-semibold px-6">Action</TableHead>
-						<TableHead class="font-semibold px-6">Entity Type</TableHead>
-						<TableHead class="font-semibold px-6 text-right">Entity ID</TableHead>
+				<TableHeader class="bg-muted/40">
+					<TableRow class="hover:bg-transparent">
+						<TableHead class="font-mono text-xs uppercase tracking-wider px-5">Timestamp</TableHead>
+						<TableHead class="font-mono text-xs uppercase tracking-wider px-5">Staff Name</TableHead
+						>
+						<TableHead class="font-mono text-xs uppercase tracking-wider px-5">Action</TableHead>
+						<TableHead class="font-mono text-xs uppercase tracking-wider px-5"
+							>Entity Type</TableHead
+						>
+						<TableHead class="font-mono text-xs uppercase tracking-wider px-5 text-right"
+							>Entity ID</TableHead
+						>
 					</TableRow>
 				</TableHeader>
 				<TableBody>
 					{#if result.entries.length === 0}
 						<TableRow>
-							<TableCell colspan={5} class="h-[400px]">
-								<div class="flex flex-col items-center justify-center text-center h-full space-y-4">
-									<div class="p-6 bg-primary/5 rounded-full mb-4">
-										<ClipboardList class="size-16 text-primary/40" />
+							<TableCell colspan={5} class="h-72 text-center">
+								<div class="flex flex-col items-center justify-center space-y-3">
+									<div class="p-4 bg-primary/8 rounded-full">
+										<ClipboardList class="size-10 text-primary/40" />
 									</div>
-									<h3 class="text-xl font-bold">
+									<h3 class="text-base font-bold">
 										{#if actionFilter || entityFilter}
 											No entries match these filters.
 										{:else}
 											No audit entries yet
 										{/if}
 									</h3>
-									<p class="text-muted-foreground max-w-md">
+									<p class="text-xs text-muted-foreground max-w-md">
 										{#if actionFilter || entityFilter}
 											Try adjusting or clearing the filters to see more entries.
 										{:else}
@@ -137,45 +143,47 @@
 							</TableCell>
 						</TableRow>
 					{:else}
-						{#each result.entries as entry (entry.id)}
-							<TableRow class="hover:bg-muted/40 transition-colors">
-								<TableCell class="text-muted-foreground px-6"
-									>{formatDateTime(entry.createdAt)}</TableCell
-								>
-								<TableCell class="font-medium px-6">{entry.staffName}</TableCell>
-								<TableCell class="px-6">{entry.action}</TableCell>
-								<TableCell class="px-6 capitalize">{entry.entityType}</TableCell>
-								<TableCell class="text-right text-muted-foreground px-6 font-mono text-xs"
-									>{entry.entityId}</TableCell
-								>
+						{#each result.entries as entry, idx (entry.id)}
+							<TableRow
+								class={idx % 2 === 1 ? 'bg-muted/20 hover:bg-muted/40' : 'hover:bg-muted/40'}
+							>
+								<TableCell class="text-muted-foreground font-mono text-xs px-5">
+									{formatDateTime(entry.createdAt)}
+								</TableCell>
+								<TableCell class="font-medium px-5">{entry.staffName}</TableCell>
+								<TableCell class="px-5 font-mono text-xs">{entry.action}</TableCell>
+								<TableCell class="px-5 capitalize text-sm">{entry.entityType}</TableCell>
+								<TableCell class="text-right text-muted-foreground px-5 font-mono text-xs">
+									{entry.entityId}
+								</TableCell>
 							</TableRow>
 						{/each}
 					{/if}
 				</TableBody>
 			</Table>
 
-			<div class="flex items-center justify-between border-t border-border px-6 py-3">
-				<p class="text-xs text-muted-foreground">
+			<div class="flex items-center justify-between border-t border-border px-5 py-3 bg-muted/15">
+				<p class="text-xs font-mono text-muted-foreground">
 					Page {result.page} of {Math.max(1, Math.ceil(result.total / result.pageSize))}
 				</p>
 				<div class="flex gap-2">
-					<Button variant="outline" size="sm" disabled={page <= 1} onclick={() => (page -= 1)}
-						>Previous</Button
-					>
+					<Button variant="outline" size="sm" disabled={page <= 1} onclick={() => (page -= 1)}>
+						Previous
+					</Button>
 					<Button
 						variant="outline"
 						size="sm"
 						disabled={page * result.pageSize >= result.total}
-						onclick={() => (page += 1)}>Next</Button
+						onclick={() => (page += 1)}
 					>
+						Next
+					</Button>
 				</div>
 			</div>
-		</Card>
+		</section>
 	{:catch}
-		<Card>
-			<CardContent class="p-12 text-center text-muted-foreground">
-				Unable to load audit log.
-			</CardContent>
-		</Card>
+		<div class="rounded-xl border border-border bg-card p-12 text-center text-muted-foreground">
+			Unable to load audit log.
+		</div>
 	{/await}
 </div>
