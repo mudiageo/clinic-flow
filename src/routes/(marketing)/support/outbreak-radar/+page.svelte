@@ -144,6 +144,49 @@
 			</li>
 		</ul>
 
+		<h2>Reading Community Spread</h2>
+		<p>
+			Each outbreak card summarises where a disease is appearing and how it may be moving between
+			communities. Use these details alongside the rule-based alerts to understand the shape of the
+			cluster before you escalate.
+		</p>
+		<p>
+			The card presents the AI's read at a glance: the communities involved, an optional spread
+			hypothesis, and a comparison with the seasonal baseline. Review them together rather than
+			relying on the severity badge alone.
+		</p>
+		<ul class="not-prose space-y-2 my-4">
+			<li class="flex items-start gap-3 p-3 rounded-lg border border-border bg-muted/30">
+				<Activity class="size-4 text-muted-foreground mt-0.5 shrink-0" />
+				<p class="text-sm text-muted-foreground">
+					<strong class="text-foreground">Affected communities</strong> are listed beneath the disease
+					name (for example, "Agbarho, Okuokoko"). They show where cases are clustering so you can focus
+					local investigation and supplies.
+				</p>
+			</li>
+			<li
+				class="flex items-start gap-3 p-3 rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/20"
+			>
+				<AlertTriangle class="size-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+				<p class="text-sm text-muted-foreground">
+					<strong class="text-foreground">Spread hypothesis / pattern</strong> appears in a blue
+					callout when the AI supplies one (for example, "Possible waterborne source given
+					clustering near river communities", or spread from "Agbarho &rarr; Okuokoko over 2
+					weeks"). This is
+					<em>advisory only</em>: it must be verified by the LGA DSO and must never be treated as
+					confirmed epidemiology.
+				</p>
+			</li>
+			<li class="flex items-start gap-3 p-3 rounded-lg border border-border bg-muted/30">
+				<CheckCircle2 class="size-4 text-muted-foreground mt-0.5 shrink-0" />
+				<p class="text-sm text-muted-foreground">
+					<strong class="text-foreground">Seasonal baseline comparison</strong> shows the cases normally
+					expected for the same week last year and the percentage above that baseline, so you can tell
+					whether this week is unusually high or in line with the usual seasonal pattern.
+				</p>
+			</li>
+		</ul>
+
 		<h2>Using the Stock Impact Forecast</h2>
 		<p>
 			Outbreak Radar cross-references its 7-day epidemiological forecast with your current Pharmacy
