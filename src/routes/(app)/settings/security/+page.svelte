@@ -1,11 +1,4 @@
 <script lang="ts">
-	import {
-		Card,
-		CardContent,
-		CardDescription,
-		CardHeader,
-		CardTitle
-	} from '#lib/components/ui/card/index.ts';
 	import { Input } from '#lib/components/ui/input/index.ts';
 	import { Label } from '#lib/components/ui/label/index.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
@@ -47,18 +40,21 @@
 </script>
 
 <div class="space-y-6">
-	<div>
-		<h2 class="text-2xl font-bold tracking-tight">Security</h2>
-		<p class="text-muted-foreground mt-1">Manage your password and active sessions.</p>
+	<div class="pb-2 border-b border-border">
+		<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">Account</p>
+		<h1 class="text-2xl font-bold tracking-tight text-foreground">Security</h1>
+		<p class="text-sm text-muted-foreground mt-0.5">
+			Manage your password and active device sessions
+		</p>
 	</div>
 
-	<Card>
-		<CardHeader>
-			<CardTitle>Change Password</CardTitle>
-			<CardDescription
-				>Ensure your account is using a long, random password to stay secure.</CardDescription
-			>
-		</CardHeader>
+	<section class="rounded-xl border border-border bg-card overflow-hidden">
+		<div class="px-5 py-3.5 border-b border-border bg-muted/20">
+			<h2 class="text-base font-semibold">Change Password</h2>
+			<p class="text-xs text-muted-foreground">
+				Ensure your account is using a long, unique password to stay secure.
+			</p>
+		</div>
 		<form
 			{...updatePasswordAction.enhance(async (form) => {
 				if (!validatePassword()) return;
@@ -79,11 +75,13 @@
 				}
 			})}
 		>
-			<CardContent class="space-y-6">
-				<div class="space-y-2">
+			<div class="p-5 sm:p-6 space-y-5">
+				<div class="space-y-1.5">
 					<Label for="current-password">Current Password</Label>
 					<div class="relative max-w-sm">
-						<KeyRound class="absolute left-3 top-3.5 size-4 text-muted-foreground" />
+						<KeyRound
+							class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
+						/>
 						<Input
 							{...updatePasswordAction.fields.currentPassword.as('password', currentPassword)}
 							class="pl-9 h-11"
@@ -92,10 +90,12 @@
 				</div>
 
 				<div class="space-y-4">
-					<div class="space-y-2">
+					<div class="space-y-1.5">
 						<Label for="new-password">New Password</Label>
 						<div class="relative max-w-sm">
-							<ShieldAlert class="absolute left-3 top-3.5 size-4 text-muted-foreground" />
+							<ShieldAlert
+								class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
+							/>
 							<Input
 								{...updatePasswordAction.fields.newPassword.as('password', newPassword)}
 								class="pl-9 h-11"
@@ -113,7 +113,7 @@
 								<div
 									class="h-full flex-1 rounded-full {passwordStrength >= 75
 										? passwordStrength === 75
-											? 'bg-amber-500'
+											? 'bg-triage-amber'
 											: 'bg-primary'
 										: 'bg-muted'}"
 								></div>
@@ -126,10 +126,12 @@
 						{/if}
 					</div>
 
-					<div class="space-y-2">
+					<div class="space-y-1.5">
 						<Label for="confirm-password">Confirm Password</Label>
 						<div class="relative max-w-sm">
-							<ShieldAlert class="absolute left-3 top-3.5 size-4 text-muted-foreground" />
+							<ShieldAlert
+								class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
+							/>
 							<Input
 								id="confirm-password"
 								type="password"
@@ -143,81 +145,78 @@
 				<Button
 					type="submit"
 					disabled={isSaving || !currentPassword || !newPassword || !confirmPassword}
-					class="h-11"
+					class="min-h-11 px-5 font-semibold"
 				>
 					{#if isSaving}
-						<div
-							class="size-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2"
-						></div>
-						Updating...
+						Updating…
 					{:else}
 						Update Password
 					{/if}
 				</Button>
-			</CardContent>
+			</div>
 		</form>
-	</Card>
+	</section>
 
-	<Card>
-		<CardHeader>
-			<CardTitle>Active Sessions</CardTitle>
-			<CardDescription>Review the devices currently logged into your account.</CardDescription>
-		</CardHeader>
-		<CardContent>
+	<section class="rounded-xl border border-border bg-card overflow-hidden">
+		<div class="px-5 py-3.5 border-b border-border bg-muted/20">
+			<h2 class="text-base font-semibold">Active Sessions</h2>
+			<p class="text-xs text-muted-foreground">
+				Review the devices currently logged into your account.
+			</p>
+		</div>
+		<div class="p-5">
 			{#await getActiveSessions()}
-				<div class="space-y-4">
+				<div class="space-y-3">
 					<Skeleton class="h-16 w-full rounded-xl" />
 					<Skeleton class="h-16 w-full rounded-xl" />
 				</div>
 			{:then sessions}
-				<div class="space-y-4">
+				<div class="space-y-3">
 					{#each sessions as session (session.id)}
 						<div
-							class="flex items-center justify-between p-4 rounded-xl border {session.id
-								? 'bg-muted/30'
-								: 'border-dashed'}"
+							class="flex items-center justify-between p-4 rounded-xl border border-border bg-muted/20"
 						>
-							<div class="flex items-center gap-4">
-								<div class="p-2.5 rounded-full bg-primary/10 text-primary">
+							<div class="flex items-center gap-3.5">
+								<div
+									class="size-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center"
+								>
 									<MonitorSmartphone class="size-5" />
 								</div>
 								<div>
-									<div class="font-medium">Device Session</div>
-									<div class="text-xs text-muted-foreground">
+									<div class="font-medium text-sm">Device Session</div>
+									<div class="text-xs font-mono text-muted-foreground">
 										Expires {new Date(session.expiresAt).toLocaleDateString()}
 									</div>
 								</div>
 							</div>
-							<div class="flex items-center gap-2">
-								<form
-									{...revokeSessionRemote.enhance(async (form) => {
-										try {
-											if (await form.submit()) {
-												if (revokeSessionRemote.result?.success) {
-													toast.success('Session revoked');
-												}
+							<form
+								{...revokeSessionRemote.enhance(async (form) => {
+									try {
+										if (await form.submit()) {
+											if (revokeSessionRemote.result?.success) {
+												toast.success('Session revoked');
 											}
-										} catch (e) {
-											toast.error('Failed to revoke session');
 										}
-									})}
+									} catch (e) {
+										toast.error('Failed to revoke session');
+									}
+								})}
+							>
+								<input
+									{...revokeSessionRemote
+										.for(session.id)
+										.fields.sessionToken.as('hidden', session.token)}
+								/>
+								<Button
+									type="submit"
+									variant="outline"
+									size="sm"
+									class="text-destructive hover:bg-destructive/10 hover:text-destructive min-h-9"
 								>
-									<input
-										{...revokeSessionRemote
-											.for(session.id)
-											.fields.sessionToken.as('hidden', session.token)}
-									/>
-									<Button
-										type="submit"
-										variant="outline"
-										size="sm"
-										class="text-destructive hover:bg-destructive/10 hover:text-destructive"
-									>
-										<LogOut class="size-3.5 mr-1.5" />
-										Revoke
-									</Button>
-								</form>
-							</div>
+									<LogOut class="size-3.5 mr-1.5" />
+									Revoke
+								</Button>
+							</form>
 						</div>
 					{/each}
 
@@ -226,6 +225,6 @@
 					{/if}
 				</div>
 			{/await}
-		</CardContent>
-	</Card>
+		</div>
+	</section>
 </div>

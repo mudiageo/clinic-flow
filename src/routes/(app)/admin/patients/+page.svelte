@@ -3,14 +3,6 @@
 	import { encounterStore } from '#lib/state/encounters.svelte.ts';
 	import { Input } from '#lib/components/ui/input/index.ts';
 	import {
-		Card,
-		CardHeader,
-		CardTitle,
-		CardContent,
-		CardDescription,
-		CardFooter
-	} from '#lib/components/ui/card/index.ts';
-	import {
 		Table,
 		TableBody,
 		TableCell,
@@ -34,10 +26,8 @@
 		Search,
 		Printer,
 		User,
-		FolderOpen,
 		Scan,
 		FileText,
-		ArrowRight,
 		MoreHorizontal,
 		ChevronLeft,
 		ChevronRight,
@@ -46,8 +36,7 @@
 	import { goto } from '$app/navigation';
 
 	let searchTerm = $state('');
-	let selectedPatientForQr = $state<any>(null);
-	let isSaving = $state(false);
+	let selectedPatientForQr = $state<unknown>(null);
 	let currentPage = $state(1);
 	let pageSize = $state(10);
 	let sortColumn = $state('name');
@@ -56,10 +45,10 @@
 	const results = $derived(searchTerm ? patientStore.search(searchTerm) : patientStore.items);
 
 	const sortedResults = $derived.by(() => {
-		let res = [...results];
-		res.sort((a: any, b: any) => {
-			let valA = a[sortColumn];
-			let valB = b[sortColumn];
+		const res = [...results];
+		res.sort((a, b) => {
+			let valA: string | number;
+			let valB: string | number;
 			if (sortColumn === 'lastVisit') {
 				const encA = encounterStore.items
 					.filter((e) => e.patientId === a.id)
@@ -69,6 +58,15 @@
 					.sort((x, y) => y.visitDate - x.visitDate)[0];
 				valA = encA ? new Date(encA.visitDate).getTime() : 0;
 				valB = encB ? new Date(encB.visitDate).getTime() : 0;
+			} else if (sortColumn === 'clinicId') {
+				valA = a.clinicId;
+				valB = b.clinicId;
+			} else if (sortColumn === 'phone') {
+				valA = a.phone ?? '';
+				valB = b.phone ?? '';
+			} else {
+				valA = a.name;
+				valB = b.name;
 			}
 			if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
 			if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
@@ -84,8 +82,7 @@
 	const totalPages = $derived(Math.ceil(sortedResults.length / pageSize) || 1);
 
 	$effect(() => {
-		// Reset page when search changes
-		searchTerm;
+		void searchTerm;
 		currentPage = 1;
 	});
 
@@ -98,7 +95,7 @@
 		}
 	}
 
-	function handlePrintQr(patient: any) {
+	function handlePrintQr(patient: unknown) {
 		selectedPatientForQr = patient;
 		setTimeout(() => {
 			if (typeof window !== 'undefined') window.print();
@@ -159,51 +156,58 @@
 	<title>Patients Registry — ClinicFlow</title>
 </svelte:head>
 
-<div class="space-y-8 animate-fade-in">
-	<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-		<div class="flex items-start gap-3">
-			<div class="p-2.5 rounded-xl bg-primary/10 text-primary">
-				<FolderOpen class="size-6" />
-			</div>
-			<div>
-				<h1 class="text-2xl font-bold text-foreground tracking-tight">Patients Registry</h1>
-				<p class="text-muted-foreground text-sm mt-0.5 font-medium">
-					Manage and view all registered patient files
-				</p>
-			</div>
+<div class="space-y-6 max-w-7xl mx-auto">
+	<div
+		class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 pb-2 border-b border-border"
+	>
+		<div>
+			<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+				Administration
+			</p>
+			<h1 class="text-2xl font-bold text-foreground tracking-tight">Patients Registry</h1>
+			<p class="text-muted-foreground text-sm mt-0.5">
+				Manage and view all registered patient folders
+			</p>
 		</div>
-		<div class="flex items-center gap-3 w-full md:w-auto">
-			<div class="relative flex-1 md:w-80">
-				<Search class="absolute left-3 top-3.5 size-4 text-muted-foreground" />
+		<div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+			<div class="relative flex-1 md:w-72">
+				<Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
 				<Input
 					bind:value={searchTerm}
 					placeholder="Search by name, ID or phone..."
-					class="pl-9 h-11 bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-primary/20"
+					class="pl-9 h-10 bg-card"
 				/>
 			</div>
-			<Button variant="outline" class="h-11 border-border" onclick={exportCsv}>
+			<Button variant="outline" class="h-10" onclick={exportCsv}>
 				<FileText class="size-4 mr-2" />
 				Export
 			</Button>
-			<Button variant="outline" class="h-11 border-border" onclick={() => window.print()}>
+			<Button variant="outline" class="h-10" onclick={() => window.print()}>
 				<Printer class="size-4 mr-2" />
 				Print
 			</Button>
 		</div>
 	</div>
 
-	<Card class="overflow-hidden card-hover flex flex-col">
-		<CardHeader class="border-b border-border bg-muted/20 px-6 py-4">
-			<CardTitle class="text-base font-semibold">Registered Patient Files</CardTitle>
-			<CardDescription>Offline-first copy of clinic registration registry</CardDescription>
-		</CardHeader>
+	<section class="rounded-xl border border-border bg-card overflow-hidden flex flex-col">
+		<div class="border-b border-border bg-muted/20 px-5 py-3.5 flex items-center justify-between">
+			<div>
+				<h2 class="text-base font-semibold">Registered Patient Files</h2>
+				<p class="text-xs text-muted-foreground">
+					Offline-first copy of clinic registration registry
+				</p>
+			</div>
+			<span class="text-xs font-mono tabular-nums text-muted-foreground">
+				{sortedResults.length} records
+			</span>
+		</div>
 
-		<ScrollArea class="h-[500px] w-full border-b border-border">
+		<ScrollArea class="h-[520px] w-full border-b border-border">
 			<Table>
 				<TableHeader class="bg-muted/40 sticky top-0 z-10">
 					<TableRow class="hover:bg-transparent">
 						<TableHead
-							class="font-semibold text-muted-foreground px-6 py-3.5 text-xs uppercase tracking-wider cursor-pointer hover:text-foreground"
+							class="font-mono text-xs uppercase tracking-wider px-5 py-3 cursor-pointer hover:text-foreground"
 							onclick={() => toggleSort('clinicId')}
 						>
 							<div class="flex items-center gap-1">
@@ -212,7 +216,7 @@
 							</div>
 						</TableHead>
 						<TableHead
-							class="font-semibold text-muted-foreground px-6 py-3.5 text-xs uppercase tracking-wider cursor-pointer hover:text-foreground"
+							class="font-mono text-xs uppercase tracking-wider px-5 py-3 cursor-pointer hover:text-foreground"
 							onclick={() => toggleSort('name')}
 						>
 							<div class="flex items-center gap-1">
@@ -221,7 +225,7 @@
 							</div>
 						</TableHead>
 						<TableHead
-							class="font-semibold text-muted-foreground px-6 py-3.5 text-xs uppercase tracking-wider cursor-pointer hover:text-foreground"
+							class="font-mono text-xs uppercase tracking-wider px-5 py-3 cursor-pointer hover:text-foreground"
 							onclick={() => toggleSort('phone')}
 						>
 							<div class="flex items-center gap-1">
@@ -229,16 +233,10 @@
 								<ArrowUpDown class="size-3 opacity-50" />
 							</div>
 						</TableHead>
+						<TableHead class="font-mono text-xs uppercase tracking-wider px-5 py-3">Sex</TableHead>
+						<TableHead class="font-mono text-xs uppercase tracking-wider px-5 py-3">Age</TableHead>
 						<TableHead
-							class="font-semibold text-muted-foreground px-6 py-3.5 text-xs uppercase tracking-wider"
-							>Sex</TableHead
-						>
-						<TableHead
-							class="font-semibold text-muted-foreground px-6 py-3.5 text-xs uppercase tracking-wider"
-							>Age</TableHead
-						>
-						<TableHead
-							class="font-semibold text-muted-foreground px-6 py-3.5 text-xs uppercase tracking-wider cursor-pointer hover:text-foreground"
+							class="font-mono text-xs uppercase tracking-wider px-5 py-3 cursor-pointer hover:text-foreground"
 							onclick={() => toggleSort('lastVisit')}
 						>
 							<div class="flex items-center gap-1">
@@ -246,46 +244,48 @@
 								<ArrowUpDown class="size-3 opacity-50" />
 							</div>
 						</TableHead>
-						<TableHead
-							class="font-semibold text-muted-foreground px-6 py-3.5 text-right w-16 text-xs uppercase tracking-wider"
-						></TableHead>
+						<TableHead class="w-16 px-5"></TableHead>
 					</TableRow>
 				</TableHeader>
-				<TableBody class="animate-stagger">
+				<TableBody>
 					{#if paginatedResults.length === 0}
 						<TableRow>
 							<TableCell colspan={7} class="text-center py-16 text-muted-foreground">
 								<div class="flex flex-col items-center justify-center">
-									<User class="size-8 text-muted-foreground/60 mb-2" />
+									<User class="size-8 opacity-40 mb-2" />
 									<span class="text-sm font-medium">No patient records found</span>
 								</div>
 							</TableCell>
 						</TableRow>
 					{:else}
-						{#each paginatedResults as patient (patient.id)}
-							<TableRow class="hover:bg-muted/40 border-b border-border transition-colors group">
-								<TableCell class="font-mono font-bold text-primary px-6 py-4 text-sm"
-									>{patient.clinicId}</TableCell
+						{#each paginatedResults as patient, idx (patient.id)}
+							<TableRow
+								class={idx % 2 === 1 ? 'bg-muted/20 hover:bg-muted/40' : 'hover:bg-muted/40'}
+							>
+								<TableCell class="font-mono font-bold text-primary px-5 py-3.5 text-sm">
+									{patient.clinicId}
+								</TableCell>
+								<TableCell class="font-semibold text-foreground px-5 py-3.5 text-sm">
+									{patient.name}
+								</TableCell>
+								<TableCell class="text-muted-foreground font-mono px-5 py-3.5 text-xs">
+									{patient.phone ?? '—'}
+								</TableCell>
+								<TableCell
+									class="text-muted-foreground px-5 py-3.5 uppercase text-xs font-semibold"
 								>
-								<TableCell class="font-semibold text-foreground px-6 py-4 text-sm"
-									>{patient.name}</TableCell
-								>
-								<TableCell class="text-muted-foreground px-6 py-4 text-sm"
-									>{patient.phone ?? '—'}</TableCell
-								>
-								<TableCell class="text-muted-foreground px-6 py-4 uppercase text-xs font-semibold"
-									>{patient.sex}</TableCell
-								>
-								<TableCell class="text-muted-foreground px-6 py-4 text-sm"
-									>{getAge(patient.dob)}</TableCell
-								>
-								<TableCell class="text-muted-foreground px-6 py-4 text-sm"
-									>{getLastVisit(patient.id)}</TableCell
-								>
-								<TableCell class="px-6 py-4 text-right">
+									{patient.sex}
+								</TableCell>
+								<TableCell class="text-muted-foreground font-mono px-5 py-3.5 text-xs">
+									{getAge(patient.dob)}
+								</TableCell>
+								<TableCell class="text-muted-foreground font-mono px-5 py-3.5 text-xs">
+									{getLastVisit(patient.id)}
+								</TableCell>
+								<TableCell class="px-5 py-3.5 text-right">
 									<DropdownMenu.Root>
 										<DropdownMenu.Trigger
-											class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0"
+											class="inline-flex items-center justify-center rounded-md text-sm font-medium hover:bg-accent hover:text-accent-foreground h-9 w-9 p-0"
 										>
 											<span class="sr-only">Open menu</span>
 											<MoreHorizontal class="h-4 w-4" />
@@ -310,12 +310,12 @@
 												</DialogTrigger>
 												<DialogContent class="bg-card border-border max-w-sm text-center">
 													<DialogHeader>
-														<DialogTitle class="text-foreground text-lg font-bold"
-															>{patient.name}</DialogTitle
-														>
-														<DialogDescription class="font-mono text-xs"
-															>{patient.clinicId}</DialogDescription
-														>
+														<DialogTitle class="text-foreground text-lg font-bold">
+															{patient.name}
+														</DialogTitle>
+														<DialogDescription class="font-mono text-xs">
+															{patient.clinicId}
+														</DialogDescription>
 													</DialogHeader>
 
 													<div
@@ -330,12 +330,9 @@
 													</div>
 
 													<div
-														class="flex justify-end gap-2 print:hidden border-t border-border/60 pt-3"
+														class="flex justify-end gap-2 print:hidden border-t border-border pt-3"
 													>
-														<Button
-															class="bg-primary text-primary-foreground hover:bg-primary/95 btn-press h-9 text-xs"
-															onclick={() => handlePrintQr(patient)}
-														>
+														<Button class="h-9 text-xs" onclick={() => handlePrintQr(patient)}>
 															<Printer class="size-3.5 mr-1.5" />
 															Print ID Card
 														</Button>
@@ -351,8 +348,9 @@
 				</TableBody>
 			</Table>
 		</ScrollArea>
-		<CardFooter class="flex items-center justify-between p-4 bg-muted/10">
-			<div class="text-sm text-muted-foreground font-medium">
+
+		<div class="flex items-center justify-between px-5 py-3.5 bg-muted/15">
+			<div class="text-xs font-mono text-muted-foreground">
 				Showing {(currentPage - 1) * pageSize + 1} to {Math.min(
 					currentPage * pageSize,
 					sortedResults.length
@@ -364,21 +362,21 @@
 					size="icon"
 					disabled={currentPage === 1}
 					onclick={() => currentPage--}
-					class="size-8"
+					class="size-9"
 				>
 					<ChevronLeft class="size-4" />
 				</Button>
-				<span class="text-sm font-medium px-2">Page {currentPage} of {totalPages}</span>
+				<span class="text-xs font-mono font-medium px-2">Page {currentPage} of {totalPages}</span>
 				<Button
 					variant="outline"
 					size="icon"
 					disabled={currentPage >= totalPages}
 					onclick={() => currentPage++}
-					class="size-8"
+					class="size-9"
 				>
 					<ChevronRight class="size-4" />
 				</Button>
 			</div>
-		</CardFooter>
-	</Card>
+		</div>
+	</section>
 </div>

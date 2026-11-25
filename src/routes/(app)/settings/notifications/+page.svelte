@@ -4,9 +4,12 @@
 </script>
 
 <div class="space-y-6">
-	<div class="mb-8">
-		<h1 class="text-3xl font-bold tracking-tight">Notification Settings</h1>
-		<p class="text-muted-foreground mt-2">Choose what you want to be notified about and how.</p>
+	<div class="pb-2 border-b border-border">
+		<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">Account</p>
+		<h1 class="text-2xl font-bold tracking-tight text-foreground">Notification Settings</h1>
+		<p class="text-sm text-muted-foreground mt-0.5">
+			Choose what you want to be notified about and how
+		</p>
 	</div>
 
 	{#if !authStore.preferences}
