@@ -1,19 +1,11 @@
 <script lang="ts">
 	import { authStore } from '#lib/state/auth.svelte.ts';
-	import {
-		Card,
-		CardContent,
-		CardDescription,
-		CardHeader,
-		CardTitle
-	} from '#lib/components/ui/card/index.ts';
 	import { Input } from '#lib/components/ui/input/index.ts';
 	import { Label } from '#lib/components/ui/label/index.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
-	import { Mail, Building2, UserCircle2, ShieldCheck, Save } from '@lucide/svelte';
+	import { UserCircle2, Save } from '@lucide/svelte';
 
 	let isSaving = $state(false);
-
 	let tempName = $state('');
 	let initDone = $state(false);
 
@@ -32,39 +24,40 @@
 </script>
 
 <div class="space-y-6">
-	<div class="mb-8">
-		<h1 class="text-3xl font-bold tracking-tight">Profile Settings</h1>
-		<p class="text-muted-foreground mt-2">
-			Manage your personal information and how it's displayed.
+	<div class="pb-2 border-b border-border">
+		<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">Account</p>
+		<h1 class="text-2xl font-bold tracking-tight text-foreground">Profile Settings</h1>
+		<p class="text-sm text-muted-foreground mt-0.5">
+			Manage your personal information and how it appears across the clinic
 		</p>
 	</div>
 
 	{#if !authStore.profile}
-		<div class="space-y-4">
-			<div class="h-64 rounded-xl bg-muted animate-pulse"></div>
-		</div>
+		<div class="h-56 rounded-xl bg-muted animate-pulse"></div>
 	{:else}
-		<!-- Basic Info Card -->
-		<Card class="border-none shadow-md overflow-hidden">
-			<div class="h-2 bg-primary"></div>
-			<CardHeader>
-				<CardTitle>Basic Information</CardTitle>
-				<CardDescription>Update your display name.</CardDescription>
-			</CardHeader>
-			<CardContent class="space-y-6">
-				<div class="space-y-4">
-					<div class="space-y-2">
-						<Label for="display-name">Display Name</Label>
-						<div class="relative max-w-sm">
-							<UserCircle2 class="absolute left-3 top-3.5 size-4 text-muted-foreground" />
-							<Input id="display-name" bind:value={tempName} class="pl-9 h-11" />
-						</div>
+		<section class="rounded-xl border border-border bg-card overflow-hidden">
+			<div class="h-1.5 bg-primary"></div>
+			<div class="p-5 sm:p-6 space-y-5">
+				<div>
+					<h2 class="text-base font-semibold text-foreground">Basic Information</h2>
+					<p class="text-xs text-muted-foreground">Update your display name.</p>
+				</div>
+
+				<div class="space-y-1.5 max-w-sm">
+					<Label for="display-name">Display Name</Label>
+					<div class="relative">
+						<UserCircle2
+							class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
+						/>
+						<Input id="display-name" bind:value={tempName} class="pl-9 h-11" />
 					</div>
 				</div>
 
-				<div class="pt-4 flex items-center justify-between border-t border-border/50">
+				<div
+					class="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-border"
+				>
 					<div>
-						<p class="text-sm font-medium">Email Address</p>
+						<p class="text-sm font-medium text-foreground">Email Address</p>
 						<p class="text-xs text-muted-foreground">
 							Contact your Superadmin if you need to change your email address.
 						</p>
@@ -73,20 +66,17 @@
 					<Button
 						onclick={handleSave}
 						disabled={isSaving || tempName === authStore.profile.name}
-						class="w-full sm:w-auto h-11"
+						class="w-full sm:w-auto min-h-11 px-5 font-semibold"
 					>
 						{#if isSaving}
-							<div
-								class="size-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2"
-							></div>
-							Saving...
+							Saving…
 						{:else}
 							<Save class="size-4 mr-2" />
 							Save Changes
 						{/if}
 					</Button>
 				</div>
-			</CardContent>
-		</Card>
+			</div>
+		</section>
 	{/if}
 </div>

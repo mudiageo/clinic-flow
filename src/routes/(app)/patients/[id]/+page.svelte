@@ -2,7 +2,6 @@
 	import { page } from '$app/state';
 	import { patientStore } from '#lib/state/patients.svelte.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
-	import { Card, CardContent, CardHeader, CardTitle } from '#lib/components/ui/card/index.ts';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import { ArrowLeft, Users, Calendar, Phone, MapPin } from '@lucide/svelte';
 	import AncTracker from '#lib/components/maternal/anc-tracker.svelte';
@@ -13,10 +12,8 @@
 	let clinicId = $derived(page.params.id);
 	let patient = $derived(clinicId ? patientStore.findByClinicId(clinicId) : null);
 
-	// State for family linking dialog
 	let isLinkFamilyOpen = $state(false);
 
-	// Find family members (excluding self)
 	let familyMembers = $derived(
 		patient?.familyId
 			? patientStore.familyMembers(patient.familyId).filter((p) => p.id !== patient?.id)
@@ -32,109 +29,116 @@
 	<title>{patient ? patient.name : 'Patient Profile'} — ClinicFlow</title>
 </svelte:head>
 
-<div class="max-w-5xl mx-auto space-y-6 animate-fade-in">
-	<div class="flex items-center gap-4">
-		<Button variant="ghost" size="icon" onclick={goBack} aria-label="Go back">
-			<ArrowLeft class="size-5" />
-		</Button>
-		<div>
-			<h1 class="text-2xl font-bold tracking-tight">{patient?.name || 'Patient Not Found'}</h1>
+<div class="max-w-5xl mx-auto space-y-6">
+	<!-- Patient Folder Header Band -->
+	<div class="rounded-xl border border-border bg-card overflow-hidden">
+		<div class="bg-primary text-primary-foreground px-5 py-4 flex items-center gap-3">
+			<Button
+				variant="ghost"
+				size="icon"
+				onclick={goBack}
+				aria-label="Go back"
+				class="text-primary-foreground hover:bg-primary-foreground/15 shrink-0"
+			>
+				<ArrowLeft class="size-5" />
+			</Button>
+			<div class="min-w-0 flex-1">
+				<p class="text-[11px] font-mono uppercase tracking-widest opacity-80">Patient Folder</p>
+				<h1 class="text-xl sm:text-2xl font-bold tracking-tight truncate">
+					{patient?.name || 'Patient Not Found'}
+				</h1>
+			</div>
 			{#if patient}
-				<p class="text-muted-foreground font-mono">{patient.clinicId}</p>
+				<span
+					class="font-mono text-xs sm:text-sm bg-primary-foreground/15 px-3 py-1 rounded-lg shrink-0"
+				>
+					{patient.clinicId}
+				</span>
 			{/if}
 		</div>
 	</div>
 
 	{#if patient}
 		<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-			<!-- Profile Card -->
-			<Card class="md:col-span-2">
-				<CardHeader>
-					<CardTitle>Patient Details</CardTitle>
-				</CardHeader>
-				<CardContent class="space-y-4">
-					<div class="grid grid-cols-2 gap-4 text-sm">
-						<div>
-							<span class="text-muted-foreground block mb-1">Date of Birth / Age</span>
-							<div class="flex items-center gap-2">
-								<Calendar class="size-4 text-primary/70" />
-								<span>{patient.dob ? new Date(patient.dob).toLocaleDateString() : 'Unknown'}</span>
-							</div>
-						</div>
-						<div>
-							<span class="text-muted-foreground block mb-1">Sex</span>
-							<span class="capitalize">{patient.sex}</span>
-						</div>
-						<div>
-							<span class="text-muted-foreground block mb-1">Insurance</span>
-							<Badge
-								variant={patient.isNhis ? 'default' : 'secondary'}
-								class="font-normal text-xs mt-0.5"
-							>
-								{patient.isNhis ? 'NHIS Enrollee' : 'None'}
-							</Badge>
-						</div>
-						<div>
-							<span class="text-muted-foreground block mb-1">Phone Number</span>
-							<div class="flex items-center gap-2">
-								<Phone class="size-4 text-primary/70" />
-								<span>{patient.phone || 'N/A'}</span>
-							</div>
-						</div>
-						<div>
-							<span class="text-muted-foreground block mb-1">Community / Address</span>
-							<div class="flex items-center gap-2">
-								<MapPin class="size-4 text-primary/70" />
-								<span>{patient.community || patient.address || 'N/A'}</span>
-							</div>
+			<!-- Demographics Ledger -->
+			<section class="md:col-span-2 rounded-xl border border-border bg-card p-5 space-y-4">
+				<h2 class="text-base font-semibold text-foreground pb-2 border-b border-border">
+					Patient Details
+				</h2>
+				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+					<div>
+						<span class="text-xs text-muted-foreground block mb-1">Date of Birth</span>
+						<div class="flex items-center gap-2 font-mono">
+							<Calendar class="size-4 text-primary shrink-0" />
+							<span>{patient.dob ? new Date(patient.dob).toLocaleDateString() : 'Unknown'}</span>
 						</div>
 					</div>
-				</CardContent>
-			</Card>
+					<div>
+						<span class="text-xs text-muted-foreground block mb-1">Sex</span>
+						<span class="capitalize font-medium">{patient.sex}</span>
+					</div>
+					<div>
+						<span class="text-xs text-muted-foreground block mb-1">Insurance</span>
+						<Badge variant={patient.isNhis ? 'default' : 'secondary'} class="font-medium text-xs">
+							{patient.isNhis ? 'NHIS Enrollee' : 'None'}
+						</Badge>
+					</div>
+					<div>
+						<span class="text-xs text-muted-foreground block mb-1">Phone Number</span>
+						<div class="flex items-center gap-2 font-mono">
+							<Phone class="size-4 text-primary shrink-0" />
+							<span>{patient.phone || 'N/A'}</span>
+						</div>
+					</div>
+					<div class="sm:col-span-2">
+						<span class="text-xs text-muted-foreground block mb-1">Community / Address</span>
+						<div class="flex items-center gap-2">
+							<MapPin class="size-4 text-primary shrink-0" />
+							<span>{patient.community || patient.address || 'N/A'}</span>
+						</div>
+					</div>
+				</div>
+			</section>
 
 			<!-- Family Panel -->
-			<Card>
-				<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-					<CardTitle class="text-lg flex items-center gap-2">
-						<Users class="size-5 text-primary" />
+			<section class="rounded-xl border border-border bg-card p-5 space-y-4">
+				<div class="flex items-center justify-between gap-2 pb-2 border-b border-border">
+					<h2 class="text-base font-semibold flex items-center gap-2">
+						<Users class="size-4 text-primary" />
 						Family Group
-					</CardTitle>
-					<div class="flex gap-2">
-						{#if patient.familyId}
-							<Button variant="outline" size="sm" href={`/families/${patient.familyId}`}
-								>Dashboard</Button
-							>
-						{:else}
-							<Button variant="outline" size="sm" onclick={() => (isLinkFamilyOpen = true)}
-								>Link Family</Button
-							>
-						{/if}
-					</div>
-				</CardHeader>
-				<CardContent>
-					{#if familyMembers.length > 0}
-						<div class="space-y-3 mt-4">
-							{#each familyMembers as relative (relative.id)}
-								<div class="flex flex-col gap-1 p-2 rounded-lg bg-muted/40 border border-border">
-									<a
-										href="/patients/{relative.clinicId}"
-										class="text-sm font-medium hover:underline text-foreground">{relative.name}</a
-									>
-
-									<div class="flex items-center justify-between text-xs text-muted-foreground">
-										<span class="font-mono">{relative.clinicId}</span>
-										<Badge variant="secondary" class="h-5 text-[10px]">Relative</Badge>
-									</div>
-								</div>
-							{/each}
-						</div>
+					</h2>
+					{#if patient.familyId}
+						<Button variant="outline" size="sm" href={`/families/${patient.familyId}`}>
+							Dashboard
+						</Button>
 					{:else}
-						<div class="text-center py-6 text-muted-foreground text-sm">
-							<p>No family members linked.</p>
-						</div>
+						<Button variant="outline" size="sm" onclick={() => (isLinkFamilyOpen = true)}>
+							Link Family
+						</Button>
 					{/if}
-				</CardContent>
-			</Card>
+				</div>
+
+				{#if familyMembers.length > 0}
+					<div class="divide-y divide-border border border-border rounded-lg">
+						{#each familyMembers as relative (relative.id)}
+							<a
+								href="/patients/{relative.clinicId}"
+								class="flex flex-col gap-1 px-3 py-2.5 hover:bg-muted/40 transition-colors"
+							>
+								<span class="text-sm font-medium text-foreground">{relative.name}</span>
+								<div class="flex items-center justify-between text-xs text-muted-foreground">
+									<span class="font-mono">{relative.clinicId}</span>
+									<Badge variant="secondary" class="h-5 text-[10px]">Relative</Badge>
+								</div>
+							</a>
+						{/each}
+					</div>
+				{:else}
+					<div class="text-center py-6 text-muted-foreground text-xs">
+						No family members linked.
+					</div>
+				{/if}
+			</section>
 		</div>
 
 		{#if patient.sex === 'female' && settingsStore.current.maternalHealthEnabled}
@@ -145,7 +149,9 @@
 			<ImmunizationCard patientId={patient.id} />
 		{/if}
 	{:else}
-		<div class="p-12 text-center text-muted-foreground">
+		<div
+			class="p-12 text-center text-muted-foreground border border-dashed border-border rounded-xl bg-card/50"
+		>
 			Patient record not found locally. Please ensure you are synced.
 		</div>
 	{/if}

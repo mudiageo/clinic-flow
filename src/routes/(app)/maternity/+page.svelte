@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { Card, CardHeader, CardTitle, CardContent } from '#lib/components/ui/card/index.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
-	import { Heart, Baby, Clock, Activity, Plus, Waves } from '@lucide/svelte';
+	import { Baby, Clock, Activity, Plus, Waves } from '@lucide/svelte';
 	import { goto } from '$app/navigation';
 	import { pregnancyStore } from '#lib/state/pregnancy.svelte.ts';
 	import { patientStore } from '#lib/state/patients.svelte.ts';
@@ -52,21 +51,22 @@
 	<title>Maternity Ward — ClinicFlow</title>
 </svelte:head>
 
-<div class="space-y-8 animate-fade-in">
-	<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-		<div class="flex items-start gap-3">
-			<div class="p-2.5 rounded-xl bg-pink-100 text-pink-600">
-				<Heart class="size-6" />
-			</div>
-			<div>
-				<h1 class="text-2xl font-bold text-foreground tracking-tight">Maternity Ward</h1>
-				<p class="text-muted-foreground text-sm mt-0.5 font-medium">
-					Active admissions and labour monitoring
-				</p>
-			</div>
+<div class="space-y-6 max-w-6xl mx-auto">
+	<!-- Page Header -->
+	<div
+		class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2 border-b border-border"
+	>
+		<div>
+			<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+				Maternal Health
+			</p>
+			<h1 class="text-2xl font-bold text-foreground tracking-tight">Maternity Ward</h1>
+			<p class="text-muted-foreground text-sm mt-0.5">
+				Active admissions and labour monitoring ({activePregnancies.length} active)
+			</p>
 		</div>
 		<Button
-			class="bg-pink-600 hover:bg-pink-700 text-white"
+			class="min-h-11 px-5 font-semibold w-full sm:w-auto"
 			title={admitTitle}
 			onclick={() => goto('/doctor/patients')}
 		>
@@ -77,96 +77,100 @@
 
 	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 		{#if activePregnancies.length === 0}
-			<Card class="card-hover md:col-span-2 lg:col-span-3">
-				<CardContent class="p-8 text-center text-muted-foreground">
-					No active pregnancies recorded.
-				</CardContent>
-			</Card>
+			<div
+				class="md:col-span-2 lg:col-span-3 p-10 text-center text-muted-foreground rounded-xl border border-dashed border-border bg-card/50"
+			>
+				No active pregnancies recorded.
+			</div>
 		{/if}
 
 		{#each activePregnancies as { record, patient } (record.id)}
 			{@const age = ageFromDob(patient.dob)}
-			<Card class="overflow-hidden card-hover border-pink-100">
-				<CardHeader class="border-b bg-pink-50/50 pb-4">
-					<div class="flex items-start justify-between">
-						<div>
-							<CardTitle class="text-lg">{patient.name}</CardTitle>
-							<p class="text-xs text-muted-foreground mt-1 font-medium">
-								{age === '—' ? '—' : `${age} yrs`} · G{record.gravida ?? '—'}P{record.parity ?? '—'}
+			<article
+				class="rounded-xl border border-border border-l-4 border-l-primary bg-card overflow-hidden flex flex-col"
+			>
+				<div
+					class="px-4 py-3.5 border-b border-dashed border-border bg-muted/20 flex items-start justify-between gap-2"
+				>
+					<div class="min-w-0">
+						<h2 class="text-base font-bold text-foreground truncate">{patient.name}</h2>
+						<p class="text-xs font-mono text-muted-foreground mt-0.5 tabular-nums">
+							{age === '—' ? '—' : `${age} yrs`} · G{record.gravida ?? '—'}P{record.parity ?? '—'}
+						</p>
+					</div>
+					<Badge variant="secondary" class="text-[11px] font-medium shrink-0">Active</Badge>
+				</div>
+
+				<div class="grid grid-cols-2 divide-x divide-y divide-border text-sm flex-1">
+					<div class="p-3.5 flex items-center gap-2.5">
+						<Clock class="size-4 text-muted-foreground shrink-0" />
+						<div class="min-w-0">
+							<p class="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
+								Gestational Age
+							</p>
+							<p class="font-semibold font-mono tabular-nums">{gestationalAge(record.lmpDate)}</p>
+						</div>
+					</div>
+					<div class="p-3.5 flex items-center gap-2.5">
+						<Waves class="size-4 text-primary shrink-0" />
+						<div class="min-w-0">
+							<p class="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
+								LMP
+							</p>
+							<p class="font-semibold font-mono tabular-nums">
+								{record.lmpDate ? formatDate(record.lmpDate) : '—'}
 							</p>
 						</div>
-						<Badge variant="outline" class="bg-white text-pink-700 border-pink-200">
-							Active pregnancy
-						</Badge>
 					</div>
-				</CardHeader>
-				<CardContent class="p-0">
-					<div class="grid grid-cols-2 divide-x divide-y border-b text-sm">
-						<div class="p-3 flex items-center gap-2">
-							<Clock class="size-4 text-muted-foreground" />
-							<div class="leading-tight">
-								<p class="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-									Gestational Age
-								</p>
-								<p class="font-medium">{gestationalAge(record.lmpDate)}</p>
-							</div>
-						</div>
-						<div class="p-3 flex items-center gap-2">
-							<Waves class="size-4 text-pink-500" />
-							<div class="leading-tight">
-								<p class="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-									LMP
-								</p>
-								<p class="font-medium">
-									{record.lmpDate ? formatDate(record.lmpDate) : '—'}
-								</p>
-							</div>
-						</div>
-						<div class="p-3 flex items-center gap-2 col-span-2">
-							<Activity class="size-4 text-rose-500" />
-							<div class="leading-tight">
-								<p class="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-									Expected Delivery (EDD)
-								</p>
-								<p class="font-medium">
-									{record.eddDate ? formatDate(record.eddDate) : '—'}
-								</p>
-							</div>
-						</div>
-						<div class="p-3 flex items-center gap-2 col-span-2">
-							<Clock class="size-4 text-muted-foreground" />
-							<div class="leading-tight">
-								<p class="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-									Registered
-								</p>
-								<p class="font-medium">{formatDistanceToNow(record.createdAt)}</p>
-							</div>
+					<div class="p-3.5 flex items-center gap-2.5 col-span-2">
+						<Activity class="size-4 text-triage-red shrink-0" />
+						<div class="min-w-0">
+							<p class="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
+								Expected Delivery (EDD)
+							</p>
+							<p class="font-semibold font-mono tabular-nums">
+								{record.eddDate ? formatDate(record.eddDate) : '—'}
+							</p>
 						</div>
 					</div>
-					<div class="p-3 bg-muted/20 flex gap-2">
-						<Button
-							variant="outline"
-							class="w-full text-xs h-8"
-							onclick={() => goto(`/nurse/vitals?patient=${record.patientId}`)}>Vitals</Button
-						>
-						<Button
-							class="w-full text-xs h-8 bg-pink-600 hover:bg-pink-700"
-							onclick={() => openPartograph(record.patientId)}>Open Partograph</Button
-						>
+					<div class="p-3.5 flex items-center gap-2.5 col-span-2">
+						<Clock class="size-4 text-muted-foreground shrink-0" />
+						<div class="min-w-0">
+							<p class="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
+								Registered
+							</p>
+							<p class="font-medium text-xs">{formatDistanceToNow(record.createdAt)}</p>
+						</div>
 					</div>
-				</CardContent>
-			</Card>
+				</div>
+
+				<div class="p-3 border-t border-border bg-muted/15 flex gap-2">
+					<Button
+						variant="outline"
+						class="flex-1 text-xs min-h-10"
+						onclick={() => goto(`/nurse/vitals?patient=${record.patientId}`)}
+					>
+						Vitals
+					</Button>
+					<Button
+						class="flex-1 text-xs min-h-10 font-semibold"
+						onclick={() => openPartograph(record.patientId)}
+					>
+						Open Partograph
+					</Button>
+				</div>
+			</article>
 		{/each}
 
-		<!-- Empty Slot -->
+		<!-- Empty Admission Slot -->
 		<button
 			type="button"
-			class="flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl h-[280px] text-muted-foreground hover:bg-muted/50 hover:border-muted-foreground/50 transition-colors"
+			class="flex flex-col items-center justify-center gap-2 border border-dashed border-border rounded-xl min-h-[260px] text-muted-foreground hover:bg-muted/40 hover:border-primary/40 transition-colors"
 			title={admitTitle}
 			onclick={() => goto('/doctor/patients')}
 		>
 			<Baby class="size-8 opacity-40" />
-			<span class="font-medium text-sm">Admit New Patient</span>
+			<span class="font-medium text-sm text-foreground">Admit New Patient</span>
 		</button>
 	</div>
 </div>

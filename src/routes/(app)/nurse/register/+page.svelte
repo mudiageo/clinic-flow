@@ -7,14 +7,6 @@
 	import { Input } from '#lib/components/ui/input/index.ts';
 	import { Label } from '#lib/components/ui/label/index.ts';
 	import {
-		Card,
-		CardHeader,
-		CardTitle,
-		CardContent,
-		CardDescription
-	} from '#lib/components/ui/card/index.ts';
-	import { Select as SelectPrimitive } from 'bits-ui';
-	import {
 		Select,
 		SelectTrigger,
 		SelectContent,
@@ -22,28 +14,15 @@
 	} from '#lib/components/ui/select/index.ts';
 	import { PhoneInput } from '#lib/components/ui/phone-input/index.ts';
 	import * as Stepper from '#lib/components/ui/stepper/index.ts';
-	import { ShinyButton } from '#lib/components/ui/shiny-button/index.ts';
 	import { toast } from 'svelte-sonner';
 	import * as Dialog from '#lib/components/ui/dialog/index.ts';
 	import QRCode from 'qrcode';
-	import {
-		Search,
-		Printer,
-		FolderOpen,
-		User,
-		Scan,
-		Sparkles,
-		UserPlus,
-		ArrowRight,
-		Check,
-		QrCode
-	} from '@lucide/svelte';
+	import { Search, Printer, Scan, ArrowRight, Check } from '@lucide/svelte';
 	import { fade } from 'svelte/transition';
 
 	let showScanner = $state(false);
 	let searchQuery = $state('');
 
-	// QR Display
 	let showQrDialog = $state(false);
 	let registeredPatientInfo = $state<{ name: string; clinicId: string } | null>(null);
 	let qrCanvas = $state<HTMLCanvasElement | null>(null);
@@ -61,10 +40,8 @@
 		}
 	});
 
-	// Stepper State
 	let currentStep = $state(1);
 
-	// Form State
 	let form = $state({
 		name: '',
 		phone: '',
@@ -109,7 +86,6 @@
 		isSubmitting = true;
 
 		try {
-			// Deterministic Clinic ID format OR-XXXX-01, unique within local records.
 			const initialParts = form.name.toUpperCase().split(' ');
 			const prefix = initialParts
 				.map((p) => p[0] || '')
@@ -136,7 +112,6 @@
 				deleted: false
 			});
 
-			// Auto-issue a waiting ticket in the queue
 			await queueStore.create({
 				patientId: id,
 				phcId: sessionStore.activePhcId,
@@ -155,7 +130,7 @@
 			generatedClinicId = clinicId;
 			registeredPatientInfo = { name: form.name, clinicId };
 			isSubmitting = false;
-			currentStep = 4; // Move to Success state
+			currentStep = 4;
 			showQrDialog = true;
 		} catch (e) {
 			toast.error(`Failed to register: ${e instanceof Error ? e.message : String(e)}`);
@@ -168,89 +143,87 @@
 	<title>Register Patient — ClinicFlow</title>
 </svelte:head>
 
-<div class="max-w-5xl mx-auto space-y-8 animate-fade-in">
-	<!-- Header -->
-	<div class="flex items-start gap-3 border-b border-border pb-6">
-		<div class="p-2.5 rounded-xl bg-primary/10 text-primary">
-			<FolderOpen class="size-6" />
-		</div>
-		<div>
-			<h1 class="text-2xl font-bold text-foreground tracking-tight">Patient Registry</h1>
-			<p class="text-muted-foreground text-sm mt-0.5">
-				Register new patients or search existing records
-			</p>
-		</div>
+<div class="max-w-6xl mx-auto space-y-6">
+	<!-- Page Header -->
+	<div class="pb-2 border-b border-border">
+		<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+			Intake Window
+		</p>
+		<h1 class="text-2xl font-bold text-foreground tracking-tight">Patient Registry</h1>
+		<p class="text-sm text-muted-foreground mt-0.5">
+			Register new patients or check existing records before creating a folder
+		</p>
 	</div>
 
 	<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-		<!-- Left Column: Search / QR -->
-		<div class="space-y-6 lg:col-span-1">
-			<Card class="bg-card/60 card-hover">
-				<CardHeader class="pb-3">
-					<CardTitle class="text-base font-semibold">Find Patient</CardTitle>
-					<CardDescription>Search registry or scan barcode/QR code</CardDescription>
-				</CardHeader>
-				<CardContent class="space-y-4">
-					<div class="relative">
-						<Search class="absolute left-3 top-3.5 size-4 text-muted-foreground" />
-						<Input
-							bind:value={searchQuery}
-							placeholder="Search by name/ID..."
-							class="pl-9 h-11 bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-primary/20"
-						/>
-					</div>
+		<!-- Left Column: Quick Lookup / QR -->
+		<aside class="lg:col-span-1">
+			<div class="rounded-xl border border-border bg-card p-5 space-y-4">
+				<div>
+					<h2 class="text-base font-semibold text-foreground">Find Existing Patient</h2>
+					<p class="text-xs text-muted-foreground mt-0.5">Search local registry or scan ID card</p>
+				</div>
 
-					{#if showScanner}
-						<div class="mt-4 border border-border rounded-xl overflow-hidden bg-background p-2">
-							<QrScanner onResult={handleQrResult} />
-							<Button
-								variant="ghost"
-								class="w-full text-muted-foreground hover:text-foreground mt-2 btn-press"
-								onclick={() => (showScanner = false)}
-							>
-								Cancel Scan
-							</Button>
-						</div>
-					{:else}
+				<div class="relative">
+					<Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+					<Input
+						bind:value={searchQuery}
+						placeholder="Search by name or ID..."
+						class="pl-9 h-11 bg-background"
+					/>
+				</div>
+
+				{#if showScanner}
+					<div class="border border-border rounded-xl overflow-hidden bg-background p-2">
+						<QrScanner onResult={handleQrResult} />
 						<Button
-							variant="outline"
-							class="w-full border-border text-foreground hover:bg-muted btn-press h-10"
-							onclick={() => (showScanner = true)}
+							variant="ghost"
+							class="w-full text-muted-foreground hover:text-foreground mt-2 min-h-10"
+							onclick={() => (showScanner = false)}
 						>
-							<Scan class="size-4 mr-2" />
-							Scan QR Code
+							Cancel Scan
 						</Button>
-					{/if}
+					</div>
+				{:else}
+					<Button
+						variant="outline"
+						class="w-full border-border min-h-11"
+						onclick={() => (showScanner = true)}
+					>
+						<Scan class="size-4 mr-2" />
+						Scan QR Code
+					</Button>
+				{/if}
 
-					<!-- Search Results List -->
-					{#if searchResults.length > 0}
-						<div class="space-y-2 mt-4 max-h-60 overflow-y-auto pr-1 no-scrollbar animate-stagger">
-							{#each searchResults as patient (patient.id)}
-								<a
-									href="/patients/{patient.clinicId}"
-									class="block p-3 bg-muted/40 border border-border rounded-xl transition-all hover:bg-muted/80"
-								>
-									<div class="font-medium text-foreground text-sm">{patient.name}</div>
-									<div class="text-xs text-muted-foreground mt-1 flex items-center justify-between">
-										<span class="font-mono">{patient.clinicId}</span>
-										<span>{patient.phone ?? 'No Phone'}</span>
-									</div>
-								</a>
-							{/each}
-						</div>
-					{:else if searchQuery}
-						<p class="text-xs text-muted-foreground text-center py-4">No matching records found.</p>
-					{/if}
-				</CardContent>
-			</Card>
-		</div>
+				{#if searchResults.length > 0}
+					<div
+						class="divide-y divide-border border border-border rounded-xl bg-background max-h-64 overflow-y-auto"
+					>
+						{#each searchResults as patient (patient.id)}
+							<a
+								href="/patients/{patient.clinicId}"
+								class="block px-3.5 py-2.5 hover:bg-muted/40 transition-colors"
+							>
+								<div class="font-medium text-foreground text-sm">{patient.name}</div>
+								<div class="text-xs text-muted-foreground mt-0.5 flex items-center justify-between">
+									<span class="font-mono">{patient.clinicId}</span>
+									<span>{patient.phone ?? 'No phone'}</span>
+								</div>
+							</a>
+						{/each}
+					</div>
+				{:else if searchQuery}
+					<p class="text-xs text-muted-foreground text-center py-4">No matching records found.</p>
+				{/if}
+			</div>
+		</aside>
 
-		<!-- Right Column: Registration -->
+		<!-- Right Column: Registration Folder -->
 		<div class="lg:col-span-2">
 			{#if currentStep < 4}
-				<div class="bg-card border rounded-xl p-6 shadow-sm flex flex-col h-full relative">
+				<div class="bg-card border border-border rounded-xl p-5 sm:p-6 flex flex-col h-full">
 					<!-- Stepper -->
-					<div class="mb-8">
+					<div class="mb-6 pb-4 border-b border-border">
 						<Stepper.Root bind:value={currentStep} class="w-full">
 							<Stepper.Item step={1}>
 								<Stepper.Trigger step={1}>
@@ -268,7 +241,7 @@
 									<Stepper.Indicator step={2}>2</Stepper.Indicator>
 									<div class="flex flex-col items-start">
 										<Stepper.Title>Contact</Stepper.Title>
-										<Stepper.Description>Address & Next of Kin</Stepper.Description>
+										<Stepper.Description>Address &amp; Next of Kin</Stepper.Description>
 									</div>
 								</Stepper.Trigger>
 								<Stepper.Separator />
@@ -279,7 +252,7 @@
 									<Stepper.Indicator step={3}>3</Stepper.Indicator>
 									<div class="flex flex-col items-start">
 										<Stepper.Title>Review</Stepper.Title>
-										<Stepper.Description>Confirm & submit</Stepper.Description>
+										<Stepper.Description>Confirm &amp; submit</Stepper.Description>
 									</div>
 								</Stepper.Trigger>
 							</Stepper.Item>
@@ -289,9 +262,9 @@
 					<!-- Forms -->
 					<div class="flex-1">
 						{#if currentStep === 1}
-							<div in:fade={{ duration: 150 }} class="space-y-6">
-								<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-									<div class="space-y-2">
+							<div in:fade={{ duration: 120 }} class="space-y-5">
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+									<div class="space-y-1.5">
 										<Label for="name">Full Name <span class="text-destructive">*</span></Label>
 										<Input
 											id="name"
@@ -300,11 +273,11 @@
 											class="h-11"
 										/>
 									</div>
-									<div class="space-y-2">
+									<div class="space-y-1.5">
 										<Label for="dob">Date of Birth</Label>
 										<Input id="dob" type="date" bind:value={form.dob} class="h-11" />
 									</div>
-									<div class="space-y-2">
+									<div class="space-y-1.5">
 										<Label for="sex">Biological Sex <span class="text-destructive">*</span></Label>
 										<Select
 											type="single"
@@ -320,10 +293,10 @@
 										</Select>
 									</div>
 									{#if form.sex === 'female'}
-										<div class="space-y-2">
-											<Label class="block mb-2">Pregnancy Status</Label>
+										<div class="space-y-1.5">
+											<Label class="block">Pregnancy Status</Label>
 											<label
-												class="flex items-center gap-2 text-sm border p-3 h-11 rounded-md cursor-pointer hover:bg-muted/50 transition-colors"
+												class="flex items-center gap-2.5 text-sm border border-border px-3 h-11 rounded-lg cursor-pointer hover:bg-muted/40 transition-colors"
 											>
 												<input
 													type="checkbox"
@@ -336,27 +309,27 @@
 									{/if}
 								</div>
 
-								<div class="col-span-1 md:col-span-2 pt-2">
+								<div>
 									<label
-										class="flex items-center gap-2 text-sm border p-3 h-11 rounded-md cursor-pointer hover:bg-muted/50 transition-colors"
+										class="flex items-center gap-2.5 text-sm border border-border px-3 h-11 rounded-lg cursor-pointer hover:bg-muted/40 transition-colors"
 									>
 										<input
 											type="checkbox"
 											bind:checked={form.isNhis}
 											class="accent-primary size-4"
 										/>
-										Patient is an NHIS/HMO enrollee
+										Patient is an NHIS / HMO enrollee
 									</label>
 								</div>
 							</div>
 						{:else if currentStep === 2}
-							<div in:fade={{ duration: 150 }} class="space-y-6">
-								<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-									<div class="space-y-2">
+							<div in:fade={{ duration: 120 }} class="space-y-5">
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+									<div class="space-y-1.5">
 										<Label>Phone Number</Label>
 										<PhoneInput bind:value={form.phone} />
 									</div>
-									<div class="space-y-2">
+									<div class="space-y-1.5">
 										<Label for="address">Residential Address</Label>
 										<Input
 											id="address"
@@ -365,7 +338,7 @@
 											class="h-11"
 										/>
 									</div>
-									<div class="space-y-2">
+									<div class="space-y-1.5">
 										<Label for="community">Community / Ward</Label>
 										<Input
 											id="community"
@@ -376,10 +349,10 @@
 									</div>
 								</div>
 
-								<div class="pt-4 border-t mt-6">
-									<h3 class="font-medium mb-4">Next of Kin Details</h3>
-									<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-										<div class="space-y-2">
+								<div class="pt-5 border-t border-border">
+									<h3 class="text-sm font-semibold mb-3">Next of Kin Details</h3>
+									<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+										<div class="space-y-1.5">
 											<Label for="nokName">Full Name</Label>
 											<Input
 												id="nokName"
@@ -388,7 +361,7 @@
 												class="h-11"
 											/>
 										</div>
-										<div class="space-y-2">
+										<div class="space-y-1.5">
 											<Label>Phone Number</Label>
 											<PhoneInput bind:value={form.nextOfKinPhone} />
 										</div>
@@ -396,18 +369,18 @@
 								</div>
 							</div>
 						{:else if currentStep === 3}
-							<div in:fade={{ duration: 150 }} class="space-y-6">
-								<div class="bg-muted/30 border rounded-lg p-6">
-									<h3 class="font-semibold text-lg mb-4">Review Patient Details</h3>
+							<div in:fade={{ duration: 120 }} class="space-y-5">
+								<div class="bg-muted/30 border border-border rounded-xl p-5">
+									<h3 class="font-semibold text-base mb-4">Review Patient Details</h3>
 
 									<div class="grid grid-cols-2 gap-y-4 gap-x-8 text-sm">
 										<div>
-											<p class="text-muted-foreground">Full Name</p>
-											<p class="font-medium text-foreground text-base">{form.name || '—'}</p>
+											<p class="text-xs text-muted-foreground">Full Name</p>
+											<p class="font-semibold text-foreground text-base">{form.name || '—'}</p>
 										</div>
 										<div>
-											<p class="text-muted-foreground">Biological Sex</p>
-											<p class="font-medium text-foreground capitalize text-base">{form.sex}</p>
+											<p class="text-xs text-muted-foreground">Biological Sex</p>
+											<p class="font-semibold text-foreground capitalize text-base">{form.sex}</p>
 											{#if form.sex === 'female'}
 												<p class="text-xs text-primary font-medium">
 													{form.isPregnant ? 'Pregnant' : 'Not Pregnant'}
@@ -415,19 +388,19 @@
 											{/if}
 										</div>
 										<div>
-											<p class="text-muted-foreground">Phone</p>
-											<p class="font-medium text-foreground">{form.phone || '—'}</p>
+											<p class="text-xs text-muted-foreground">Phone</p>
+											<p class="font-medium text-foreground font-mono">{form.phone || '—'}</p>
 										</div>
 										<div>
-											<p class="text-muted-foreground">Date of Birth</p>
-											<p class="font-medium text-foreground">{form.dob || '—'}</p>
+											<p class="text-xs text-muted-foreground">Date of Birth</p>
+											<p class="font-medium text-foreground font-mono">{form.dob || '—'}</p>
 										</div>
 										<div>
-											<p class="text-muted-foreground">Address</p>
+											<p class="text-xs text-muted-foreground">Address</p>
 											<p class="font-medium text-foreground">{form.address || '—'}</p>
 										</div>
 										<div>
-											<p class="text-muted-foreground">Next of Kin</p>
+											<p class="text-xs text-muted-foreground">Next of Kin</p>
 											<p class="font-medium text-foreground">
 												{form.nextOfKinName || '—'}
 												{form.nextOfKinPhone ? `(${form.nextOfKinPhone})` : ''}
@@ -436,20 +409,18 @@
 									</div>
 								</div>
 
-								<div
-									class="p-4 border rounded-xl bg-amber-500/5 border-amber-500/20 mt-6 shadow-sm"
-								>
+								<div class="p-4 border rounded-xl bg-triage-amber/10 border-triage-amber/30">
 									<label class="flex items-start gap-3 cursor-pointer">
 										<input
 											type="checkbox"
 											bind:checked={form.hasConsent}
-											class="mt-1 accent-amber-600 size-5 shrink-0"
+											class="mt-1 accent-primary size-5 shrink-0"
 										/>
 										<div class="space-y-1">
-											<p class="font-semibold text-amber-900 dark:text-amber-200">
-												Patient Consent & Data Privacy (NDPR)
+											<p class="font-semibold text-sm text-foreground">
+												Patient Consent &amp; Data Privacy (NDPR)
 											</p>
-											<p class="text-xs text-amber-700/80 dark:text-amber-300/80 leading-relaxed">
+											<p class="text-xs text-muted-foreground leading-relaxed">
 												I confirm that the patient has been informed of and explicitly consented to
 												the digital storage of their medical records and agrees to receive
 												health-related SMS notifications.
@@ -462,48 +433,54 @@
 					</div>
 
 					<!-- Navigation -->
-					<div class="flex justify-between mt-8 pt-6 border-t border-border mt-auto">
-						<Button variant="outline" disabled={currentStep === 1} onclick={() => currentStep--}>
+					<div class="flex justify-between mt-8 pt-5 border-t border-border">
+						<Button
+							variant="outline"
+							class="min-h-11 px-5"
+							disabled={currentStep === 1}
+							onclick={() => currentStep--}
+						>
 							Back
 						</Button>
 
 						{#if currentStep < 3}
-							<Button onclick={() => currentStep++} disabled={!form.name}>
+							<Button class="min-h-11 px-5" onclick={() => currentStep++} disabled={!form.name}>
 								Next Step <ArrowRight class="size-4 ml-2" />
 							</Button>
 						{:else}
-							<ShinyButton
-								class="bg-primary text-primary-foreground font-semibold px-6"
+							<Button
+								class="min-h-11 px-6 font-semibold"
 								onclick={handleSubmit}
 								disabled={isSubmitting}
 							>
 								{#if isSubmitting}
-									Saving...
+									Saving…
 								{:else}
 									Complete Registration <Check class="size-4 ml-2" />
 								{/if}
-							</ShinyButton>
+							</Button>
 						{/if}
 					</div>
 				</div>
 			{:else}
 				<!-- Success State -->
 				<div
-					class="bg-card border-2 border-emerald-500/20 rounded-2xl p-8 text-center animate-fade-in shadow-lg shadow-emerald-500/5 max-w-xl mx-auto mt-12"
+					class="bg-card border-2 border-triage-green/40 rounded-xl p-8 text-center max-w-xl mx-auto mt-6"
 				>
 					<div
-						class="size-20 bg-emerald-500/10 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6"
+						class="size-16 bg-triage-green/15 text-triage-green rounded-full flex items-center justify-center mx-auto mb-5"
 					>
-						<Check class="size-10" />
+						<Check class="size-8" />
 					</div>
-					<h2 class="text-2xl font-bold mb-2">Registration Complete!</h2>
-					<p class="text-muted-foreground mb-8">
-						{form.name} has been successfully registered into the system.
+					<h2 class="text-xl font-bold mb-1.5">Registration Complete</h2>
+					<p class="text-sm text-muted-foreground mb-6">
+						{form.name} has been registered and added to the waiting queue.
 					</p>
 
-					<div class="flex gap-4 justify-center">
-						<Button variant="outline" href="/nurse">Back to Dashboard</Button>
+					<div class="flex flex-wrap gap-3 justify-center">
+						<Button variant="outline" class="min-h-11" href="/nurse">Back to Queue Board</Button>
 						<Button
+							class="min-h-11"
 							onclick={() => {
 								currentStep = 1;
 								form = {
@@ -519,8 +496,10 @@
 									nextOfKinPhone: '',
 									hasConsent: false
 								};
-							}}>Register Another Patient</Button
+							}}
 						>
+							Register Another Patient
+						</Button>
 					</div>
 				</div>
 			{/if}
@@ -534,11 +513,11 @@
 		<Dialog.Header>
 			<Dialog.Title class="text-foreground">Patient Registered</Dialog.Title>
 			<Dialog.Description class="text-muted-foreground">
-				Scan this QR code to quickly retrieve the patient profile.
+				Scan this QR code to quickly retrieve the patient folder.
 			</Dialog.Description>
 		</Dialog.Header>
 		<div class="flex flex-col items-center justify-center py-6 space-y-4">
-			<div class="bg-white p-4 rounded-xl shadow-inner border border-border">
+			<div class="bg-white p-4 rounded-xl border border-border">
 				<canvas bind:this={qrCanvas}></canvas>
 			</div>
 			<div class="text-center">
@@ -547,17 +526,8 @@
 			</div>
 		</div>
 		<Dialog.Footer class="sm:justify-between gap-2">
-			<Button
-				variant="outline"
-				class="border-border text-muted-foreground btn-press"
-				onclick={() => (showQrDialog = false)}
-			>
-				Close
-			</Button>
-			<Button
-				class="bg-primary text-primary-foreground hover:bg-primary/95 btn-press"
-				onclick={() => window.print()}
-			>
+			<Button variant="outline" onclick={() => (showQrDialog = false)}>Close</Button>
+			<Button onclick={() => window.print()}>
 				<Printer class="size-4 mr-1.5" />
 				Print ID Card
 			</Button>

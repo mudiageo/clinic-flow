@@ -6,13 +6,6 @@
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import {
-		Card,
-		CardContent,
-		CardDescription,
-		CardHeader,
-		CardTitle
-	} from '#lib/components/ui/card/index.ts';
-	import {
 		Table,
 		TableBody,
 		TableCell,
@@ -56,120 +49,117 @@
 	<title>Family Health — ClinicFlow</title>
 </svelte:head>
 
-<div class="space-y-8 animate-fade-in">
-	<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-		<div class="flex items-start gap-3">
-			<div class="rounded-xl bg-primary/10 p-2.5 text-primary">
-				<Home class="size-6" />
-			</div>
-			<div>
-				<h1 class="text-2xl font-bold tracking-tight">Family Health</h1>
-				<p class="mt-0.5 text-sm font-medium text-muted-foreground">
-					Households and linked patient records for this PHC
-				</p>
-			</div>
+<div class="space-y-6 max-w-6xl mx-auto">
+	<!-- Page Header -->
+	<div
+		class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between pb-2 border-b border-border"
+	>
+		<div>
+			<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+				Community Records
+			</p>
+			<h1 class="text-2xl font-bold tracking-tight text-foreground">Family Health</h1>
+			<p class="mt-0.5 text-sm text-muted-foreground">
+				Households and linked patient records for this PHC
+			</p>
 		</div>
 
 		<div class="relative w-full md:w-80">
-			<Search class="absolute left-3 top-3.5 size-4 text-muted-foreground" />
+			<Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
 			<Input
 				bind:value={searchTerm}
 				placeholder="Search household, community or member..."
-				class="h-11 pl-9"
+				class="h-11 pl-9 bg-card"
 			/>
 		</div>
 	</div>
 
-	<div class="grid gap-4 sm:grid-cols-3">
-		<Card>
-			<CardContent class="flex items-center justify-between p-5">
-				<div>
-					<p class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-						Households
-					</p>
-					<p class="mt-1 text-2xl font-bold tabular-nums">{scopedFamilies.length}</p>
-				</div>
-				<Home class="size-5 text-primary" />
-			</CardContent>
-		</Card>
-		<Card>
-			<CardContent class="flex items-center justify-between p-5">
-				<div>
-					<p class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-						Members
-					</p>
-					<p class="mt-1 text-2xl font-bold tabular-nums">{totalMembers}</p>
-				</div>
-				<Users class="size-5 text-primary" />
-			</CardContent>
-		</Card>
-		<Card>
-			<CardContent class="flex items-center justify-between p-5">
-				<div>
-					<p class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-						Communities
-					</p>
-					<p class="mt-1 text-2xl font-bold tabular-nums">{communities}</p>
-				</div>
-				<MapPin class="size-5 text-primary" />
-			</CardContent>
-		</Card>
+	<!-- Compact Ruled Summary Strip -->
+	<div class="grid grid-cols-3 divide-x divide-border rounded-xl border border-border bg-card">
+		<div class="px-4 py-3 flex items-center justify-between gap-2">
+			<div>
+				<p class="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
+					Households
+				</p>
+				<p class="mt-0.5 text-2xl font-bold font-mono tabular-nums">{scopedFamilies.length}</p>
+			</div>
+			<Home class="size-4 text-primary shrink-0" />
+		</div>
+		<div class="px-4 py-3 flex items-center justify-between gap-2">
+			<div>
+				<p class="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">Members</p>
+				<p class="mt-0.5 text-2xl font-bold font-mono tabular-nums">{totalMembers}</p>
+			</div>
+			<Users class="size-4 text-primary shrink-0" />
+		</div>
+		<div class="px-4 py-3 flex items-center justify-between gap-2">
+			<div>
+				<p class="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
+					Communities
+				</p>
+				<p class="mt-0.5 text-2xl font-bold font-mono tabular-nums">{communities}</p>
+			</div>
+			<MapPin class="size-4 text-primary shrink-0" />
+		</div>
 	</div>
 
-	<Card class="overflow-hidden">
-		<CardHeader class="border-b bg-muted/20">
-			<CardTitle class="text-base">Registered Households</CardTitle>
-			<CardDescription>Offline-ready family groups synchronized with this clinic</CardDescription>
-		</CardHeader>
-		<CardContent class="p-0">
-			<Table>
-				<TableHeader>
-					<TableRow>
-						<TableHead class="px-6">Household</TableHead>
-						<TableHead>Community</TableHead>
-						<TableHead>Members</TableHead>
-						<TableHead>Sync</TableHead>
-						<TableHead class="w-24 text-right"></TableHead>
+	<!-- Household Ledger -->
+	<section class="rounded-xl border border-border bg-card overflow-hidden">
+		<div class="px-5 py-3.5 border-b border-border bg-muted/20">
+			<h2 class="text-base font-semibold text-foreground">Registered Households</h2>
+			<p class="text-xs text-muted-foreground">
+				Offline-ready family groups synchronized with this clinic
+			</p>
+		</div>
+		<Table>
+			<TableHeader>
+				<TableRow class="hover:bg-transparent">
+					<TableHead class="px-5 font-mono text-xs uppercase tracking-wider">Household</TableHead>
+					<TableHead class="font-mono text-xs uppercase tracking-wider">Community</TableHead>
+					<TableHead class="font-mono text-xs uppercase tracking-wider">Members</TableHead>
+					<TableHead class="font-mono text-xs uppercase tracking-wider">Sync</TableHead>
+					<TableHead class="w-24 text-right"></TableHead>
+				</TableRow>
+			</TableHeader>
+			<TableBody>
+				{#each rows as { family, members }, idx (family.id)}
+					<TableRow class={idx % 2 === 1 ? 'bg-muted/20 hover:bg-muted/40' : 'hover:bg-muted/40'}>
+						<TableCell class="px-5 font-semibold text-foreground">
+							{family.householdName || 'Unnamed household'}
+						</TableCell>
+						<TableCell class="text-sm text-muted-foreground">
+							{family.community || 'Not recorded'}
+						</TableCell>
+						<TableCell class="font-mono tabular-nums">{members.length}</TableCell>
+						<TableCell>
+							<Badge variant={family.syncStatus === 'conflict' ? 'destructive' : 'outline'}>
+								{family.syncStatus}
+							</Badge>
+						</TableCell>
+						<TableCell class="text-right">
+							<Button variant="ghost" size="sm" class="h-9" href={`/families/${family.id}`}>
+								Open <ArrowRight class="ml-1 size-4" />
+							</Button>
+						</TableCell>
 					</TableRow>
-				</TableHeader>
-				<TableBody>
-					{#each rows as { family, members } (family.id)}
-						<TableRow>
-							<TableCell class="px-6 font-semibold">
-								{family.householdName || 'Unnamed household'}
-							</TableCell>
-							<TableCell>{family.community || 'Not recorded'}</TableCell>
-							<TableCell>{members.length}</TableCell>
-							<TableCell>
-								<Badge variant={family.syncStatus === 'conflict' ? 'destructive' : 'outline'}>
-									{family.syncStatus}
-								</Badge>
-							</TableCell>
-							<TableCell class="text-right">
-								<Button variant="ghost" size="sm" href={`/families/${family.id}`}>
-									Open <ArrowRight class="ml-1 size-4" />
-								</Button>
-							</TableCell>
-						</TableRow>
-					{:else}
-						<TableRow>
-							<TableCell colspan={5} class="h-56 text-center">
-								<div class="flex flex-col items-center gap-3 text-muted-foreground">
-									<Users class="size-8 opacity-50" />
-									<p>
-										{searchTerm ? 'No matching households found.' : 'No households registered yet.'}
-									</p>
-									{#if !searchTerm}
-										<Button variant="outline" href="/nurse/register">
-											<UserPlus class="mr-2 size-4" /> Register a patient
-										</Button>
-									{/if}
-								</div>
-							</TableCell>
-						</TableRow>
-					{/each}
-				</TableBody>
-			</Table>
-		</CardContent>
-	</Card>
+				{:else}
+					<TableRow>
+						<TableCell colspan={5} class="h-52 text-center">
+							<div class="flex flex-col items-center gap-3 text-muted-foreground">
+								<Users class="size-8 opacity-40" />
+								<p class="text-sm">
+									{searchTerm ? 'No matching households found.' : 'No households registered yet.'}
+								</p>
+								{#if !searchTerm}
+									<Button variant="outline" href="/nurse/register">
+										<UserPlus class="mr-2 size-4" /> Register a patient
+									</Button>
+								{/if}
+							</div>
+						</TableCell>
+					</TableRow>
+				{/each}
+			</TableBody>
+		</Table>
+	</section>
 </div>

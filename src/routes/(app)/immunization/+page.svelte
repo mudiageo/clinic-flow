@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Card, CardContent } from '#lib/components/ui/card/index.ts';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import * as Dialog from '#lib/components/ui/dialog/index.ts';
@@ -159,150 +158,148 @@
 	<title>Immunization (EPI) — ClinicFlow</title>
 </svelte:head>
 
-<div class="space-y-8 animate-fade-in">
-	<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-		<div class="flex items-start gap-3">
-			<div class="p-2.5 rounded-xl bg-teal-100 text-teal-600">
-				<Syringe class="size-6" />
-			</div>
-			<div>
-				<h1 class="text-2xl font-bold text-foreground tracking-tight">Immunization (EPI)</h1>
-				<p class="text-muted-foreground text-sm mt-0.5 font-medium">
-					Track infant vaccination schedules and defaulters
-				</p>
-				<p class="text-xs text-muted-foreground mt-1">
-					Staff-entered record. Verify against the physical register and vaccine vial before
-					clinical use.
-				</p>
-			</div>
+<div class="space-y-6 max-w-6xl mx-auto">
+	<!-- Page Header -->
+	<div
+		class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-2 border-b border-border"
+	>
+		<div>
+			<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+				Pediatrics &amp; EPI
+			</p>
+			<h1 class="text-2xl font-bold text-foreground tracking-tight">Immunization (EPI)</h1>
+			<p class="text-muted-foreground text-sm mt-0.5">
+				Track infant vaccination schedules and defaulters
+			</p>
+			<p class="text-xs text-muted-foreground mt-1">
+				Staff-entered record. Verify against the physical register and vaccine vial before clinical
+				use.
+			</p>
 		</div>
-		<div class="flex items-center gap-2 w-full md:w-auto">
-			<div class="relative w-full md:w-64">
-				<label for="immunization-search" class="sr-only">Search patients</label>
-				<Search class="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-				<Input
-					id="immunization-search"
-					placeholder="Search patient name..."
-					class="pl-9 h-10 w-full"
-					bind:value={search}
-				/>
-			</div>
+		<div class="relative w-full md:w-72">
+			<label for="immunization-search" class="sr-only">Search patients</label>
+			<Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+			<Input
+				id="immunization-search"
+				placeholder="Search patient name..."
+				class="pl-9 h-11 w-full bg-card"
+				bind:value={search}
+			/>
 		</div>
 	</div>
 
 	{#if !immunizationEnabled}
-		<p class="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2.5">
+		<p
+			class="text-sm text-foreground bg-triage-amber/12 border border-triage-amber/40 rounded-xl px-4 py-3"
+		>
 			Immunization recording is disabled for this PHC. Contact your administrator to enable it.
 		</p>
 	{/if}
 
-	<div class="grid grid-cols-1 gap-3">
+	<div class="space-y-3">
 		{#if rows.length === 0}
-			<Card>
-				<CardContent class="p-8 text-center text-muted-foreground">
-					{search.trim()
-						? 'No appointments match your search.'
-						: 'No scheduled immunization appointments.'}
-				</CardContent>
-			</Card>
+			<div
+				class="p-12 text-center text-muted-foreground rounded-xl border border-dashed border-border bg-card/50"
+			>
+				{search.trim()
+					? 'No appointments match your search.'
+					: 'No scheduled immunization appointments.'}
+			</div>
 		{/if}
 
 		{#each rows as row (row.appointment.id)}
 			{@const age = ageFromDob(row.patient.dob)}
 			{@const priorRecords = immunizationRecordsStore.forPatient(row.patient.id)}
-			<Card
-				class="card-hover border-l-4 {row.due === 'today'
-					? 'border-l-amber-500'
-					: row.due === 'overdue'
-						? 'border-l-red-500'
-						: 'border-l-sky-500'}"
+			<article
+				class="rounded-xl border border-border border-l-4 bg-card overflow-hidden {row.due ===
+				'overdue'
+					? 'border-l-triage-red'
+					: row.due === 'today'
+						? 'border-l-triage-amber'
+						: 'border-l-primary'}"
 			>
-				<CardContent class="p-4 sm:p-6 space-y-4">
-					<div class="flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
-						<div class="flex items-start sm:items-center gap-4">
-							<div class="p-3 rounded-full bg-muted/30 text-muted-foreground shrink-0">
-								<Baby class="size-6" />
-							</div>
-							<div>
-								<h3 class="text-lg font-bold">{row.patient.name}</h3>
-								<p class="text-sm text-muted-foreground flex items-center gap-2 mt-0.5">
-									<span class="font-medium text-foreground">{age === '—' ? '—' : `${age} yrs`}</span
-									>
-									<span>·</span>
-									<span
-										class="flex items-center gap-1 {row.due === 'overdue'
-											? 'text-red-600 font-semibold'
-											: row.due === 'today'
-												? 'text-amber-600 font-semibold'
-												: ''}"
-									>
-										<CalendarDays class="size-3.5" />
-										{dueLabel(row.due)}
-									</span>
-									<span class="text-muted-foreground"
-										>· {formatDateTime(row.appointment.scheduledAt)}</span
-									>
-								</p>
-								<p class="text-xs text-muted-foreground mt-1">
-									{formatDate(row.appointment.scheduledAt)}
-								</p>
-								<p class="text-xs text-muted-foreground mt-1">
-									{row.appointment.notes?.trim() ||
-										'No vaccine details recorded in this appointment.'}
-								</p>
-							</div>
-						</div>
-
+				<div class="p-4 sm:p-5 flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
+					<div class="flex items-start sm:items-center gap-3.5 min-w-0">
 						<div
-							class="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto"
+							class="size-11 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground shrink-0"
 						>
-							<Badge
-								variant="secondary"
-								class="bg-teal-50 text-teal-700 hover:bg-teal-100 border-teal-200"
+							<Baby class="size-5" />
+						</div>
+						<div class="min-w-0">
+							<h2 class="text-base font-bold text-foreground truncate">{row.patient.name}</h2>
+							<p
+								class="text-xs text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5"
 							>
-								{dueLabel(row.due)}
-							</Badge>
-							<Button
-								size="sm"
-								class="w-full sm:w-auto bg-teal-600 hover:bg-teal-700"
-								disabled={!canRecordVaccination ||
-									saving ||
-									recordTarget?.appointmentId === row.appointment.id}
-								onclick={() =>
-									openRecordDialog(row.appointment.id, row.patient.id, row.patient.name)}
-							>
-								<Syringe class="size-4 mr-2" />
-								Record vaccination
-							</Button>
+								<span class="font-medium text-foreground">{age === '—' ? '—' : `${age} yrs`}</span>
+								<span>·</span>
+								<span
+									class="inline-flex items-center gap-1 font-semibold {row.due === 'overdue'
+										? 'text-triage-red'
+										: row.due === 'today'
+											? 'text-amber-700 dark:text-triage-amber'
+											: 'text-primary'}"
+								>
+									<CalendarDays class="size-3.5" />
+									{dueLabel(row.due)}
+								</span>
+								<span class="font-mono">· {formatDateTime(row.appointment.scheduledAt)}</span>
+							</p>
+							<p class="text-xs text-muted-foreground mt-1">
+								{row.appointment.notes?.trim() ||
+									'No vaccine details recorded in this appointment.'}
+							</p>
 						</div>
 					</div>
 
-					<div class="border-t pt-3">
-						<p
-							class="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5"
+					<div class="flex items-center gap-3 w-full sm:w-auto shrink-0">
+						<Badge
+							variant={row.due === 'overdue' ? 'destructive' : 'secondary'}
+							class="font-semibold text-xs"
 						>
-							<ClipboardList class="size-3.5" />
-							Previously recorded
-						</p>
-						{#if priorRecords.length === 0}
-							<p class="text-xs text-muted-foreground mt-1.5">No vaccination records yet</p>
-						{:else}
-							<ul class="mt-1.5 space-y-1">
-								{#each priorRecords as record (record.id)}
-									<li class="text-xs text-foreground flex flex-wrap items-center gap-x-2 gap-y-0.5">
-										<span class="font-medium">{record.vaccineName}</span>
-										<span class="text-muted-foreground">Dose {record.doseNumber}</span>
-										<span class="text-muted-foreground">· {formatDate(record.administeredAt)}</span>
-										{#if record.batchNumber}
-											<span class="text-muted-foreground">· Batch {record.batchNumber}</span>
-										{/if}
-									</li>
-								{/each}
-							</ul>
-						{/if}
+							{dueLabel(row.due)}
+						</Badge>
+						<Button
+							size="sm"
+							class="flex-1 sm:flex-initial min-h-10 px-4 font-semibold"
+							disabled={!canRecordVaccination ||
+								saving ||
+								recordTarget?.appointmentId === row.appointment.id}
+							onclick={() => openRecordDialog(row.appointment.id, row.patient.id, row.patient.name)}
+						>
+							<Syringe class="size-4 mr-2" />
+							Record vaccination
+						</Button>
 					</div>
-				</CardContent>
-			</Card>
+				</div>
+
+				<div class="border-t border-dashed border-border px-4 sm:px-5 py-3 bg-muted/20">
+					<p
+						class="text-[11px] font-mono font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5"
+					>
+						<ClipboardList class="size-3.5" />
+						Previously recorded
+					</p>
+					{#if priorRecords.length === 0}
+						<p class="text-xs text-muted-foreground mt-1">No vaccination records yet</p>
+					{:else}
+						<ul class="mt-1.5 space-y-1">
+							{#each priorRecords as record (record.id)}
+								<li class="text-xs text-foreground flex flex-wrap items-center gap-x-2 gap-y-0.5">
+									<span class="font-semibold">{record.vaccineName}</span>
+									<span class="font-mono text-muted-foreground">Dose {record.doseNumber}</span>
+									<span class="font-mono text-muted-foreground"
+										>· {formatDate(record.administeredAt)}</span
+									>
+									{#if record.batchNumber}
+										<span class="font-mono text-muted-foreground">· Batch {record.batchNumber}</span
+										>
+									{/if}
+								</li>
+							{/each}
+						</ul>
+					{/if}
+				</div>
+			</article>
 		{/each}
 	</div>
 </div>

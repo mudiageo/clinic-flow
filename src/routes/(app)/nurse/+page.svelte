@@ -1,33 +1,18 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { queueStore } from '#lib/state/queue.svelte.ts';
-	import { patientStore } from '#lib/state/patients.svelte.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
-	import { Badge } from '#lib/components/ui/badge/index.ts';
-	import {
-		Card,
-		CardContent,
-		CardHeader,
-		CardTitle,
-		CardDescription
-	} from '#lib/components/ui/card/index.ts';
 	import QueueTicketCard from '#lib/components/queue-ticket-card.svelte';
-	import { ScrollArea } from '#lib/components/ui/scroll-area/index.ts';
-	import { ShinyButton } from '#lib/components/ui/shiny-button/index.ts';
 	import { Walkthrough } from '#lib/components/ui/walkthrough/index.ts';
 	import {
-		Users,
 		AlertCircle,
 		AlertTriangle,
 		CheckCircle2,
 		Megaphone,
-		ClipboardList,
 		Clock,
-		UserCheck,
-		Check
+		UserCheck
 	} from '@lucide/svelte';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '#lib/components/ui/tabs/index.ts';
-	import { NumberTicker } from '#lib/components/ui/number-ticker/index.ts';
 	import { flip } from 'svelte/animate';
 	import { slide } from 'svelte/transition';
 
@@ -38,7 +23,6 @@
 		return queueTabs.includes(requestedTab as QueueTab) ? (requestedTab as QueueTab) : 'general';
 	});
 
-	// Get reactive queue items
 	const sortedQueue = $derived(queueStore.sortedQueue);
 	const nextTicket = $derived(queueStore.nextTicket);
 
@@ -52,169 +36,144 @@
 	async function handleCallNext() {
 		await queueStore.callNext();
 	}
-
-	async function handleMarkCalled(id: string) {
-		await queueStore.update(id, { status: 'called', calledAt: Date.now() });
-	}
-
-	async function handleComplete(id: string) {
-		await queueStore.update(id, { status: 'done' });
-	}
 </script>
 
 <svelte:head>
 	<title>Nurse Board — ClinicFlow</title>
 </svelte:head>
 
-<div class="space-y-8 animate-fade-in">
-	<!-- Top Bar -->
-	<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-		<div class="flex items-start gap-3">
-			<div class="p-2.5 rounded-xl bg-primary/10 text-primary">
-				<ClipboardList class="size-6" />
-			</div>
-			<div>
-				<h1 class="text-2xl font-bold text-foreground tracking-tight">Nurse Station</h1>
-				<p class="text-muted-foreground text-sm mt-0.5">Live triage queue board</p>
-			</div>
+<div class="space-y-6 max-w-6xl mx-auto">
+	<!-- Page Header -->
+	<div
+		class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2 border-b border-border"
+	>
+		<div>
+			<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+				Triage & Intake
+			</p>
+			<h1 class="text-2xl font-bold text-foreground tracking-tight">Nurse Station</h1>
 		</div>
-		<div class="flex items-center gap-3">
-			<ShinyButton
-				id="call-next-btn"
-				onclick={handleCallNext}
-				disabled={!nextTicket}
-				class="bg-primary text-primary-foreground font-semibold rounded-xl shadow-lg shadow-primary/20 h-11 px-5 btn-press"
-			>
-				<Megaphone class="size-4 mr-2" />
-				Call Next Patient
-			</ShinyButton>
+
+		<Button
+			id="call-next-btn"
+			onclick={handleCallNext}
+			disabled={!nextTicket}
+			class="min-h-11 px-5 font-semibold gap-2 w-full sm:w-auto"
+		>
+			<Megaphone class="size-4" />
+			<span>Call Next Patient</span>
+		</Button>
+	</div>
+
+	<!-- Compact Ruled Triage Ledger Strip -->
+	<div
+		id="stats-grid"
+		class="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-border rounded-xl border border-border bg-card"
+	>
+		<div class="px-4 py-3 flex items-center justify-between gap-3">
+			<div>
+				<p class="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">Waiting</p>
+				<p class="text-2xl font-bold font-mono tabular-nums text-foreground mt-0.5">
+					{stats.total}
+				</p>
+			</div>
+			<Clock class="size-4 text-muted-foreground shrink-0" />
+		</div>
+
+		<div class="px-4 py-3 flex items-center justify-between gap-3">
+			<div>
+				<p class="text-[11px] font-mono uppercase tracking-wider text-triage-red">Red · Critical</p>
+				<p class="text-2xl font-bold font-mono tabular-nums text-triage-red mt-0.5">
+					{stats.red}
+				</p>
+			</div>
+			<AlertCircle class="size-4 text-triage-red shrink-0" />
+		</div>
+
+		<div class="px-4 py-3 flex items-center justify-between gap-3">
+			<div>
+				<p
+					class="text-[11px] font-mono uppercase tracking-wider text-amber-700 dark:text-triage-amber"
+				>
+					Amber · Priority
+				</p>
+				<p
+					class="text-2xl font-bold font-mono tabular-nums text-amber-700 dark:text-triage-amber mt-0.5"
+				>
+					{stats.amber}
+				</p>
+			</div>
+			<AlertTriangle class="size-4 text-triage-amber shrink-0" />
+		</div>
+
+		<div class="px-4 py-3 flex items-center justify-between gap-3">
+			<div>
+				<p class="text-[11px] font-mono uppercase tracking-wider text-triage-green">
+					Green · Routine
+				</p>
+				<p class="text-2xl font-bold font-mono tabular-nums text-triage-green mt-0.5">
+					{stats.green}
+				</p>
+			</div>
+			<CheckCircle2 class="size-4 text-triage-green shrink-0" />
 		</div>
 	</div>
 
-	<!-- Stats Grid -->
-	<div id="stats-grid" class="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-stagger">
-		<Card class="card-hover cursor-default bg-card/60">
-			<CardContent class="p-5 flex items-center justify-between">
-				<div>
-					<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-						Waiting
-					</p>
-					<NumberTicker value={stats.total} class="text-2xl font-bold mt-1 block" />
-				</div>
-				<div
-					class="size-10 rounded-lg bg-muted flex items-center justify-center text-muted-foreground"
-				>
-					<Clock class="size-4" />
-				</div>
-			</CardContent>
-		</Card>
-
-		<Card class="card-hover cursor-default bg-card/60 border-triage-red/20">
-			<CardContent class="p-5 flex items-center justify-between">
-				<div>
-					<p class="text-xs font-semibold text-triage-red uppercase tracking-wider">Red Alert</p>
-					<NumberTicker value={stats.red} class="text-2xl font-bold text-triage-red mt-1 block" />
-				</div>
-				<div
-					class="size-10 rounded-lg bg-triage-red/10 flex items-center justify-center text-triage-red ring-1 ring-triage-red/20"
-				>
-					<AlertCircle class="size-4" />
-				</div>
-			</CardContent>
-		</Card>
-
-		<Card class="card-hover cursor-default bg-card/60 border-triage-amber/20">
-			<CardContent class="p-5 flex items-center justify-between">
-				<div>
-					<p class="text-xs font-semibold text-triage-amber uppercase tracking-wider">
-						Amber Warning
-					</p>
-					<NumberTicker
-						value={stats.amber}
-						class="text-2xl font-bold text-triage-amber mt-1 block"
-					/>
-				</div>
-				<div
-					class="size-10 rounded-lg bg-triage-amber/10 flex items-center justify-center text-triage-amber ring-1 ring-triage-amber/20"
-				>
-					<AlertTriangle class="size-4" />
-				</div>
-			</CardContent>
-		</Card>
-
-		<Card class="card-hover cursor-default bg-card/60 border-triage-green/20">
-			<CardContent class="p-5 flex items-center justify-between">
-				<div>
-					<p class="text-xs font-semibold text-triage-green uppercase tracking-wider">
-						Green Routine
-					</p>
-					<NumberTicker
-						value={stats.green}
-						class="text-2xl font-bold text-triage-green mt-1 block"
-					/>
-				</div>
-				<div
-					class="size-10 rounded-lg bg-triage-green/10 flex items-center justify-center text-triage-green ring-1 ring-triage-green/20"
-				>
-					<CheckCircle2 class="size-4" />
-				</div>
-			</CardContent>
-		</Card>
-	</div>
-
-	<!-- Queue List -->
-	<Card id="queue-list" class="overflow-hidden card-hover border-0 shadow-none bg-transparent">
-		<CardHeader class="px-0 pt-0 pb-4 flex flex-row items-center justify-between">
-			<div>
-				<CardTitle class="text-base font-semibold text-foreground">Active Queue</CardTitle>
-				<CardDescription>Real-time patient flow and triaging</CardDescription>
-			</div>
-		</CardHeader>
-
+	<!-- Active Queue Board -->
+	<section id="queue-list" class="space-y-4">
 		<Tabs value={activeTab} class="w-full">
 			<TabsList
-				class="mb-4 w-full justify-start overflow-x-auto bg-transparent h-12 p-0 space-x-2 border-b border-border rounded-none"
+				class="w-full justify-start overflow-x-auto bg-transparent h-auto p-0 gap-1 border-b border-border rounded-none"
 			>
 				<TabsTrigger
 					value="general"
-					class="rounded-t-lg rounded-b-none data-[state=active]:bg-card data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary border-b-2 border-transparent px-4"
+					class="rounded-t-lg rounded-b-none min-h-11 px-4 text-sm font-medium border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-none"
 				>
-					General Outpatient ({queueStore.generalQueue.length})
+					General Outpatient
+					<span class="ml-2 font-mono text-xs tabular-nums text-muted-foreground">
+						({queueStore.generalQueue.length})
+					</span>
 				</TabsTrigger>
 				<TabsTrigger
 					value="anc"
-					class="rounded-t-lg rounded-b-none data-[state=active]:bg-card data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary border-b-2 border-transparent px-4"
+					class="rounded-t-lg rounded-b-none min-h-11 px-4 text-sm font-medium border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-none"
 				>
-					Antenatal Care (ANC) ({queueStore.ancQueue.length})
+					Antenatal Care (ANC)
+					<span class="ml-2 font-mono text-xs tabular-nums text-muted-foreground">
+						({queueStore.ancQueue.length})
+					</span>
 				</TabsTrigger>
 				<TabsTrigger
 					value="epi"
-					class="rounded-t-lg rounded-b-none data-[state=active]:bg-card data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary border-b-2 border-transparent px-4"
+					class="rounded-t-lg rounded-b-none min-h-11 px-4 text-sm font-medium border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-none"
 				>
-					Immunization (EPI) ({queueStore.epiQueue.length})
+					Immunization (EPI)
+					<span class="ml-2 font-mono text-xs tabular-nums text-muted-foreground">
+						({queueStore.epiQueue.length})
+					</span>
 				</TabsTrigger>
 			</TabsList>
 
 			{#each queueTabs as dept (dept)}
-				<TabsContent value={dept}>
+				<TabsContent value={dept} class="pt-4">
 					{@const queueItems =
 						dept === 'general'
 							? queueStore.generalQueue
 							: dept === 'anc'
 								? queueStore.ancQueue
 								: queueStore.epiQueue}
-					<div class="space-y-4 animate-stagger">
+					<div class="space-y-3">
 						{#if queueItems.length === 0}
 							<div
-								class="flex flex-col items-center justify-center py-16 text-muted-foreground border rounded-xl bg-card border-dashed"
+								class="flex flex-col items-center justify-center py-16 text-muted-foreground border border-dashed border-border rounded-xl bg-card/50"
 							>
-								<UserCheck class="size-10 text-muted-foreground/40 mb-3" />
-								<span class="text-lg font-medium text-foreground">No patients in this queue</span>
-								<p class="text-sm">Enjoy the calm!</p>
+								<UserCheck class="size-9 text-muted-foreground/40 mb-2" />
+								<p class="text-base font-medium text-foreground">No patients in this queue</p>
+								<p class="text-xs mt-0.5">Queue updates automatically when patients check in.</p>
 							</div>
 						{:else}
 							{#each queueItems as ticket (ticket.id)}
-								<div animate:flip={{ duration: 300 }} transition:slide|local>
+								<div animate:flip={{ duration: 220 }} transition:slide|local>
 									<QueueTicketCard {ticket} />
 								</div>
 							{/each}
@@ -223,7 +182,7 @@
 				</TabsContent>
 			{/each}
 		</Tabs>
-	</Card>
+	</section>
 </div>
 
 <Walkthrough
@@ -248,7 +207,7 @@
 			target: 'queue-list',
 			title: 'Active Queue',
 			description:
-				'This is the real-time queue. Click on any patient card to manually manage their status.',
+				'This is the real-time queue. Click on any patient ticket stub to manually manage their status.',
 			position: 'top'
 		}
 	]}

@@ -14,16 +14,8 @@
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Input } from '#lib/components/ui/input/index.ts';
 	import { Label } from '#lib/components/ui/label/index.ts';
-	import {
-		Card,
-		CardHeader,
-		CardTitle,
-		CardContent,
-		CardDescription
-	} from '#lib/components/ui/card/index.ts';
 	import * as Dialog from '#lib/components/ui/dialog/index.ts';
 	import * as Stepper from '#lib/components/ui/stepper/index.ts';
-	import { ShinyButton } from '#lib/components/ui/shiny-button/index.ts';
 	import { toast } from 'svelte-sonner';
 	import { onMount } from 'svelte';
 	import {
@@ -37,7 +29,6 @@
 		ArrowRight,
 		Search,
 		ShieldAlert,
-		Check,
 		AlertTriangle
 	} from '@lucide/svelte';
 	import { fade } from 'svelte/transition';
@@ -58,9 +49,6 @@
 
 	let isSubmitting = $state(false);
 
-	// One-time handoff from Patient Search ("Take Vitals Instead"). The Dexie-backed registry
-	// populates asynchronously, so retry briefly until the patient record is available locally.
-	// This is a bounded local-hydration wait, not a realtime data mechanism.
 	onMount(() => {
 		const handoffPatientId = page.url.searchParams.get('patient');
 		if (!handoffPatientId) return;
@@ -83,12 +71,10 @@
 		};
 	});
 
-	// Active triage rules loaded from local store
 	const rules = $derived(triageRuleStore.activeRules);
 
 	onMount(async () => {
 		try {
-			// Seed default rules if empty
 			await triageRuleStore.seedDefaults(sessionStore.activePhcId);
 		} catch (err) {
 			console.error('Failed to initialize triage rules:', err);
@@ -97,7 +83,6 @@
 
 	const searchResults = $derived(searchQuery ? patientStore.search(searchQuery) : []);
 
-	// Compute live triage status
 	const currentVitals = $derived({
 		temperatureCelsius: temperature,
 		systolicBp,
@@ -114,9 +99,8 @@
 	function applyPatientSelection(patient: LocalPatient) {
 		selectedPatient = patient;
 		searchQuery = '';
-		currentStep = 2; // Move to vitals step
+		currentStep = 2;
 
-		// Clear vitals
 		temperature = undefined;
 		systolicBp = undefined;
 		diastolicBp = undefined;
@@ -175,7 +159,6 @@
 				createdAt: now
 			});
 
-			// Save vitals to local DB
 			await vitalsStore.create({
 				encounterId,
 				patientId: selectedPatient.id,
@@ -190,7 +173,6 @@
 				recordedAt: Date.now()
 			});
 
-			// Find if patient has an active ticket in the queue, update it
 			const activeTickets = queueStore.items.filter(
 				(t) => t.patientId === selectedPatient?.id && t.status === 'waiting'
 			);
@@ -205,7 +187,6 @@
 					savedTicketIds.push(ticket.id);
 				}
 			} else {
-				// Issue new ticket if none active
 				const newTicketId = await queueStore.create({
 					patientId: selectedPatient.id,
 					phcId: sessionStore.activePhcId,
@@ -224,8 +205,6 @@
 
 			toast.success(`Vitals saved. Patient triaged as ${triageResult.level.toUpperCase()}`);
 
-			// Background AI Risk Stratification
-			// We fire and forget so we don't block the UI
 			const vitalsPayload = {
 				temperatureCelsius: temperature ?? null,
 				systolicBp: systolicBp ?? null,
@@ -236,7 +215,6 @@
 			};
 			const p = selectedPatient;
 
-			// Fetch last 3 historical vitals for longitudinal trend analysis
 			const pastVitals = vitalsStore.items
 				.filter((v) => v.patientId === p.id && v.encounterId !== encounterId)
 				.sort((a, b) => b.recordedAt - a.recordedAt)
@@ -255,11 +233,10 @@
 							aiRiskRationale: aiRes.rationale
 						};
 
-						// Auto-escalation Logic (never downgrade, only upgrade)
 						if (aiRes.score >= 85 && settingsStore.current?.aiAutoTriageEscalation) {
 							updatePayload.triageLevel = 'red';
 							updatePayload.triageReason =
-								(triageResult.reason || '') + ` | 🚨 AI Escalated: ${aiRes.rationale}`;
+								(triageResult.reason || '') + ` | AI Escalated: ${aiRes.rationale}`;
 						}
 
 						await queueStore.update(tId, updatePayload);
@@ -270,7 +247,6 @@
 					console.warn('AI Risk calculation failed (likely offline):', err);
 				});
 
-			// Reset state
 			selectedPatient = null;
 			currentStep = 1;
 			isSubmitting = false;
@@ -285,27 +261,26 @@
 	<title>Vitals &amp; Triage — ClinicFlow</title>
 </svelte:head>
 
-<div class="max-w-4xl mx-auto space-y-8 animate-fade-in">
-	<div class="flex items-start gap-3 border-b border-border pb-6">
-		<div class="p-2.5 rounded-xl bg-primary/10 text-primary">
-			<Thermometer class="size-6" />
-		</div>
-		<div>
-			<h1 class="text-2xl font-bold text-foreground tracking-tight">Vitals &amp; Triage</h1>
-			<p class="text-muted-foreground text-sm mt-0.5">
-				Record vitals and automatically determine patient urgency level
-			</p>
-		</div>
+<div class="max-w-4xl mx-auto space-y-6">
+	<!-- Page Header -->
+	<div class="pb-2 border-b border-border">
+		<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+			Triage Station
+		</p>
+		<h1 class="text-2xl font-bold text-foreground tracking-tight">Vitals &amp; Triage</h1>
+		<p class="text-sm text-muted-foreground mt-0.5">
+			Record measurements and assign patient urgency level
+		</p>
 	</div>
 
-	<div class="bg-card border rounded-xl p-6 shadow-sm flex flex-col min-h-[500px]">
+	<div class="bg-card border border-border rounded-xl p-5 sm:p-6 flex flex-col min-h-[480px]">
 		<!-- Stepper Header -->
-		<div class="mb-8">
-			<Stepper.Root bind:value={currentStep} class="w-full max-w-xl mx-auto">
+		<div class="mb-6 pb-4 border-b border-border">
+			<Stepper.Root bind:value={currentStep} class="w-full max-w-lg mx-auto">
 				<Stepper.Item step={1}>
 					<Stepper.Trigger step={1}>
 						<Stepper.Indicator step={1}>1</Stepper.Indicator>
-						<div class="flex flex-col items-start hidden sm:flex">
+						<div class="hidden sm:flex flex-col items-start">
 							<Stepper.Title>Identify</Stepper.Title>
 							<Stepper.Description>Select patient</Stepper.Description>
 						</div>
@@ -316,9 +291,9 @@
 				<Stepper.Item step={2}>
 					<Stepper.Trigger step={2}>
 						<Stepper.Indicator step={2}>2</Stepper.Indicator>
-						<div class="flex flex-col items-start hidden sm:flex">
+						<div class="hidden sm:flex flex-col items-start">
 							<Stepper.Title>Vitals</Stepper.Title>
-							<Stepper.Description>Record & triage</Stepper.Description>
+							<Stepper.Description>Record &amp; triage</Stepper.Description>
 						</div>
 					</Stepper.Trigger>
 				</Stepper.Item>
@@ -328,35 +303,35 @@
 		<!-- Step Content -->
 		<div class="flex-1 max-w-2xl mx-auto w-full">
 			{#if currentStep === 1}
-				<div in:fade={{ duration: 150 }} class="space-y-6">
-					<div class="text-center mb-6">
-						<h2 class="text-xl font-semibold">Who are we triaging today?</h2>
-						<p class="text-muted-foreground text-sm mt-1">
-							Search the registry or scan their QR card
+				<div in:fade={{ duration: 120 }} class="space-y-5">
+					<div>
+						<h2 class="text-lg font-semibold text-foreground">Select patient to triage</h2>
+						<p class="text-muted-foreground text-sm mt-0.5">
+							Search the local registry or scan their QR card
 						</p>
 					</div>
 
 					{#if selectedPatient}
-						<div class="p-5 bg-primary/10 border border-primary/20 rounded-xl relative">
-							<div class="font-bold text-foreground text-lg flex items-center gap-2">
-								<User class="size-5 text-primary" />
+						<div class="p-4 bg-primary/8 border border-primary/30 rounded-xl relative">
+							<div class="font-semibold text-foreground text-base flex items-center gap-2">
+								<User class="size-4 text-primary" />
 								{selectedPatient.name}
 							</div>
-							<div class="text-sm text-primary font-mono mt-1">{selectedPatient.clinicId}</div>
-							<div class="text-sm text-muted-foreground mt-3 flex flex-wrap gap-2 items-center">
+							<div class="text-xs text-primary font-mono mt-1">{selectedPatient.clinicId}</div>
+							<div class="text-xs text-muted-foreground mt-2 flex flex-wrap gap-2 items-center">
 								<span class="capitalize">{selectedPatient.sex}</span>
-								<span>•</span>
-								<span>{selectedPatient.phone ?? 'No Phone'}</span>
+								<span>·</span>
+								<span>{selectedPatient.phone ?? 'No phone'}</span>
 								{#if selectedPatient.isPregnant}
-									<span>•</span>
-									<span class="text-triage-red font-semibold bg-triage-red/10 px-2 py-0.5 rounded"
-										>Pregnant</span
-									>
+									<span>·</span>
+									<span class="text-triage-red font-semibold bg-triage-red/10 px-2 py-0.5 rounded">
+										Pregnant
+									</span>
 								{/if}
 							</div>
 							<Button
 								variant="ghost"
-								class="absolute top-3 right-3 text-muted-foreground hover:text-foreground h-8 px-3"
+								class="absolute top-3 right-3 text-muted-foreground hover:text-foreground h-9 px-3"
 								onclick={() => (selectedPatient = null)}
 							>
 								Clear
@@ -365,20 +340,22 @@
 					{:else}
 						<div class="space-y-4">
 							<div class="relative">
-								<Search class="absolute left-3 top-3.5 size-4 text-muted-foreground" />
+								<Search
+									class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
+								/>
 								<Input
 									bind:value={searchQuery}
-									placeholder="Search name or clinic ID..."
-									class="pl-9 h-12 bg-background/50 text-base"
+									placeholder="Search name, phone, or clinic ID..."
+									class="pl-9 h-12 bg-background text-base"
 								/>
 							</div>
 
 							{#if showScanner}
-								<div class="mt-4 border border-border rounded-xl overflow-hidden bg-background p-2">
+								<div class="border border-border rounded-xl overflow-hidden bg-background p-2">
 									<QrScanner onResult={handleQrResult} />
 									<Button
 										variant="ghost"
-										class="w-full text-muted-foreground hover:text-foreground mt-2"
+										class="w-full text-muted-foreground hover:text-foreground mt-2 min-h-11"
 										onclick={() => (showScanner = false)}
 									>
 										Cancel Scan
@@ -387,7 +364,7 @@
 							{:else}
 								<Button
 									variant="outline"
-									class="w-full border-border h-12 border-dashed"
+									class="w-full border-border min-h-12 border-dashed"
 									onclick={() => (showScanner = true)}
 								>
 									<Scan class="size-4 mr-2" />
@@ -395,14 +372,13 @@
 								</Button>
 							{/if}
 
-							<!-- Search Results -->
 							{#if searchResults.length > 0}
 								<div
-									class="space-y-2 mt-4 max-h-60 overflow-y-auto no-scrollbar border rounded-lg p-2 bg-muted/20"
+									class="divide-y divide-border border border-border rounded-xl bg-background max-h-64 overflow-y-auto"
 								>
 									{#each searchResults as patient (patient.id)}
 										<button
-											class="w-full text-left p-3 bg-background border rounded-lg hover:border-primary/50 transition-colors flex items-center justify-between group"
+											class="w-full text-left px-4 py-3 hover:bg-muted/40 transition-colors flex items-center justify-between group min-h-12"
 											onclick={() => handleSelectPatient(patient)}
 										>
 											<div>
@@ -426,153 +402,172 @@
 					{/if}
 				</div>
 			{:else if currentStep === 2}
-				<div in:fade={{ duration: 150 }} class="space-y-6">
+				<div in:fade={{ duration: 120 }} class="space-y-5">
 					{#if selectedPatient}
 						<div
-							class="flex items-center justify-between bg-muted/30 border rounded-lg p-3 px-4 text-sm mb-6"
+							class="flex items-center justify-between bg-muted/40 border border-border rounded-lg px-4 py-2.5 text-sm"
 						>
-							<div class="flex items-center gap-2">
-								<User class="size-4 text-muted-foreground" />
-								<span class="font-medium">{selectedPatient.name}</span>
-								<span class="text-muted-foreground font-mono ml-2">{selectedPatient.clinicId}</span>
+							<div class="flex items-center gap-2 min-w-0">
+								<User class="size-4 text-muted-foreground shrink-0" />
+								<span class="font-semibold truncate">{selectedPatient.name}</span>
+								<span class="text-muted-foreground font-mono text-xs"
+									>{selectedPatient.clinicId}</span
+								>
 							</div>
 							<Button
 								variant="ghost"
 								size="sm"
-								class="h-6 text-xs px-2"
+								class="h-8 text-xs px-2.5"
 								onclick={() => {
 									currentStep = 1;
 									selectedPatient = null;
-								}}>Change</Button
+								}}
 							>
+								Change
+							</Button>
 						</div>
 					{/if}
 
 					<AiDisclaimer compact />
 
 					<div class="grid grid-cols-2 gap-4">
-						<div class="space-y-2">
+						<div class="space-y-1.5">
 							<Label for="temp">Temp (°C)</Label>
 							<div class="relative">
-								<Thermometer class="absolute left-3 top-3 size-4 text-muted-foreground" />
+								<Thermometer
+									class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
+								/>
 								<Input
 									id="temp"
 									type="number"
 									step="0.1"
 									bind:value={temperature}
 									placeholder="36.5"
-									class="pl-9 h-10"
+									class="pl-9 h-11 font-mono tabular-nums"
 								/>
 							</div>
 						</div>
 
-						<div class="space-y-2">
-							<Label for="pulse">Heart Rate</Label>
+						<div class="space-y-1.5">
+							<Label for="pulse">Heart Rate (bpm)</Label>
 							<div class="relative">
-								<Heart class="absolute left-3 top-3 size-4 text-muted-foreground" />
+								<Heart
+									class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
+								/>
 								<Input
 									id="pulse"
 									type="number"
 									bind:value={pulse}
 									placeholder="72"
-									class="pl-9 h-10"
+									class="pl-9 h-11 font-mono tabular-nums"
 								/>
 							</div>
 						</div>
 
-						<div class="space-y-2">
+						<div class="space-y-1.5">
 							<Label for="systolic">Systolic (mmHg)</Label>
 							<div class="relative">
-								<Activity class="absolute left-3 top-3 size-4 text-muted-foreground" />
+								<Activity
+									class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
+								/>
 								<Input
 									id="systolic"
 									type="number"
 									bind:value={systolicBp}
 									placeholder="120"
-									class="pl-9 h-10"
+									class="pl-9 h-11 font-mono tabular-nums"
 								/>
 							</div>
 						</div>
 
-						<div class="space-y-2">
+						<div class="space-y-1.5">
 							<Label for="diastolic">Diastolic (mmHg)</Label>
 							<div class="relative">
-								<Activity class="absolute left-3 top-3 size-4 text-muted-foreground" />
+								<Activity
+									class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
+								/>
 								<Input
 									id="diastolic"
 									type="number"
 									bind:value={diastolicBp}
 									placeholder="80"
-									class="pl-9 h-10"
+									class="pl-9 h-11 font-mono tabular-nums"
 								/>
 							</div>
 						</div>
 
-						<div class="space-y-2">
+						<div class="space-y-1.5">
 							<Label for="spo2">SpO2 (%)</Label>
 							<div class="relative">
-								<Percent class="absolute left-3 top-3 size-4 text-muted-foreground" />
+								<Percent
+									class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
+								/>
 								<Input
 									id="spo2"
 									type="number"
 									bind:value={spo2}
 									placeholder="98"
-									class="pl-9 h-10"
+									class="pl-9 h-11 font-mono tabular-nums"
 								/>
 							</div>
 						</div>
 
-						<div class="space-y-2">
+						<div class="space-y-1.5">
 							<Label for="weight">Weight (kg)</Label>
 							<div class="relative">
-								<Weight class="absolute left-3 top-3 size-4 text-muted-foreground" />
+								<Weight
+									class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
+								/>
 								<Input
 									id="weight"
 									type="number"
 									step="0.1"
 									bind:value={weight}
 									placeholder="70"
-									class="pl-9 h-10"
+									class="pl-9 h-11 font-mono tabular-nums"
 								/>
 							</div>
 						</div>
 					</div>
 
-					<!-- Live Triage Banner -->
+					<!-- Live Triage Assessment Banner -->
 					{#if triageResult}
 						{@const isRed = triageResult.level === 'red'}
 						{@const isAmber = triageResult.level === 'amber'}
 						<div
-							class="p-5 mt-6 rounded-xl border flex flex-col justify-center items-center text-center transition-all duration-300 animate-fade-in
-							{isRed ? 'bg-triage-red/10 border-triage-red/30 text-triage-red glow-triage-red' : ''}
-							{isAmber ? 'bg-triage-amber/10 border-triage-amber/30 text-triage-amber' : ''}
-							{!isRed && !isAmber ? 'bg-triage-green/10 border-triage-green/30 text-triage-green' : ''}
+							class="p-4 rounded-xl border border-l-4 flex items-start gap-3 transition-colors
+							{isRed ? 'bg-triage-red/10 border-triage-red/30 border-l-triage-red text-triage-red' : ''}
+							{isAmber ? 'bg-triage-amber/12 border-triage-amber/40 border-l-triage-amber text-foreground' : ''}
+							{!isRed && !isAmber
+								? 'bg-triage-green/10 border-triage-green/30 border-l-triage-green text-triage-green'
+								: ''}
 						"
 						>
-							<div class="text-xs font-bold uppercase tracking-widest flex items-center gap-1.5">
-								<ShieldAlert class="size-3.5" />
-								Triage Severity
+							<ShieldAlert class="size-5 shrink-0 mt-0.5" />
+							<div class="space-y-0.5">
+								<p class="text-xs font-mono uppercase tracking-widest font-semibold">
+									Triage Severity:
+									{#if isRed}
+										RED · CRITICAL
+									{:else if isAmber}
+										AMBER · PRIORITY
+									{:else}
+										GREEN · ROUTINE
+									{/if}
+								</p>
+								<p class="text-sm font-medium opacity-90">{triageResult.reason}</p>
 							</div>
-							<div class="text-lg font-extrabold mt-1">
-								{#if isRed}
-									RED FLAG
-								{:else if isAmber}
-									AMBER FLAG
-								{:else}
-									GREEN FLAG
-								{/if}
-							</div>
-							<div class="text-sm mt-1.5 font-medium opacity-90">{triageResult.reason}</div>
 						</div>
 					{/if}
 				</div>
 			{/if}
 		</div>
 
-		<!-- Navigation -->
-		<div class="flex justify-between mt-8 pt-6 border-t border-border mt-auto">
+		<!-- Navigation Footer -->
+		<div class="flex justify-between mt-8 pt-5 border-t border-border">
 			<Button
 				variant="outline"
+				class="min-h-11 px-5"
 				disabled={currentStep === 1}
 				onclick={() => {
 					currentStep--;
@@ -583,21 +578,21 @@
 			</Button>
 
 			{#if currentStep === 1}
-				<Button onclick={() => currentStep++} disabled={!selectedPatient}>
+				<Button class="min-h-11 px-5" onclick={() => currentStep++} disabled={!selectedPatient}>
 					Next Step <ArrowRight class="size-4 ml-2" />
 				</Button>
 			{:else}
-				<ShinyButton
-					class="bg-primary text-primary-foreground font-semibold px-6"
+				<Button
+					class="min-h-11 px-6 font-semibold"
 					onclick={preSaveVitals}
 					disabled={isSubmitting || !selectedPatient}
 				>
 					{#if isSubmitting}
-						Saving...
+						Saving…
 					{:else}
-						Save & Triag<ArrowRight class="size-4 ml-2" />
+						Save &amp; Triage <ArrowRight class="size-4 ml-2" />
 					{/if}
-				</ShinyButton>
+				</Button>
 			{/if}
 		</div>
 	</div>
@@ -606,7 +601,7 @@
 <Dialog.Root bind:open={showDuplicateWarning}>
 	<Dialog.Content>
 		<Dialog.Header>
-			<Dialog.Title class="flex items-center gap-2 text-amber-600">
+			<Dialog.Title class="flex items-center gap-2 text-amber-700 dark:text-triage-amber">
 				<AlertTriangle class="size-5" /> Patient Already in Queue
 			</Dialog.Title>
 			<Dialog.Description>
@@ -616,9 +611,7 @@
 		</Dialog.Header>
 		<Dialog.Footer>
 			<Button variant="outline" onclick={() => (showDuplicateWarning = false)}>Cancel</Button>
-			<Button class="bg-amber-600 hover:bg-amber-700 text-white" onclick={handleSaveVitals}>
-				Update Existing Ticket
-			</Button>
+			<Button onclick={handleSaveVitals}>Update Existing Ticket</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

@@ -1,12 +1,5 @@
 <script lang="ts">
 	import { pharmacyStore } from '#lib/state/pharmacy.svelte.ts';
-	import {
-		Card,
-		CardContent,
-		CardHeader,
-		CardTitle,
-		CardDescription
-	} from '#lib/components/ui/card/index.ts';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import {
@@ -18,16 +11,7 @@
 		TableRow
 	} from '#lib/components/ui/table/index.ts';
 	import { Input } from '#lib/components/ui/input/index.ts';
-	import {
-		Pill,
-		AlertTriangle,
-		Search,
-		Plus,
-		ArrowRight,
-		PackageOpen,
-		Send,
-		AlertCircle
-	} from '@lucide/svelte';
+	import { Pill, AlertTriangle, Search, Plus, ArrowRight, Send, AlertCircle } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { restockStore } from '#lib/state/restock-requests.svelte.ts';
 	import { sessionStore } from '#lib/state/session.svelte.ts';
@@ -74,165 +58,169 @@
 	<title>Pharmacy Inventory — ClinicFlow</title>
 </svelte:head>
 
-<div class="space-y-8 animate-fade-in max-w-6xl mx-auto">
-	<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-		<div class="flex items-start gap-3">
-			<div class="p-2.5 rounded-xl bg-primary/10 text-primary">
-				<PackageOpen class="size-6" />
-			</div>
-			<div>
-				<h1 class="text-2xl font-bold text-foreground tracking-tight">Pharmacy Inventory</h1>
-				<p class="text-muted-foreground text-sm mt-0.5 font-medium">
-					Manage medications, stock levels, and expirations
-				</p>
-			</div>
+<div class="space-y-6 max-w-6xl mx-auto">
+	<!-- Page Header -->
+	<div
+		class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-2 border-b border-border"
+	>
+		<div>
+			<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+				Dispensary Counter
+			</p>
+			<h1 class="text-2xl font-bold text-foreground tracking-tight">Pharmacy Inventory</h1>
 		</div>
 
-		<div class="flex items-center gap-3">
-			<Button variant="outline" href="/pharmacy/restock" class="gap-2">
+		<div class="flex flex-wrap items-center gap-2">
+			<Button variant="outline" href="/pharmacy/restock" class="min-h-10 gap-2">
 				<Send class="size-4" />
-				Restock Requests
+				<span>Restock Requests</span>
 			</Button>
-			<Button href="/pharmacy/dispense" class="gap-2">
+			<Button variant="outline" href="/pharmacy/dispense" class="min-h-10 gap-2">
 				<Pill class="size-4" />
-				Dispense Queue
+				<span>Dispense Queue</span>
 			</Button>
-			<Button
-				href="/pharmacy/inventory/new"
-				class="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
-			>
+			<Button href="/pharmacy/inventory/new" class="min-h-10 gap-2 font-semibold">
 				<Plus class="size-4" />
-				Add Item
+				<span>Add Item</span>
 			</Button>
 		</div>
 	</div>
 
+	<!-- Low Stock Alert Strip -->
 	{#if lowStockItems.length > 0}
 		<div
-			class="bg-destructive/10 border border-destructive/20 rounded-lg p-4 flex items-start gap-3"
+			class="rounded-xl border border-destructive/30 bg-destructive/8 px-4 py-3.5 flex items-start gap-3"
 		>
-			<AlertTriangle class="size-5 text-destructive mt-0.5" />
-			<div class="flex-1">
-				<h3 class="text-sm font-semibold text-destructive">Critical Low Stock Alerts</h3>
-				<p class="text-sm text-destructive/80 mt-1">
-					{lowStockItems.length} items are running low or out of stock. Please request a restock from
-					the LGA depot.
-				</p>
+			<AlertTriangle class="size-5 text-destructive mt-0.5 shrink-0" />
+			<div class="flex-1 text-sm">
+				<span class="font-semibold text-destructive">Low stock alert:</span>
+				<span class="text-foreground/80 ml-1">
+					{lowStockItems.length} item{lowStockItems.length === 1 ? '' : 's'} running low or out of stock.
+					Request a restock from the LGA depot.
+				</span>
 			</div>
 		</div>
 	{/if}
 
-	<Card class="bg-card/60 card-hover">
-		<CardHeader class="pb-4">
-			<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-				<div>
-					<CardTitle>Inventory Overview</CardTitle>
-					<CardDescription>All items currently tracked in the pharmacy.</CardDescription>
-				</div>
-				<div class="relative w-full sm:w-72">
-					<Search class="absolute left-3 top-2.5 size-4 text-muted-foreground" />
-					<Input
-						bind:value={searchQuery}
-						placeholder="Search inventory..."
-						class="pl-9 h-9 bg-background/50"
-					/>
-				</div>
+	<!-- Ruled Inventory Ledger -->
+	<section class="rounded-xl border border-border bg-card overflow-hidden">
+		<div
+			class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-4 border-b border-border"
+		>
+			<div>
+				<h2 class="text-base font-semibold text-foreground">Inventory Ledger</h2>
+				<p class="text-xs text-muted-foreground">
+					{inventory.length} medication{inventory.length === 1 ? '' : 's'} tracked locally
+				</p>
 			</div>
-		</CardHeader>
-		<CardContent>
-			<div class="rounded-md border border-border/50">
-				<Table>
-					<TableHeader class="bg-muted/30">
-						<TableRow class="hover:bg-transparent">
-							<TableHead class="w-[300px]">Item Name</TableHead>
-							<TableHead>Category</TableHead>
-							<TableHead class="text-right">Stock Level</TableHead>
-							<TableHead class="text-center">Status</TableHead>
-							<TableHead class="text-right">Actions</TableHead>
-						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{#if inventory.length === 0}
-							<TableRow>
-								<TableCell colspan={5} class="h-24 text-center text-muted-foreground">
-									No items found.
-								</TableCell>
-							</TableRow>
-						{/if}
-						{#each inventory as item (item.id)}
-							{@const status = getStatusBadge(item)}
-							<TableRow class="hover:bg-muted/40 transition-colors">
-								<TableCell class="font-medium text-foreground">
-									<div class="flex items-center gap-2">
-										{#if item.isCritical}
-											<AlertCircle class="size-4 text-destructive" />
-										{/if}
-										{item.itemName}
-									</div>
-								</TableCell>
-								<TableCell class="text-muted-foreground text-sm">
-									{item.category || 'Uncategorized'}
-								</TableCell>
-								<TableCell class="text-right tabular-nums">
-									<div class="flex flex-col items-end gap-1">
-										<span
-											class="font-semibold"
-											class:text-destructive={status.label !== 'In Stock'}
-										>
-											{item.currentStock}
-											{item.unit}
-										</span>
-										<div class="w-24 h-1.5 bg-muted rounded-full overflow-hidden">
-											<div
-												class="h-full rounded-full {status.label === 'In Stock'
-													? 'bg-primary/70'
-													: 'bg-destructive/80'}"
-												style="width: {Math.min(
-													100,
-													(item.currentStock / (item.lowStockThreshold * 3)) * 100
-												)}%"
-											></div>
-										</div>
-									</div>
-								</TableCell>
-								<TableCell class="text-center">
-									<Badge
-										variant={status.variant === 'warning' ? 'outline' : status.variant}
-										class={status.variant === 'warning'
-											? 'bg-amber-500/15 text-amber-600 hover:bg-amber-500/25 border-amber-500/30 font-semibold'
-											: 'font-semibold'}
+			<div class="relative w-full sm:w-72">
+				<Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+				<Input
+					bind:value={searchQuery}
+					placeholder="Filter medications..."
+					class="pl-9 h-10 bg-background"
+				/>
+			</div>
+		</div>
+
+		<Table>
+			<TableHeader class="bg-muted/40">
+				<TableRow class="hover:bg-transparent">
+					<TableHead class="w-[300px] font-mono text-xs uppercase tracking-wider"
+						>Item Name</TableHead
+					>
+					<TableHead class="font-mono text-xs uppercase tracking-wider">Category</TableHead>
+					<TableHead class="text-right font-mono text-xs uppercase tracking-wider"
+						>Stock Level</TableHead
+					>
+					<TableHead class="text-center font-mono text-xs uppercase tracking-wider"
+						>Status</TableHead
+					>
+					<TableHead class="text-right font-mono text-xs uppercase tracking-wider"
+						>Actions</TableHead
+					>
+				</TableRow>
+			</TableHeader>
+			<TableBody>
+				{#if inventory.length === 0}
+					<TableRow>
+						<TableCell colspan={5} class="h-28 text-center text-muted-foreground">
+							No items found matching your filter.
+						</TableCell>
+					</TableRow>
+				{/if}
+				{#each inventory as item, idx (item.id)}
+					{@const status = getStatusBadge(item)}
+					<TableRow class={idx % 2 === 1 ? 'bg-muted/20 hover:bg-muted/40' : 'hover:bg-muted/40'}>
+						<TableCell class="font-medium text-foreground">
+							<div class="flex items-center gap-2">
+								{#if item.isCritical}
+									<AlertCircle class="size-4 text-destructive shrink-0" />
+								{/if}
+								<span>{item.itemName}</span>
+							</div>
+						</TableCell>
+						<TableCell class="text-muted-foreground text-sm">
+							{item.category || 'Uncategorized'}
+						</TableCell>
+						<TableCell class="text-right tabular-nums font-mono">
+							<div class="flex flex-col items-end gap-1">
+								<span
+									class="font-semibold text-sm"
+									class:text-destructive={status.label !== 'In Stock'}
+								>
+									{item.currentStock}
+									{item.unit}
+								</span>
+								<div class="w-24 h-1.5 bg-muted rounded-full overflow-hidden">
+									<div
+										class="h-full rounded-full {status.label === 'In Stock'
+											? 'bg-primary'
+											: 'bg-destructive'}"
+										style="width: {Math.min(
+											100,
+											(item.currentStock / Math.max(1, item.lowStockThreshold * 3)) * 100
+										)}%"
+									></div>
+								</div>
+							</div>
+						</TableCell>
+						<TableCell class="text-center">
+							<Badge
+								variant={status.variant === 'warning' ? 'outline' : status.variant}
+								class={status.variant === 'warning'
+									? 'bg-triage-amber/15 text-foreground border-triage-amber/40 font-semibold'
+									: 'font-semibold'}
+							>
+								{status.label}
+							</Badge>
+						</TableCell>
+						<TableCell class="text-right">
+							<div class="flex items-center justify-end gap-2">
+								{#if status.label !== 'In Stock'}
+									<Button
+										size="sm"
+										variant="outline"
+										class="h-9 px-3 text-xs border-destructive/30 text-destructive hover:bg-destructive/10"
+										onclick={() => requestRestock(item)}
 									>
-										{status.label}
-									</Badge>
-								</TableCell>
-								<TableCell class="text-right">
-									<div class="flex items-center justify-end gap-2">
-										{#if status.label !== 'In Stock'}
-											<Button
-												size="sm"
-												variant="outline"
-												class="h-8 px-2.5 text-xs border-destructive/30 text-destructive hover:bg-destructive/10"
-												onclick={() => requestRestock(item)}
-											>
-												<Send class="size-3.5 mr-1" />
-												Restock
-											</Button>
-										{/if}
-										<Button
-											size="icon"
-											variant="ghost"
-											class="h-8 w-8 text-muted-foreground hover:text-foreground"
-											href={`/pharmacy/inventory/${item.id}`}
-										>
-											<ArrowRight class="size-4" />
-										</Button>
-									</div>
-								</TableCell>
-							</TableRow>
-						{/each}
-					</TableBody>
-				</Table>
-			</div>
-		</CardContent>
-	</Card>
+										<Send class="size-3.5 mr-1.5" />
+										Restock
+									</Button>
+								{/if}
+								<Button
+									size="icon"
+									variant="ghost"
+									class="h-9 w-9 text-muted-foreground hover:text-foreground"
+									href={`/pharmacy/inventory/${item.id}`}
+								>
+									<ArrowRight class="size-4" />
+								</Button>
+							</div>
+						</TableCell>
+					</TableRow>
+				{/each}
+			</TableBody>
+		</Table>
+	</section>
 </div>

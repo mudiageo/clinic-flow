@@ -5,7 +5,6 @@
 	import { vitalsStore } from '#lib/state/vitals.svelte.ts';
 	import { getRxBrainAnalysis } from '#lib/remote/ai.remote.ts';
 	import AiDisclaimer from '#lib/components/ui/ai-disclaimer.svelte';
-	import { Card, CardHeader, CardTitle, CardContent } from '#lib/components/ui/card/index.ts';
 	import {
 		Table,
 		TableBody,
@@ -18,10 +17,8 @@
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { toast } from 'svelte-sonner';
 	import {
-		Pill,
 		Check,
 		User,
-		ClipboardList,
 		PackageOpen,
 		Loader2,
 		Sparkles,
@@ -34,7 +31,6 @@
 
 	const pendingPrescriptions = $derived(prescriptionStore.pending);
 
-	// Group by patient
 	const dispenseQueue = $derived.by(() => {
 		const map = new Map<string, typeof pendingPrescriptions>();
 		for (const p of pendingPrescriptions) {
@@ -101,89 +97,105 @@
 	<title>Dispense Queue — ClinicFlow</title>
 </svelte:head>
 
-<div class="space-y-8 animate-fade-in max-w-5xl mx-auto">
-	<div class="flex items-start gap-3">
-		<div class="p-2.5 rounded-xl bg-primary/10 text-primary">
-			<Pill class="size-6" />
-		</div>
+<div class="space-y-6 max-w-5xl mx-auto">
+	<!-- Page Header -->
+	<div
+		class="pb-2 border-b border-border flex flex-col sm:flex-row sm:items-end justify-between gap-3"
+	>
 		<div>
+			<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+				Dispensary Counter
+			</p>
 			<h1 class="text-2xl font-bold text-foreground tracking-tight">Dispense Queue</h1>
-			<p class="text-muted-foreground text-sm mt-0.5 font-medium">
-				Pending prescriptions to be dispensed to patients
+			<p class="text-sm text-muted-foreground mt-0.5">
+				Pending prescriptions ready to be dispensed
 			</p>
 		</div>
+		<span class="text-xs font-mono tabular-nums text-muted-foreground">
+			{dispenseQueue.length} patient{dispenseQueue.length === 1 ? '' : 's'} waiting
+		</span>
 	</div>
 
 	<div class="space-y-4">
 		{#if dispenseQueue.length === 0}
-			<Card class="bg-card/60 card-hover">
-				<CardContent
-					class="py-16 text-center text-muted-foreground flex flex-col items-center justify-center"
-				>
-					<PackageOpen class="size-8 text-muted-foreground/60 mb-2" />
-					<span class="text-sm font-medium">No patients waiting for medication</span>
-				</CardContent>
-			</Card>
+			<div
+				class="py-16 text-center text-muted-foreground flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/50"
+			>
+				<PackageOpen class="size-9 text-muted-foreground/40 mb-2" />
+				<p class="text-base font-medium text-foreground">No patients waiting for medication</p>
+				<p class="text-xs mt-0.5">Prescriptions ordered by doctors will appear here.</p>
+			</div>
 		{:else}
 			{#each dispenseQueue as queueItem (queueItem.patientId)}
 				{@const patient = patientStore.get(queueItem.patientId)}
-				<Card class="bg-card/60 card-hover mb-4 border-l-4 border-l-primary/60">
-					<CardHeader class="pb-3 border-b border-border/60 bg-muted/10">
-						<CardTitle class="text-sm font-semibold flex items-center justify-between">
-							<span class="flex items-center gap-1.5">
-								<User class="size-4 text-primary" />
-								<span class="text-foreground font-bold">{patient?.name || 'Unknown'}</span>
-								<span class="text-xs font-mono text-muted-foreground">({patient?.clinicId})</span>
-							</span>
-							<div class="flex items-center gap-3">
-								<Button
-									size="sm"
-									variant="outline"
-									class="h-8 bg-indigo-50/50 text-indigo-600 border-indigo-200 hover:bg-indigo-100"
-									onclick={() => runRxBrain(queueItem.patientId, queueItem.items)}
-									disabled={rxBrainState[queueItem.patientId]?.loading}
-								>
-									{#if rxBrainState[queueItem.patientId]?.loading}
-										<Loader2 class="size-3.5 mr-2 animate-spin" /> Analyzing...
-									{:else}
-										<Sparkles class="size-3.5 mr-2" /> RxBrain Check
-									{/if}
-								</Button>
-								<Badge variant="secondary" class="font-semibold text-xs"
-									>{queueItem.items.length} items</Badge
-								>
-							</div>
-						</CardTitle>
-					</CardHeader>
-					<CardContent class="pt-4 space-y-4">
+				<article
+					class="rounded-xl border border-border border-l-4 border-l-primary bg-card overflow-hidden"
+				>
+					<!-- Stub Header -->
+					<div
+						class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-dashed border-border bg-muted/25"
+					>
+						<div class="flex items-center gap-2.5 min-w-0">
+							<User class="size-4 text-primary shrink-0" />
+							<span class="font-semibold text-foreground truncate"
+								>{patient?.name || 'Unknown'}</span
+							>
+							{#if patient?.clinicId}
+								<span class="text-xs font-mono text-muted-foreground">{patient.clinicId}</span>
+							{/if}
+						</div>
+
+						<div class="flex items-center gap-2">
+							<Button
+								size="sm"
+								variant="outline"
+								class="h-9 border-primary/30 text-primary hover:bg-primary/10"
+								onclick={() => runRxBrain(queueItem.patientId, queueItem.items)}
+								disabled={rxBrainState[queueItem.patientId]?.loading}
+							>
+								{#if rxBrainState[queueItem.patientId]?.loading}
+									<Loader2 class="size-3.5 mr-1.5 animate-spin" />
+									Analyzing…
+								{:else}
+									<Sparkles class="size-3.5 mr-1.5" />
+									RxBrain Check
+								{/if}
+							</Button>
+							<Badge variant="secondary" class="font-mono text-xs tabular-nums">
+								{queueItem.items.length} item{queueItem.items.length === 1 ? '' : 's'}
+							</Badge>
+						</div>
+					</div>
+
+					<div class="p-4 space-y-4">
 						{#if rxBrainState[queueItem.patientId]?.result}
 							{@const rxRes = rxBrainState[queueItem.patientId].result}
-							<div
-								class="p-4 rounded-xl border border-indigo-100 bg-indigo-50/50 space-y-4 animate-in fade-in slide-in-from-top-2"
-							>
-								<div class="flex items-center justify-between">
-									<h4 class="font-bold text-indigo-900 flex items-center gap-2">
-										<Brain class="size-4 text-indigo-600" /> RxBrain Safety Report
+							<div class="p-4 rounded-xl border border-primary/25 bg-primary/5 space-y-3">
+								<div class="flex items-center justify-between gap-2">
+									<h4 class="font-semibold text-sm text-foreground flex items-center gap-2">
+										<Brain class="size-4 text-primary" /> RxBrain Safety Report
 									</h4>
 									{#if rxRes.safeToDispense}
-										<Badge class="bg-emerald-500 hover:bg-emerald-600"
-											><Check class="size-3 mr-1" /> Safe</Badge
-										>
+										<Badge class="bg-triage-green text-triage-green-foreground">
+											<Check class="size-3 mr-1" /> Safe
+										</Badge>
 									{:else}
-										<Badge variant="destructive"
-											><AlertTriangle class="size-3 mr-1" /> Warnings Detected</Badge
-										>
+										<Badge variant="destructive">
+											<AlertTriangle class="size-3 mr-1" /> Warnings Detected
+										</Badge>
 									{/if}
 								</div>
 
 								<AiDisclaimer />
 
 								{#if rxRes.interactions.length > 0}
-									<div class="space-y-2">
-										<p class="text-sm font-semibold text-amber-700 flex items-center gap-1.5">
+									<div class="space-y-1.5">
+										<p
+											class="text-xs font-semibold text-amber-700 dark:text-triage-amber flex items-center gap-1.5"
+										>
 											<AlertTriangle class="size-3.5" /> Drug Interactions
 										</p>
-										<ul class="list-disc list-inside text-sm text-amber-900/80">
+										<ul class="list-disc list-inside text-xs text-foreground/85 space-y-1">
 											{#each rxRes.interactions as interaction}
 												<li>
 													<strong>{interaction.drugs.join(' + ')} ({interaction.severity}):</strong>
@@ -195,11 +207,11 @@
 								{/if}
 
 								{#if rxRes.contraindications.length > 0}
-									<div class="space-y-2">
-										<p class="text-sm font-semibold text-red-600 flex items-center gap-1.5">
+									<div class="space-y-1.5">
+										<p class="text-xs font-semibold text-destructive flex items-center gap-1.5">
 											<ShieldAlert class="size-3.5" /> Contraindications
 										</p>
-										<ul class="list-disc list-inside text-sm text-red-900/80">
+										<ul class="list-disc list-inside text-xs text-foreground/85 space-y-1">
 											{#each rxRes.contraindications as warning}
 												<li>{warning}</li>
 											{/each}
@@ -208,11 +220,13 @@
 								{/if}
 
 								{#if rxRes.dosageWarnings.length > 0}
-									<div class="space-y-2">
-										<p class="text-sm font-semibold text-amber-700 flex items-center gap-1.5">
+									<div class="space-y-1.5">
+										<p
+											class="text-xs font-semibold text-amber-700 dark:text-triage-amber flex items-center gap-1.5"
+										>
 											<AlertCircle class="size-3.5" /> Dosage Warnings
 										</p>
-										<ul class="list-disc list-inside text-sm text-amber-900/80">
+										<ul class="list-disc list-inside text-xs text-foreground/85 space-y-1">
 											{#each rxRes.dosageWarnings as warning}
 												<li>{warning}</li>
 											{/each}
@@ -222,10 +236,11 @@
 
 								{#if rxRes.interactions.length === 0 && rxRes.contraindications.length === 0 && rxRes.dosageWarnings.length === 0}
 									<p
-										class="text-sm text-emerald-700 bg-emerald-50 p-3 rounded-lg border border-emerald-100 flex items-center gap-2"
+										class="text-xs text-triage-green bg-triage-green/10 p-3 rounded-lg border border-triage-green/25 flex items-center gap-2"
 									>
-										<ShieldCheck class="size-4" /> No obvious contraindications or interactions detected
-										based on available data. Pharmacist must still verify.
+										<ShieldCheck class="size-4 shrink-0" />
+										No obvious contraindications or interactions detected based on available data. Pharmacist
+										must still verify.
 									</p>
 								{/if}
 							</div>
@@ -234,39 +249,33 @@
 						<Table>
 							<TableHeader>
 								<TableRow class="hover:bg-transparent">
-									<TableHead
-										class="font-semibold text-muted-foreground text-xs uppercase tracking-wider"
+									<TableHead class="font-mono text-xs uppercase tracking-wider"
 										>Medication</TableHead
 									>
-									<TableHead
-										class="font-semibold text-muted-foreground text-xs uppercase tracking-wider"
-										>Dosage</TableHead
-									>
-									<TableHead
-										class="font-semibold text-muted-foreground text-right text-xs uppercase tracking-wider"
+									<TableHead class="font-mono text-xs uppercase tracking-wider">Dosage</TableHead>
+									<TableHead class="font-mono text-xs uppercase tracking-wider text-right"
 										>Qty</TableHead
 									>
-									<TableHead
-										class="font-semibold text-muted-foreground text-right text-xs uppercase tracking-wider"
+									<TableHead class="font-mono text-xs uppercase tracking-wider text-right"
 										>Action</TableHead
 									>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
 								{#each queueItem.items as p (p.id)}
-									<TableRow class="border-border hover:bg-muted/40 transition-colors">
-										<TableCell class="text-foreground font-medium">{p.medicationName}</TableCell>
-										<TableCell class="text-muted-foreground">{p.dosage}</TableCell>
-										<TableCell class="text-foreground font-bold text-right tabular-nums"
+									<TableRow class="border-border hover:bg-muted/30">
+										<TableCell class="font-medium text-foreground">{p.medicationName}</TableCell>
+										<TableCell class="text-muted-foreground text-sm">{p.dosage}</TableCell>
+										<TableCell class="font-mono font-bold text-right tabular-nums"
 											>{p.quantity}</TableCell
 										>
 										<TableCell class="text-right">
 											<Button
 												size="sm"
-												class="bg-primary text-primary-foreground hover:bg-primary/95 btn-press h-8 px-3"
+												class="min-h-9 px-3.5 font-semibold"
 												onclick={() => handleDispense(p.id, p.inventoryId, p.quantity)}
 											>
-												<Check class="size-3.5 mr-1" />
+												<Check class="size-3.5 mr-1.5" />
 												Dispense
 											</Button>
 										</TableCell>
@@ -274,8 +283,8 @@
 								{/each}
 							</TableBody>
 						</Table>
-					</CardContent>
-				</Card>
+					</div>
+				</article>
 			{/each}
 		{/if}
 	</div>
