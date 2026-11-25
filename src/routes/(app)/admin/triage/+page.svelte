@@ -1,13 +1,7 @@
 <script lang="ts">
 	import { triageRuleStore } from '#lib/state/triage-rules.svelte.ts';
 	import { sessionStore } from '#lib/state/session.svelte.ts';
-	import {
-		Card,
-		CardHeader,
-		CardTitle,
-		CardContent,
-		CardDescription
-	} from '#lib/components/ui/card/index.ts';
+	import type { LocalTriageRule } from '#lib/local-db/db.ts';
 	import {
 		Table,
 		TableBody,
@@ -31,7 +25,7 @@
 	import { Switch } from '#lib/components/ui/switch/index.ts';
 	import { Label } from '#lib/components/ui/label/index.ts';
 	import { toast } from 'svelte-sonner';
-	import { Settings, Edit2, Check, X, ShieldAlert, AlertTriangle, Plus } from '@lucide/svelte';
+	import { Edit2, Plus } from '@lucide/svelte';
 
 	const rules = $derived(triageRuleStore.items);
 
@@ -39,7 +33,7 @@
 		try {
 			await triageRuleStore.update(ruleId, { active: !currentState });
 			toast.success(`Rule ${!currentState ? 'activated' : 'deactivated'}`);
-		} catch (e: any) {
+		} catch (e) {
 			toast.error('Failed to update rule');
 		}
 	}
@@ -54,15 +48,16 @@
 		reasonTemplate: ''
 	});
 
-	let editingRule = $state<any>(null);
+	let editingRule = $state<LocalTriageRule | null>(null);
 	let isEditDialogOpen = $state(false);
 
-	function startEditFull(rule: any) {
+	function startEditFull(rule: LocalTriageRule) {
 		editingRule = { ...rule };
 		isEditDialogOpen = true;
 	}
 
 	async function saveEditFull() {
+		if (!editingRule) return;
 		try {
 			await triageRuleStore.update(editingRule.id, {
 				field: editingRule.field,
@@ -76,7 +71,7 @@
 			isEditDialogOpen = false;
 			editingRule = null;
 			toast.success('Rule updated successfully');
-		} catch (e: any) {
+		} catch (e) {
 			toast.error('Failed to update rule');
 		}
 	}
@@ -92,7 +87,6 @@
 			});
 			isAddDialogOpen = false;
 			toast.success('Rule added successfully');
-			// Reset form
 			newRule = {
 				field: 'temperatureCelsius',
 				operator: '>',
@@ -111,23 +105,23 @@
 	<title>Triage Rules Config — ClinicFlow</title>
 </svelte:head>
 
-<div class="space-y-8 animate-fade-in">
-	<div class="flex items-start justify-between gap-3">
-		<div class="flex items-start gap-3">
-			<div class="p-2.5 rounded-xl bg-primary/10 text-primary">
-				<Settings class="size-6" />
-			</div>
-			<div>
-				<h1 class="text-2xl font-bold text-foreground tracking-tight">Triage Rules Config</h1>
-				<p class="text-muted-foreground text-sm mt-0.5 font-medium">
-					Configure clinical thresholds for automatic triage flagging
-				</p>
-			</div>
+<div class="space-y-6 max-w-6xl mx-auto">
+	<div
+		class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2 border-b border-border"
+	>
+		<div>
+			<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+				Clinical Thresholds
+			</p>
+			<h1 class="text-2xl font-bold text-foreground tracking-tight">Triage Rules Config</h1>
+			<p class="text-muted-foreground text-sm mt-0.5">
+				Configure vital-sign thresholds for automatic triage flagging
+			</p>
 		</div>
 
 		<Dialog bind:open={isAddDialogOpen}>
 			<DialogTrigger
-				class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2"
+				class="inline-flex items-center justify-center rounded-lg text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 min-h-10 px-4"
 			>
 				<Plus class="size-4 mr-2" />
 				Add Rule
@@ -135,9 +129,9 @@
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>Add New Triage Rule</DialogTitle>
-					<DialogDescription
-						>Define a new condition that will automatically flag a patient's vitals.</DialogDescription
-					>
+					<DialogDescription>
+						Define a new condition that will automatically flag a patient's vitals.
+					</DialogDescription>
 				</DialogHeader>
 				<form onsubmit={handleAddRule} class="space-y-4 py-4">
 					<div class="grid grid-cols-2 gap-4">
@@ -163,9 +157,9 @@
 								bind:value={newRule.operator}
 								class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
 							>
-								<option value=">">Greater than (>)</option>
+								<option value=">">Greater than (&gt;)</option>
 								<option value="<">Less than (&lt;)</option>
-								<option value=">=">Greater or eq (>=)</option>
+								<option value=">=">Greater or eq (&gt;=)</option>
 								<option value="<=">Less or eq (&lt;=)</option>
 								<option value="==">Equals (==)</option>
 							</select>
@@ -208,9 +202,9 @@
 						<Label for="pregnant" class="font-medium cursor-pointer">Requires Pregnancy</Label>
 					</div>
 					<div class="flex justify-end gap-2 pt-2">
-						<Button type="button" variant="outline" onclick={() => (isAddDialogOpen = false)}
-							>Cancel</Button
-						>
+						<Button type="button" variant="outline" onclick={() => (isAddDialogOpen = false)}>
+							Cancel
+						</Button>
 						<Button type="submit">Add Rule</Button>
 					</div>
 				</form>
@@ -218,115 +212,109 @@
 		</Dialog>
 	</div>
 
-	<Card class="overflow-hidden card-hover bg-card/60">
-		<CardHeader class="border-b border-border/60 bg-muted/20 px-6 py-4">
-			<CardTitle class="text-base font-semibold">Active Thresholds</CardTitle>
-			<CardDescription
-				>Rules are evaluated sequentially on every vitals record entry.</CardDescription
-			>
-		</CardHeader>
-		<ScrollArea class="h-[500px] w-full">
+	<section class="rounded-xl border border-border bg-card overflow-hidden">
+		<div class="border-b border-border bg-muted/20 px-5 py-3.5">
+			<h2 class="text-base font-semibold">Active Thresholds</h2>
+			<p class="text-xs text-muted-foreground">
+				Rules are evaluated sequentially on every vitals record entry.
+			</p>
+		</div>
+		<ScrollArea class="h-[520px] w-full">
 			<Table>
 				<TableHeader class="bg-muted/40 sticky top-0 z-10">
 					<TableRow class="hover:bg-transparent">
-						<TableHead
-							class="font-semibold text-muted-foreground px-6 py-3.5 text-xs uppercase tracking-wider"
+						<TableHead class="font-mono text-xs uppercase tracking-wider px-5 py-3"
 							>Rule Field</TableHead
 						>
-						<TableHead
-							class="font-semibold text-muted-foreground px-6 py-3.5 text-xs uppercase tracking-wider"
+						<TableHead class="font-mono text-xs uppercase tracking-wider px-5 py-3"
 							>Condition</TableHead
 						>
-						<TableHead
-							class="font-semibold text-muted-foreground px-6 py-3.5 text-xs uppercase tracking-wider"
+						<TableHead class="font-mono text-xs uppercase tracking-wider px-5 py-3"
 							>Threshold</TableHead
 						>
-						<TableHead
-							class="font-semibold text-muted-foreground px-6 py-3.5 text-xs uppercase tracking-wider"
+						<TableHead class="font-mono text-xs uppercase tracking-wider px-5 py-3"
 							>Urgency</TableHead
 						>
-						<TableHead
-							class="font-semibold text-muted-foreground px-6 py-3.5 text-right w-32 text-xs uppercase tracking-wider"
-							>Status</TableHead
-						>
+						<TableHead class="font-mono text-xs uppercase tracking-wider px-5 py-3 text-right w-32">
+							Status
+						</TableHead>
 					</TableRow>
 				</TableHeader>
-				<TableBody class="animate-stagger">
-					{#each rules as rule}
-						<TableRow class="border-border hover:bg-muted/40 transition-colors">
-							<TableCell class="font-semibold text-foreground px-6 py-4 text-sm">
-								<span class="capitalize"
-									>{rule.field
+				<TableBody>
+					{#each rules as rule, idx (rule.id)}
+						<TableRow class={idx % 2 === 1 ? 'bg-muted/20 hover:bg-muted/40' : 'hover:bg-muted/40'}>
+							<TableCell class="font-semibold text-foreground px-5 py-3.5 text-sm">
+								<span class="capitalize">
+									{rule.field
 										.replace('Celsius', ' (°C)')
 										.replace('Bp', ' BP')
 										.replace('Percent', ' (%)')
 										.replace('Bpm', ' (BPM)')
-										.replace('Kg', ' (kg)')}</span
-								>
+										.replace('Kg', ' (kg)')}
+								</span>
 								{#if rule.requiresPregnant}
 									<Badge
 										variant="outline"
-										class="ml-2 border-triage-amber/35 text-triage-amber bg-triage-amber/5 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0"
-										>Pregnant Only</Badge
+										class="ml-2 border-triage-amber/40 text-amber-700 dark:text-triage-amber bg-triage-amber/10 text-[10px] font-mono uppercase px-1.5 py-0"
 									>
+										Pregnant Only
+									</Badge>
 								{/if}
 							</TableCell>
 							<TableCell
-								class="text-muted-foreground px-6 py-4 font-mono text-xs uppercase font-bold"
-								>{rule.operator}</TableCell
+								class="text-muted-foreground px-5 py-3.5 font-mono text-xs uppercase font-bold"
 							>
-							<TableCell class="px-6 py-4">
-								<div class="flex items-center gap-3">
-									<span class="text-foreground font-bold text-sm tabular-nums"
-										>{rule.threshold}</span
-									>
+								{rule.operator}
+							</TableCell>
+							<TableCell class="px-5 py-3.5">
+								<div class="flex items-center gap-2">
+									<span class="text-foreground font-bold font-mono text-sm tabular-nums">
+										{rule.threshold}
+									</span>
 									<Button
 										variant="ghost"
 										size="icon"
-										class="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted btn-press"
+										class="size-8 text-muted-foreground hover:text-foreground"
 										onclick={() => startEditFull(rule)}
 									>
-										<Edit2 class="size-3" />
+										<Edit2 class="size-3.5" />
 									</Button>
 								</div>
 							</TableCell>
-							<TableCell class="px-6 py-4">
+							<TableCell class="px-5 py-3.5">
 								{#if rule.resultingLevel === 'red'}
 									<Badge
-										class="bg-triage-red/15 text-triage-red border-triage-red/25 hover:bg-triage-red/15 font-semibold text-[10px] tracking-wider uppercase"
-										>RED</Badge
+										class="bg-triage-red/15 text-triage-red border-triage-red/30 font-mono text-[10px] uppercase"
 									>
+										RED
+									</Badge>
 								{:else if rule.resultingLevel === 'amber'}
 									<Badge
-										class="bg-triage-amber/15 text-triage-amber border-triage-amber/25 hover:bg-triage-amber/15 font-semibold text-[10px] tracking-wider uppercase"
-										>AMBER</Badge
+										class="bg-triage-amber/15 text-foreground border-triage-amber/40 font-mono text-[10px] uppercase"
 									>
+										AMBER
+									</Badge>
 								{:else}
 									<Badge
-										class="bg-triage-green/15 text-triage-green border-triage-green/25 hover:bg-triage-green/15 font-semibold text-[10px] tracking-wider uppercase"
-										>GREEN</Badge
+										class="bg-triage-green/15 text-triage-green border-triage-green/30 font-mono text-[10px] uppercase"
 									>
+										GREEN
+									</Badge>
 								{/if}
 							</TableCell>
-							<TableCell class="px-6 py-4 text-right">
-								<button
+							<TableCell class="px-5 py-3.5 text-right">
+								<Switch
+									checked={rule.active}
+									onCheckedChange={() => toggleRule(rule.id, rule.active)}
 									aria-label="Toggle rule active status"
-									class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-primary/20
-                    {rule.active ? 'bg-primary' : 'bg-muted border border-border'}"
-									onclick={() => toggleRule(rule.id, rule.active)}
-								>
-									<span
-										class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform duration-200
-                    {rule.active ? 'translate-x-4.5' : 'translate-x-0.5'}"
-									></span>
-								</button>
+								/>
 							</TableCell>
 						</TableRow>
 					{/each}
 				</TableBody>
 			</Table>
 		</ScrollArea>
-	</Card>
+	</section>
 
 	<Dialog bind:open={isEditDialogOpen}>
 		<DialogContent>
@@ -358,9 +346,9 @@
 								bind:value={editingRule.operator}
 								class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
 							>
-								<option value=">">Greater than (>)</option>
+								<option value=">">Greater than (&gt;)</option>
 								<option value="<">Less than (&lt;)</option>
-								<option value=">=">Greater or eq (>=)</option>
+								<option value=">=">Greater or eq (&gt;=)</option>
 								<option value="<=">Less or eq (&lt;=)</option>
 								<option value="==">Equals (==)</option>
 							</select>
@@ -403,9 +391,9 @@
 						<Label for="edit-pregnant" class="font-medium cursor-pointer">Requires Pregnancy</Label>
 					</div>
 					<div class="flex justify-end gap-2 pt-2">
-						<Button type="button" variant="outline" onclick={() => (isEditDialogOpen = false)}
-							>Cancel</Button
-						>
+						<Button type="button" variant="outline" onclick={() => (isEditDialogOpen = false)}>
+							Cancel
+						</Button>
 						<Button type="button" onclick={saveEditFull}>Save Changes</Button>
 					</div>
 				</div>

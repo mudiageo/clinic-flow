@@ -1,17 +1,5 @@
 <script lang="ts">
-	import {
-		getDevices,
-		registerDevice,
-		updateDevice,
-		removeDevice
-	} from '#lib/remote/devices.remote.ts';
-	import {
-		Card,
-		CardHeader,
-		CardTitle,
-		CardDescription,
-		CardContent
-	} from '#lib/components/ui/card/index.ts';
+	import { getDevices, registerDevice } from '#lib/remote/devices.remote.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import * as Dialog from '#lib/components/ui/dialog/index.ts';
@@ -37,9 +25,7 @@
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import * as DropdownMenu from '#lib/components/ui/dropdown-menu/index.ts';
-	import { slide, fade } from 'svelte/transition';
 
-	// We use the raw type from the db schema roughly:
 	type Device = {
 		id: string;
 		name: string;
@@ -68,7 +54,7 @@
 		isLoading = true;
 		try {
 			const res = await getDevices();
-			if (res) devices = res as any[];
+			if (res) devices = res as Device[];
 		} catch (e) {
 			toast.error('Failed to load devices');
 		} finally {
@@ -87,7 +73,6 @@
 		formData.append('status', 'approved');
 
 		try {
-			// Submitting directly to the remote form action
 			const res = await fetch('?/_remote/updateDevice', {
 				method: 'POST',
 				body: formData
@@ -136,13 +121,13 @@
 	function getRoleColor(role: string) {
 		switch (role) {
 			case 'triage':
-				return 'bg-triage-amber/20 text-triage-amber border-triage-amber/50';
+				return 'bg-triage-amber/15 text-foreground border-triage-amber/40';
 			case 'doctor_tablet':
-				return 'bg-blue-500/20 text-blue-600 border-blue-500/50';
+				return 'bg-primary/10 text-primary border-primary/30';
 			case 'pharmacy_terminal':
-				return 'bg-purple-500/20 text-purple-600 border-purple-500/50';
+				return 'bg-secondary text-secondary-foreground border-border';
 			default:
-				return 'bg-slate-500/20 text-slate-600 border-slate-500/50';
+				return 'bg-muted text-muted-foreground border-border';
 		}
 	}
 
@@ -178,85 +163,89 @@
 	<title>Device Management — Admin | ClinicFlow</title>
 </svelte:head>
 
-<div class="space-y-6">
+<div class="space-y-6 max-w-6xl mx-auto">
 	<!-- Header -->
-	<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+	<div
+		class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 pb-2 border-b border-border"
+	>
 		<div>
-			<h1 class="text-3xl font-bold tracking-tight">Devices & Kiosks</h1>
-			<p class="text-muted-foreground mt-1">
-				Manage linked hardware and approve new tablets on your network.
+			<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+				Hardware &amp; LAN
+			</p>
+			<h1 class="text-2xl font-bold tracking-tight text-foreground">Devices &amp; Kiosks</h1>
+			<p class="text-muted-foreground text-sm mt-0.5">
+				Manage linked hardware and approve new tablets on your network
 			</p>
 		</div>
-		<div class="flex items-center gap-3 w-full sm:w-auto">
-			<Button variant="outline" class="w-full sm:w-auto" onclick={loadDevices}>
+		<div class="flex items-center gap-2.5 w-full sm:w-auto">
+			<Button variant="outline" class="flex-1 sm:flex-initial min-h-10" onclick={loadDevices}>
 				<RefreshCw class="size-4 mr-2 {isLoading ? 'animate-spin' : ''}" /> Refresh
 			</Button>
-			<Button class="w-full sm:w-auto" onclick={() => (registerDialogOpen = true)}>
+			<Button
+				class="flex-1 sm:flex-initial min-h-10 font-semibold"
+				onclick={() => (registerDialogOpen = true)}
+			>
 				<Plus class="size-4 mr-2" /> Add Manually
 			</Button>
 		</div>
 	</div>
 
-	<!-- Alert for pending devices -->
 	{#if devices.some((d) => d.status === 'pending')}
 		<div
-			class="bg-amber-500/10 border border-amber-500/30 p-4 rounded-xl flex items-start gap-4 animate-in slide-in-from-top-4"
+			class="bg-triage-amber/12 border border-triage-amber/40 border-l-4 border-l-triage-amber p-4 rounded-xl flex items-start gap-3"
 		>
-			<AlertTriangle class="size-6 text-amber-500 shrink-0 mt-0.5" />
-			<div class="flex-1">
-				<h3 class="font-bold text-amber-700 dark:text-amber-400">New Devices Pending Approval</h3>
-				<p class="text-sm text-amber-600/80 dark:text-amber-400/80 mt-1">
-					There are devices trying to connect to this PHC network. Please review and assign them a
-					role.
+			<AlertTriangle class="size-5 text-amber-700 dark:text-triage-amber shrink-0 mt-0.5" />
+			<div>
+				<h2 class="font-semibold text-sm text-foreground">New Devices Pending Approval</h2>
+				<p class="text-xs text-muted-foreground mt-0.5">
+					There are devices trying to connect to this PHC network. Review and assign them a role.
 				</p>
 			</div>
 		</div>
 	{/if}
 
 	<!-- Devices List -->
-	<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+	<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
 		{#if isLoading && devices.length === 0}
 			{#each [1, 2, 3] as i (i)}
-				<Card class="opacity-50">
-					<CardHeader><div class="h-6 w-1/2 bg-muted rounded animate-pulse"></div></CardHeader>
-					<CardContent><div class="h-20 bg-muted rounded animate-pulse"></div></CardContent>
-				</Card>
+				<div class="rounded-xl border border-border bg-card p-5 space-y-3 opacity-60">
+					<div class="h-5 w-1/2 bg-muted rounded animate-pulse"></div>
+					<div class="h-16 bg-muted rounded animate-pulse"></div>
+				</div>
 			{/each}
 		{:else if devices.length === 0}
-			<div class="col-span-full py-16 text-center border-2 border-dashed rounded-2xl">
-				<TabletSmartphone class="size-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-				<h3 class="text-xl font-bold">No Devices Found</h3>
-				<p class="text-muted-foreground mt-2 max-w-sm mx-auto">
+			<div
+				class="col-span-full py-16 text-center border border-dashed border-border rounded-xl bg-card/50"
+			>
+				<TabletSmartphone class="size-10 text-muted-foreground mx-auto mb-3 opacity-40" />
+				<h2 class="text-base font-semibold">No Devices Found</h2>
+				<p class="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
 					You haven't linked any tablets or kiosks to this local server yet.
 				</p>
 			</div>
 		{:else}
 			{#each devices as device (device.id)}
-				<Card
-					class="group transition-all hover:shadow-md border-border/60 relative overflow-hidden"
+				<article
+					class="rounded-xl border border-border border-l-4 bg-card overflow-hidden flex flex-col {device.status ===
+					'approved'
+						? 'border-l-triage-green'
+						: device.status === 'pending'
+							? 'border-l-triage-amber'
+							: 'border-l-destructive'}"
 				>
-					<!-- Status Indicator Stripe -->
 					<div
-						class="absolute top-0 left-0 w-1 h-full {device.status === 'approved'
-							? 'bg-emerald-500'
-							: device.status === 'pending'
-								? 'bg-amber-500'
-								: 'bg-destructive'}"
-					></div>
-
-					<CardHeader class="pb-3 flex flex-row items-start justify-between">
-						<div>
-							<CardTitle class="text-lg flex items-center gap-2">
-								{device.name}
-							</CardTitle>
-							<CardDescription class="mt-1 font-mono text-xs"
-								>{device.id.split('-')[0]}...{device.id.split('-')[4]}</CardDescription
-							>
+						class="p-4 border-b border-dashed border-border flex items-start justify-between gap-2 bg-muted/15"
+					>
+						<div class="min-w-0">
+							<h2 class="text-base font-bold text-foreground truncate">{device.name}</h2>
+							<p class="mt-0.5 font-mono text-xs text-muted-foreground">
+								{device.id.split('-')[0]}...{device.id.split('-')[4]}
+							</p>
 						</div>
 
 						<DropdownMenu.Root>
 							<DropdownMenu.Trigger>
-								<Button variant="ghost" size="icon" class="-mr-3 -mt-3 text-muted-foreground">
+								<Button variant="ghost" size="icon" class="size-8 text-muted-foreground">
 									<MoreVertical class="size-4" />
 								</Button>
 							</DropdownMenu.Trigger>
@@ -264,7 +253,7 @@
 								{#if device.status !== 'approved'}
 									<DropdownMenu.Item
 										onclick={() => handleApprove(device.id)}
-										class="text-emerald-500 cursor-pointer"
+										class="text-triage-green cursor-pointer"
 									>
 										<CheckCircle2 class="size-4 mr-2" /> Approve Access
 									</DropdownMenu.Item>
@@ -272,7 +261,7 @@
 								{#if device.status !== 'revoked'}
 									<DropdownMenu.Item
 										onclick={() => handleRevoke(device.id)}
-										class="text-amber-500 cursor-pointer"
+										class="text-amber-700 dark:text-triage-amber cursor-pointer"
 									>
 										<XCircle class="size-4 mr-2" /> Revoke Access
 									</DropdownMenu.Item>
@@ -286,60 +275,61 @@
 								</DropdownMenu.Item>
 							</DropdownMenu.Content>
 						</DropdownMenu.Root>
-					</CardHeader>
+					</div>
 
-					<CardContent>
-						<div class="space-y-4">
+					<div class="p-4 space-y-3 text-sm flex-1 flex flex-col justify-between">
+						<div class="space-y-2.5">
 							<div class="flex items-center justify-between">
-								<span class="text-sm text-muted-foreground">Status</span>
+								<span class="text-xs text-muted-foreground">Status</span>
 								{#if device.status === 'approved'}
-									<Badge class="bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-										>Active / Approved</Badge
-									>
+									<Badge class="bg-triage-green/15 text-triage-green border-triage-green/30">
+										Active / Approved
+									</Badge>
 								{:else if device.status === 'pending'}
-									<Badge class="bg-amber-500/10 text-amber-600 border-amber-500/20"
-										>Pending Approval</Badge
-									>
+									<Badge class="bg-triage-amber/15 text-foreground border-triage-amber/40">
+										Pending Approval
+									</Badge>
 								{:else}
 									<Badge variant="destructive">Revoked</Badge>
 								{/if}
 							</div>
 
 							<div class="flex items-center justify-between">
-								<span class="text-sm text-muted-foreground">Assigned Role</span>
-								<Badge variant="outline" class={getRoleColor(device.role)}>
+								<span class="text-xs text-muted-foreground">Assigned Role</span>
+								<Badge variant="outline" class="font-mono text-[11px] {getRoleColor(device.role)}">
 									{device.role.replace('_', ' ').toUpperCase()}
 								</Badge>
 							</div>
-
-							{#if device.status === 'pending'}
-								<div class="pt-4 border-t border-border/50 flex gap-2">
-									<Button
-										class="w-full bg-emerald-500 hover:bg-emerald-600 text-white"
-										onclick={() => handleApprove(device.id)}
-									>
-										Approve
-									</Button>
-									<Button
-										variant="outline"
-										class="w-full border-destructive/20 text-destructive hover:bg-destructive/10"
-										onclick={() => handleRevoke(device.id)}
-									>
-										Deny
-									</Button>
-								</div>
-							{:else}
-								<div class="pt-4 border-t border-border/50">
-									<p class="text-xs text-muted-foreground flex items-center">
-										<ShieldCheck class="size-3 mr-1" /> Last Sync: {device.lastSyncAt
-											? new Date(device.lastSyncAt).toLocaleString()
-											: 'Never'}
-									</p>
-								</div>
-							{/if}
 						</div>
-					</CardContent>
-				</Card>
+
+						{#if device.status === 'pending'}
+							<div class="pt-3 border-t border-border flex gap-2">
+								<Button
+									class="flex-1 min-h-10 font-semibold"
+									onclick={() => handleApprove(device.id)}
+								>
+									Approve
+								</Button>
+								<Button
+									variant="outline"
+									class="flex-1 min-h-10 border-destructive/30 text-destructive hover:bg-destructive/10"
+									onclick={() => handleRevoke(device.id)}
+								>
+									Deny
+								</Button>
+							</div>
+						{:else}
+							<div class="pt-3 border-t border-border">
+								<p class="text-xs font-mono text-muted-foreground flex items-center gap-1.5">
+									<ShieldCheck class="size-3.5 shrink-0" />
+									Last Sync: {device.lastSyncAt
+										? new Date(device.lastSyncAt).toLocaleString()
+										: 'Never'}
+								</p>
+							</div>
+						{/if}
+					</div>
+				</article>
 			{/each}
 		{/if}
 	</div>
