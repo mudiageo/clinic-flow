@@ -7,7 +7,6 @@
 	import { reminderStore } from '#lib/state/reminders.svelte.ts';
 	import { pharmacyStore } from '#lib/state/pharmacy.svelte.ts';
 	import { announcementStore } from '#lib/state/announcements.svelte.ts';
-	import { Skeleton } from '#lib/components/ui/skeleton/index.ts';
 	import { ModeWatcher } from 'mode-watcher';
 	import { setContext, onMount, type Component } from 'svelte';
 
@@ -74,7 +73,6 @@
 
 	// Routes that provide their own padding (nested settings layout, standalone
 	// print view) opt out of the shared app-shell padding applied around children.
-	// Generated RouteId values include the `(app)` route group.
 	const SELF_PADDED_ROUTES = ['/(app)/settings', '/(app)/doctor/referral/print'];
 	const isSelfPadded = $derived(
 		SELF_PADDED_ROUTES.some((route) => {
@@ -124,7 +122,6 @@
 	if (sessionData) {
 		sessionStore.init(sessionData);
 		if (browser && sessionStore.phcId) {
-			// Without this the sync store never pushes or pulls anything.
 			syncStore.setPhcId(sessionStore.phcId);
 		}
 	}
@@ -254,12 +251,10 @@
 		const role = sessionStore.role ?? 'staff';
 		const priorities = ROLE_PRIORITY_MODULES[role] ?? [];
 
-		// 1. Extract priority modules the user actually has permission to see
 		let selectedMods = priorities
 			.map((id) => visibleModules.find((m) => m.id === id))
 			.filter(Boolean) as typeof visibleModules;
 
-		// 2. Backfill with other visible modules if we don't have 4 yet
 		if (selectedMods.length < 4) {
 			const backfill = visibleModules.filter((m) => !selectedMods.includes(m));
 			selectedMods = [...selectedMods, ...backfill].slice(0, 4);
@@ -296,22 +291,28 @@
 	<Sidebar.Provider>
 		<AppSidebar {navGroups} role={roleName} {userName} {userInitials} />
 
-		<Sidebar.Inset class="flex flex-col flex-1 h-screen overflow-hidden">
+		<Sidebar.Inset class="flex flex-col flex-1 min-h-screen overflow-hidden bg-background">
+			<!-- Mobile header bar: only visible on small screens -->
 			<header
-				class="flex h-14 shrink-0 items-center gap-4 border-b bg-background px-6 lg:h-[60px] md:hidden"
+				class="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/95 backdrop-blur-sm px-4 md:hidden"
 			>
-				<Sidebar.Trigger />
-				<h1 class="font-bold">ClinicFlow</h1>
+				<Sidebar.Trigger class="text-foreground" />
+				<div class="flex items-center gap-2">
+					<div class="size-6 rounded-lg bg-primary flex items-center justify-center">
+						<HeartPulse class="size-3.5 text-primary-foreground" />
+					</div>
+					<h1 class="font-bold text-sm tracking-tight">ClinicFlow</h1>
+				</div>
 			</header>
 
 			<AnnouncementBanner />
 
-			<main class="flex-1 overflow-y-auto bg-muted/10 pb-16 md:pb-0">
-				<!-- Opt-out routes supply their own spacing; everyone else inherits the shell padding. -->
+			<!-- Main content scroll area -->
+			<main class="flex-1 overflow-y-auto pb-16 md:pb-0">
 				{#if isSelfPadded}
 					{@render children()}
 				{:else}
-					<div class="px-4 py-6 md:px-6 print:p-0">
+					<div class="px-4 py-6 md:px-6 md:py-8 print:p-0">
 						{@render children()}
 					</div>
 				{/if}
