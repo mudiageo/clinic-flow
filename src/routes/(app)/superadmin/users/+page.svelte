@@ -3,13 +3,6 @@
 	import { toast } from 'svelte-sonner';
 	import { deactivateUser, getAllUsers, resetUserPassword } from '#lib/remote/superadmin.remote.ts';
 	import {
-		Card,
-		CardContent,
-		CardHeader,
-		CardTitle,
-		CardDescription
-	} from '#lib/components/ui/card/index.ts';
-	import {
 		Table,
 		TableBody,
 		TableCell,
@@ -23,7 +16,7 @@
 	import { Input } from '#lib/components/ui/input/index.ts';
 	import { Label } from '#lib/components/ui/label/index.ts';
 	import * as DropdownMenu from '#lib/components/ui/dropdown-menu/index.ts';
-	import { KeyRound, Loader2, MoreHorizontal, PowerOff, Search, Users } from '@lucide/svelte';
+	import { KeyRound, Loader2, MoreHorizontal, PowerOff, Search } from '@lucide/svelte';
 
 	let searchTerm = $state('');
 
@@ -126,107 +119,112 @@
 	<title>All Users — Superadmin</title>
 </svelte:head>
 
-<div class="space-y-6 animate-fade-in max-w-7xl mx-auto">
-	<div class="flex items-start justify-between">
-		<div class="flex items-start gap-3">
-			<div class="p-2.5 rounded-xl bg-primary/10 text-primary">
-				<Users class="size-6" />
-			</div>
-			<div>
-				<h1 class="text-2xl font-bold text-foreground tracking-tight">Platform Users</h1>
-				<p class="text-muted-foreground text-sm mt-0.5">
-					Manage all staff and users across all clinics.
-				</p>
-			</div>
-		</div>
+<div class="space-y-6 max-w-7xl mx-auto">
+	<div class="pb-2 border-b border-border">
+		<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+			Platform Directory
+		</p>
+		<h1 class="text-2xl font-bold text-foreground tracking-tight">Platform Users</h1>
+		<p class="text-muted-foreground text-sm mt-0.5">
+			Manage all staff and users across all clinics
+		</p>
 	</div>
 
-	<Card>
-		<CardHeader class="pb-3 border-b">
-			<div class="flex items-center justify-between">
-				<div>
-					<CardTitle>User Directory</CardTitle>
-					<CardDescription>Comprehensive list of registered staff.</CardDescription>
-				</div>
-				<div class="relative w-72">
-					<Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-					<Input bind:value={searchTerm} placeholder="Search users or PHC..." class="pl-9 h-9" />
-				</div>
+	<section class="rounded-xl border border-border bg-card overflow-hidden">
+		<div class="px-5 py-3.5 border-b border-border bg-muted/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+			<div>
+				<h2 class="text-base font-semibold">User Directory</h2>
+				<p class="text-xs text-muted-foreground">Comprehensive list of registered staff</p>
 			</div>
-		</CardHeader>
-		<CardContent class="p-0">
-			{#await getAllUsers()}
-				<div class="py-12 text-center text-muted-foreground animate-pulse">Loading users...</div>
-			{:then allUsers}
-				{@const filtered = filterUsers(allUsers)}
-				<Table>
-					<TableHeader>
-						<TableRow>
-							<TableHead>Name</TableHead>
-							<TableHead>Email</TableHead>
-							<TableHead>Role</TableHead>
-							<TableHead>PHC</TableHead>
-							<TableHead>Status</TableHead>
-							<TableHead class="text-right">Actions</TableHead>
-						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{#each filtered as user (user.id)}
-							<TableRow>
-								<TableCell class="font-medium">{user.name}</TableCell>
-								<TableCell class="text-muted-foreground">{user.email ?? '—'}</TableCell>
-								<TableCell>
-									<Badge
-										variant={user.role === 'admin' ? 'default' : 'secondary'}
-										class="capitalize">{user.role}</Badge
-									>
-								</TableCell>
-								<TableCell>{user.phcName || '—'}</TableCell>
-								<TableCell>
-									<Badge
-										variant={user.active ? 'outline' : 'destructive'}
-										class={user.active ? 'text-green-600 border-green-200 bg-green-50' : ''}
-									>
-										{user.active ? 'Active' : 'Inactive'}
-									</Badge>
-								</TableCell>
-								<TableCell class="text-right">
-									<DropdownMenu.Root>
-										<DropdownMenu.Trigger
-											class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0"
-										>
-											<span class="sr-only">Open menu</span>
-											<MoreHorizontal class="h-4 w-4" />
-										</DropdownMenu.Trigger>
-										<DropdownMenu.Content align="end">
-											<DropdownMenu.Label>Actions</DropdownMenu.Label>
-											<DropdownMenu.Item onSelect={() => openResetDialog(user)}>
-												<KeyRound class="size-4 mr-2" />
-												Reset Password
-											</DropdownMenu.Item>
-											<DropdownMenu.Item
-												class="text-destructive cursor-pointer focus:text-destructive"
-												onSelect={() => openActiveDialog(user)}
-											>
-												<PowerOff class="size-4 mr-2" />
-												{user.active ? 'Deactivate User' : 'Reactivate User'}
-											</DropdownMenu.Item>
-										</DropdownMenu.Content>
-									</DropdownMenu.Root>
-								</TableCell>
-							</TableRow>
-						{:else}
-							<TableRow>
-								<TableCell colspan={6} class="text-center py-8 text-muted-foreground"
-									>No users found.</TableCell
+			<div class="relative w-full sm:w-72">
+				<Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+				<Input
+					bind:value={searchTerm}
+					placeholder="Search users or PHC..."
+					class="pl-9 h-10 bg-background"
+				/>
+			</div>
+		</div>
+
+		{#await getAllUsers()}
+			<div class="py-12 text-center text-muted-foreground animate-pulse">Loading users...</div>
+		{:then allUsers}
+			{@const filtered = filterUsers(allUsers)}
+			<Table>
+				<TableHeader class="bg-muted/40">
+					<TableRow class="hover:bg-transparent">
+						<TableHead class="font-mono text-xs uppercase tracking-wider px-5">Name</TableHead>
+						<TableHead class="font-mono text-xs uppercase tracking-wider">Email</TableHead>
+						<TableHead class="font-mono text-xs uppercase tracking-wider">Role</TableHead>
+						<TableHead class="font-mono text-xs uppercase tracking-wider">PHC</TableHead>
+						<TableHead class="font-mono text-xs uppercase tracking-wider">Status</TableHead>
+						<TableHead class="text-right font-mono text-xs uppercase tracking-wider px-5">
+							Actions
+						</TableHead>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					{#each filtered as user, idx (user.id)}
+						<TableRow class={idx % 2 === 1 ? 'bg-muted/20 hover:bg-muted/40' : 'hover:bg-muted/40'}>
+							<TableCell class="font-semibold px-5">{user.name}</TableCell>
+							<TableCell class="text-muted-foreground font-mono text-xs">
+								{user.email ?? '—'}
+							</TableCell>
+							<TableCell>
+								<Badge
+									variant={user.role === 'admin' ? 'default' : 'secondary'}
+									class="capitalize font-mono text-[11px]"
 								>
-							</TableRow>
-						{/each}
-					</TableBody>
-				</Table>
-			{/await}
-		</CardContent>
-	</Card>
+									{user.role}
+								</Badge>
+							</TableCell>
+							<TableCell class="text-sm">{user.phcName || '—'}</TableCell>
+							<TableCell>
+								<Badge
+									variant={user.active ? 'outline' : 'destructive'}
+									class={user.active
+										? 'text-triage-green border-triage-green/30 bg-triage-green/10'
+										: ''}
+								>
+									{user.active ? 'Active' : 'Inactive'}
+								</Badge>
+							</TableCell>
+							<TableCell class="text-right px-5">
+								<DropdownMenu.Root>
+									<DropdownMenu.Trigger
+										class="inline-flex items-center justify-center rounded-md text-sm font-medium hover:bg-accent hover:text-accent-foreground h-9 w-9 p-0"
+									>
+										<span class="sr-only">Open menu</span>
+										<MoreHorizontal class="h-4 w-4" />
+									</DropdownMenu.Trigger>
+									<DropdownMenu.Content align="end">
+										<DropdownMenu.Label>Actions</DropdownMenu.Label>
+										<DropdownMenu.Item onSelect={() => openResetDialog(user)}>
+											<KeyRound class="size-4 mr-2" />
+											Reset Password
+										</DropdownMenu.Item>
+										<DropdownMenu.Item
+											class="text-destructive cursor-pointer focus:text-destructive"
+											onSelect={() => openActiveDialog(user)}
+										>
+											<PowerOff class="size-4 mr-2" />
+											{user.active ? 'Deactivate User' : 'Reactivate User'}
+										</DropdownMenu.Item>
+									</DropdownMenu.Content>
+								</DropdownMenu.Root>
+							</TableCell>
+						</TableRow>
+					{:else}
+						<TableRow>
+							<TableCell colspan={6} class="text-center py-10 text-muted-foreground">
+								No users found.
+							</TableCell>
+						</TableRow>
+					{/each}
+				</TableBody>
+			</Table>
+		{/await}
+	</section>
 </div>
 
 <Dialog.Root bind:open={resetDialogOpen}>

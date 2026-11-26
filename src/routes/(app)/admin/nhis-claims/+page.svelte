@@ -17,13 +17,6 @@
 		TableRow
 	} from '#lib/components/ui/table/index.ts';
 	import {
-		Card,
-		CardHeader,
-		CardTitle,
-		CardContent,
-		CardDescription
-	} from '#lib/components/ui/card/index.ts';
-	import {
 		Dialog,
 		DialogContent,
 		DialogHeader,
@@ -165,114 +158,121 @@
 	<title>NHIS Claims — ClinicFlow</title>
 </svelte:head>
 
-<div class="space-y-6 animate-fade-in max-w-6xl mx-auto">
-	<div class="flex items-start gap-3">
-		<div class="p-2.5 rounded-xl bg-blue-500/10 text-blue-600">
-			<FileText class="size-6" />
-		</div>
+<div class="space-y-6 max-w-6xl mx-auto">
+	<div
+		class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2 border-b border-border"
+	>
 		<div>
+			<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+				Insurance &amp; Billing
+			</p>
 			<h1 class="text-2xl font-bold text-foreground tracking-tight">NHIS / HMO Claims</h1>
 			<p class="text-muted-foreground text-sm mt-0.5">
-				Manage and submit billable encounters to insurance providers.
+				Manage and submit billable encounters to insurance providers
 			</p>
 		</div>
+		<Button class="min-h-10 px-4 font-semibold shrink-0" onclick={openPrepareDialog}>
+			<Plus class="size-4 mr-2" />
+			Prepare claim
+		</Button>
 	</div>
 
-	<Card>
-		<CardHeader class="flex flex-row items-start justify-between gap-4">
-			<div>
-				<CardTitle>NHIS Claim Queue</CardTitle>
-				<CardDescription>
-					Durable claim packets built from real encounter, patient and vitals records. Provider
-					references are shown exactly as returned by the provider.
-				</CardDescription>
-			</div>
-			<Button size="sm" variant="outline" onclick={openPrepareDialog} class="shrink-0">
-				<Plus class="size-4 mr-2" />
-				Prepare claim
-			</Button>
-		</CardHeader>
-		<CardContent class="p-0">
-			{#if claimsQuery.error}
-				<p class="p-6 text-sm text-destructive">Unable to load NHIS claims. Please try again.</p>
-			{:else}
-				<Table>
-					<TableHeader>
-						<TableRow>
-							<TableHead>Visit date</TableHead>
-							<TableHead>Patient</TableHead>
-							<TableHead>Enrollee ID</TableHead>
-							<TableHead>Claim reference</TableHead>
-							<TableHead>Provider reference</TableHead>
-							<TableHead>Status</TableHead>
-							<TableHead class="text-right">Action</TableHead>
-						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{#each claims as claim (claim.id)}
-							<TableRow>
-								<TableCell class="font-medium whitespace-nowrap">
-									{formatDate(claim.visitDate ?? claim.createdAt)}
-								</TableCell>
-								<TableCell>{claim.patientName}</TableCell>
-								<TableCell class="font-mono text-xs">{claim.enrolleeNumber ?? '—'}</TableCell>
-								<TableCell class="font-mono text-xs">{claim.claimReference}</TableCell>
-								<TableCell class="font-mono text-xs">{claim.providerReference ?? '—'}</TableCell>
-								<TableCell>
-									<div class="flex flex-col items-start gap-1">
-										<Badge variant="outline" class="capitalize">{claim.status}</Badge>
-										{#if claim.providerMode === 'console'}
-											<Badge
-												class="bg-amber-500/15 text-amber-700 border-amber-500/25 whitespace-normal"
-											>
-												<AlertTriangle class="size-3 mr-1" />
-												Console mode — manual submission required
-											</Badge>
-										{:else if claim.status === 'submitted' && claim.providerMode === 'live'}
-											<Badge class="bg-emerald-500/15 text-emerald-700 border-emerald-500/25">
-												<CheckCircle2 class="size-3 mr-1" />
-												Submitted
-											</Badge>
-										{/if}
-									</div>
-								</TableCell>
-								<TableCell class="text-right">
-									{#if claim.status === 'draft' || claim.status === 'ready' || claim.status === 'failed'}
-										<Button
-											size="sm"
-											variant="outline"
-											disabled={submittingId !== null}
-											onclick={() => void submitClaim(claim)}
+	<section class="rounded-xl border border-border bg-card overflow-hidden">
+		<div class="px-5 py-3.5 border-b border-border bg-muted/20">
+			<h2 class="text-base font-semibold">NHIS Claim Queue</h2>
+			<p class="text-xs text-muted-foreground mt-0.5">
+				Durable claim packets built from real encounter, patient and vitals records. Provider
+				references are shown exactly as returned by the provider.
+			</p>
+		</div>
+
+		{#if claimsQuery.error}
+			<p class="p-6 text-sm text-destructive">Unable to load NHIS claims. Please try again.</p>
+		{:else}
+			<Table>
+				<TableHeader class="bg-muted/40">
+					<TableRow class="hover:bg-transparent">
+						<TableHead class="font-mono text-xs uppercase tracking-wider px-5">Visit date</TableHead
+						>
+						<TableHead class="font-mono text-xs uppercase tracking-wider">Patient</TableHead>
+						<TableHead class="font-mono text-xs uppercase tracking-wider">Enrollee ID</TableHead>
+						<TableHead class="font-mono text-xs uppercase tracking-wider">Claim reference</TableHead
+						>
+						<TableHead class="font-mono text-xs uppercase tracking-wider"
+							>Provider reference</TableHead
+						>
+						<TableHead class="font-mono text-xs uppercase tracking-wider">Status</TableHead>
+						<TableHead class="text-right font-mono text-xs uppercase tracking-wider px-5"
+							>Action</TableHead
+						>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					{#each claims as claim, idx (claim.id)}
+						<TableRow class={idx % 2 === 1 ? 'bg-muted/20 hover:bg-muted/40' : 'hover:bg-muted/40'}>
+							<TableCell class="font-mono text-xs whitespace-nowrap px-5">
+								{formatDate(claim.visitDate ?? claim.createdAt)}
+							</TableCell>
+							<TableCell class="font-medium">{claim.patientName}</TableCell>
+							<TableCell class="font-mono text-xs">{claim.enrolleeNumber ?? '—'}</TableCell>
+							<TableCell class="font-mono text-xs">{claim.claimReference}</TableCell>
+							<TableCell class="font-mono text-xs">{claim.providerReference ?? '—'}</TableCell>
+							<TableCell>
+								<div class="flex flex-col items-start gap-1">
+									<Badge variant="outline" class="capitalize font-mono text-[11px]">
+										{claim.status}
+									</Badge>
+									{#if claim.providerMode === 'console'}
+										<Badge
+											class="bg-triage-amber/15 text-foreground border-triage-amber/40 whitespace-normal"
 										>
-											{#if submittingId === claim.id}
-												<Loader2 class="size-3 mr-2 animate-spin" />
-											{:else}
-												<Send class="size-3 mr-2" />
-											{/if}
-											Submit
-										</Button>
-									{:else if claim.status === 'submitted'}
-										<Button size="sm" variant="ghost" onclick={() => openReconcileDialog(claim)}>
-											<ClipboardCheck class="size-3 mr-2" />
-											Reconcile
-										</Button>
-									{:else}
-										<span class="text-xs text-muted-foreground">—</span>
+											<AlertTriangle class="size-3 mr-1" />
+											Console mode — manual submission required
+										</Badge>
+									{:else if claim.status === 'submitted' && claim.providerMode === 'live'}
+										<Badge class="bg-triage-green/15 text-triage-green border-triage-green/30">
+											<CheckCircle2 class="size-3 mr-1" />
+											Submitted
+										</Badge>
 									{/if}
-								</TableCell>
-							</TableRow>
-						{:else}
-							<TableRow>
-								<TableCell colspan="7" class="h-32 text-center text-muted-foreground">
-									No NHIS claims yet. Prepare a claim from a real encounter to get started.
-								</TableCell>
-							</TableRow>
-						{/each}
-					</TableBody>
-				</Table>
-			{/if}
-		</CardContent>
-	</Card>
+								</div>
+							</TableCell>
+							<TableCell class="text-right px-5">
+								{#if claim.status === 'draft' || claim.status === 'ready' || claim.status === 'failed'}
+									<Button
+										size="sm"
+										variant="outline"
+										disabled={submittingId !== null}
+										onclick={() => void submitClaim(claim)}
+									>
+										{#if submittingId === claim.id}
+											<Loader2 class="size-3 mr-2 animate-spin" />
+										{:else}
+											<Send class="size-3 mr-2" />
+										{/if}
+										Submit
+									</Button>
+								{:else if claim.status === 'submitted'}
+									<Button size="sm" variant="ghost" onclick={() => openReconcileDialog(claim)}>
+										<ClipboardCheck class="size-3 mr-2" />
+										Reconcile
+									</Button>
+								{:else}
+									<span class="text-xs text-muted-foreground">—</span>
+								{/if}
+							</TableCell>
+						</TableRow>
+					{:else}
+						<TableRow>
+							<TableCell colspan={7} class="h-32 text-center text-muted-foreground">
+								No NHIS claims yet. Prepare a claim from a real encounter to get started.
+							</TableCell>
+						</TableRow>
+					{/each}
+				</TableBody>
+			</Table>
+		{/if}
+	</section>
 </div>
 
 <Dialog bind:open={prepareDialogOpen}>

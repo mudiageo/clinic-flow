@@ -1,15 +1,7 @@
 <script lang="ts">
 	import { getServerStatus } from '#lib/remote/server-status.remote.ts';
-	import {
-		Card,
-		CardContent,
-		CardHeader,
-		CardTitle,
-		CardDescription
-	} from '#lib/components/ui/card/index.ts';
-	import { ServerCrash, Database, RefreshCw, Users, Clock } from '@lucide/svelte';
+	import { Database, RefreshCw, Users, Clock } from '@lucide/svelte';
 
-	// Point-in-time snapshot from the server. No fabricated or random metrics.
 	const status = await getServerStatus();
 
 	function formatUptime(totalSeconds: number): string {
@@ -28,126 +20,113 @@
 	<title>System Health — Superadmin</title>
 </svelte:head>
 
-<div class="space-y-6 animate-fade-in max-w-6xl mx-auto">
-	<div class="flex items-start gap-3">
-		<div class="p-2.5 rounded-xl bg-primary/10 text-primary">
-			<ServerCrash class="size-6" />
-		</div>
-		<div>
-			<h1 class="text-2xl font-bold text-foreground tracking-tight">System Health</h1>
-			<p class="text-muted-foreground text-sm mt-0.5">Server status and infrastructure metrics.</p>
-		</div>
+<div class="space-y-6 max-w-6xl mx-auto">
+	<div class="pb-2 border-b border-border">
+		<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+			Infrastructure
+		</p>
+		<h1 class="text-2xl font-bold text-foreground tracking-tight">System Health</h1>
+		<p class="text-muted-foreground text-sm mt-0.5">Server status and infrastructure metrics</p>
 	</div>
 
 	{#if !status}
 		<div
-			class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200"
+			class="rounded-xl border border-triage-amber/40 border-l-4 border-l-triage-amber bg-triage-amber/10 p-4 text-sm text-foreground"
 		>
 			<p class="font-semibold">Status unavailable</p>
-			<p class="mt-0.5">
+			<p class="mt-0.5 text-xs text-muted-foreground">
 				No server metrics could be loaded for this account. Values below are unavailable rather than
 				live.
 			</p>
 		</div>
 	{/if}
 
-	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-		<Card>
-			<CardContent class="p-6">
-				<div class="flex items-center justify-between mb-4">
-					<div class="p-2 bg-green-50 text-green-600 rounded-lg">
-						<Database class="size-5" />
-					</div>
-					{#if status}
-						<span class="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full"
-							>Online</span
-						>
-					{/if}
-				</div>
-				<p class="text-sm font-medium text-muted-foreground">
-					{#if status}
-						{status.isMasterServer ? 'Local SQLite (libSQL)' : 'PostgreSQL Database'}
-					{:else}
-						Database (unavailable)
-					{/if}
-				</p>
-				<p class="text-xl font-bold text-foreground mt-1">{status ? 'Connected' : '—'}</p>
-			</CardContent>
-		</Card>
-
-		<Card>
-			<CardContent class="p-6">
-				<div class="flex items-center justify-between mb-4">
-					<div class="p-2 bg-blue-50 text-blue-600 rounded-lg">
-						<RefreshCw class="size-5" />
-					</div>
-					<span class="text-xs font-semibold text-muted-foreground bg-muted px-2 py-1 rounded-full"
-						>Snapshot</span
-					>
-				</div>
-				<p class="text-sm font-medium text-muted-foreground">Active Devices</p>
-				<p class="text-xl font-bold text-foreground mt-1">
-					{status ? status.activeDevices : '—'}
-				</p>
-				<p class="text-xs text-muted-foreground mt-1">devices active in this PHC</p>
-			</CardContent>
-		</Card>
-
-		<Card>
-			<CardContent class="p-6">
-				<div class="flex items-center justify-between mb-4">
-					<div class="p-2 bg-purple-50 text-purple-600 rounded-lg">
-						<Users class="size-5" />
-					</div>
-					{#if status && status.pendingDevices > 0}
-						<span class="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-1 rounded-full"
-							>Approval required</span
-						>
-					{/if}
-				</div>
-				<p class="text-sm font-medium text-muted-foreground">Pending Devices</p>
-				<p class="text-xl font-bold text-foreground mt-1">
-					{status ? status.pendingDevices : '—'}
-				</p>
-				<p class="text-xs text-muted-foreground mt-1">devices pending approval</p>
-			</CardContent>
-		</Card>
-
-		<Card>
-			<CardContent class="p-6">
-				<div class="flex items-center justify-between mb-4">
-					<div class="p-2 bg-orange-50 text-orange-600 rounded-lg">
-						<Clock class="size-5" />
-					</div>
-				</div>
-				<p class="text-sm font-medium text-muted-foreground">Server Uptime</p>
-				<p class="text-xl font-bold text-foreground mt-1">
-					{status ? formatUptime(status.uptimeSeconds) : '—'}
-				</p>
+	<!-- Ruled Infrastructure Strip -->
+	<div
+		class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-border rounded-xl border border-border bg-card"
+	>
+		<div class="p-5 space-y-2">
+			<div class="flex items-center justify-between">
+				<Database class="size-4 text-triage-green" />
 				{#if status}
-					<p class="text-xs text-muted-foreground mt-1">
-						{status.nodeVersion} · {status.memoryMb} MB RSS
-					</p>
+					<span
+						class="text-[11px] font-mono font-semibold text-triage-green bg-triage-green/12 px-2 py-0.5 rounded-full"
+					>
+						Online
+					</span>
 				{/if}
-			</CardContent>
-		</Card>
+			</div>
+			<p class="text-xs text-muted-foreground">
+				{#if status}
+					{status.isMasterServer ? 'Local SQLite (libSQL)' : 'PostgreSQL Database'}
+				{:else}
+					Database (unavailable)
+				{/if}
+			</p>
+			<p class="text-xl font-bold text-foreground">{status ? 'Connected' : '—'}</p>
+		</div>
+
+		<div class="p-5 space-y-2">
+			<div class="flex items-center justify-between">
+				<RefreshCw class="size-4 text-primary" />
+				<span class="text-[11px] font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+					Snapshot
+				</span>
+			</div>
+			<p class="text-xs text-muted-foreground">Active Devices</p>
+			<p class="text-2xl font-bold font-mono tabular-nums text-foreground">
+				{status ? status.activeDevices : '—'}
+			</p>
+		</div>
+
+		<div class="p-5 space-y-2">
+			<div class="flex items-center justify-between">
+				<Users class="size-4 text-primary" />
+				{#if status && status.pendingDevices > 0}
+					<span
+						class="text-[11px] font-mono font-semibold text-amber-700 dark:text-triage-amber bg-triage-amber/15 px-2 py-0.5 rounded-full"
+					>
+						Approval required
+					</span>
+				{/if}
+			</div>
+			<p class="text-xs text-muted-foreground">Pending Devices</p>
+			<p class="text-2xl font-bold font-mono tabular-nums text-foreground">
+				{status ? status.pendingDevices : '—'}
+			</p>
+		</div>
+
+		<div class="p-5 space-y-2">
+			<div class="flex items-center justify-between">
+				<Clock class="size-4 text-triage-amber" />
+			</div>
+			<p class="text-xs text-muted-foreground">Server Uptime</p>
+			<p class="text-xl font-bold font-mono tabular-nums text-foreground">
+				{status ? formatUptime(status.uptimeSeconds) : '—'}
+			</p>
+			{#if status}
+				<p class="text-xs font-mono text-muted-foreground">
+					{status.nodeVersion} · {status.memoryMb} MB RSS
+				</p>
+			{/if}
+		</div>
 	</div>
 
 	<p class="text-xs text-muted-foreground">
 		Metrics are a point-in-time server snapshot. Reload this page to refresh.
 	</p>
 
-	<Card>
-		<CardHeader>
-			<CardTitle>Recent Error Logs</CardTitle>
-			<CardDescription>No live log stream is configured.</CardDescription>
-		</CardHeader>
-		<CardContent>
+	<section class="rounded-xl border border-border bg-card overflow-hidden">
+		<div class="px-5 py-3.5 border-b border-border bg-muted/20">
+			<h2 class="text-base font-semibold">Recent Error Logs</h2>
+			<p class="text-xs text-muted-foreground">No live log stream is configured.</p>
+		</div>
+		<div class="p-5">
 			<div
-				class="flex items-center justify-center rounded-md bg-muted p-4 text-sm text-muted-foreground min-h-24"
+				class="flex items-center justify-center rounded-lg bg-muted/40 border border-dashed border-border p-6 text-sm text-muted-foreground"
 			>
 				No live log stream is configured.
 			</div>
-		</CardContent>
-	</Card>
+		</div>
+	</section>
 </div>
