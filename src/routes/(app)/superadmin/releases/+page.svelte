@@ -1,13 +1,6 @@
 <script lang="ts">
 	import { getReleases, publishAppRelease } from '#lib/remote/releases.remote.ts';
 	import { formatDate, formatDateTime } from '#lib/utils/date.ts';
-	import {
-		Card,
-		CardContent,
-		CardHeader,
-		CardTitle,
-		CardDescription
-	} from '#lib/components/ui/card/index.ts';
 	import { Alert, AlertDescription, AlertTitle } from '#lib/components/ui/alert/index.ts';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import { Button, buttonVariants } from '#lib/components/ui/button/index.ts';
@@ -197,37 +190,38 @@
 	<title>App Releases — Superadmin</title>
 </svelte:head>
 
-<div class="space-y-6 animate-fade-in max-w-6xl mx-auto">
-	<div class="flex items-start justify-between">
-		<div class="flex items-start gap-3">
-			<div class="p-2.5 rounded-xl bg-primary/10 text-primary">
-				<Download class="size-6" />
-			</div>
-			<div>
-				<h1 class="text-2xl font-bold text-foreground tracking-tight">App Releases</h1>
-				<p class="text-muted-foreground text-sm mt-0.5">
-					Manage and monitor desktop and mobile app versions.
-				</p>
-				{#if lastPublishMode === 'console'}
-					<div class="mt-2 flex flex-wrap items-center gap-2">
-						<Badge variant="destructive">Console mode — not published</Badge>
-						<span class="text-xs text-muted-foreground font-mono">
-							{lastPublishReference ?? '—'}
-						</span>
-					</div>
-				{/if}
-			</div>
+<div class="space-y-6 max-w-6xl mx-auto">
+	<div
+		class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2 border-b border-border"
+	>
+		<div>
+			<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+				Distribution
+			</p>
+			<h1 class="text-2xl font-bold text-foreground tracking-tight">App Releases</h1>
+			<p class="text-muted-foreground text-sm mt-0.5">
+				Manage and monitor desktop and mobile app versions
+			</p>
+			{#if lastPublishMode === 'console'}
+				<div class="mt-2 flex flex-wrap items-center gap-2">
+					<Badge variant="destructive">Console mode — not published</Badge>
+					<span class="text-xs text-muted-foreground font-mono">
+						{lastPublishReference ?? '—'}
+					</span>
+				</div>
+			{/if}
 		</div>
 		<div class="flex items-center gap-2">
 			<Button
 				variant="outline"
+				class="min-h-10"
 				disabled={releasesQuery.loading}
 				onclick={() => releasesQuery.refresh()}
 			>
 				<RefreshCw class="size-4 mr-2 {releasesQuery.loading ? 'animate-spin' : ''}" />
 				Refresh
 			</Button>
-			<Button onclick={() => (publishDialogOpen = true)}>
+			<Button class="min-h-10 font-semibold" onclick={() => (publishDialogOpen = true)}>
 				<Tag class="size-4 mr-2" />
 				Publish New Release
 			</Button>
@@ -236,7 +230,7 @@
 
 	{#if errorMessage}
 		<div
-			class="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive"
+			class="rounded-xl border border-destructive/30 bg-destructive/8 p-4 text-sm text-destructive"
 		>
 			{errorText(errorMessage)}
 		</div>
@@ -244,40 +238,42 @@
 
 	<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 		<div class="md:col-span-2 space-y-6">
-			<Card>
-				<CardHeader>
-					<CardTitle>Current Versions</CardTitle>
-					<CardDescription
-						>Latest published releases across all supported platforms.</CardDescription
-					>
-				</CardHeader>
-				<CardContent>
+			<section class="rounded-xl border border-border bg-card overflow-hidden">
+				<div class="px-5 py-3.5 border-b border-border bg-muted/20">
+					<h2 class="text-base font-semibold">Current Versions</h2>
+					<p class="text-xs text-muted-foreground">
+						Latest published releases across all supported platforms
+					</p>
+				</div>
+				<div class="p-5">
 					{#if releasesQuery.loading && !currentRelease}
 						<p class="py-8 text-center text-sm text-muted-foreground">Loading releases…</p>
 					{:else if platformRows.length === 0}
 						<div class="py-8 text-center">
 							<Download class="mx-auto mb-3 size-8 text-muted-foreground/40" />
 							<p class="text-sm font-medium">No published release assets found.</p>
-							<p class="mt-1 text-sm text-muted-foreground">
+							<p class="mt-1 text-xs text-muted-foreground">
 								<a href="/releases" class="underline underline-offset-2">View releases</a> for available
 								downloads.
 							</p>
 						</div>
 					{:else}
-						<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+						<div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
 							{#each platformRows as row (row.key)}
 								{@const Icon = row.icon}
 								<div
-									class="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
+									class="flex items-center justify-between p-4 rounded-xl border border-border bg-background/50 hover:border-primary/40 transition-colors"
 								>
 									<div class="flex items-center gap-3">
-										<div class="p-2 bg-primary/10 text-primary rounded-md">
-											<Icon class="size-5" />
+										<div
+											class="size-9 bg-primary/10 text-primary rounded-lg flex items-center justify-center"
+										>
+											<Icon class="size-4" />
 										</div>
 										<div>
-											<p class="font-medium text-sm">{row.label}</p>
-											<p class="text-xs text-muted-foreground">
-												Published {currentRelease?.publishedAt
+											<p class="font-semibold text-sm">{row.label}</p>
+											<p class="text-xs font-mono text-muted-foreground">
+												{currentRelease?.publishedAt
 													? formatDateTime(currentRelease.publishedAt)
 													: '—'}
 											</p>
@@ -301,34 +297,36 @@
 							{/each}
 						</div>
 					{/if}
-				</CardContent>
-			</Card>
+				</div>
+			</section>
 
-			<Card>
-				<CardHeader>
-					<CardTitle>Release Notes</CardTitle>
-					<CardDescription>Notes from the most recent published releases.</CardDescription>
-				</CardHeader>
-				<CardContent>
+			<section class="rounded-xl border border-border bg-card overflow-hidden">
+				<div class="px-5 py-3.5 border-b border-border bg-muted/20">
+					<h2 class="text-base font-semibold">Release Notes</h2>
+					<p class="text-xs text-muted-foreground">Notes from the most recent published releases</p>
+				</div>
+				<div class="p-5">
 					{#if releaseNotes.length === 0}
 						<div class="py-8 text-center">
 							<Tag class="mx-auto mb-3 size-8 text-muted-foreground/40" />
 							<p class="text-sm font-medium">No published release notes found.</p>
-							<p class="mt-1 text-sm text-muted-foreground">
+							<p class="mt-1 text-xs text-muted-foreground">
 								<a href="/releases" class="underline underline-offset-2">View releases</a> for details.
 							</p>
 						</div>
 					{:else}
-						<div class="space-y-4">
+						<div class="space-y-3">
 							{#each releaseNotes as note (note.id)}
-								<div class="rounded-lg border p-4">
+								<div class="rounded-xl border border-border p-4 bg-background/40">
 									<div class="flex flex-wrap items-center gap-2">
-										<p class="text-sm font-medium">{note.tag}</p>
+										<p class="text-sm font-mono font-semibold">{note.tag}</p>
 										<Badge variant={channelVariant(note.channel)} class="capitalize">
 											{note.channel}
 										</Badge>
 									</div>
-									<p class="mt-1 text-xs text-muted-foreground">{formatDate(note.publishedAt)}</p>
+									<p class="mt-1 text-xs font-mono text-muted-foreground">
+										{formatDate(note.publishedAt)}
+									</p>
 									<p class="mt-2 line-clamp-3 whitespace-pre-wrap text-sm text-muted-foreground">
 										{note.body || 'No release notes provided.'}
 									</p>
@@ -336,46 +334,44 @@
 							{/each}
 						</div>
 					{/if}
-				</CardContent>
-			</Card>
+				</div>
+			</section>
 		</div>
 
-		<div>
-			<Card class="h-full">
-				<CardHeader class="pb-3">
-					<CardTitle class="text-base flex items-center gap-2">
-						<History class="size-4 text-muted-foreground" />
-						Release History
-					</CardTitle>
-				</CardHeader>
-				<CardContent>
-					{#if releaseHistory.length === 0}
-						<p class="py-8 text-center text-sm text-muted-foreground">
-							No release history available.
-						</p>
-					{:else}
-						<div class="relative border-l ml-3 pl-5 space-y-6 py-2">
-							{#each releaseHistory as release (release.id)}
-								<div class="relative">
-									<div
-										class="absolute -left-[27px] bg-primary size-3 rounded-full border-[3px] border-background"
-									></div>
-									<p class="text-sm font-medium">
-										{release.tag}
-										<span class="text-muted-foreground font-normal ml-2">
-											{formatDate(release.publishedAt)}
-										</span>
-									</p>
-									<p class="text-xs text-muted-foreground mt-1 line-clamp-2 whitespace-pre-wrap">
-										{release.body || 'No release notes provided.'}
-									</p>
-								</div>
-							{/each}
-						</div>
-					{/if}
-				</CardContent>
-			</Card>
-		</div>
+		<section class="rounded-xl border border-border bg-card overflow-hidden h-fit">
+			<div class="px-5 py-3.5 border-b border-border bg-muted/20">
+				<h2 class="text-base font-semibold flex items-center gap-2">
+					<History class="size-4 text-muted-foreground" />
+					Release History
+				</h2>
+			</div>
+			<div class="p-5">
+				{#if releaseHistory.length === 0}
+					<p class="py-8 text-center text-sm text-muted-foreground">
+						No release history available.
+					</p>
+				{:else}
+					<div class="relative border-l border-border ml-2.5 pl-5 space-y-5 py-1">
+						{#each releaseHistory as release (release.id)}
+							<div class="relative">
+								<div
+									class="absolute -left-[25px] top-1 bg-primary size-2.5 rounded-full ring-2 ring-card"
+								></div>
+								<p class="text-sm font-mono font-semibold">
+									{release.tag}
+									<span class="text-muted-foreground font-normal text-xs ml-2">
+										{formatDate(release.publishedAt)}
+									</span>
+								</p>
+								<p class="text-xs text-muted-foreground mt-1 line-clamp-2 whitespace-pre-wrap">
+									{release.body || 'No release notes provided.'}
+								</p>
+							</div>
+						{/each}
+					</div>
+				{/if}
+			</div>
+		</section>
 	</div>
 </div>
 
@@ -389,7 +385,7 @@
 			</Dialog.Description>
 		</Dialog.Header>
 
-		<Alert class="my-4">
+		<Alert class="my-3">
 			<AlertTriangle class="size-4" />
 			<AlertTitle>Console mode warning</AlertTitle>
 			<AlertDescription>

@@ -177,16 +177,14 @@
 </svelte:head>
 
 <div class="space-y-8 animate-fade-in max-w-4xl mx-auto">
-	<div class="flex items-start gap-3">
-		<div class="p-2.5 rounded-xl bg-primary/10 text-primary">
-			<Settings class="size-6" />
-		</div>
-		<div>
-			<h1 class="text-2xl font-bold text-foreground tracking-tight">System Settings</h1>
-			<p class="text-muted-foreground text-sm mt-0.5 font-medium">
-				Configure clinic-wide settings and integrations
-			</p>
-		</div>
+	<div class="pb-2 border-b border-border">
+		<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+			Admin // Facility Configuration
+		</p>
+		<h1 class="text-2xl font-bold text-foreground tracking-tight">System Settings</h1>
+		<p class="text-muted-foreground text-sm mt-0.5">
+			Configure clinic-wide settings, feature modules, and integrations
+		</p>
 	</div>
 
 	<form onsubmit={saveSettings} class="space-y-6">
@@ -442,18 +440,18 @@
 		</CardHeader>
 		<CardContent class="space-y-4">
 			<div
-				class="flex items-center justify-between p-4 border border-indigo-200 rounded-lg bg-indigo-50/50"
+				class="flex items-center justify-between p-4 border border-primary/30 rounded-xl bg-primary/5"
 			>
 				<div>
-					<h4 class="font-bold text-indigo-900">Seed Demo Data</h4>
-					<p class="text-sm text-indigo-700/80 mt-1">
+					<h4 class="font-semibold text-foreground">Seed Demo Data</h4>
+					<p class="text-sm text-muted-foreground mt-1">
 						Injects realistic Nigerian dummy patients, a simulated Cholera outbreak, and active
-						triage queues for hackathon pitch testing.
+						triage queues for demonstration and testing.
 					</p>
 				</div>
 				<Button
 					variant="outline"
-					class="border-indigo-200 text-indigo-700 hover:bg-indigo-100 shrink-0 ml-4"
+					class="border-primary/30 text-primary hover:bg-primary/10 shrink-0 ml-4"
 					disabled={isSeeding}
 					onclick={runDemoSeed}
 				>
@@ -468,7 +466,7 @@
 			</div>
 
 			<div
-				class="flex items-center justify-between p-4 border border-destructive/20 rounded-lg bg-destructive/5"
+				class="flex items-center justify-between p-4 border border-destructive/20 rounded-xl bg-destructive/5"
 			>
 				<div>
 					<h4 class="font-bold text-foreground">Reset Local Database</h4>

@@ -216,21 +216,22 @@
 	<title>Announcements — Superadmin</title>
 </svelte:head>
 
-<div class="mx-auto max-w-7xl space-y-6">
-	<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-		<div class="flex items-start gap-3">
-			<div class="rounded-xl bg-primary/10 p-2.5 text-primary">
-				<Megaphone class="size-6" />
-			</div>
-			<div>
-				<h1 class="text-2xl font-bold tracking-tight">Platform Announcements</h1>
-				<p class="mt-0.5 text-sm text-muted-foreground">
-					Publish durable, realtime notices to staff across ClinicFlow.
-				</p>
-			</div>
+<div class="mx-auto max-w-7xl space-y-6 animate-fade-in">
+	<div
+		class="pb-2 border-b border-border flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"
+	>
+		<div>
+			<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+				Superadmin // Communications
+			</p>
+			<h1 class="text-2xl font-bold tracking-tight text-foreground">Platform Announcements</h1>
+			<p class="mt-0.5 text-sm text-muted-foreground">
+				Publish durable, realtime notices to staff across ClinicFlow.
+			</p>
 		</div>
 		<Button
 			variant="outline"
+			size="sm"
 			disabled={historyQuery.loading}
 			onclick={() => historyQuery.reconnect()}
 		>
@@ -239,8 +240,8 @@
 		</Button>
 	</div>
 
-	<Alert>
-		<ShieldAlert class="size-4" />
+	<Alert class="rounded-xl border-triage-amber/30 bg-triage-amber/5">
+		<ShieldAlert class="size-4 text-amber-700 dark:text-triage-amber" />
 		<AlertTitle>Do not include patient-identifiable information</AlertTitle>
 		<AlertDescription>
 			Announcements are platform communications visible to multiple staff. Use clinical
@@ -383,30 +384,32 @@
 		</Card>
 
 		<div class="space-y-6">
-			<Card>
-				<CardHeader class="pb-3">
-					<CardTitle class="flex items-center gap-2 text-base">
-						<Users class="size-4 text-muted-foreground" /> Reach estimate
-					</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<div class="text-3xl font-bold tracking-tight">
-						{reachLoading ? '…' : (reach ?? '—')}
-					</div>
-					<p class="mt-1 text-sm text-muted-foreground">Active staff matching this audience.</p>
-				</CardContent>
-			</Card>
+			<div class="rounded-xl border border-border bg-card p-5 space-y-2">
+				<div
+					class="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-muted-foreground"
+				>
+					<Users class="size-3.5" /> Reach Estimate
+				</div>
+				<div class="text-3xl font-bold font-mono tabular-nums tracking-tight text-foreground">
+					{reachLoading ? '…' : (reach ?? '—')}
+				</div>
+				<p class="text-xs text-muted-foreground">Active staff matching this audience.</p>
+			</div>
 
-			<Card>
-				<CardHeader>
-					<CardTitle class="text-base">Delivery behavior</CardTitle>
-				</CardHeader>
-				<CardContent class="space-y-3 text-sm text-muted-foreground">
+			<div class="rounded-xl border border-border bg-card overflow-hidden">
+				<div class="px-5 py-3.5 border-b border-border bg-muted/20">
+					<h2
+						class="text-xs font-mono uppercase tracking-wider text-muted-foreground font-semibold"
+					>
+						Delivery Behavior
+					</h2>
+				</div>
+				<div class="p-5 space-y-2.5 text-sm text-muted-foreground">
 					<p>Connected staff receive a realtime in-app notification.</p>
 					<p>Offline devices receive the message after reconnecting.</p>
 					<p>Critical messages remain as a banner until acknowledged.</p>
-				</CardContent>
-			</Card>
+				</div>
+			</div>
 		</div>
 	</div>
 

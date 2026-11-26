@@ -58,7 +58,12 @@
 	);
 	let draft = $state<Dhis2Draft>({ ...DHIS2_DEFAULT_UIDS });
 	let isExporting = $state(false);
-	let previewData = $state<any>(null);
+	let previewData = $state<{
+		period: string;
+		orgUnit: string;
+		dataSet: string;
+		dataValues: { dataElement: string; value: number }[];
+	} | null>(null);
 	let configDialogOpen = $state(false);
 	let isSavingConfig = $state(false);
 
@@ -168,8 +173,8 @@
 			URL.revokeObjectURL(url);
 
 			toast.success('DHIS2 dataValueSet downloaded successfully');
-		} catch (error: any) {
-			toast.error('Export failed: ' + error.message);
+		} catch (error: unknown) {
+			toast.error('Export failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
 		} finally {
 			isExporting = false;
 		}
@@ -180,46 +185,58 @@
 	<title>DHIS2 Export — ClinicFlow</title>
 </svelte:head>
 
-<div class="space-y-6 animate-in fade-in slide-in-from-bottom-4 pb-10">
-	<div>
-		<h1 class="text-2xl font-bold tracking-tight">DHIS2 Data Bridge</h1>
-		<p class="text-muted-foreground">
+<div class="space-y-6 animate-in fade-in slide-in-from-bottom-4 pb-10 max-w-6xl mx-auto">
+	<div class="pb-2 border-b border-border">
+		<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+			Admin // National Reporting
+		</p>
+		<h1 class="text-2xl font-bold tracking-tight text-foreground">DHIS2 Data Bridge</h1>
+		<p class="text-muted-foreground text-sm mt-0.5">
 			Export aggregated clinical data to the National Health Management Information System.
 		</p>
 	</div>
 
 	<div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-		<Card>
-			<CardHeader>
-				<CardTitle class="flex items-center gap-2">
-					<FileJson class="size-5 text-indigo-600" />
-					Export Payload
-				</CardTitle>
-				<CardDescription>
-					Generates a deterministic JSON payload mapping local encounters to standard DHIS2 data
-					elements.
-				</CardDescription>
-				<div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+		<section class="rounded-xl border border-border bg-card overflow-hidden">
+			<div class="px-6 py-4 border-b border-border bg-muted/20 space-y-2">
+				<div class="flex items-center justify-between gap-3">
+					<h2 class="text-base font-semibold flex items-center gap-2">
+						<FileJson class="size-4 text-primary" />
+						Export Payload
+					</h2>
 					{#if config.configured}
-						<Badge class="bg-emerald-500/10 text-emerald-700 border-emerald-500/20">
+						<Badge
+							variant="outline"
+							class="bg-triage-green/10 text-triage-green border-triage-green/30"
+						>
 							<CheckCircle2 class="size-3 mr-1" />
 							Configured
 						</Badge>
 					{:else}
-						<Badge variant="outline" class="bg-amber-500/10 text-amber-700 border-amber-500/20">
+						<Badge
+							variant="outline"
+							class="bg-triage-amber/10 text-amber-700 dark:text-triage-amber border-triage-amber/30"
+						>
 							<AlertTriangle class="size-3 mr-1" />
-							Using default placeholder UIDs
+							Placeholder UIDs
 						</Badge>
 					{/if}
+				</div>
+				<p class="text-xs text-muted-foreground">
+					Generates a deterministic JSON payload mapping local encounters to standard DHIS2 data
+					elements.
+				</p>
+			</div>
+			<div class="p-6 space-y-4">
+				<div class="flex justify-end">
 					<Button variant="outline" size="sm" onclick={openConfigDialog}>
 						<Settings2 class="size-4 mr-2" />
 						Configure DHIS2 UIDs
 					</Button>
 				</div>
-			</CardHeader>
-			<CardContent class="space-y-4">
+
 				<div
-					class="bg-amber-50 border border-amber-200 text-amber-800 rounded-md p-3 text-sm flex items-start gap-2"
+					class="bg-triage-amber/10 border border-triage-amber/30 text-amber-800 dark:text-triage-amber rounded-xl p-3.5 text-sm flex items-start gap-2.5"
 				>
 					<AlertTriangle class="size-4 mt-0.5 shrink-0" />
 					<p class="leading-relaxed">
@@ -229,59 +246,59 @@
 					</p>
 				</div>
 
-				<div class="flex justify-between items-center pt-4 border-t">
+				<div class="flex justify-between items-center pt-4 border-t border-border">
 					<Button variant="outline" onclick={generatePayload}>Preview Data</Button>
-					<Button
-						onclick={handleDownload}
-						disabled={isExporting || !previewData}
-						class="bg-indigo-600 hover:bg-indigo-700"
-					>
+					<Button onclick={handleDownload} disabled={isExporting || !previewData}>
 						<Download class="size-4 mr-2" />
 						Download JSON
 					</Button>
 				</div>
-			</CardContent>
-		</Card>
+			</div>
+		</section>
 
 		{#if previewData}
-			<Card class="border-border shadow-sm overflow-hidden animate-fade-in">
-				<CardHeader class="bg-muted/30 pb-3 border-b border-border/50">
-					<CardTitle class="text-base flex items-center justify-between">
-						<span>dataValueSet Preview</span>
-						<Badge variant="outline" class="font-mono bg-background"
-							>Period: {previewData.period}</Badge
+			<section class="rounded-xl border border-border bg-card overflow-hidden animate-fade-in">
+				<div
+					class="px-5 py-3.5 bg-muted/20 border-b border-border flex items-center justify-between"
+				>
+					<h2 class="text-base font-semibold">dataValueSet Preview</h2>
+					<Badge variant="outline" class="font-mono bg-background">
+						Period: {previewData.period}
+					</Badge>
+				</div>
+				<div class="overflow-x-auto">
+					<table class="w-full text-sm text-left">
+						<thead
+							class="text-xs font-mono text-muted-foreground uppercase tracking-wider bg-muted/30 border-b border-border"
 						>
-					</CardTitle>
-				</CardHeader>
-				<CardContent class="p-0">
-					<div class="overflow-x-auto">
-						<table class="w-full text-sm text-left">
-							<thead
-								class="text-xs text-muted-foreground uppercase bg-muted/20 border-b border-border/50"
-							>
-								<tr>
-									<th class="px-4 py-3 font-medium">Data Element UID</th>
-									<th class="px-4 py-3 font-medium text-right">Value</th>
+							<tr>
+								<th class="px-4 py-3 font-medium">Data Element UID</th>
+								<th class="px-4 py-3 font-medium text-right">Value</th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-border">
+							{#each previewData.dataValues as item, index (index)}
+								<tr
+									class={index % 2 === 1
+										? 'bg-muted/20 hover:bg-muted/40 transition-colors'
+										: 'hover:bg-muted/40 transition-colors'}
+								>
+									<td class="px-4 py-3 font-mono text-xs text-primary">{item.dataElement}</td>
+									<td class="px-4 py-3 font-mono font-semibold text-right tabular-nums">
+										{item.value}
+									</td>
 								</tr>
-							</thead>
-							<tbody class="divide-y divide-border/30">
-								{#each previewData.dataValues as item, index (index)}
-									<tr class="hover:bg-muted/10 transition-colors">
-										<td class="px-4 py-3 font-mono text-xs text-primary">{item.dataElement}</td>
-										<td class="px-4 py-3 font-semibold text-right tabular-nums">{item.value}</td>
-									</tr>
-								{/each}
-							</tbody>
-						</table>
-					</div>
-					<div
-						class="bg-muted/10 p-3 border-t border-border/30 text-xs text-muted-foreground flex justify-between"
-					>
-						<span>OrgUnit: <span class="font-mono">{previewData.orgUnit}</span></span>
-						<span>DataSet: <span class="font-mono">{previewData.dataSet}</span></span>
-					</div>
-				</CardContent>
-			</Card>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+				<div
+					class="bg-muted/20 px-4 py-3 border-t border-border text-xs text-muted-foreground flex justify-between"
+				>
+					<span>OrgUnit: <span class="font-mono">{previewData.orgUnit}</span></span>
+					<span>DataSet: <span class="font-mono">{previewData.dataSet}</span></span>
+				</div>
+			</section>
 		{/if}
 	</div>
 </div>

@@ -50,9 +50,8 @@
 	function getSeverityColor(severity: string) {
 		if (severity === 'critical') return 'text-destructive bg-destructive/10 border-destructive/20';
 		if (severity === 'warning')
-			return 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950 dark:border-amber-900';
-		if (severity === 'watch')
-			return 'text-blue-600 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-950 dark:border-blue-900';
+			return 'text-amber-700 bg-triage-amber/10 border-triage-amber/30 dark:text-triage-amber';
+		if (severity === 'watch') return 'text-primary bg-primary/10 border-primary/25';
 		return 'text-muted-foreground bg-muted border-border';
 	}
 
@@ -97,33 +96,29 @@
 	<title>{currentTab === 'idsr' ? 'IDSR Report' : 'Outbreak Radar'} — ClinicFlow</title>
 </svelte:head>
 
-<div class="space-y-8 animate-fade-in pb-12">
+<div class="space-y-8 animate-fade-in pb-12 max-w-7xl mx-auto">
 	<!-- Page Header & Tabs -->
-	<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-		<div class="flex items-start gap-3">
-			<div
-				class="p-2.5 rounded-xl bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-400"
-			>
-				<Activity class="size-6" />
-			</div>
-			<div>
-				<h1 class="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
-					{currentTab === 'idsr' ? 'IDSR Weekly Report' : 'Outbreak Radar'}
-					<Badge
-						variant="secondary"
-						class="bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300"
-						>Beta</Badge
-					>
-				</h1>
-				<p class="text-muted-foreground text-sm mt-0.5">
-					Multi-signal epidemiological forecasting & reporting
-				</p>
-			</div>
+	<div
+		class="pb-2 border-b border-border flex flex-col md:flex-row md:items-end justify-between gap-4"
+	>
+		<div>
+			<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+				Admin // Epidemiological Surveillance
+			</p>
+			<h1 class="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+				{currentTab === 'idsr' ? 'IDSR Weekly Report' : 'Outbreak Radar'}
+				<Badge variant="outline" class="font-mono text-xs border-primary/30 text-primary">
+					Beta
+				</Badge>
+			</h1>
+			<p class="text-muted-foreground text-sm mt-0.5">
+				Multi-signal epidemiological forecasting & reporting
+			</p>
 		</div>
 
-		<div class="flex items-center gap-3">
+		<div class="flex flex-wrap items-center gap-3">
 			<!-- Tab Navigation -->
-			<div class="flex bg-muted/50 p-1 rounded-lg border border-border mr-2">
+			<div class="flex bg-muted/50 p-1 rounded-lg border border-border">
 				<a
 					href="/admin/outbreak-radar?tab=radar"
 					class="px-3 py-1.5 text-sm font-medium rounded-md transition-colors {currentTab ===
@@ -144,25 +139,22 @@
 			</div>
 
 			{#if !ai && !outbreakEngine.isAnalysing}
-				<Button
-					onclick={() => outbreakEngine.runAiAnalysis()}
-					class="bg-purple-600 hover:bg-purple-700 text-white gap-2"
-				>
+				<Button onclick={() => outbreakEngine.runAiAnalysis()} class="gap-2">
 					<Activity class="size-4" />
 					Run AI Analysis
 				</Button>
 			{:else if outbreakEngine.isAnalysing}
-				<Button disabled variant="outline" class="gap-2 text-purple-600 border-purple-200">
+				<Button disabled variant="outline" class="gap-2">
 					<div
-						class="size-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"
+						class="size-4 border-2 border-primary border-t-transparent rounded-full animate-spin"
 					></div>
 					Analysing...
 				</Button>
 			{:else}
 				<div
-					class="flex items-center gap-2 text-sm text-muted-foreground bg-muted px-3 py-1.5 rounded-md border border-border"
+					class="flex items-center gap-2 text-xs font-mono text-muted-foreground bg-muted px-3 py-1.5 rounded-md border border-border"
 				>
-					<CheckCircle2 class="size-4 text-emerald-500" />
+					<CheckCircle2 class="size-4 text-triage-green" />
 					Analysed {new Date(ai.generatedAt).toLocaleTimeString()}
 				</div>
 				<Button variant="outline" onclick={() => outbreakEngine.runAiAnalysis()} class="gap-2">
@@ -217,35 +209,38 @@
 					>
 				</div>
 
-				<!-- Stats Grid -->
-				<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-					<Card class="bg-gradient-to-br from-background to-muted/30">
-						<CardHeader class="pb-2">
-							<CardDescription class="font-medium text-foreground">Tracked Diseases</CardDescription
-							>
-							<CardTitle class="text-3xl font-bold">{bundle.diseaseGroups.length}</CardTitle>
-						</CardHeader>
-					</Card>
-					<Card class="bg-gradient-to-br from-background to-orange-50/50 dark:to-orange-950/20">
-						<CardHeader class="pb-2">
-							<CardDescription class="font-medium text-orange-700 dark:text-orange-400"
-								>High Fever Clusters</CardDescription
-							>
-							<CardTitle class="text-3xl font-bold text-orange-600 dark:text-orange-500">
-								{bundle.vitalsSignals[0]?.weeklyCount.reduce((a, b) => a + b, 0) || 0}
-							</CardTitle>
-						</CardHeader>
-					</Card>
-					<Card class="bg-gradient-to-br from-background to-blue-50/50 dark:to-blue-950/20">
-						<CardHeader class="pb-2">
-							<CardDescription class="font-medium text-blue-700 dark:text-blue-400"
-								>Communities Affected</CardDescription
-							>
-							<CardTitle class="text-3xl font-bold text-blue-600 dark:text-blue-500">
-								{new Set(bundle.diseaseGroups.flatMap((d) => d.affectedCommunities)).size}
-							</CardTitle>
-						</CardHeader>
-					</Card>
+				<!-- Stats Strip -->
+				<div
+					class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border rounded-xl border border-border bg-card overflow-hidden"
+				>
+					<div class="p-5">
+						<p class="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+							Tracked Diseases
+						</p>
+						<p class="text-3xl font-bold font-mono tabular-nums text-foreground mt-1">
+							{bundle.diseaseGroups.length}
+						</p>
+					</div>
+					<div class="p-5">
+						<p
+							class="text-xs font-mono uppercase tracking-wider text-amber-700 dark:text-triage-amber"
+						>
+							High Fever Clusters
+						</p>
+						<p
+							class="text-3xl font-bold font-mono tabular-nums text-amber-700 dark:text-triage-amber mt-1"
+						>
+							{bundle.vitalsSignals[0]?.weeklyCount.reduce((a, b) => a + b, 0) || 0}
+						</p>
+					</div>
+					<div class="p-5">
+						<p class="text-xs font-mono uppercase tracking-wider text-primary">
+							Communities Affected
+						</p>
+						<p class="text-3xl font-bold font-mono tabular-nums text-primary mt-1">
+							{new Set(bundle.diseaseGroups.flatMap((d) => d.affectedCommunities)).size}
+						</p>
+					</div>
 				</div>
 
 				<!-- Disease Case Charts -->
@@ -604,13 +599,11 @@
 						{/if}
 
 						<!-- Stock Impact Warning -->
-						{#if ai.stockImpactForecast?.some((s: any) => s.willRunOut)}
-							<Card
-								class="border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/20"
-							>
+						{#if ai.stockImpactForecast?.some((s) => s.willRunOut)}
+							<Card class="border-triage-amber/30 bg-triage-amber/5">
 								<CardHeader class="pb-2">
 									<CardTitle
-										class="text-base flex items-center gap-2 text-amber-700 dark:text-amber-400"
+										class="text-base flex items-center gap-2 text-amber-700 dark:text-triage-amber"
 									>
 										<AlertTriangle class="size-4" />
 										Stock Depletion Risk
@@ -618,13 +611,15 @@
 								</CardHeader>
 								<CardContent class="text-sm pb-4">
 									<div class="space-y-3">
-										{#each ai.stockImpactForecast.filter((s: any) => s.willRunOut) as stock (stock.drug)}
+										{#each ai.stockImpactForecast.filter((s) => s.willRunOut) as stock (stock.drug)}
 											<div
-												class="flex justify-between items-center bg-white dark:bg-black/20 p-2 rounded border border-amber-100 dark:border-amber-900/50"
+												class="flex justify-between items-center bg-card p-2.5 rounded border border-triage-amber/25"
 											>
 												<span class="font-medium">{stock.drug}</span>
-												<div class="text-right">
-													<span class="text-amber-600 font-bold">{stock.currentStock}</span>
+												<div class="text-right font-mono tabular-nums">
+													<span class="text-amber-700 dark:text-triage-amber font-bold"
+														>{stock.currentStock}</span
+													>
 													<span class="text-muted-foreground text-xs"
 														>/ {stock.projectedDemandNextWeek} req.</span
 													>

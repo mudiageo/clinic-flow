@@ -134,12 +134,12 @@
 				name: name.length >= 2 ? name : undefined
 			});
 			if (requestId === registryRequestId) registryLookup = result;
-		} catch (e: any) {
+		} catch (e: unknown) {
 			if (requestId === registryRequestId) {
 				registryLookup = {
 					availability: 'unavailable',
 					facilities: [],
-					reason: e?.message ?? 'Registry lookup failed.',
+					reason: e instanceof Error ? e.message : 'Registry lookup failed.',
 					checkedAt: new Date().toISOString()
 				};
 			}
@@ -171,9 +171,25 @@
 	}
 
 	// Voice dictation
+	type SpeechRecognitionInstance = {
+		continuous: boolean;
+		interimResults: boolean;
+		onresult: ((event: SpeechRecognitionResultEventLike) => void) | null;
+		start: () => void;
+		stop: () => void;
+	};
+	type SpeechRecognitionResultEventLike = {
+		resultIndex: number;
+		results: ArrayLike<{ isFinal: boolean; 0: { transcript: string } }>;
+	};
+	type SpeechRecognitionWindow = Window & {
+		SpeechRecognition?: new () => SpeechRecognitionInstance;
+		webkitSpeechRecognition?: new () => SpeechRecognitionInstance;
+	};
+
 	let isRecording = $state(false);
 	let aiProcessing = $state(false);
-	let recognition: any = null;
+	let recognition: SpeechRecognitionInstance | null = null;
 	let interimTranscript = $state('');
 	let finalTranscript = $state('');
 
@@ -181,7 +197,7 @@
 
 	// Dr Assist (AI)
 	let dssLoading = $state(false);
-	let dssResult = $state<any>(null);
+	let dssResult = $state<Awaited<ReturnType<typeof getClinicalDecisionSupport>> | null>(null);
 	let hasAcceptedAiTerms = $state(false);
 	let showAiTermsModal = $state(false);
 
@@ -202,8 +218,8 @@
 				chiefComplaint: chiefComplaint + '\n' + doctorNotes
 			});
 			dssResult = res;
-		} catch (e: any) {
-			toast.error(e.message);
+		} catch (e: unknown) {
+			toast.error(e instanceof Error ? e.message : 'Failed to generate clinical support');
 		} finally {
 			dssLoading = false;
 		}
@@ -238,8 +254,8 @@ P: ${res.plan}`;
 			doctorNotes = doctorNotes ? doctorNotes + '\n\n' + formattedNote : formattedNote;
 
 			toast.success('SOAP note drafted. Please review and edit.');
-		} catch (e: any) {
-			toast.error(e.message);
+		} catch (e: unknown) {
+			toast.error(e instanceof Error ? e.message : 'Failed to draft SOAP note');
 		} finally {
 			soapLoading = false;
 		}
@@ -270,12 +286,13 @@ P: ${res.plan}`;
 			}
 		}
 
-		const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+		const win = window as unknown as SpeechRecognitionWindow;
+		const SpeechRec = win.SpeechRecognition || win.webkitSpeechRecognition;
 		if (SpeechRec) {
 			recognition = new SpeechRec();
 			recognition.continuous = true;
 			recognition.interimResults = true;
-			recognition.onresult = (event: any) => {
+			recognition.onresult = (event: SpeechRecognitionResultEventLike) => {
 				let interim = '';
 				let final = '';
 				for (let i = event.resultIndex; i < event.results.length; ++i) {
@@ -359,7 +376,7 @@ P: ${res.plan}`;
 					doctorNotes: finalNotes,
 					isNhisBillable,
 					visitDate: Date.now()
-				} as any);
+				} as Parameters<typeof encounterStore.create>[0]);
 				encounterId = enc;
 			}
 
@@ -378,7 +395,7 @@ P: ${res.plan}`;
 					result: null,
 					resultEnteredByStaffId: null,
 					resultEnteredAt: null
-				} as any);
+				} as Parameters<typeof labRequestStore.create>[0]);
 			}
 
 			// 3. Process Prescriptions
@@ -393,7 +410,7 @@ P: ${res.plan}`;
 					quantity: p.quantity,
 					dosage: p.dosage,
 					status: 'pending'
-				} as any);
+				} as Parameters<typeof prescriptionStore.create>[0]);
 			}
 
 			if (prescriptions.length > 0) {
@@ -410,8 +427,10 @@ P: ${res.plan}`;
 
 			toast.success('Consultation completed successfully!');
 			goto('/doctor');
-		} catch (e: any) {
-			toast.error(`Error completing consultation: ${e.message}`);
+		} catch (e: unknown) {
+			toast.error(
+				`Error completing consultation: ${e instanceof Error ? e.message : 'Unknown error'}`
+			);
 		}
 	}
 </script>
@@ -427,26 +446,43 @@ P: ${res.plan}`;
 {:else}
 	<div class="h-[calc(100vh-80px)] flex flex-col gap-4 animate-fade-in -mx-4 sm:mx-0">
 		<!-- Header -->
-		<div class="flex items-center justify-between px-4 sm:px-0">
+		<div
+			class="flex flex-wrap items-center justify-between gap-3 px-4 sm:px-0 pb-3 border-b border-border"
+		>
 			<div class="flex items-center gap-3">
 				<Button variant="outline" size="icon" href="/doctor" class="size-9 rounded-lg">
 					<ChevronLeft class="size-4" />
 				</Button>
 				<div>
-					<div class="flex items-center gap-3">
-						<h1 class="text-xl font-bold text-foreground">{patient.name}</h1>
-						<Badge variant="outline" class="uppercase font-mono text-[10px]"
-							>{patient.clinicId}</Badge
-						>
+					<div class="flex flex-wrap items-center gap-2.5">
+						<h1 class="text-xl font-bold text-foreground tracking-tight">{patient.name}</h1>
+						<Badge variant="outline" class="uppercase font-mono text-[10px]">
+							{patient.clinicId}
+						</Badge>
 						{#if ticket.triageLevel === 'red'}
-							<Badge class="bg-triage-red hover:bg-triage-red">RED</Badge>
+							<Badge
+								variant="outline"
+								class="bg-triage-red/10 text-triage-red border-triage-red/30 font-mono text-[10px]"
+							>
+								RED
+							</Badge>
 						{:else if ticket.triageLevel === 'amber'}
-							<Badge class="bg-triage-amber hover:bg-triage-amber">AMBER</Badge>
+							<Badge
+								variant="outline"
+								class="bg-triage-amber/10 text-amber-700 dark:text-triage-amber border-triage-amber/30 font-mono text-[10px]"
+							>
+								AMBER
+							</Badge>
 						{:else if ticket.triageLevel === 'green'}
-							<Badge class="bg-triage-green hover:bg-triage-green">GREEN</Badge>
+							<Badge
+								variant="outline"
+								class="bg-triage-green/10 text-triage-green border-triage-green/30 font-mono text-[10px]"
+							>
+								GREEN
+							</Badge>
 						{/if}
 					</div>
-					<p class="text-xs text-muted-foreground font-medium mt-0.5">
+					<p class="text-xs font-mono text-muted-foreground mt-0.5">
 						Age: {patient.dob
 							? new Date().getFullYear() - new Date(patient.dob).getFullYear()
 							: 'Unknown'} • Sex: <span class="capitalize">{patient.sex}</span>
@@ -457,7 +493,7 @@ P: ${res.plan}`;
 				<Button variant="outline" onclick={() => (showReferralDialog = true)}>
 					<Send class="size-4 mr-2" /> Refer Patient
 				</Button>
-				<Button onclick={handleCompleteEncounter} class="bg-primary shadow-md hover:bg-primary/95">
+				<Button onclick={handleCompleteEncounter}>
 					<CheckCircle2 class="size-4 mr-2" /> Complete
 				</Button>
 			</div>
@@ -575,11 +611,9 @@ P: ${res.plan}`;
 							>
 							<TabsTrigger
 								value="ai-assist"
-								class="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 rounded-none px-2 py-2"
+								class="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-2"
 							>
-								<div
-									class="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 font-semibold"
-								>
+								<div class="flex items-center gap-1.5 text-primary font-semibold">
 									<Sparkles class="size-3.5" />
 									Dr. Assist
 								</div>
@@ -714,7 +748,7 @@ P: ${res.plan}`;
 										<Button
 											variant="outline"
 											size="sm"
-											class="h-7 text-xs border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100"
+											class="h-7 text-xs border-primary/30 text-primary bg-primary/5 hover:bg-primary/10"
 											onclick={runSoapGenerator}
 											disabled={soapLoading}
 										>
@@ -870,19 +904,15 @@ P: ${res.plan}`;
 								</div>
 							{:else}
 								<div
-									class="flex items-center justify-between p-4 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/50 rounded-xl mb-6"
+									class="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-xl mb-6"
 								>
 									<div class="space-y-1">
-										<h4 class="font-semibold text-indigo-900 dark:text-indigo-200">Run Analysis</h4>
-										<p class="text-xs text-indigo-700/70 dark:text-indigo-300/70">
+										<h4 class="font-semibold text-foreground">Run Analysis</h4>
+										<p class="text-xs text-muted-foreground">
 											Analyze current vitals and notes to generate clinical suggestions.
 										</p>
 									</div>
-									<Button
-										onclick={runDrAssist}
-										disabled={dssLoading}
-										class="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md"
-									>
+									<Button onclick={runDrAssist} disabled={dssLoading}>
 										{#if dssLoading}
 											<Loader2 class="size-4 mr-2 animate-spin" /> Analyzing...
 										{:else}
@@ -914,7 +944,7 @@ P: ${res.plan}`;
 											<Card class="shadow-sm">
 												<CardHeader class="pb-2 bg-muted/20 border-b">
 													<CardTitle class="text-sm font-semibold flex items-center gap-2">
-														<Activity class="size-4 text-indigo-500" /> Differentials
+														<Activity class="size-4 text-primary" /> Differentials
 													</CardTitle>
 												</CardHeader>
 												<CardContent class="space-y-4 pt-4">
@@ -924,9 +954,7 @@ P: ${res.plan}`;
 																<span class="font-medium text-sm">{diff.condition}</span>
 																<Badge
 																	variant={diff.probability === 'High' ? 'default' : 'outline'}
-																	class="text-[10px] uppercase {diff.probability === 'High'
-																		? 'bg-indigo-600'
-																		: ''}"
+																	class="text-[10px] font-mono uppercase"
 																>
 																	{diff.probability}
 																</Badge>
@@ -947,7 +975,7 @@ P: ${res.plan}`;
 															class="text-sm font-semibold flex justify-between items-center"
 														>
 															<div class="flex items-center gap-2">
-																<FlaskConical class="size-4 text-indigo-500" /> Suggested Tests
+																<FlaskConical class="size-4 text-primary" /> Suggested Tests
 															</div>
 															<Button
 																variant="outline"
@@ -977,7 +1005,7 @@ P: ${res.plan}`;
 															class="text-sm font-semibold flex justify-between items-center"
 														>
 															<div class="flex items-center gap-2">
-																<Pill class="size-4 text-indigo-500" /> Treatment Plan
+																<Pill class="size-4 text-primary" /> Treatment Plan
 															</div>
 															<Button
 																variant="outline"
@@ -1018,16 +1046,16 @@ P: ${res.plan}`;
 					</div>
 
 					{#if patient.isNhis}
-						<div class="mt-6 p-4 border rounded-xl bg-blue-500/5 border-blue-500/20">
+						<div class="mt-6 p-4 border rounded-xl bg-primary/5 border-primary/20">
 							<label class="flex items-center gap-3 cursor-pointer">
 								<input
 									type="checkbox"
 									bind:checked={isNhisBillable}
-									class="accent-blue-600 size-5"
+									class="accent-primary size-5"
 								/>
 								<div class="space-y-0.5">
-									<p class="font-semibold text-blue-900 dark:text-blue-200">Submit as NHIS Claim</p>
-									<p class="text-xs text-blue-700/70 dark:text-blue-300/70">
+									<p class="font-semibold text-foreground">Submit as NHIS Claim</p>
+									<p class="text-xs text-muted-foreground">
 										Flag this encounter and its services for HMO billing.
 									</p>
 								</div>

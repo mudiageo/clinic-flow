@@ -8,13 +8,6 @@
 		setPhcActive
 	} from '#lib/remote/superadmin.remote.ts';
 	import { formatDateTime } from '#lib/utils/date.ts';
-	import {
-		Card,
-		CardContent,
-		CardHeader,
-		CardTitle,
-		CardDescription
-	} from '#lib/components/ui/card/index.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import * as Dialog from '#lib/components/ui/dialog/index.ts';
@@ -31,7 +24,6 @@
 	import {
 		Activity,
 		AlertTriangle,
-		Building2,
 		Loader2,
 		MapPin,
 		Power,
@@ -115,27 +107,30 @@
 </svelte:head>
 
 <div class="space-y-6 animate-fade-in max-w-6xl mx-auto">
-	<div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
-		<div class="flex items-start gap-3">
-			<div class="p-3 rounded-xl bg-primary/10 text-primary">
-				<Building2 class="size-8" />
-			</div>
-			<div>
-				<h1 class="text-3xl font-bold text-foreground tracking-tight">{phc.name}</h1>
-				<div class="flex items-center gap-2 mt-1 text-muted-foreground text-sm">
-					<MapPin class="size-4" />
-					<span>{phc.lga}, {phc.state}</span>
-					<span class="mx-2 text-muted-foreground/30">•</span>
-					<span>Registered {new Date(phc.createdAt).toLocaleDateString()}</span>
-				</div>
+	<div
+		class="pb-2 border-b border-border flex flex-col md:flex-row md:items-end justify-between gap-4"
+	>
+		<div>
+			<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+				Superadmin // Facility Dossier
+			</p>
+			<h1 class="text-2xl font-bold text-foreground tracking-tight">{phc.name}</h1>
+			<div class="flex flex-wrap items-center gap-2 mt-1 text-muted-foreground text-xs font-mono">
+				<span class="inline-flex items-center gap-1">
+					<MapPin class="size-3.5" />
+					{phc.lga}, {phc.state}
+				</span>
+				<span class="text-muted-foreground/40">•</span>
+				<span>Registered {new Date(phc.createdAt).toLocaleDateString()}</span>
 			</div>
 		</div>
 		<div class="flex gap-2">
 			<Button
 				variant="outline"
+				size="sm"
 				class={syncStatus?.active
-					? 'text-orange-600 border-orange-200 hover:bg-orange-50'
-					: 'text-emerald-600 border-emerald-200 hover:bg-emerald-50'}
+					? 'text-amber-700 dark:text-triage-amber border-triage-amber/30 hover:bg-triage-amber/10'
+					: 'text-triage-green border-triage-green/30 hover:bg-triage-green/10'}
 				disabled={!syncStatus}
 				onclick={() => (activeDialogOpen = true)}
 			>
@@ -149,6 +144,7 @@
 			</Button>
 			<Button
 				variant="outline"
+				size="sm"
 				class="text-destructive border-destructive/30 hover:bg-destructive/10"
 				onclick={() => (resetDialogOpen = true)}
 			>
@@ -158,112 +154,107 @@
 		</div>
 	</div>
 
-	<div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-		<Card>
-			<CardContent class="p-6 flex items-center justify-between">
-				<div>
-					<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-						Total Staff
-					</p>
-					<p class="text-3xl font-bold text-foreground mt-1">{phc.staffCount}</p>
+	<div
+		class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border rounded-xl border border-border bg-card overflow-hidden"
+	>
+		<div class="p-5 flex items-center justify-between gap-3">
+			<div>
+				<p class="text-xs font-mono uppercase tracking-wider text-muted-foreground">Total Staff</p>
+				<p class="text-3xl font-bold font-mono tabular-nums text-foreground mt-1">
+					{phc.staffCount}
+				</p>
+			</div>
+			<div class="size-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+				<Users class="size-5" />
+			</div>
+		</div>
+		<div class="p-5 flex items-center justify-between gap-3">
+			<div>
+				<p class="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+					Total Patients
+				</p>
+				<p class="text-3xl font-bold font-mono tabular-nums text-foreground mt-1">
+					{phc.patientCount}
+				</p>
+			</div>
+			<div
+				class="size-10 rounded-lg bg-triage-green/10 flex items-center justify-center text-triage-green"
+			>
+				<Activity class="size-5" />
+			</div>
+		</div>
+		<div class="p-5 flex items-center justify-between gap-3">
+			<div class="min-w-0">
+				<p class="text-xs font-mono uppercase tracking-wider text-muted-foreground">Sync Status</p>
+				<div class="flex items-center gap-2 mt-1">
+					<Badge
+						variant={syncStatus?.status === 'up-to-date' ? 'outline' : 'destructive'}
+						class={syncStatus?.status === 'up-to-date'
+							? 'text-triage-green border-triage-green/30 bg-triage-green/10'
+							: ''}
+					>
+						{statusLabel}
+					</Badge>
 				</div>
-				<div
-					class="size-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500"
-				>
-					<Users class="size-5" />
-				</div>
-			</CardContent>
-		</Card>
-		<Card>
-			<CardContent class="p-6 flex items-center justify-between">
-				<div>
-					<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-						Total Patients
-					</p>
-					<p class="text-3xl font-bold text-foreground mt-1">{phc.patientCount}</p>
-				</div>
-				<div
-					class="size-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500"
-				>
-					<Activity class="size-5" />
-				</div>
-			</CardContent>
-		</Card>
-		<Card>
-			<CardContent class="p-6 flex items-center justify-between gap-3">
-				<div class="min-w-0">
-					<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-						Sync Status
-					</p>
-					<div class="flex items-center gap-2 mt-1">
-						<Badge
-							variant={syncStatus?.status === 'up-to-date' ? 'default' : 'destructive'}
-							class={syncStatus?.status === 'up-to-date'
-								? 'text-green-700 border-green-200 bg-green-50'
-								: ''}
-						>
-							{statusLabel}
-						</Badge>
-					</div>
-					<p class="text-xs text-muted-foreground mt-2">{lastSyncLabel}</p>
-					<p class="text-xs text-muted-foreground">
-						{deviceLabel} · {operationLabel}
-					</p>
-					{#if syncStatus && !syncStatus.active}
-						<p class="text-xs text-destructive mt-1">PHC inactive</p>
-					{/if}
-				</div>
-				<div
-					class="size-12 shrink-0 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500"
-				>
-					<Settings2 class="size-5" />
-				</div>
-			</CardContent>
-		</Card>
+				<p class="text-xs font-mono text-muted-foreground mt-2">{lastSyncLabel}</p>
+				<p class="text-xs font-mono text-muted-foreground">
+					{deviceLabel} · {operationLabel}
+				</p>
+				{#if syncStatus && !syncStatus.active}
+					<p class="text-xs text-destructive mt-1 font-medium">PHC inactive</p>
+				{/if}
+			</div>
+			<div
+				class="size-10 shrink-0 rounded-lg bg-triage-green/10 flex items-center justify-center text-triage-green"
+			>
+				<Settings2 class="size-5" />
+			</div>
+		</div>
 	</div>
 
-	<Card>
-		<CardHeader>
-			<CardTitle>Staff Members</CardTitle>
-			<CardDescription>Personnel registered under this PHC.</CardDescription>
-		</CardHeader>
-		<CardContent class="p-0">
-			<Table>
-				<TableHeader>
-					<TableRow>
-						<TableHead>Name</TableHead>
-						<TableHead>Role</TableHead>
-						<TableHead>Status</TableHead>
+	<section class="rounded-xl border border-border bg-card overflow-hidden">
+		<div class="px-6 py-4 border-b border-border bg-muted/20">
+			<h2 class="text-base font-semibold text-foreground">Staff Members</h2>
+			<p class="text-xs text-muted-foreground mt-0.5">Personnel registered under this PHC.</p>
+		</div>
+		<Table>
+			<TableHeader>
+				<TableRow class="bg-muted/30">
+					<TableHead class="font-mono text-xs uppercase tracking-wider">Name</TableHead>
+					<TableHead class="font-mono text-xs uppercase tracking-wider">Role</TableHead>
+					<TableHead class="font-mono text-xs uppercase tracking-wider">Status</TableHead>
+				</TableRow>
+			</TableHeader>
+			<TableBody>
+				{#each phc.staff as member, idx (member.id)}
+					<TableRow class={idx % 2 === 1 ? 'bg-muted/20 hover:bg-muted/40' : 'hover:bg-muted/40'}>
+						<TableCell class="font-medium">{member.name}</TableCell>
+						<TableCell>
+							<Badge variant="secondary" class="capitalize font-mono text-xs">{member.role}</Badge>
+						</TableCell>
+						<TableCell>
+							{#if member.active}
+								<Badge
+									variant="outline"
+									class="text-triage-green border-triage-green/30 bg-triage-green/10"
+								>
+									Active
+								</Badge>
+							{:else}
+								<Badge variant="destructive">Inactive</Badge>
+							{/if}
+						</TableCell>
 					</TableRow>
-				</TableHeader>
-				<TableBody>
-					{#each phc.staff as member (member.id)}
-						<TableRow>
-							<TableCell class="font-medium">{member.name}</TableCell>
-							<TableCell>
-								<Badge variant="secondary" class="capitalize">{member.role}</Badge>
-							</TableCell>
-							<TableCell>
-								{#if member.active}
-									<Badge variant="outline" class="text-green-600 border-green-200 bg-green-50"
-										>Active</Badge
-									>
-								{:else}
-									<Badge variant="destructive">Inactive</Badge>
-								{/if}
-							</TableCell>
-						</TableRow>
-					{:else}
-						<TableRow>
-							<TableCell colspan={3} class="text-center py-8 text-muted-foreground"
-								>No staff members found.</TableCell
-							>
-						</TableRow>
-					{/each}
-				</TableBody>
-			</Table>
-		</CardContent>
-	</Card>
+				{:else}
+					<TableRow>
+						<TableCell colspan={3} class="text-center py-8 text-muted-foreground">
+							No staff members found.
+						</TableCell>
+					</TableRow>
+				{/each}
+			</TableBody>
+		</Table>
+	</section>
 </div>
 
 <Dialog.Root bind:open={activeDialogOpen}>

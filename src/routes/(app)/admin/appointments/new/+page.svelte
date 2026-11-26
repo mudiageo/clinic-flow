@@ -4,7 +4,6 @@
 	import { sessionStore } from '#lib/state/session.svelte.ts';
 	import { Input } from '#lib/components/ui/input/index.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
-	import { Card, CardHeader, CardTitle, CardContent } from '#lib/components/ui/card/index.ts';
 	import { Label } from '#lib/components/ui/label/index.ts';
 	import { Switch } from '#lib/components/ui/switch/index.ts';
 	import { Textarea } from '#lib/components/ui/textarea/index.ts';
@@ -12,7 +11,9 @@
 	import { goto } from '$app/navigation';
 	import { ArrowLeft, CalendarPlus, Search } from '@lucide/svelte';
 
-	let { data } = $props<{ data: { staffList: any[] } }>();
+	let { data } = $props<{
+		data: { staffList: { id: string; fullName: string; role: string }[] };
+	}>();
 
 	let isSaving = $state(false);
 	let patientSearch = $state('');
@@ -31,7 +32,7 @@
 		patientSearch.length > 1 ? patientStore.search(patientSearch).slice(0, 5) : []
 	);
 
-	function selectPatient(patient: any) {
+	function selectPatient(patient: { id: string; name: string }) {
 		patientId = patient.id;
 		patientSearch = patient.name;
 	}
@@ -75,19 +76,25 @@
 </svelte:head>
 
 <div class="max-w-2xl mx-auto space-y-6 animate-fade-in">
-	<Button variant="ghost" href="/admin/appointments" class="pl-0 hover:bg-transparent">
-		<ArrowLeft class="size-4 mr-2" />
-		Back to Appointments
-	</Button>
+	<div class="pb-2 border-b border-border flex items-end justify-between gap-4">
+		<div>
+			<p class="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">
+				Admin // Appointments
+			</p>
+			<h1 class="text-2xl font-bold tracking-tight text-foreground">Schedule New Appointment</h1>
+		</div>
+		<Button variant="ghost" size="sm" href="/admin/appointments">
+			<ArrowLeft class="size-4 mr-2" />
+			Back
+		</Button>
+	</div>
 
-	<Card>
-		<CardHeader>
-			<CardTitle class="flex items-center gap-2">
-				<CalendarPlus class="size-5 text-primary" />
-				Schedule New Appointment
-			</CardTitle>
-		</CardHeader>
-		<CardContent>
+	<section class="rounded-xl border border-border bg-card overflow-hidden">
+		<div class="px-6 py-4 border-b border-border bg-muted/20 flex items-center gap-2">
+			<CalendarPlus class="size-4 text-primary" />
+			<h2 class="text-sm font-semibold text-foreground">Appointment Details</h2>
+		</div>
+		<div class="p-6">
 			<form onsubmit={handleSubmit} class="space-y-6">
 				<!-- Patient Search -->
 				<div class="space-y-2 relative">
@@ -134,7 +141,7 @@
 						</div>
 					{/if}
 					{#if patientId}
-						<p class="text-xs text-green-600 font-medium">✓ Patient selected</p>
+						<p class="text-xs text-triage-green font-medium">✓ Patient selected</p>
 					{/if}
 				</div>
 
@@ -207,8 +214,10 @@
 					</div>
 				</div>
 
-				<Button type="submit" class="w-full">Schedule Appointment</Button>
+				<Button type="submit" class="w-full" disabled={isSaving}>
+					{isSaving ? 'Scheduling...' : 'Schedule Appointment'}
+				</Button>
 			</form>
-		</CardContent>
-	</Card>
+		</div>
+	</section>
 </div>

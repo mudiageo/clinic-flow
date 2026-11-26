@@ -222,7 +222,7 @@
 		</div>
 
 		<!-- Network & mDNS -->
-		<Card class="border-border/50">
+		<Card class="border-border">
 			<CardHeader class="pb-3">
 				<div class="flex items-center gap-2">
 					<Wifi class="size-5 text-primary" />
@@ -235,20 +235,18 @@
 			<CardContent class="space-y-3">
 				{#if status.mdns?.active}
 					<div
-						class="flex items-center gap-3 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20"
+						class="flex items-center gap-3 p-3 rounded-lg bg-triage-green/10 border border-triage-green/25"
 					>
-						<CheckCircle2 class="size-5 text-emerald-500 shrink-0" />
+						<CheckCircle2 class="size-5 text-triage-green shrink-0" />
 						<div>
 							<p class="text-sm font-semibold text-foreground">mDNS Active</p>
 							<p class="text-xs text-muted-foreground font-mono">
 								{status.mdns.hostname}{status.mdns.port ? `:${status.mdns.port}` : ''}
 							</p>
 						</div>
-						<Badge
-							variant="outline"
-							class="ml-auto border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
-							>Broadcasting</Badge
-						>
+						<Badge variant="outline" class="ml-auto border-triage-green/30 text-triage-green">
+							Broadcasting
+						</Badge>
 					</div>
 				{:else}
 					<div class="flex items-center gap-3 p-3 rounded-lg bg-muted/40 border border-border">
@@ -279,10 +277,10 @@
 			<CardContent class="space-y-4">
 				{#if status.pendingDevices > 0}
 					<div
-						class="flex items-center gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-sm"
+						class="flex items-center gap-2 p-3 rounded-lg bg-triage-amber/10 border border-triage-amber/25 text-sm"
 					>
-						<AlertTriangle class="size-4 text-amber-500 shrink-0" />
-						<span class="text-amber-700 dark:text-amber-400"
+						<AlertTriangle class="size-4 text-amber-700 dark:text-triage-amber shrink-0" />
+						<span class="text-amber-800 dark:text-triage-amber"
 							><strong>{status.pendingDevices}</strong> device(s) waiting for approval in
 							<a href="/admin/devices" class="underline">Device Manager</a>.</span
 						>
@@ -291,7 +289,7 @@
 
 				{#if showQr && qrDataUrl}
 					<div
-						class="flex flex-col items-center gap-4 p-6 bg-muted/30 rounded-xl border border-border/50"
+						class="flex flex-col items-center gap-4 p-6 bg-muted/30 rounded-xl border border-border"
 					>
 						<img
 							src={qrDataUrl}
@@ -306,10 +304,10 @@
 								{pairingToken?.token}
 							</p>
 							<div
-								class="flex items-center justify-center gap-1.5 text-xs mt-2"
-								class:text-emerald-500={tokenCountdown > 60}
-								class:text-amber-500={tokenCountdown <= 60 && tokenCountdown > 20}
-								class:text-red-500={tokenCountdown <= 20}
+								class="flex items-center justify-center gap-1.5 text-xs font-mono mt-2"
+								class:text-triage-green={tokenCountdown > 60}
+								class:text-triage-amber={tokenCountdown <= 60 && tokenCountdown > 20}
+								class:text-triage-red={tokenCountdown <= 20}
 							>
 								<Clock class="size-3" />
 								<span>Expires in {tokenCountdown}s</span>
@@ -348,16 +346,17 @@
 					<!-- Connected state -->
 					<div class="space-y-3">
 						<div
-							class="flex items-center gap-3 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20"
+							class="flex items-center gap-3 p-3 rounded-lg bg-triage-green/10 border border-triage-green/25"
 						>
-							<CheckCircle2 class="size-5 text-emerald-500 shrink-0" />
+							<CheckCircle2 class="size-5 text-triage-green shrink-0" />
 							<div class="flex-1 min-w-0">
 								<p class="text-sm font-semibold">Uplink Configured</p>
 								<p class="text-xs text-muted-foreground font-mono truncate">{uplinkCfg.cloudUrl}</p>
 							</div>
 							{#if uplinkConnected === true}
-								<Badge class="bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
-									>Online</Badge
+								<Badge
+									variant="outline"
+									class="bg-triage-green/10 text-triage-green border-triage-green/30">Online</Badge
 								>
 							{:else if uplinkConnected === false}
 								<Badge variant="destructive">Offline</Badge>
@@ -423,8 +422,8 @@
 										await refresh();
 									}
 								}
-							} catch (e: any) {
-								toast.error(e.message ?? 'Failed to save uplink config.');
+							} catch (e: unknown) {
+								toast.error(e instanceof Error ? e.message : 'Failed to save uplink config.');
 							} finally {
 								isSavingUplink = false;
 							}

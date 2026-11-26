@@ -107,7 +107,14 @@
 						</div>
 						<div class="space-y-1.5">
 							<Label for="email">Email Address</Label>
-							<Input id="email" type="email" bind:value={emailAddress} class="h-11" disabled required />
+							<Input
+								id="email"
+								type="email"
+								bind:value={emailAddress}
+								class="h-11"
+								disabled
+								required
+							/>
 						</div>
 					</div>
 					<div class="bg-muted/15 border-t border-border flex justify-end p-4">

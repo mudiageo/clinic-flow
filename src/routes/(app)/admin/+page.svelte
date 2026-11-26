@@ -24,7 +24,6 @@
 		TableHeader,
 		TableRow
 	} from '#lib/components/ui/table/index.ts';
-	import { SpotlightCard } from '#lib/components/ui/spotlight-card/index.ts';
 	import { NumberTicker } from '#lib/components/ui/number-ticker/index.ts';
 	import { Alert, AlertTitle, AlertDescription } from '#lib/components/ui/alert/index.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
@@ -48,7 +47,8 @@
 	import { getPhcStaffList } from '#lib/remote/admin.remote.ts';
 	import { toast } from 'svelte-sonner';
 
-	let staffList = $state<any[]>([]);
+	type StaffItem = Awaited<ReturnType<typeof getPhcStaffList>>[number];
+	let staffList = $state<StaffItem[]>([]);
 
 	onMount(async () => {
 		try {
@@ -64,7 +64,7 @@
 
 	const completedConsultations = $derived(
 		queueItems.filter(
-			(t: any) =>
+			(t) =>
 				t.status === 'done' && new Date(t.createdAt).toDateString() === new Date().toDateString()
 		).length
 	);
@@ -83,7 +83,7 @@
 			d.setDate(d.getDate() - i);
 			const dateStr = d.toDateString();
 			const count = encounters.filter(
-				(e: any) => new Date(e.visitDate).toDateString() === dateStr
+				(e) => new Date(e.visitDate).toDateString() === dateStr
 			).length;
 			days.push({ day: d.toLocaleDateString('en-US', { weekday: 'short' }), count });
 		}
@@ -91,12 +91,12 @@
 		return { days, max };
 	});
 
-	const activeStaff = $derived(staffList.filter((s: any) => s.active).slice(0, 5));
+	const activeStaff = $derived(staffList.filter((s) => s.active).slice(0, 5));
 
 	const triageStats = $derived({
-		red: queueItems.filter((t: any) => t.triageLevel === 'red').length,
-		amber: queueItems.filter((t: any) => t.triageLevel === 'amber').length,
-		green: queueItems.filter((t: any) => t.triageLevel === 'green').length
+		red: queueItems.filter((t) => t.triageLevel === 'red').length,
+		amber: queueItems.filter((t) => t.triageLevel === 'amber').length,
+		green: queueItems.filter((t) => t.triageLevel === 'green').length
 	});
 
 	const redPercent = $derived(
@@ -339,82 +339,67 @@
 		</Card>
 	{/if}
 
-	<!-- Key Metrics row -->
-	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 animate-stagger">
-		<SpotlightCard class="card-hover cursor-default">
-			<CardContent class="p-6 flex items-center justify-between">
-				<div>
-					<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-						Total Patients
-					</p>
-					<p class="text-3xl font-bold text-foreground mt-1">
-						<NumberTicker value={totalPatients} />
-					</p>
-				</div>
-				<div
-					class="size-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary ring-1 ring-primary/20"
-				>
-					<Users class="size-5" />
-				</div>
-			</CardContent>
-		</SpotlightCard>
+	<!-- Key Metrics strip -->
+	<div
+		class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-border rounded-xl border border-border bg-card overflow-hidden"
+	>
+		<div class="p-5 flex items-center justify-between gap-3">
+			<div>
+				<p class="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+					Total Patients
+				</p>
+				<p class="text-3xl font-bold font-mono tabular-nums text-foreground mt-1">
+					<NumberTicker value={totalPatients} />
+				</p>
+			</div>
+			<div class="size-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+				<Users class="size-5" />
+			</div>
+		</div>
 
-		<SpotlightCard class="card-hover cursor-default">
-			<CardContent class="p-6 flex items-center justify-between">
-				<div>
-					<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-						Queue Today
-					</p>
-					<p class="text-3xl font-bold text-foreground mt-1">
-						<NumberTicker value={queueItems.length} />
-					</p>
-				</div>
-				<div
-					class="size-12 rounded-xl bg-accent/20 flex items-center justify-center text-accent-foreground ring-1 ring-accent/30"
-				>
-					<ClipboardList class="size-5" />
-				</div>
-			</CardContent>
-		</SpotlightCard>
+		<div class="p-5 flex items-center justify-between gap-3">
+			<div>
+				<p class="text-xs font-mono uppercase tracking-wider text-muted-foreground">Queue Today</p>
+				<p class="text-3xl font-bold font-mono tabular-nums text-foreground mt-1">
+					<NumberTicker value={queueItems.length} />
+				</p>
+			</div>
+			<div
+				class="size-10 rounded-lg bg-accent/20 flex items-center justify-center text-accent-foreground"
+			>
+				<ClipboardList class="size-5" />
+			</div>
+		</div>
 
-		<SpotlightCard class="card-hover cursor-default">
-			<CardContent class="p-6 flex items-center justify-between">
-				<div>
-					<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-						Completed Today
-					</p>
-					<p class="text-3xl font-bold text-foreground mt-1">
-						<NumberTicker value={completedConsultations} />
-					</p>
-				</div>
-				<div
-					class="size-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500 ring-1 ring-green-500/20"
-				>
-					<CheckCircle2 class="size-5" />
-				</div>
-			</CardContent>
-		</SpotlightCard>
+		<div class="p-5 flex items-center justify-between gap-3">
+			<div>
+				<p class="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+					Completed Today
+				</p>
+				<p class="text-3xl font-bold font-mono tabular-nums text-foreground mt-1">
+					<NumberTicker value={completedConsultations} />
+				</p>
+			</div>
+			<div
+				class="size-10 rounded-lg bg-triage-green/10 flex items-center justify-center text-triage-green"
+			>
+				<CheckCircle2 class="size-5" />
+			</div>
+		</div>
 
-		<SpotlightCard
-			class="card-hover cursor-default"
-			color="oklch(from var(--destructive) l c h / 8%)"
-		>
-			<CardContent class="p-6 flex items-center justify-between">
-				<div>
-					<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-						Stock Alerts
-					</p>
-					<p class="text-3xl font-bold text-destructive mt-1">
-						<NumberTicker value={lowStockItems.length} />
-					</p>
-				</div>
-				<div
-					class="size-12 rounded-xl bg-destructive/10 flex items-center justify-center text-destructive ring-1 ring-destructive/20"
-				>
-					<AlertTriangle class="size-5" />
-				</div>
-			</CardContent>
-		</SpotlightCard>
+		<div class="p-5 flex items-center justify-between gap-3">
+			<div>
+				<p class="text-xs font-mono uppercase tracking-wider text-muted-foreground">Stock Alerts</p>
+				<p class="text-3xl font-bold font-mono tabular-nums text-destructive mt-1">
+					<NumberTicker value={lowStockItems.length} />
+				</p>
+			</div>
+			<div
+				class="size-10 rounded-lg bg-destructive/10 flex items-center justify-center text-destructive"
+			>
+				<AlertTriangle class="size-5" />
+			</div>
+		</div>
 	</div>
 
 	<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -458,20 +443,24 @@
 				</CardHeader>
 				<CardContent class="space-y-4">
 					{#if syncStore.pendingCount > 0}
-						<div class="flex items-center gap-4 rounded-lg border bg-amber-50/50 p-3">
-							<div class="rounded-full bg-amber-100 p-2 text-amber-600">
+						<div
+							class="flex items-center gap-4 rounded-lg border border-triage-amber/30 bg-triage-amber/10 p-3"
+						>
+							<div
+								class="rounded-full bg-triage-amber/20 p-2 text-amber-700 dark:text-triage-amber"
+							>
 								<CloudUpload class="size-4 animate-bounce" />
 							</div>
 							<div class="flex-1 space-y-1">
-								<p class="text-sm font-medium leading-none text-amber-900">Pending Offline Sync</p>
-								<p class="text-sm text-amber-700/80">
+								<p class="text-sm font-medium leading-none text-foreground">Pending Offline Sync</p>
+								<p class="text-sm text-muted-foreground">
 									{syncStore.pendingCount} records waiting to sync.
 								</p>
 							</div>
 							<Button
 								size="sm"
 								variant="outline"
-								class="h-8 border-amber-200 text-amber-700 hover:bg-amber-100"
+								class="h-8 border-triage-amber/30 text-amber-700 dark:text-triage-amber hover:bg-triage-amber/15"
 								onclick={() => syncStore.flush()}
 								disabled={syncStore.isSyncing}
 							>
@@ -510,8 +499,8 @@
 						<div
 							class="flex flex-col items-center justify-center p-6 text-center text-muted-foreground border border-dashed rounded-lg"
 						>
-							<CheckCircle2 class="size-8 text-green-500 mb-2 opacity-80" />
-							<p class="text-sm font-medium text-green-600">All Systems Nominal</p>
+							<CheckCircle2 class="size-8 text-triage-green mb-2 opacity-80" />
+							<p class="text-sm font-medium text-triage-green">All Systems Nominal</p>
 							<p class="text-xs mt-1">No alerts or pending syncs.</p>
 						</div>
 					{/if}
@@ -632,7 +621,7 @@
 						{#if syncStatus.isOnline}
 							<Badge
 								variant="outline"
-								class="bg-green-500/10 text-green-600 border-green-500/20 gap-1.5 px-2"
+								class="bg-triage-green/10 text-triage-green border-triage-green/25 gap-1.5 px-2"
 							>
 								<Wifi class="size-3" /> Online
 							</Badge>

@@ -131,7 +131,9 @@
 	</div>
 
 	<section class="rounded-xl border border-border bg-card overflow-hidden">
-		<div class="px-5 py-3.5 border-b border-border bg-muted/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+		<div
+			class="px-5 py-3.5 border-b border-border bg-muted/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+		>
 			<div>
 				<h2 class="text-base font-semibold">User Directory</h2>
 				<p class="text-xs text-muted-foreground">Comprehensive list of registered staff</p>
