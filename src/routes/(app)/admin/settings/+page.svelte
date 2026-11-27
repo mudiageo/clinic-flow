@@ -34,6 +34,7 @@
 	} from '@lucide/svelte';
 	import { Switch } from '#lib/components/ui/switch/index.ts';
 	import { settingsStore } from '#lib/state/settings.svelte.ts';
+	import HybridAiConsole from '#lib/components/hybrid-ai-console.svelte';
 
 	type SettingsData = Awaited<ReturnType<typeof getPhcSettings>>;
 	let { data }: { data: { settings: SettingsData } } = $props();
@@ -427,6 +428,9 @@
 				</Button>
 			</CardFooter>
 		</Card>
+
+		<!-- Hybrid AI Telemetry & Remote Policy Console (#BuildHybridAI) -->
+		<HybridAiConsole />
 	</form>
 
 	<!-- Danger Zone -->

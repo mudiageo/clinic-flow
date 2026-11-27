@@ -19,6 +19,7 @@
 	import QRCode from 'qrcode';
 	import { Search, Printer, Scan, ArrowRight, Check } from '@lucide/svelte';
 	import { fade } from 'svelte/transition';
+	import NursePreTriage, { type PreTriageResult } from '#lib/components/nurse-pre-triage.svelte';
 
 	let showScanner = $state(false);
 	let searchQuery = $state('');
@@ -53,7 +54,10 @@
 		community: '',
 		nextOfKinName: '',
 		nextOfKinPhone: '',
-		hasConsent: false
+		hasConsent: false,
+		triagePriority: 'green' as 'red' | 'amber' | 'green',
+		triageComplaint: '',
+		triageRationale: ''
 	});
 
 	let isSubmitting = $state(false);
@@ -118,8 +122,8 @@
 				encounterId: null,
 				ticketNumber: queueStore.allocateTicketNumber(sessionStore.activePhcId),
 				status: 'waiting',
-				triageLevel: 'green',
-				triageReason: 'New Registration',
+				triageLevel: form.triagePriority,
+				triageReason: form.triageRationale || 'New Registration',
 				department: 'general',
 				calledAt: null,
 				completedAt: null,
@@ -428,6 +432,20 @@
 										</div>
 									</label>
 								</div>
+
+								<!-- Pre-Triage Assistant (#BuildHybridAI 2026) -->
+								<NursePreTriage
+									patientName={form.name}
+									patientAge={form.dob
+										? new Date().getFullYear() - new Date(form.dob).getFullYear()
+										: ''}
+									patientSex={form.sex}
+									onApplyTriage={(triage) => {
+										form.triagePriority = triage.suggestedPriority;
+										form.triageComplaint = triage.normalizedComplaint;
+										form.triageRationale = triage.priorityRationale;
+									}}
+								/>
 							</div>
 						{/if}
 					</div>

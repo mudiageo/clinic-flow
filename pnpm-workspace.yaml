@@ -5,6 +5,7 @@ allowBuilds:
   esbuild: true
   protobufjs: true
   '@tailwindcss/oxide': true
+  '@firebase/util': true
 minimumReleaseAgeExclude:
   - vite@8.2.0
   - '@changesets/apply-release-plan@8.1.1'

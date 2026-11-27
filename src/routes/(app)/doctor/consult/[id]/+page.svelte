@@ -43,6 +43,9 @@
 	import { getClinicalDecisionSupport, generateSoapNote } from '#lib/remote/ai.remote.ts';
 	import { lookupRegistryFacilities } from '#lib/remote/facility-registry.remote.ts';
 	import AiDisclaimer from '#lib/components/ui/ai-disclaimer.svelte';
+	import PatientCarePlan from '#lib/components/patient-care-plan.svelte';
+	import CompletenessGuard from '#lib/components/completeness-guard.svelte';
+	import ClinicalDocScanner from '#lib/components/clinical-doc-scanner.svelte';
 	import {
 		Stethoscope,
 		Mic,
@@ -551,6 +554,15 @@ P: ${res.plan}`;
 						</div>
 					{/if}
 
+					<!-- Pre-Close Completeness Guard (#BuildHybridAI) -->
+					<CompletenessGuard
+						{chiefComplaint}
+						{doctorNotes}
+						{vitals}
+						{prescriptions}
+						labTests={testType ? [testType] : []}
+					/>
+
 					<!-- Recent Encounters -->
 					<div>
 						<h4 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
@@ -617,6 +629,18 @@ P: ${res.plan}`;
 									<Sparkles class="size-3.5" />
 									Dr. Assist
 								</div>
+							</TabsTrigger>
+							<TabsTrigger
+								value="care-plan"
+								class="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-2"
+							>
+								Care Plan
+							</TabsTrigger>
+							<TabsTrigger
+								value="scanner"
+								class="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-2"
+							>
+								OCR Scanner
 							</TabsTrigger>
 						</TabsList>
 					</div>
@@ -1042,6 +1066,30 @@ P: ${res.plan}`;
 									</div>
 								{/if}
 							{/if}
+						</TabsContent>
+						<TabsContent value="care-plan" class="m-0 space-y-4 animate-in fade-in-50 zoom-in-95">
+							<PatientCarePlan
+								patientName={patient?.name}
+								{chiefComplaint}
+								{doctorNotes}
+								{prescriptions}
+							/>
+						</TabsContent>
+
+						<TabsContent value="scanner" class="m-0 space-y-4 animate-in fade-in-50 zoom-in-95">
+							<ClinicalDocScanner
+								onApplyExtractedData={(extracted) => {
+									if (extracted.extractedNotes) {
+										doctorNotes = doctorNotes
+											? `${doctorNotes}\n\n[OCR Notes]: ${extracted.extractedNotes}`
+											: `[OCR Notes]: ${extracted.extractedNotes}`;
+									}
+									if (extracted.testName && extracted.testResult) {
+										testType = extracted.testName;
+										labNotes = `Result: ${extracted.testResult}`;
+									}
+								}}
+							/>
 						</TabsContent>
 					</div>
 
